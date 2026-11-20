@@ -256,9 +256,9 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     azurerm_role_assignment.test_vault_msi_read_on_cluster,
     azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
     azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_contributor_on_storage,
     azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
     azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
-    azurerm_role_assignment.test_vault_data_contributor_on_storage,
   ]
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -276,6 +276,11 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "import" {
   backup_policy_id             = azurerm_data_protection_backup_instance_kubernetes_cluster.test.backup_policy_id
   kubernetes_cluster_id        = azurerm_data_protection_backup_instance_kubernetes_cluster.test.kubernetes_cluster_id
   snapshot_resource_group_name = azurerm_data_protection_backup_instance_kubernetes_cluster.test.snapshot_resource_group_name
+
+  backup_datasource_parameters {
+    volume_snapshot_enabled          = false
+    cluster_scoped_resources_enabled = false
+  }
 }
 `, config)
 }
@@ -292,6 +297,11 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.test.id
   kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
   snapshot_resource_group_name = azurerm_resource_group.snap.name
+
+  backup_datasource_parameters {
+    volume_snapshot_enabled          = false
+    cluster_scoped_resources_enabled = false
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -315,7 +325,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
     cluster_scoped_resources_enabled = true
     included_namespaces              = ["test-included-namespaces"]
     included_resource_types          = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                  = ["kubernetes.io/metadata.name:test"]
+    label_selectors                  = ["kubernetes.io/metadata.name=test"]
     volume_snapshot_enabled          = false
   }
 

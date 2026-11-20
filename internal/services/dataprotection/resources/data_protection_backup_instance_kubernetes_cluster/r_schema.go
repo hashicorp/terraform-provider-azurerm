@@ -4,16 +4,22 @@
 package data_protection_backup_instance_kubernetes_cluster
 
 import (
+	"context"
+	"errors"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -47,7 +53,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -108,6 +114,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		args["backup_datasource_parameters"].Required = false
+		args["backup_datasource_parameters"].Optional = true
+	}
+
+	return args
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
@@ -115,6 +128,32 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"protection_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+	}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if !features.SixPointOh() {
+				// For versions prior to 6.0, ensure that `backup_datasource_parameters` is specified.
+				// Otherwise, Azure backend validations reject it with UserErrorInvalidBackupDatasourceParameters.
+				config := metadata.ResourceDiff.GetRawConfig()
+				if !config.IsKnown() || config.IsNull() {
+					return nil
+				}
+
+				parameters := config.GetAttr("backup_datasource_parameters")
+				if !parameters.IsKnown() {
+					return nil
+				}
+				if parameters.IsNull() || parameters.LengthInt() == 0 {
+					return errors.New("`backup_datasource_parameters` must be specified")
+				}
+			}
+
+			return nil
 		},
 	}
 }
