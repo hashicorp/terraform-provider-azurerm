@@ -26,7 +26,7 @@ func RegisterResource() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.ProbeId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.ProbeId{}, loadBalancerProbeResourceImporter),
+		Importer: pluginsdk.ImporterValidatingIdentity(&loadbalancers.ProbeId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
