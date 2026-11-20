@@ -294,7 +294,11 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
+~> **Note:** Setting `authorized_ip_ranges` to `[]` or `null`, omitting it from this block, or removing a block that contains only authorized IP ranges removes any existing IP restrictions. On a public cluster, this allows API server access from any IP address; authentication and authorization are still required.
+
 * `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
+
+~> **Note:** Removing a configured `subnet_id`, including by removing the entire `api_server_access_profile` block, forces a new Kubernetes Cluster to be created. To clear only authorized IP ranges, retain the block's `subnet_id` and `virtual_network_integration_enabled` settings.
 
 * `virtual_network_integration_enabled` - (Optional) Whether to enable virtual network integration for the API Server. Defaults to `false`.
 
