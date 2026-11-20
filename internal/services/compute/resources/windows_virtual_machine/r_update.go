@@ -67,6 +67,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	shouldUpdate := false
+	shouldUpdateDiskTags := false
 	shouldShutDown := false
 	shouldDeallocate := false
 
@@ -442,6 +443,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 
 		tagsRaw := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(tagsRaw)
+
+		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) == "" && !hasEphemeralOSDisk {
+			// only keep the disk tags in sync with the VM tags if the OS disk is managed by the VM (i.e. not attached or ephemeral)
+			shouldUpdateDiskTags = true
+		}
 	}
 
 	var osImageNotificationProfile *virtualmachines.OSImageNotificationProfile
@@ -625,6 +631,22 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 			return fmt.Errorf("starting Windows %s: %+v", id, err)
 		}
 		log.Printf("[DEBUG] Started Windows %s", id)
+	}
+
+	if shouldUpdateDiskTags {
+		diskName := d.Get("os_disk.0.name").(string)
+
+		disksClient := meta.(*clients.Client).Compute.DisksClient
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
+
+		diskUpdate := disks.DiskUpdate{
+			Tags: update.Tags,
+		}
+
+		if err = disksClient.UpdateThenPoll(ctx, id, diskUpdate); err != nil {
+			return fmt.Errorf("updating tags on OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
+		}
 	}
 
 	return resourceWindowsVirtualMachineRead(d, meta)
