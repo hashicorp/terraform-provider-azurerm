@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -136,27 +137,17 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%d"
-  location = "%s"
+  name     = "acctest-dataprotection-%[1]d"
+  location = "%[2]s"
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-bv-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[4]s
 
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctest-key-vault-%s"
+  name                        = "acctest-key-vault-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   rbac_authorization_enabled  = false
@@ -213,7 +204,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkey-%s"
+  name         = "acctestkey-%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -228,7 +219,7 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.templateBackupVault(data))
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) complete(data acceptance.TestData) string {
@@ -539,26 +530,53 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   ]
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-bv-%[4]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[5]s
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "backup-vault" {
   managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
-  name               = "%[5]s"
+  name               = "%[4]s"
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.encrypt-user.resource_manager_id
   principal_id       = azurerm_data_protection_backup_vault.test.identity.0.principal_id
 
   depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test1]
 }
-`, data.RandomString, uuid1, uuid2, data.RandomInteger, uuid3)
+`, data.RandomString, uuid1, uuid2, uuid3, r.templateBackupVault(data))
+}
+
+func (DataProtectionBackupVaultCustomerManagedKeyResource) templateBackupVault(data acceptance.TestData) string {
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  soft_delete         = "On"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  soft_delete         = "On"
+
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
 }

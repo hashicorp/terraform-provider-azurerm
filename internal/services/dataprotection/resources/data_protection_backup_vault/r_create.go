@@ -5,6 +5,7 @@ package data_protection_backup_vault
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -52,12 +53,6 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	parameters := backupvaultresources.BackupVaultResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: backupvaultresources.BackupVault{
-			StorageSettings: []backupvaultresources.StorageSetting{
-				{
-					DatastoreType: pointer.ToEnum[backupvaultresources.StorageSettingStoreTypes](d.Get("datastore_type").(string)),
-					Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](d.Get("redundancy").(string)),
-				},
-			},
 			SecuritySettings: &backupvaultresources.SecuritySettings{
 				SoftDeleteSettings: &backupvaultresources.SoftDeleteSettings{
 					State: pointer.ToEnum[backupvaultresources.SoftDeleteState](d.Get("soft_delete").(string)),
@@ -69,6 +64,25 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]any)),
+	}
+
+	if v, ok := d.GetOk("storage_setting"); ok {
+		parameters.Properties.StorageSettings = expandBackupVaultStorageSettings(v.([]any))
+	}
+	if !features.SixPointOh() {
+		parameters.Properties.StorageSettings = []backupvaultresources.StorageSetting{
+			{
+				DatastoreType: pointer.ToEnum[backupvaultresources.StorageSettingStoreTypes](d.Get("datastore_type").(string)),
+				Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](d.Get("redundancy").(string)),
+			},
+		}
+		// Azure requires a VaultStore alongside ArchiveStore; use the configured redundancy for both.
+		if strings.EqualFold(d.Get("datastore_type").(string), string(backupvaultresources.StorageSettingStoreTypesArchiveStore)) {
+			parameters.Properties.StorageSettings = append(parameters.Properties.StorageSettings, backupvaultresources.StorageSetting{
+				DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypesVaultStore),
+				Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](d.Get("redundancy").(string)),
+			})
+		}
 	}
 
 	alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
@@ -118,6 +132,18 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	return resourceDataProtectionBackupVaultRead(d, meta)
+}
+
+func expandBackupVaultStorageSettings(input []any) []backupvaultresources.StorageSetting {
+	result := make([]backupvaultresources.StorageSetting, 0, len(input))
+	for _, raw := range input {
+		setting := raw.(map[string]any)
+		result = append(result, backupvaultresources.StorageSetting{
+			DatastoreType: pointer.ToEnum[backupvaultresources.StorageSettingStoreTypes](setting["datastore_type"].(string)),
+			Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](setting["redundancy"].(string)),
+		})
+	}
+	return result
 }
 
 func expandBackupVaultDppIdentityDetails(input []any) (*backupvaultresources.DppIdentityDetails, error) {

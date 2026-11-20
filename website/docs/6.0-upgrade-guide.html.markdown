@@ -82,6 +82,8 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_data_protection_backup_vault`
 
+* The top-level `datastore_type` and `redundancy` arguments have moved into the `storage_setting` block.
+* Configuring `ArchiveStore` now requires an explicit `storage_setting` block for `VaultStore`.
 * The `alerts_for_all_job_failures_enabled` property now defaults to `true`.
 
 ### `azurerm_databricks_workspace`
@@ -116,3 +118,7 @@ Please follow the format in the example below for listing breaking changes in da
 ```
 
 ---
+
+### `azurerm_data_protection_backup_vault`
+
+* The top-level `datastore_type` and `redundancy` attributes have moved into `storage_settings`, which returns all data stores.
