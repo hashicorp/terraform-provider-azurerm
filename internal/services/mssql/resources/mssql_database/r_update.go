@@ -97,6 +97,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 		props.ElasticPoolId = pointer.To(d.Get("elastic_pool_id").(string))
 	}
 
+	// sending `""` to the API can remove this property.
+	if d.HasChange("federated_client_id") {
+		props.FederatedClientId = pointer.To(d.Get("federated_client_id").(string))
+	}
+
 	if d.HasChange("license_type") {
 		props.LicenseType = pointer.ToEnum[databases.DatabaseLicenseType](d.Get("license_type").(string))
 	}
