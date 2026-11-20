@@ -34,18 +34,38 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			ForceNew:      true,
 			ValidateFunc:  storageValidate.StorageAccountName,
-			RequiredWith:  []string{"access_key"},
 			ConflictsWith: []string{"nfs_server_url"},
 			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
 		"access_key": {
-			Type:         pluginsdk.TypeString,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Sensitive:     true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			RequiredWith:  []string{"account_name"},
+			AtLeastOneOf:  []string{"access_key", "access_key_wo", "nfs_server_url"},
+			ConflictsWith: []string{"access_key_wo", "nfs_server_url"},
+			Description:   "The Storage Account Access Key.",
+		},
+
+		"access_key_wo": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			WriteOnly:     true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			RequiredWith:  []string{"account_name", "access_key_wo_version"},
+			AtLeastOneOf:  []string{"access_key", "access_key_wo", "nfs_server_url"},
+			ConflictsWith: []string{"access_key", "nfs_server_url"},
+			Description:   "The Storage Account Access Key.",
+		},
+
+		"access_key_wo_version": {
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"account_name"},
-			Description:  "The Storage Account Access Key.",
+			RequiredWith: []string{"access_key_wo"},
+			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "An integer value used to trigger an update for `access_key_wo`. This property should be incremented when updating `access_key_wo`.",
 		},
 
 		"share_name": {
@@ -68,7 +88,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			ForceNew:      true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"account_name"},
+			AtLeastOneOf:  []string{"access_key", "access_key_wo", "nfs_server_url"},
+			ConflictsWith: []string{"account_name", "access_key", "access_key_wo"},
 		},
 	}
 }
