@@ -182,8 +182,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsIPv4Address,
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.Any(
+					validation.IsIPv4Address,
+					validation.IsCIDR,
+				),
 			},
 		},
 
