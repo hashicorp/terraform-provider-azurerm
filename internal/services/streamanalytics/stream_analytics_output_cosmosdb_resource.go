@@ -207,7 +207,17 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 					state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
 
-					databaseId := cosmosdb.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
+					// The Stream Analytics API does not return the Cosmos DB account's subscription or resource group, so preserve them from the existing state to avoid drift when the account is in a different subscription or resource group than the job
+					databaseSubscriptionId := id.SubscriptionId
+					databaseResourceGroupName := id.ResourceGroupName
+					if existing := metadata.ResourceData.Get("cosmosdb_sql_database_id").(string); existing != "" {
+						if existingDatabaseId, err := cosmosdb.ParseSqlDatabaseID(existing); err == nil {
+							databaseSubscriptionId = existingDatabaseId.SubscriptionId
+							databaseResourceGroupName = existingDatabaseId.ResourceGroupName
+						}
+					}
+
+					databaseId := cosmosdb.NewSqlDatabaseID(databaseSubscriptionId, databaseResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
 					state.Database = databaseId.ID()
 
 					state.ContainerName = pointer.From(output.Properties.CollectionNamePattern)
