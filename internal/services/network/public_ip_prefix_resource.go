@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,6 +68,8 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
 			},
+
+			"edge_zone": publicIpPrefixEdgeZoneSchema(),
 
 			"sku": {
 				Type:         pluginsdk.TypeString,
@@ -121,6 +125,25 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 	}
 }
 
+func publicIpPrefixEdgeZoneSchema() *pluginsdk.Schema {
+	s := commonschema.EdgeZoneOptionalForceNew()
+
+	if !features.SixPointOh() {
+		// A recreated Public IP Prefix is allocated a different IP range, so to avoid unexpectedly replacing an existing
+		// Public IP Prefix which is already within an Edge Zone (e.g. one which has been imported), omitting `edge_zone`
+		// from the configuration is ignored rather than forcing a new resource. Changing between Edge Zones still forces a new resource.
+		s.DiffSuppressFunc = func(k, old, new string, d *pluginsdk.ResourceData) bool {
+			if old != "" && new == "" {
+				return true
+			}
+
+			return edgezones.DiffSuppressFunc(k, old, new, d)
+		}
+	}
+
+	return s
+}
+
 func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -142,7 +165,8 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	publicIpPrefix := publicipprefixes.PublicIPPrefix{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Sku: &publicipprefixes.PublicIPPrefixSku{
 			Name: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuName](d.Get("sku").(string)),
 			Tier: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuTier](d.Get("sku_tier").(string)),
@@ -243,6 +267,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta any) error {
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", pointer.FromEnum(sku.Name))
