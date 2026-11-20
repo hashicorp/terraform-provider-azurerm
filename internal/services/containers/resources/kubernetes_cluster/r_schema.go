@@ -1116,6 +1116,13 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Computed:     true, // azignore:AZS007 - pre-existing violation
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
+								"sku": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									// NOTE: O+C AKS has a region-specific default, and omitting this field must preserve an existing cluster's SKU
+									Computed:     true,
+									ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForManagedClusterNATGatewaySku(), false),
+								},
 								"effective_outbound_ips": {
 									Type:     pluginsdk.TypeSet,
 									Computed: true,
