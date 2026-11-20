@@ -14,8 +14,9 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -44,6 +45,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_dedicated_hardware_security_module": dedicated_hardware_security_module.RegisterResource(),
 	}
+}
+
+// Resources returns the typed Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		CloudHardwareSecurityModuleClusterResource{},
+	}
+}
+
+// DataSources implements sdk.TypedServiceRegistration.
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }
 
 func (r Registration) Actions() []func() action.Action {
