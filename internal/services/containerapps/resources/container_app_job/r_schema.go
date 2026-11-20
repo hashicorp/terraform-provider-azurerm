@@ -35,8 +35,10 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"workload_profile_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure defaults to Consumption in workload profiles environments but returns null in Consumption-only environments.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
