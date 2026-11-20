@@ -43,6 +43,22 @@ func testAccDataSourceExpressRoute_basicMetered(t *testing.T) {
 	})
 }
 
+func testAccDataSourceExpressRoute_multiCloudPartnerAccountId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.multiCloudPartnerAccountId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("partner_account_id").HasValue("123456789012"),
+				check.That(data.ResourceName).Key("activation_key").Exists(),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("MultiCloud"),
+			),
+		},
+	})
+}
+
 func (ExpressRouteCircuitDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -52,4 +68,15 @@ data "azurerm_express_route_circuit" "test" {
   name                = azurerm_express_route_circuit.test.name
 }
 `, ExpressRouteCircuitResource{}.basicMeteredConfig(data))
+}
+
+func (ExpressRouteCircuitDataSource) multiCloudPartnerAccountId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_express_route_circuit" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_express_route_circuit.test.name
+}
+`, ExpressRouteCircuitResource{}.multiCloudPartnerAccountId(data))
 }

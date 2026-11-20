@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,6 +36,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": commonschema.LocationComputed(),
+
+			"activation_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"partner_account_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
 			"peerings": {
 				Type:     pluginsdk.TypeList,
@@ -156,6 +167,8 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) erro
 
 			d.Set("service_key", props.ServiceKey)
 			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
+			d.Set("activation_key", props.ActivationKey)
+			d.Set("partner_account_id", props.PartnerAccountId)
 
 			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
 				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {

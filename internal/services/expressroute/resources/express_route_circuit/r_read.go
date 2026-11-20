@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,6 +63,8 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) error 
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
 			d.Set("rate_limiting_enabled", props.EnableDirectPortRateLimit)
+			d.Set("activation_key", props.ActivationKey)
+			d.Set("partner_account_id", props.PartnerAccountId)
 
 			if serviceProviderProps := props.ServiceProviderProperties; serviceProviderProps != nil {
 				d.Set("service_provider_name", serviceProviderProps.ServiceProviderName)
