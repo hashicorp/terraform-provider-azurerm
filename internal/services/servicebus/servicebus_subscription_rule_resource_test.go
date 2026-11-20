@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceBusSubscriptionRuleResource struct{}
+type ServicebusSubscriptionRuleResource struct{}
 
 func TestAccServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 
 func TestAccServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 
 func TestAccServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 
 func TestAccServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) {
 
 func TestAccServiceBusSubscriptionRule_correlationFilterWithAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccServiceBusSubscriptionRule_correlationFilterWithAction(t *testing.T)
 
 func TestAccServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +114,7 @@ func TestAccServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 
 func TestAccServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -138,7 +138,7 @@ func TestAccServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 
 func TestAccServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -158,7 +158,7 @@ func TestAccServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *tes
 
 func TestAccServiceBusSubscriptionRule_correlationFilterWhiteSpace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	r := ServiceBusSubscriptionRuleResource{}
+	r := ServicebusSubscriptionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -168,7 +168,7 @@ func TestAccServiceBusSubscriptionRule_correlationFilterWhiteSpace(t *testing.T)
 	})
 }
 
-func (t ServiceBusSubscriptionRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusSubscriptionRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := rules.ParseRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func (t ServiceBusSubscriptionRuleResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ServiceBusSubscriptionRuleResource) basicSqlFilter(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) basicSqlFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -195,7 +195,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) requiresImport(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -208,7 +208,7 @@ resource "azurerm_servicebus_subscription_rule" "import" {
 `, r.basicSqlFilter(data))
 }
 
-func (r ServiceBusSubscriptionRuleResource) basicSqlFilterUpdated(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) basicSqlFilterUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -221,7 +221,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) sqlFilterWithAction(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) sqlFilterWithAction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -235,7 +235,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) basicCorrelationFilter(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) basicCorrelationFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -258,7 +258,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) correlationFilter(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) correlationFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -278,7 +278,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) correlationFilterUpdated(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) correlationFilterUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -299,7 +299,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) correlationFilterWithAction(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) correlationFilterWithAction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -317,7 +317,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ServiceBusSubscriptionRuleResource) correlationFilterWhiteSpace(data acceptance.TestData) string {
+func (r ServicebusSubscriptionRuleResource) correlationFilterWhiteSpace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -334,7 +334,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (ServiceBusSubscriptionRuleResource) template(data acceptance.TestData) string {
+func (ServicebusSubscriptionRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
