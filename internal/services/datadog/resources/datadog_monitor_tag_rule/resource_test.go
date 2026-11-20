@@ -102,6 +102,21 @@ func TestAccDatadogMonitorTagRules_update(t *testing.T) {
 	})
 }
 
+func TestAccDatadogMonitorTagRules_emptyBlocks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
+	r := TagRulesDatadogMonitorResource{}
+	r.populateFromEnvironment(t)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyBlocks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := tagrules.ParseTagRuleID(state.ID)
 	if err != nil {
@@ -214,6 +229,22 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
       action = "Include"
     }
   }
+}
+`, r.template(data))
+}
+
+func (r TagRulesDatadogMonitorResource) emptyBlocks(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_datadog_monitor_tag_rule" "test" {
+  datadog_monitor_id = azurerm_datadog_monitor.test.id
+  log {}
+  metric {}
 }
 `, r.template(data))
 }
