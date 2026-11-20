@@ -54,6 +54,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keys.JsonWebKeyOperationDecrypt),
 					string(keys.JsonWebKeyOperationEncrypt),
+					string(keys.JsonWebKeyOperationImport),
 					string(keys.JsonWebKeyOperationSign),
 					string(keys.JsonWebKeyOperationUnwrapKey),
 					string(keys.JsonWebKeyOperationVerify),
