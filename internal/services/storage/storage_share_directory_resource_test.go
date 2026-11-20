@@ -79,6 +79,18 @@ func TestAccStorageShareDirectory_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStorageShareDirectory_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
+	r := StorageShareDirectoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
+
 func TestAccStorageShareDirectory_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 	r := StorageShareDirectoryResource{}
@@ -173,6 +185,28 @@ func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clien
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Storage Share %q (File Share %q in %s): %+v", id.DirectoryPath, id.ShareName, account.StorageAccountId, err)
+	}
+	return pointer.To(true), nil
+}
+
+func (r StorageShareDirectoryResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := directories.ParseDirectoryID(state.ID, client.Storage.StorageDomainSuffix)
+	if err != nil {
+		return nil, err
+	}
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Directory %q (Share %q): %s", id.AccountId.AccountName, id.DirectoryPath, id.ShareName, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Share Directory %q (Share %q / Account %q)", id.DirectoryPath, id.ShareName, id.AccountId.AccountName)
+	}
+	dirClient, err := client.Storage.FileShareDirectoriesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return nil, fmt.Errorf("building File Share client for %s: %+v", account.StorageAccountId, err)
+	}
+	if _, err := dirClient.Delete(ctx, id.ShareName, id.DirectoryPath); err != nil {
+		return nil, fmt.Errorf("deleting Storage Share Directory %q (File Share %q in %s): %+v", id.DirectoryPath, id.ShareName, account.StorageAccountId, err)
 	}
 	return pointer.To(true), nil
 }
