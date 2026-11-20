@@ -77,12 +77,16 @@ func (r Resource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
+			if metadata.ResourceData.HasChanges("csrf_always_check", "snapshot_external_enabled", "unified_alerting_screenshots_capture_enabled", "users") {
+				properties.Properties.GrafanaConfigurations = expandGrafanaConfigurationsModel(model.SMTP, model.CsrfAlwaysCheck, model.SnapshotExternalEnabled, model.UnifiedAlertingScreenshotsCaptureEnabled, model.UsersConfiguration)
+			}
+
 			// The SMTP password is never returned by the API, so it must be re-expanded from config on every update,
 			// not just when `smtp` changes, otherwise Azure rejects the request with `InvalidConfigurationForSMTP`.
 			if properties.Properties.GrafanaConfigurations != nil {
 				properties.Properties.GrafanaConfigurations.Smtp = expandSMTPConfigurationModel(model.SMTP)
 			} else {
-				properties.Properties.GrafanaConfigurations = expandGrafanaConfigurationsModel(model.SMTP)
+				properties.Properties.GrafanaConfigurations = expandGrafanaConfigurationsModel(model.SMTP, model.CsrfAlwaysCheck, model.SnapshotExternalEnabled, model.UnifiedAlertingScreenshotsCaptureEnabled, model.UsersConfiguration)
 			}
 
 			if metadata.ResourceData.HasChange("grafana_major_version") {
