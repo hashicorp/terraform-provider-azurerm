@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines` Documentation
 
-The `virtualmachines` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2024-03-01`).
+The `virtualmachines` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2025-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines"
 ```
 
 
@@ -225,12 +225,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName")
 
-read, err := client.ListAvailableSizes(ctx, id)
+// alternatively `client.ListAvailableSizes(ctx, id)` can be used to do batched pagination
+items, err := client.ListAvailableSizesComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -248,6 +249,23 @@ if err != nil {
 }
 for _, item := range items {
 	// do something
+}
+```
+
+
+### Example Usage: `VirtualMachinesClient.MigrateToVMScaleSet`
+
+```go
+ctx := context.TODO()
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName")
+
+payload := virtualmachines.MigrateVMToVirtualMachineScaleSetInput{
+	// ...
+}
+
+
+if err := client.MigrateToVMScaleSetThenPoll(ctx, id, payload); err != nil {
+	// handle the error
 }
 ```
 

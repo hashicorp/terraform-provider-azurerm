@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"

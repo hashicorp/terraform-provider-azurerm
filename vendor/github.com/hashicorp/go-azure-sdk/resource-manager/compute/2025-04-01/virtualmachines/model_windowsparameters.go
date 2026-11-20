@@ -15,6 +15,8 @@ type WindowsParameters struct {
 	KbNumbersToExclude        *[]string                            `json:"kbNumbersToExclude,omitempty"`
 	KbNumbersToInclude        *[]string                            `json:"kbNumbersToInclude,omitempty"`
 	MaxPatchPublishDate       *string                              `json:"maxPatchPublishDate,omitempty"`
+	PatchNameMasksToExclude   *[]string                            `json:"patchNameMasksToExclude,omitempty"`
+	PatchNameMasksToInclude   *[]string                            `json:"patchNameMasksToInclude,omitempty"`
 }
 
 func (o *WindowsParameters) GetMaxPatchPublishDateAsTime() (*time.Time, error) {
