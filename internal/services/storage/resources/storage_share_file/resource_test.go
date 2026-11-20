@@ -1,0 +1,491 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package storage_share_file_test
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"regexp"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
+)
+
+type StorageShareFileResource struct{}
+
+func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAzureADAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_length").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
+	sourceBlob, err := os.CreateTemp("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withFile(data, sourceBlob.Name()),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_length").Exists(),
+			),
+		},
+		data.ImportStep("source"),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withSourceContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	content := "My shopping list:\n* eggs\n* bananas\n* kiwis\n* milk tea\n"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSourceContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_length").Exists(),
+				data.CheckWithClient(r.fileMatchesContent([]byte(content))),
+			),
+		},
+		data.ImportStep("source_content"),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
+	sourceBlob, err := os.CreateTemp("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withFile(data, sourceBlob.Name()),
+			ExpectError: regexp.MustCompile(`Error: file .* is empty`),
+		},
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withPathUsingBackslashes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPathUsingBackslashes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withPathInNameUsingBackslashes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPathInNameUsingBackslashes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, id.AccountId.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
+	}
+	if account == nil {
+		return pointer.To(false), nil
+	}
+
+	client, err := clients.Storage.FileShareFilesDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return nil, fmt.Errorf("building File Share Files Client: %s", err)
+	}
+
+	resp, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q in %s): %+v", id.FileName, id.ShareName, account.StorageAccountId, err)
+		}
+	}
+
+	return pointer.To(true), nil
+}
+
+func (StorageShareFileResource) fileMatchesContent(expectedContents []byte) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, time.Now().Add(10*time.Minute))
+			defer cancel()
+		}
+
+		id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
+
+		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, id.AccountId.AccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
+		}
+
+		client, err := clients.Storage.FileShareFilesDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+		if err != nil {
+			return fmt.Errorf("building File Share Files Client: %s", err)
+		}
+
+		resp, err := client.GetByteRange(ctx, id.ShareName, id.DirectoryPath, id.FileName, files.GetByteRangeInput{
+			StartBytes: 0,
+			EndBytes:   4 * 1024,
+		})
+		if err != nil {
+			return fmt.Errorf("retrieving File %q (File Share %q in %s): %+v", id.FileName, id.ShareName, account.StorageAccountId, err)
+		}
+
+		if resp.Contents == nil {
+			return fmt.Errorf("bad: File %q (File Share %q) returned nil contents", id.FileName, id.ShareName)
+		}
+
+		if strings.TrimSpace(string(*resp.Contents)) != strings.TrimSpace(string(expectedContents)) {
+			return fmt.Errorf("bad: File %q (File Share %q) content does not match expected content", id.FileName, id.ShareName)
+		}
+
+		return nil
+	}
+}
+
+func (StorageShareFileResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageShareFileResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "file"
+  storage_share_url = azurerm_storage_share.test.url
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.template(data))
+}
+
+func (r StorageShareFileResource) basicAzureADAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "file"
+  storage_share_url = azurerm_storage_share.test.url
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageShareFileResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "import" {
+  name              = azurerm_storage_share_file.test.name
+  storage_share_url = azurerm_storage_share_file.test.storage_share_url
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.basic(data))
+}
+
+func (r StorageShareFileResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "file"
+  storage_share_url = azurerm_storage_share.test.url
+
+
+  content_type        = "test_content_type"
+  content_encoding    = "test_encoding"
+  content_disposition = "test_content_disposition"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.template(data))
+}
+
+func (r StorageShareFileResource) withFile(data acceptance.TestData, fileName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "test"
+  storage_share_url = azurerm_storage_share.test.url
+
+  source      = "%[2]s"
+  content_md5 = filemd5(%[2]q)
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.template(data), fileName)
+}
+
+func (r StorageShareFileResource) withSourceContent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "my-shopping-list.txt"
+  storage_share_url = azurerm_storage_share.test.url
+
+  source_content = <<-EOT
+My shopping list:
+* eggs
+* bananas
+* kiwis
+* milk tea
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.template(data))
+}
+
+func (r StorageShareFileResource) withPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_directory" "parent" {
+  name              = "parent"
+  storage_share_url = azurerm_storage_share.test.url
+}
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "test"
+  path              = azurerm_storage_share_directory.parent.name
+  storage_share_url = azurerm_storage_share.test.url
+}
+`, r.template(data))
+}
+
+func (r StorageShareFileResource) withPathUsingBackslashes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "command.com"
+  path              = "c\\dos"
+  storage_share_url = azurerm_storage_share.test.url
+  depends_on        = [azurerm_storage_share_directory.dos]
+}
+`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+}
+
+func (r StorageShareFileResource) withPathInNameUsingBackslashes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "c\\dos\\command.com"
+  storage_share_url = azurerm_storage_share.test.url
+  depends_on        = [azurerm_storage_share_directory.dos]
+}
+`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+}
