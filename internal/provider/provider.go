@@ -514,6 +514,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 
 	client.StopContext = stopCtx
 
+	if features.EnhancedValidation.ResourceProviders {
+		if err := resourceproviders.ValidateSupported(additionalProvidersToRegister); err != nil {
+			return nil, diag.Errorf("validating `resource_providers_to_register`: %+v", err)
+		}
+	}
+
 	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
