@@ -31,7 +31,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeCustomKeys, r.ResourceType()); err != nil {
+			if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeCustomKeys); err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 

@@ -33,7 +33,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeCustomKeys, r.ResourceType()); err != nil {
+			if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeCustomKeys); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

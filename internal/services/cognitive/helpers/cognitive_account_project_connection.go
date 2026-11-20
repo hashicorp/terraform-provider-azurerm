@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func CognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectionresource.ConnectionAuthType, resourceType string) sdk.ResourceRunFunc {
+func CognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectionresource.ConnectionAuthType) sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		client := metadata.Client.Cognitive.ProjectConnectionResourceClient
 
@@ -31,7 +32,7 @@ func CognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectio
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if err := ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, expectedAuthType, resourceType); err != nil {
+		if err := ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, expectedAuthType); err != nil {
 			return fmt.Errorf("importing %s: %+v", *id, err)
 		}
 
@@ -39,28 +40,23 @@ func CognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectio
 	}
 }
 
-func ValidateCognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource, expectedAuthType projectconnectionresource.ConnectionAuthType, resourceType string) error {
-	authType, ok := CognitiveAccountProjectConnectionAuthType(model)
-	if !ok {
-		return fmt.Errorf("retrieving connection properties for `%s`: properties were nil", resourceType)
+func ValidateCognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource, expectedAuthType projectconnectionresource.ConnectionAuthType) error {
+	if model == nil || model.Properties == nil {
+		return errors.New("connection `properties` were nil")
 	}
-	if authType != expectedAuthType {
-		return fmt.Errorf("connection has auth type `%s` and cannot be managed by `%s`", authType, resourceType)
+
+	if !CognitiveAccountProjectConnectionHasExpectedAuthType(model, expectedAuthType) {
+		authType := model.Properties.ConnectionPropertiesV2().AuthType
+		return fmt.Errorf("connection has auth type `%s`, expected `%s`", authType, expectedAuthType)
 	}
 	return nil
 }
 
-func CognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource) (projectconnectionresource.ConnectionAuthType, bool) {
-	if model == nil || model.Properties == nil {
-		return "", false
-	}
-
-	return model.Properties.ConnectionPropertiesV2().AuthType, true
-}
-
 func CognitiveAccountProjectConnectionHasExpectedAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource, expectedAuthType projectconnectionresource.ConnectionAuthType) bool {
-	authType, ok := CognitiveAccountProjectConnectionAuthType(model)
-	return ok && authType == expectedAuthType
+	if model == nil || model.Properties == nil {
+		return false
+	}
+	return model.Properties.ConnectionPropertiesV2().AuthType == expectedAuthType
 }
 
 func FlattenAccountProjectConnectionMetadata(priorMetadata map[string]string, apiMetadata *map[string]string) map[string]string {

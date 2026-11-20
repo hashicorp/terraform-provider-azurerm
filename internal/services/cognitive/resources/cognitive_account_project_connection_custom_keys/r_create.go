@@ -46,7 +46,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(existing.Model, projectconnectionresource.ConnectionAuthTypeCustomKeys, r.ResourceType()); err != nil {
+				if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(existing.Model, projectconnectionresource.ConnectionAuthTypeCustomKeys); err != nil {
 					return fmt.Errorf("checking existing %s: %+v", id, err)
 				}
 			}

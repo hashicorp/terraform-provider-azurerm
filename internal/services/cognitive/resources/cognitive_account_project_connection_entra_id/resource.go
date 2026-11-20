@@ -22,7 +22,7 @@ var (
 type Resource struct{}
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
-	return helpers.CognitiveAccountProjectConnectionImporter(projectconnectionresource.ConnectionAuthTypeAAD, r.ResourceType())
+	return helpers.CognitiveAccountProjectConnectionImporter(projectconnectionresource.ConnectionAuthTypeAAD)
 }
 
 func (r Resource) Identity() resourceids.ResourceId {

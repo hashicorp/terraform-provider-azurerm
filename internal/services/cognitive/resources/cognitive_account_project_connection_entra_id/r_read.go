@@ -33,8 +33,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if authType, ok := helpers.CognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != projectconnectionresource.ConnectionAuthTypeAAD {
-				return fmt.Errorf("connection %s has auth type `%s` and cannot be managed by `%s`", *id, authType, r.ResourceType())
+			if err := helpers.ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeAAD); err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
 			var currentState CognitiveAccountProjectConnectionEntraIDModel
