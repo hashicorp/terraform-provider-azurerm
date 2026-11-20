@@ -22,6 +22,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`

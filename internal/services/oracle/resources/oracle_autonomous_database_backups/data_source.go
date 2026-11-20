@@ -18,6 +18,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type AutonomousDatabaseBackupsListDataModel struct {
 	AutonomousDatabaseId      string                               `tfschema:"autonomous_database_id"`
 	AutonomousDatabaseBackups []AutonomousDatabaseBackupsDataModel `tfschema:"autonomous_database_backups"`

@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/resources/dns_txt_record/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -34,7 +34,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&recordsets.RecordTypeId{}),
 		},
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&recordsets.RecordTypeId{}, helper.ResourceDnsRecordImporter(recordsets.RecordTypeTXT)),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&recordsets.RecordTypeId{}, helpers.ResourceDnsRecordImporter(recordsets.RecordTypeTXT)),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
