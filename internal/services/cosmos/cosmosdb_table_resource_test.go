@@ -89,6 +89,54 @@ func TestAccCosmosDbTable_autoscale(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbTable_switchManualToAutoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
+	r := CosmosTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.throughput(data, 1000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("throughput").HasValue("1000"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoscale(data, 4000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbTable_switchAutoscaleToManual(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
+	r := CosmosTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscale(data, 4000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.throughput(data, 1000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("throughput").HasValue("1000"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDbTable_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
 	r := CosmosTableResource{}
