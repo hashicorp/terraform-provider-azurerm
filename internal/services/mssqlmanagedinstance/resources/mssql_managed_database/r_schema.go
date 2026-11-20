@@ -4,9 +4,13 @@
 package mssql_managed_database
 
 import (
+	"context"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -87,6 +91,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      7,
 		},
 
+		"short_term_retention_immutability_locked": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"point_in_time_restore": {
 			Type:          schema.TypeList,
 			Optional:      true,
@@ -126,4 +136,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if oldVal, newVal := rd.GetChange("short_term_retention_immutability_locked"); oldVal.(bool) && !newVal.(bool) {
+				// the service does not support unlock.
+				if err := rd.ForceNew("short_term_retention_immutability_locked"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
 }

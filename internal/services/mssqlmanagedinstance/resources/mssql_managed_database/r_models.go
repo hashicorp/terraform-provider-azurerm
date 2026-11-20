@@ -4,13 +4,14 @@
 package mssql_managed_database
 
 type MsSqlManagedDatabaseModel struct {
-	Name                    string                    `tfschema:"name"`
-	ManagedInstanceId       string                    `tfschema:"managed_instance_id"`
-	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
-	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
-	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
-	RecoverDatabaseId       string                    `tfschema:"recover_database_id"`
-	Tags                    map[string]string         `tfschema:"tags"`
+	Name                                 string                    `tfschema:"name"`
+	ManagedInstanceId                    string                    `tfschema:"managed_instance_id"`
+	LongTermRetentionPolicy              []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
+	ShortTermRetentionDays               int64                     `tfschema:"short_term_retention_days"`
+	ShortTermRetentionImmutabilityLocked bool                      `tfschema:"short_term_retention_immutability_locked"`
+	PointInTimeRestore                   []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	RecoverDatabaseId                    string                    `tfschema:"recover_database_id"`
+	Tags                                 map[string]string         `tfschema:"tags"`
 }
 
 func (r Resource) ModelObject() any {

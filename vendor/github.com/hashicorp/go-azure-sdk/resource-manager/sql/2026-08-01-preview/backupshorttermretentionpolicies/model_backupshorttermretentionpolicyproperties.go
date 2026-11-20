@@ -5,5 +5,7 @@ package backupshorttermretentionpolicies
 
 type BackupShortTermRetentionPolicyProperties struct {
 	DiffBackupIntervalInHours *DiffBackupIntervalInHours `json:"diffBackupIntervalInHours,omitempty"`
+	ImmutabilityStatus        *ImmutabilityStatus        `json:"immutabilityStatus,omitempty"`
+	LockImmutability          *bool                      `json:"lockImmutability,omitempty"`
 	RetentionDays             *int64                     `json:"retentionDays,omitempty"`
 }

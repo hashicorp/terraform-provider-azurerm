@@ -22,6 +22,7 @@ func TestAccDataSourceMsSqlManagedDatabase_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("managed_instance_id").Exists(),
+				check.That(data.ResourceName).Key("short_term_retention_immutability_locked").Exists(),
 			),
 		},
 	})

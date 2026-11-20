@@ -295,6 +295,10 @@ A `short_term_retention_policy` block supports the following:
 * `retention_days` - (Required) Point In Time Restore configuration. Value has to be between `1` and `35`.
 * `backup_interval_in_hours` - (Optional) The hours between each differential backup. This is only applicable to live databases but not dropped databases. Value has to be `12` or `24`. Defaults to `12` hours.
 
+* `immutability_locked` - (Optional) Whether to lock the immutability of backups governed by this short term retention policy. Defaults to `false`. Changing this from `true` to `false` forces a new resource to be created.
+
+-> **Note:** Setting `immutability_locked` to `false` does not disable default backup immutability. More information can be found in the [Microsoft documentation](https://learn.microsoft.com/azure/azure-sql/automatic-backup-immutability).
+
 ---
 
 An `identity` block supports the following:
@@ -340,4 +344,4 @@ terraform import azurerm_mssql_database.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2025-01-01
+* `Microsoft.Sql` - 2026-08-01-preview, 2025-01-01

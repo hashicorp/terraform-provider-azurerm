@@ -797,6 +797,35 @@ func TestAccMsSqlDatabase_withShortTermRetentionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_withShortTermRetentionPolicyImmutability(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withShortTermRetentionPolicyImmutability(data, false, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withShortTermRetentionPolicyImmutability(data, true, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withShortTermRetentionPolicyImmutability(data, true, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
@@ -2396,6 +2425,24 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) withShortTermRetentionPolicyImmutability(data acceptance.TestData, locked bool, retentionDays int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "S0"
+
+  short_term_retention_policy {
+    retention_days           = %[4]d
+    backup_interval_in_hours = 24
+    immutability_locked      = %[3]t
+  }
+}
+`, r.template(data), data.RandomInteger, locked, retentionDays)
 }
 
 func (r MssqlDatabaseResource) withGeoBackupPoliciesEnabled(data acceptance.TestData) string {

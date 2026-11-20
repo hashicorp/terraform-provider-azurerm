@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/geobackuppolicies"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -497,6 +497,21 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	shortTermRetentionPolicyProps := ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]any))
 	if shortTermRetentionPolicyProps != nil {
+		if pointer.From(shortTermRetentionPolicyProps.LockImmutability) {
+			shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id)
+			if err != nil {
+				return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
+			}
+
+			var immutabilityStatus backupshorttermretentionpolicies.ImmutabilityStatus
+			if shortTermPolicy.Model != nil && shortTermPolicy.Model.Properties != nil {
+				immutabilityStatus = pointer.From(shortTermPolicy.Model.Properties.ImmutabilityStatus)
+			}
+			if immutabilityStatus != backupshorttermretentionpolicies.ImmutabilityStatusEnabled {
+				return fmt.Errorf("`short_term_retention_policy.0.immutability_locked` cannot be set to `true` when `immutabilityStatus` is %q (must be %q)", immutabilityStatus, backupshorttermretentionpolicies.ImmutabilityStatusEnabled)
+			}
+		}
+
 		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !isDwSku {
