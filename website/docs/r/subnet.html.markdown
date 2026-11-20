@@ -71,6 +71,8 @@ The following arguments are supported:
 
 -> **Note:** Exactly one of `address_prefixes` or `ip_address_pool` must be specified.
 
+-> **Note:** An IP Address Management (IPAM) Pool allocation that was established outside of Terraform (e.g. for a Subnet created with `address_prefixes` whose Virtual Network was associated with an IPAM Pool afterwards) is preserved as long as `address_prefixes` remains unchanged, consistent with the behaviour of ARM templates. Changing `address_prefixes` removes such an allocation.
+
 * `private_endpoint_network_policies` - (Optional) Enable or Disable network policies for the private endpoint on the subnet. Possible values are `Disabled`, `Enabled`, `NetworkSecurityGroupEnabled` and `RouteTableEnabled`. Defaults to `Disabled`.
 
 -> **Note:** If you don't want to use network policies like user-defined Routes and Network Security Groups, you need to set `private_endpoint_network_policies` in the subnet to `Disabled`. This setting only applies to Private Endpoints in the Subnet and affects all Private Endpoints in the Subnet. For other resources in the Subnet, access is controlled based via the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource.
