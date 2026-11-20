@@ -77,6 +77,54 @@ func TestAccCosmosDbCassandraTable_autoScaleSetting(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbCassandraTable_switchManualToAutoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
+	r := CosmosDBCassandraTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.throughput(data, 1000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("throughput").HasValue("1000"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoscale(data, 4000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbCassandraTable_switchAutoscaleToManual(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
+	r := CosmosDBCassandraTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscale(data, 4000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.throughput(data, 1000),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("throughput").HasValue("1000"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDbCassandraTable_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_table", "test")
 	r := CosmosDBCassandraTableResource{}
@@ -191,6 +239,65 @@ resource "azurerm_cosmosdb_cassandra_table" "test" {
   }
 }
 `, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosDBCassandraTableResource) throughput(data acceptance.TestData, throughput int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_cassandra_table" "test" {
+  name                  = "acctest-CCASST-%[2]d"
+  cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
+  throughput            = %[3]d
+
+  schema {
+    column {
+      name = "test1"
+      type = "ascii"
+    }
+
+    column {
+      name = "test2"
+      type = "int"
+    }
+
+    partition_key {
+      name = "test1"
+    }
+  }
+}
+`, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger, throughput)
+}
+
+func (CosmosDBCassandraTableResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_cassandra_table" "test" {
+  name                  = "acctest-CCASST-%[2]d"
+  cassandra_keyspace_id = azurerm_cosmosdb_cassandra_keyspace.test.id
+
+  autoscale_settings {
+    max_throughput = %[3]d
+  }
+
+  schema {
+    column {
+      name = "test1"
+      type = "ascii"
+    }
+
+    column {
+      name = "test2"
+      type = "int"
+    }
+
+    partition_key {
+      name = "test1"
+    }
+  }
+}
+`, CosmosDbCassandraKeyspaceResource{}.basic(data), data.RandomInteger, maxThroughput)
 }
 
 func (CosmosDBCassandraTableResource) analyticalStorageTTLTemplate(data acceptance.TestData) string {
