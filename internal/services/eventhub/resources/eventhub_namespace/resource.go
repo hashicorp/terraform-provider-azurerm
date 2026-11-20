@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +26,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Delete: resourceEventHubNamespaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namespaces.ParseNamespaceID(id)
+			_, err := ehnamespaces.ParseNamespaceID(id)
 			return err
 		}),
 
@@ -43,7 +43,7 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				oldSku, newSku := d.GetChange("sku")
 				if d.HasChange("sku") {
-					if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
+					if strings.EqualFold(newSku.(string), string(ehnamespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(ehnamespaces.SkuTierPremium)) {
 						log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
 						d.ForceNew("sku")
 					}
@@ -51,6 +51,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return nil
 			}),
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
+			pluginsdk.CustomizeDiffShim(eventhubGeoReplicationDiff),
 		),
 	}
 }
