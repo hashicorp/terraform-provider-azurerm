@@ -18,6 +18,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
+func ManagedIdentityHeaders(headerName, headerValue string) map[string][]string {
+	if headerName == "" || headerValue == "" {
+		return nil
+	}
+
+	return map[string][]string{
+		headerName: {headerValue},
+	}
+}
+
 type ResourceManagerAccount struct {
 	Environment environments.Environment
 

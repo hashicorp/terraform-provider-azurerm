@@ -137,16 +137,16 @@ func getEnvStringOrDefault(val types.String, envVar string, defaultValue string)
 	return val.ValueString()
 }
 
-// getEnvStringsOrDefault is similar to getEnvStringOrDefault, except an array of env vars are checked, where the first non-empty
+// getEnvStringsIfValueAbsent is similar to getEnvStringIfValueAbsent, except an array of env vars are checked, where the first non-empty
 // env var will be returned, if any.
-func getEnvStringsOrDefault(val types.String, envVars []string, defaultValue string) string {
+func getEnvStringsIfValueAbsent(val types.String, envVars []string) string {
 	if val.IsNull() || val.IsUnknown() {
 		for _, envVar := range envVars {
 			if v := os.Getenv(envVar); v != "" {
 				return os.Getenv(envVar)
 			}
 		}
-		return defaultValue
+		return ""
 	}
 
 	return val.ValueString()

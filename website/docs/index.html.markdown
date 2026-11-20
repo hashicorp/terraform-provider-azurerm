@@ -160,6 +160,10 @@ More information on [how to configure a Service Principal using OpenID Connect c
 
 When authenticating using Managed Identity, the following fields can be set:
 
+* `msi_custom_header_name` - (Optional) The name of the custom header to send when authenticating using Managed Identity. This can also be sourced from the `ARM_MSI_CUSTOM_HEADER_NAME` Environment Variable. Defaults to `X-IDENTITY-HEADER`.
+
+* `msi_custom_header_value` - (Optional) The value of the custom header to send when authenticating using Managed Identity. This can also be sourced from the `ARM_MSI_CUSTOM_HEADER_VALUE` or `IDENTITY_HEADER` Environment Variables. The provider will look for values in this order and use the first it finds configured.
+
 * `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Identity - in most circumstances, this should be detected automatically. This can also be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
 
 * `use_msi` - (Optional) Should Managed Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
