@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"encoding/json"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -100,6 +101,27 @@ func (r Resource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			instanceJSON, err := json.Marshal(parameters.Properties)
+			if err != nil {
+				return fmt.Errorf("marshalling backup instance for validation: %+v", err)
+			}
+
+			var validationInstance backupvaultresources.BackupInstance
+			if err := json.Unmarshal(instanceJSON, &validationInstance); err != nil {
+				return fmt.Errorf("unmarshalling backup instance for validation: %+v", err)
+			}
+
+			rbacContext, cancel := context.WithTimeout(ctx, 10*time.Minute)
+			defer cancel()
+
+			rbacPollerType := custompollers.NewDataProtectionBackupInstanceRBACPoller(metadata.Client.DataProtection.BackupVaultClient, *vaultId, backupvaultresources.ValidateForBackupRequest{
+				BackupInstance: validationInstance,
+			})
+			rbacPoller := pollers.NewPoller(rbacPollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := rbacPoller.PollUntilDone(rbacContext); err != nil {
+				return fmt.Errorf("waiting for RBAC permissions before creating %s: %+v", id, err)
+			}
+
 			if err := client.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -126,9 +148,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]backupinstanceresources.BackupDatasourceParameters {
 	if len(input) == 0 {
-		return pointer.To([]backupinstanceresources.BackupDatasourceParameters{
-			backupinstanceresources.KubernetesClusterBackupDatasourceParameters{},
-		})
+		return nil
 	}
 	results := make([]backupinstanceresources.BackupDatasourceParameters, 0)
 	results = append(results, backupinstanceresources.KubernetesClusterBackupDatasourceParameters{
