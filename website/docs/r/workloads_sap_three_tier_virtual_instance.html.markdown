@@ -349,11 +349,13 @@ A `disk_volume_configuration` block supports the following:
 
 A `virtual_machine_configuration` block supports the following:
 
-* `image` - (Required) An `image` block as defined below. Changing this forces a new resource to be created.
-
 * `os_profile` - (Required) An `os_profile` block as defined below. Changing this forces a new resource to be created.
 
 * `virtual_machine_size` - (Required) The size of the Virtual Machine. Changing this forces a new resource to be created.
+
+* `image` - (Optional) An `image` block as defined below. Changing this forces a new resource to be created. Exactly one of `image` or `source_image_id` must be specified.
+
+* `source_image_id` - (Optional) The ID of the Azure Compute Gallery image version used to create this Virtual Machine. Changing this forces a new resource to be created. Exactly one of `image` or `source_image_id` must be specified.
 
 ---
 

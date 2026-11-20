@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -53,6 +54,7 @@ type DiskVolumeConfiguration struct {
 
 type VirtualMachineConfiguration struct {
 	ImageReference []ImageReference `tfschema:"image"`
+	SourceImageId  string           `tfschema:"source_image_id"`
 	OSProfile      []OSProfile      `tfschema:"os_profile"`
 	VmSize         string           `tfschema:"virtual_machine_size"`
 }
@@ -255,9 +257,13 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 										Schema: map[string]*pluginsdk.Schema{
 											"image": {
 												Type:     pluginsdk.TypeList,
-												Required: true,
+												Optional: true,
 												ForceNew: true,
 												MaxItems: 1,
+												ExactlyOneOf: []string{
+													"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.image",
+													"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.source_image_id",
+												},
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"offer": {
@@ -323,6 +329,17 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															ValidateFunc: validation.StringIsNotEmpty,
 														},
 													},
+												},
+											},
+
+											"source_image_id": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: galleryimageversions.ValidateImageVersionID,
+												ExactlyOneOf: []string{
+													"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.image",
+													"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.source_image_id",
 												},
 											},
 
@@ -369,9 +386,13 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 										Schema: map[string]*pluginsdk.Schema{
 											"image": {
 												Type:     pluginsdk.TypeList,
-												Required: true,
+												Optional: true,
 												ForceNew: true,
 												MaxItems: 1,
+												ExactlyOneOf: []string{
+													"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.image",
+													"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.source_image_id",
+												},
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"offer": {
@@ -437,6 +458,17 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															ValidateFunc: validation.StringIsNotEmpty,
 														},
 													},
+												},
+											},
+
+											"source_image_id": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: galleryimageversions.ValidateImageVersionID,
+												ExactlyOneOf: []string{
+													"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.image",
+													"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.source_image_id",
 												},
 											},
 
@@ -483,9 +515,13 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 										Schema: map[string]*pluginsdk.Schema{
 											"image": {
 												Type:     pluginsdk.TypeList,
-												Required: true,
+												Optional: true,
 												ForceNew: true,
 												MaxItems: 1,
+												ExactlyOneOf: []string{
+													"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.image",
+													"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.source_image_id",
+												},
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"offer": {
@@ -551,6 +587,17 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															ValidateFunc: validation.StringIsNotEmpty,
 														},
 													},
+												},
+											},
+
+											"source_image_id": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: galleryimageversions.ValidateImageVersionID,
+												ExactlyOneOf: []string{
+													"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.image",
+													"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.source_image_id",
 												},
 											},
 
@@ -1328,8 +1375,15 @@ func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) *sap
 
 	virtualMachineConfiguration := input[0]
 
+	imageReference := expandImageReference(virtualMachineConfiguration.ImageReference)
+	if v := virtualMachineConfiguration.SourceImageId; v != "" {
+		imageReference = &sapvirtualinstances.ImageReference{
+			Id: pointer.To(v),
+		}
+	}
+
 	return &sapvirtualinstances.VirtualMachineConfiguration{
-		ImageReference: pointer.From(expandImageReference(virtualMachineConfiguration.ImageReference)),
+		ImageReference: pointer.From(imageReference),
 		OsProfile:      pointer.From(expandOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
@@ -1886,11 +1940,18 @@ func flattenDataDisks(input *map[string][]string) []DataDisk {
 func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachineConfiguration, d *pluginsdk.ResourceData, basePath string) []VirtualMachineConfiguration {
 	result := make([]VirtualMachineConfiguration, 0)
 
-	return append(result, VirtualMachineConfiguration{
-		ImageReference: flattenImageReference(input.ImageReference),
-		OSProfile:      flattenOSProfile(input.OsProfile, d, fmt.Sprintf("%s.0.virtual_machine_configuration", basePath)),
-		VmSize:         input.VMSize,
-	})
+	virtualMachineConfiguration := VirtualMachineConfiguration{
+		OSProfile: flattenOSProfile(input.OsProfile, d, fmt.Sprintf("%s.0.virtual_machine_configuration", basePath)),
+		VmSize:    input.VMSize,
+	}
+
+	if v := pointer.From(input.ImageReference.Id); v != "" {
+		virtualMachineConfiguration.SourceImageId = v
+	} else {
+		virtualMachineConfiguration.ImageReference = flattenImageReference(input.ImageReference)
+	}
+
+	return append(result, virtualMachineConfiguration)
 }
 
 func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageReference {
