@@ -44,9 +44,25 @@ The following arguments are supported:
 
 * `malware_scanning_on_upload_cap_gb_per_month` - (Optional) The max GB to be scanned per Month. Must be `-1` or above `0`. Omit this property or set to `-1` if no capping is needed. Defaults to `-1`.
 
+* `malware_scanning_on_upload_filters` - (Optional) A `malware_scanning_on_upload_filters` block as documented below.
+
+~> **Note:** `malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`
+
+* `malware_scanning_write_results_on_tags_enabled` - (Optional) Whether to write scan result on blobIndexTags. Defaults to `true`.
+
 * `scan_results_event_grid_topic_id` - (Optional) The Event Grid Topic where every scan result will be sent to. When you set an Event Grid custom topic, you must set `override_subscription_settings_enabled` to `true` to override the subscription-level settings.
 
 * `sensitive_data_discovery_enabled` - (Optional) Whether Sensitive Data Discovery should be enabled. Defaults to `false`.
+
+---
+
+A `malware_scanning_on_upload_filters` block supports the following:
+
+* `exclude_blobs_larger_than_in_bytes` - (Optional) Specifies the maximum size in bytes for blobs to be scanned. This parameter accepts a single positive integer value larger than `0`. Blobs larger than this value will be excluded from scanning.
+
+* `exclude_blobs_with_prefix` - (Optional) A list of prefixes to exclude from on-upload malware scanning. Format: `container-name/blob-name` (start with the container name; do not include the storage account name). Exclude entire containers: Use prefix of container names you want to exclude without a trailing /. Exclude a single container: Add a trailing slash / after the container name to avoid excluding other containers with similar prefixes.
+
+* `exclude_blobs_with_suffix` - (Optional) A list of suffixes to exclude from on-upload malware scanning. Suffixes match only the end of blob names, and should be used for file extensions or blob name endings only.
  
 ## Attributes Reference
 
