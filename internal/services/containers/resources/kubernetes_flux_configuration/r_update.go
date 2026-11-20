@@ -65,6 +65,18 @@ func (r Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("oci_repository") {
+				ociRepositoryValue, err := expandOCIRepositoryDefinitionModel(model.OCIRepository)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.OciRepository = ociRepositoryValue
+				if properties.Properties.OciRepository != nil {
+					properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeOCIRepository)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("git_repository") {
 				gitRepositoryValue, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
 				if err != nil {

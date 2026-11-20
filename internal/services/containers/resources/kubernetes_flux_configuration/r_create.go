@@ -66,6 +66,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeGitRepository)
 				properties.Properties.GitRepository = gitRepositoryValue
 				properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+			} else if _, exists = metadata.ResourceData.GetOk("oci_repository"); exists {
+				ociRepository, err := expandOCIRepositoryDefinitionModel(model.OCIRepository)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeOCIRepository)
+				properties.Properties.OciRepository = ociRepository
 			} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeBucket)
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
@@ -289,6 +297,53 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 	}
 
 	return &output, outputConfigSettings
+}
+
+func expandOCIRepositoryDefinitionModel(inputList []OCIRepositoryDefinitionModel) (*fluxconfiguration.OCIRepositoryDefinition, error) {
+	if len(inputList) == 0 {
+		return nil, nil
+	}
+
+	input := &inputList[0]
+	output := fluxconfiguration.OCIRepositoryDefinition{
+		Insecure:              pointer.To(!input.TlsEnabled),
+		SyncIntervalInSeconds: &input.SyncIntervalInSeconds,
+		TimeoutInSeconds:      &input.TimeoutInSeconds,
+		UseWorkloadIdentity:   &input.UseWorkloadIdentity,
+		Url:                   &input.Url,
+	}
+
+	ref := fluxconfiguration.OCIRepositoryRefDefinition{}
+	switch input.ReferenceType {
+	case FluxOCIReferenceDigest:
+		ref.Digest = &input.ReferenceValue
+	case FluxOCIReferenceSemver:
+		ref.Semver = &input.ReferenceValue
+	case FluxOCIReferenceTag:
+		ref.Tag = &input.ReferenceValue
+	default:
+		return nil, fmt.Errorf("reference type %s not defined", input.ReferenceType)
+	}
+	output.RepositoryRef = &ref
+
+	if len(input.LayerSelector) > 0 {
+		output.LayerSelector = &fluxconfiguration.LayerSelectorDefinition{
+			MediaType: &input.LayerSelector[0].MediaType,
+		}
+		if input.LayerSelector[0].Operation != "" {
+			output.LayerSelector.Operation = pointer.ToEnum[fluxconfiguration.OperationType](input.LayerSelector[0].Operation)
+		}
+	}
+
+	if input.LocalAuthRef != "" {
+		output.LocalAuthRef = &input.LocalAuthRef
+	}
+
+	if input.ServiceAccountName != "" {
+		output.ServiceAccountName = &input.ServiceAccountName
+	}
+
+	return &output, nil
 }
 
 func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel) (*fluxconfiguration.GitRepositoryDefinition, *map[string]string, error) {
