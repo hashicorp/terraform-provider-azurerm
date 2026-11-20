@@ -64,6 +64,19 @@ func (Resource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
 				state.LongTermBackUpSchedule = helpers.FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
+				if props.LongTermBackupSchedule == nil {
+					var previous struct {
+						LongTermBackUpSchedule []helpers.LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
+					}
+					if err := metadata.Decode(&previous); err != nil {
+						return fmt.Errorf("decoding previous long-term backup schedule: %+v", err)
+					}
+					// Disabling deletes the remote schedule. Retain the disabled block so
+					// refresh does not plan another deletion, while still detecting a missing enabled schedule.
+					if len(previous.LongTermBackUpSchedule) == 1 && !previous.LongTermBackUpSchedule[0].Enabled {
+						state.LongTermBackUpSchedule = previous.LongTermBackUpSchedule
+					}
+				}
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.Ocid = pointer.From(props.Ocid)
 			}
