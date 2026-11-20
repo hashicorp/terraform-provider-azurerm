@@ -65,6 +65,7 @@ func cdnFrontdoorCustomDomainSchema() map[string]*pluginsdk.Schema {
 						Default:  string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
+							string(afddomains.AfdMinimumTlsVersionTLSOneThree),
 						}, false),
 					},
 
