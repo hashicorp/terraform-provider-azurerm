@@ -213,6 +213,8 @@ The following arguments are supported:
 
 * `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
 
+~> **Note:** The `backup_datasource_parameters` block must be specified for the Backup Instance Kubernetes Cluster to be configured successfully.
+
 ---
 
 A `backup_datasource_parameters` block supports the following:

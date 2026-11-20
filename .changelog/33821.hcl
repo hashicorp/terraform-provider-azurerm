@@ -3,5 +3,5 @@ change "resource-fix" {
 }
 
 change "resource-fix" {
-  body = "`azurerm_data_protection_backup_instance_kubernetes_cluster` - send default datasource parameters when `backup_datasource_parameters` is omitted to satisfy Azure API requirements without making the block required"
+  body = "`azurerm_data_protection_backup_instance_kubernetes_cluster` - require the `backup_datasource_parameters` block to satisfy Azure API requirements"
 }
