@@ -4,13 +4,19 @@
 package linux_virtual_machine_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -261,6 +267,74 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 			),
 		},
 		data.ImportStep("custom_data"),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherCustomDataWriteOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.otherCustomDataWriteOnly(data, "/bin/bash", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("custom_data_wo_version"),
+			{
+				Config: r.otherCustomDataWriteOnly(data, "/bin/sh", 2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+					},
+				},
+				Check: check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("custom_data_wo_version"),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherCustomDataUpdateToWriteOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.otherCustomData(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("custom_data"),
+			{
+				Config: r.otherCustomDataWriteOnly(data, "/bin/bash", 1),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+					},
+				},
+				Check: check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("custom_data_wo_version"),
+			{
+				Config: r.otherCustomData(data),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+					},
+				},
+				Check: check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("custom_data"),
+		},
 	})
 }
 
@@ -1512,6 +1586,44 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherCustomDataWriteOnly(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                   = "acctestVM-%[3]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  size                   = "Standard_F2"
+  admin_username         = "adminuser"
+  custom_data_wo         = base64encode(ephemeral.azurerm_key_vault_secret.test.value)
+  custom_data_wo_version = %[4]d
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
 
 func (r LinuxVirtualMachineResource) otherEdgeZone(data acceptance.TestData) string {

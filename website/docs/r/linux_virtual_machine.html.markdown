@@ -144,6 +144,12 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
 
+* `custom_data_wo` - (Optional, Write-Only) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Conflicts with `custom_data` and `os_managed_disk_id`.
+
+* `custom_data_wo_version` - (Optional) An integer value used to trigger replacement with a new `custom_data_wo`. This property should be incremented when updating `custom_data_wo`. Changing this forces a new resource to be created.
+
+~> **Note:** Switching between `custom_data` and `custom_data_wo` forces a new resource to be created.
+
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Conflicts with `dedicated_host_group_id`.
 
 * `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group that this Linux Virtual Machine should be run within. Conflicts with `dedicated_host_id`.

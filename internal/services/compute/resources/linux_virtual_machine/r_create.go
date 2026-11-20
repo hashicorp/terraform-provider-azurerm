@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -341,6 +342,14 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	if v, ok := d.GetOk("custom_data"); ok {
 		params.Properties.OsProfile.CustomData = pointer.To(v.(string))
+	}
+
+	woCustomData, err := pluginsdk.GetWriteOnly(d, "custom_data_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !woCustomData.IsNull() {
+		params.Properties.OsProfile.CustomData = pointer.To(woCustomData.AsString())
 	}
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
