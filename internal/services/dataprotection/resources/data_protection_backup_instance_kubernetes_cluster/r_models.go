@@ -10,6 +10,7 @@ type BackupInstanceKubernatesClusterModel struct {
 	BackupPolicyId             string                       `tfschema:"backup_policy_id"`
 	KubernetesClusterId        string                       `tfschema:"kubernetes_cluster_id"`
 	SnapshotResourceGroupName  string                       `tfschema:"snapshot_resource_group_name"`
+	UserAssignedIdentityId     string                       `tfschema:"user_assigned_identity_id"`
 	BackupDatasourceParameters []BackupDatasourceParameters `tfschema:"backup_datasource_parameters"`
 	ProtectionState            string                       `tfschema:"protection_state"`
 }

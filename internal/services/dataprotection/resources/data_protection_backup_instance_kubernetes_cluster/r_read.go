@@ -52,6 +52,16 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.KubernetesClusterId = properties.DataSourceInfo.ResourceID
 					state.ProtectionState = pointer.FromEnum(properties.CurrentProtectionState)
 
+					if identityDetails := properties.IdentityDetails; identityDetails != nil {
+						if identityId := pointer.From(identityDetails.UserAssignedIdentityArmURL); identityId != "" {
+							parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(identityId)
+							if err != nil {
+								return err
+							}
+							state.UserAssignedIdentityId = parsed.ID()
+						}
+					}
+
 					if policyParameters := properties.PolicyInfo.PolicyParameters; policyParameters != nil {
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {
 							if dsp := pointer.From(dataStorePara); len(dsp) > 0 {
@@ -65,8 +75,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 							}
 						}
 						if backupDsp := policyParameters.BackupDatasourceParametersList; backupDsp != nil {
-							if v := flattenBackupDatasourceParameters(*backupDsp); v != nil {
-								state.BackupDatasourceParameters = pointer.From(v)
+							if v := pointer.From(flattenBackupDatasourceParameters(*backupDsp)); len(v) > 0 {
+								// Create sends defaults because the API requires this block and both boolean fields.
+								// Skip those defaults in state unless the block was configured.
+								if !isDefaultBackupDatasourceParameters(v[0]) || len(metadata.ResourceData.Get("backup_datasource_parameters").([]any)) > 0 {
+									state.BackupDatasourceParameters = v
+								}
 							}
 						}
 					}
@@ -79,6 +93,16 @@ func (r Resource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func isDefaultBackupDatasourceParameters(input BackupDatasourceParameters) bool {
+	return len(input.IncludedNamespaces) == 0 &&
+		len(input.IncludedResourceTypes) == 0 &&
+		len(input.ExcludedNamespaces) == 0 &&
+		len(input.ExcludedResourceTypes) == 0 &&
+		len(input.LabelSelectors) == 0 &&
+		!input.VolumeSnapshotEnabled &&
+		!input.ClusterScopeResourceEnabled
 }
 
 func flattenBackupDatasourceParameters(input []backupinstanceresources.BackupDatasourceParameters) *[]BackupDatasourceParameters {
