@@ -191,7 +191,7 @@ The following arguments are supported:
 
 * `federated_client_id` - (Optional) The Client ID of the multi-tenant Microsoft Entra ID application used to access a customer-managed key in a different tenant.
 
--> **Note:** The application must have a federated identity credential for the user-assigned managed identity configured in the database's `identity` block. The application's service principal in the Key Vault tenant must have permission to get, wrap and unwrap keys. See the [cross-tenant customer-managed key configuration guide](https://learn.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-database-level-basic-actions) for details.
+~> **Note:** The application must have a federated identity credential for the user-assigned managed identity configured in the database's `identity` block. The application's service principal in the Key Vault tenant must have permission to get, wrap and unwrap keys. See the [cross-tenant customer-managed key configuration guide](https://learn.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-database-level-basic-actions) for details.
 
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. Defaults to `true`.
 
