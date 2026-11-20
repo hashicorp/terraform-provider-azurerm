@@ -118,6 +118,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 				delete(appSettings, functionVersionAppSettingName)
 				delete(appSettings, contentShareAppSettingName)
 
+				// Preserve explicitly managed values; platform-injected routing is represented by site_config.
+				settings := metadata.ResourceData.Get("app_settings").(map[string]any)
+				if _, managed := settings["WEBSITE_VNET_ROUTE_ALL"]; !managed {
+					delete(appSettings, "WEBSITE_VNET_ROUTE_ALL")
+				}
+
 				state.AppSettings = appSettings
 			}
 
@@ -275,7 +281,7 @@ var (
 	extensionBundleVersionAppSettingName = "AzureFunctionsJobHost__extensionBundle__version"
 )
 
-func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
+func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string, isASE bool) ([]webapps.NameValuePair, error) {
 	var storageConnection string
 	if d.StorageKeyVaultSecretID != "" {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)
@@ -283,17 +289,24 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmt, d.StorageAccountName, d.StorageAccountAccessKey, endpointSuffix)
 	}
 
-	contentShare := strings.ToLower(d.Name) + "-content"
-	if d.StorageAccountShareName != "" {
-		contentShare = d.StorageAccountShareName
-	}
-
 	basicSettings := []webapps.NameValuePair{
 		{Name: &storageAppSettingName, Value: &storageConnection},
 		{Name: &functionVersionAppSettingName, Value: pointer.To(d.Version)},
 		{Name: pointer.To("APP_KIND"), Value: pointer.To("workflowApp")},
-		{Name: &contentShareAppSettingName, Value: &contentShare},
-		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+	}
+
+	// Default Azure Files content settings can prevent the host from starting on ASE: https://github.com/hashicorp/terraform-provider-azurerm/issues/29872.
+	// Only configure content storage on ASE when the caller explicitly requests a share.
+	if !isASE || d.StorageAccountShareName != "" {
+		contentShare := strings.ToLower(d.Name) + "-content"
+		if d.StorageAccountShareName != "" {
+			contentShare = d.StorageAccountShareName
+		}
+
+		basicSettings = append(basicSettings,
+			webapps.NameValuePair{Name: &contentShareAppSettingName, Value: &contentShare},
+			webapps.NameValuePair{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+		)
 	}
 
 	if d.UseExtensionBundle {
