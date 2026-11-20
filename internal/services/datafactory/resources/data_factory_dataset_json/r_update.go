@@ -54,6 +54,7 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	jsonDatasetProperties := datafactory.JSONDatasetTypeProperties{
 		Location:     location,
 		EncodingName: d.Get("encoding").(string),
+		Compression:  helpers.ExpandDataFactoryDatasetCompression(d),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
