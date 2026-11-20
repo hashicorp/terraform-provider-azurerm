@@ -5,9 +5,10 @@ package data_protection_backup_instance_blob_storage
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -46,10 +47,48 @@ func RegisterResource() *schema.Resource {
 		Schema: dataProtectionBackupInstanceBlobStorageSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// The `storage_account_container_names` can not be removed once specified.
-			pluginsdk.ForceNewIfChange("storage_account_container_names", func(ctx context.Context, old, new, _ any) bool {
-				return len(old.([]any)) > 0 && len(new.([]any)) == 0
-			}),
+			pluginsdk.CustomizeDiffShim(resourceDataProtectionBackupInstanceBlobStorageCustomizeDiff),
 		),
 	}
+}
+
+func resourceDataProtectionBackupInstanceBlobStorageCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+	if !d.NewValueKnown("auto_protection_enabled") {
+		return nil
+	}
+
+	oldAutoProtection, newAutoProtection := d.GetChange("auto_protection_enabled")
+	autoProtectionEnabled := newAutoProtection.(bool)
+
+	// Azure does not allow switching a Backup Instance back from auto protection to a container list (or to no
+	// container selection at all) once auto protection has been enabled - the only way out is to re-create the
+	// Backup Instance, which also removes its vaulted recovery points. This is deliberately an error rather than
+	// `ForceNew` so that the re-creation has to be requested explicitly.
+	if d.Id() != "" && oldAutoProtection.(bool) && !autoProtectionEnabled {
+		return fmt.Errorf("`auto_protection_enabled` cannot be changed from `true` to `false`: enabling auto protection for a Backup Instance is irreversible in Azure. To switch back to a container list the Backup Instance has to be re-created (e.g. via `terraform apply -replace=<resource address>`), which deletes its vaulted recovery points")
+	}
+
+	if !d.NewValueKnown("storage_account_container_names") || !d.NewValueKnown("excluded_container_name_prefixes") {
+		return nil
+	}
+
+	oldContainerNames, newContainerNames := d.GetChange("storage_account_container_names")
+
+	if autoProtectionEnabled && len(newContainerNames.([]any)) > 0 {
+		return fmt.Errorf("`storage_account_container_names` cannot be set when `auto_protection_enabled` is `true`: auto protection covers all present and future containers of the Storage Account")
+	}
+
+	if !autoProtectionEnabled && d.Get("excluded_container_name_prefixes").(*pluginsdk.Set).Len() > 0 {
+		return fmt.Errorf("`excluded_container_name_prefixes` can only be set when `auto_protection_enabled` is `true`")
+	}
+
+	// The `storage_account_container_names` can not be removed once specified - unless the Backup Instance is being
+	// migrated to auto protection, which Azure supports as an in-place update.
+	if len(oldContainerNames.([]any)) > 0 && len(newContainerNames.([]any)) == 0 && !autoProtectionEnabled {
+		if err := d.ForceNew("storage_account_container_names"); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
