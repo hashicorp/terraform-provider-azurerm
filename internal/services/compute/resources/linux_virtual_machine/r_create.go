@@ -381,6 +381,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 		}
 	}
 
+	if v, ok := d.GetOk("size_properties"); ok {
+		params.Properties.HardwareProfile.VMSizeProperties = helpers.ExpandVirtualMachineSizeProperties(v.([]any))
+	}
+
 	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
 		params.Properties.VirtualMachineScaleSet = &virtualmachines.SubResource{
 			Id: pointer.To(v.(string)),
