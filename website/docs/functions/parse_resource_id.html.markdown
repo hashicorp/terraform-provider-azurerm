@@ -1,27 +1,26 @@
 ---
-subcategory: ""
 layout: "azurerm"
-page_title: "Azure Resource Manager: normalise_resource_id"
+page_title: "Function: parse_resource_id"
+subcategory: ""
 description: |-
-  Normalises a supported Azure Resource Manager ID to the correct casing for Terraform.
+  Parses an Azure Resource Manager ID and exposes the contained information
+  ~> Note: User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result.
 ---
 
 # Function: parse_resource_id
 
-~> **Note:** Provider-defined functions are supported in Terraform 1.8 and later, and are available from version 4.0 of the provider.
-
-Takes an Azure Resource ID and splits it into its component parts.
+Parses an Azure Resource Manager ID and exposes the contained information
 
 ~> **Note:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result.
 
 ## Example Usage
 
-```hcl
+```terraform
 # result:
 # Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
-# 
+#
 # Outputs:
-# 
+#
 # parsed_id = {
 # "full_resource_type" = "Microsoft.ApiManagement/service/gateways/hostnameConfigurations"
 # "parent_resources" = tomap({
@@ -52,16 +51,27 @@ output "parsed" {
 output "resource_name" {
   value = local.parsed_id["resource_name"]
 }
-
-
 ```
 
 ## Signature
 
 ```text
-parse_resource_id(id string) string
+parse_resource_id(id string) object
 ```
 
 ## Arguments
 
 1. `id` (String) Azure Resource Manager ID.
+
+## Return Type
+
+The function returns an object with the following attributes:
+
+- `full_resource_type` (String)
+- `parent_resources` (Map of Strings)
+- `resource_group_name` (String)
+- `resource_name` (String)
+- `resource_provider` (String)
+- `resource_scope` (String)
+- `resource_type` (String)
+- `subscription_id` (String)

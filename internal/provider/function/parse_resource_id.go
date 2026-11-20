@@ -40,14 +40,16 @@ func (p ParseResourceIDFunction) Metadata(_ context.Context, _ function.Metadata
 
 func (p ParseResourceIDFunction) Definition(_ context.Context, _ function.DefinitionRequest, response *function.DefinitionResponse) {
 	response.Definition = function.Definition{
-		Summary:             "parse_resource_id",
-		Description:         "Parses an Azure Resource Manager ID and exposes the contained information",
-		MarkdownDescription: "Parses an Azure Resource Manager ID and exposes the contained information",
+		Summary: "parse_resource_id",
+		Description: "Parses an Azure Resource Manager ID and exposes the contained information\n\n" +
+			"~> **Note:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result.",
+		MarkdownDescription: "Parses an Azure Resource Manager ID and exposes the contained information\n\n" +
+			"~> **Note:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result.",
 		Parameters: []function.Parameter{
 			function.StringParameter{
 				Name:                "id",
-				Description:         "Resource ID",
-				MarkdownDescription: "Resource ID",
+				Description:         "Azure Resource Manager ID",
+				MarkdownDescription: "Azure Resource Manager ID",
 			},
 		},
 		Return: function.ObjectReturn{
