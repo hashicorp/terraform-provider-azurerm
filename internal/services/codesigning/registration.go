@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/resources/trusted_signing_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/resources/trusted_signing_certificate_profile"
 )
 
 type Registration struct{}
@@ -44,6 +45,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		trusted_signing_account.Resource{},
+		trusted_signing_certificate_profile.Resource{},
 	}
 }
 
@@ -64,5 +66,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		trusted_signing_certificate_profile.ListResource{},
+	}
 }
