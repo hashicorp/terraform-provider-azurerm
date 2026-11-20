@@ -84,6 +84,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
+			restrictionLevel := string(managedclusters.RestrictionLevelUnrestricted)
+			if props.NodeResourceGroupProfile != nil && props.NodeResourceGroupProfile.RestrictionLevel != nil {
+				restrictionLevel = string(*props.NodeResourceGroupProfile.RestrictionLevel)
+			}
+			d.Set("node_resource_group_restriction_level", restrictionLevel)
+
 			upgradeChannel := ""
 			nodeOSUpgradeChannel := ""
 			if profile := props.AutoUpgradeProfile; profile != nil {

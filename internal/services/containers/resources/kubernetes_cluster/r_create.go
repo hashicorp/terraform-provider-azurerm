@@ -232,6 +232,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("node_resource_group_restriction_level"); ok {
+		parameters.Properties.NodeResourceGroupProfile = &managedclusters.ManagedClusterNodeResourceGroupProfile{
+			RestrictionLevel: pointer.ToEnum[managedclusters.RestrictionLevel](v.(string)),
+		}
+	}
+
 	if d.Get("ai_toolchain_operator_enabled").(bool) {
 		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
 			Enabled: pointer.To(true),
