@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_exadata_infrastructure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_exascale_database_storage_vault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_gi_versions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_network_anchor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_resource_anchor"
 )
 
@@ -55,6 +56,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		oracle_exadata_infrastructure.DataSource{},
 		oracle_exascale_database_storage_vault.DataSource{},
 		oracle_gi_versions.DataSource{},
+		oracle_network_anchor.DataSource{},
 		oracle_resource_anchor.DataSource{},
 	}
 }
@@ -69,6 +71,7 @@ func (r Registration) Resources() []sdk.Resource {
 		oracle_cloud_vm_cluster.Resource{},
 		oracle_exadata_infrastructure.Resource{},
 		oracle_exascale_database_storage_vault.Resource{},
+		oracle_network_anchor.Resource{},
 		oracle_resource_anchor.Resource{},
 	}
 }
@@ -102,5 +105,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		oracle_network_anchor.ListResource{},
+	}
 }
