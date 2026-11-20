@@ -49,7 +49,6 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: application.ApplicationProperties{
 			FriendlyName:         pointer.To(d.Get("friendly_name").(string)),
 			Description:          pointer.To(d.Get("description").(string)),
-			FilePath:             pointer.To(d.Get("path").(string)),
 			CommandLineSetting:   application.CommandLineSetting(d.Get("command_line_argument_policy").(string)),
 			CommandLineArguments: pointer.To(d.Get("command_line_arguments").(string)),
 			ShowInPortal:         pointer.To(d.Get("show_in_portal").(bool)),
@@ -57,6 +56,20 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 			IconIndex:            pointer.To(int64(d.Get("icon_index").(int))),
 		},
 	}
+
+	if filePath := d.Get("path").(string); filePath != "" {
+		payload.Properties.FilePath = pointer.To(filePath)
+	}
+
+	if msixPackageApplicationId := d.Get("msix_package_application_id").(string); msixPackageApplicationId != "" {
+		payload.Properties.MsixPackageApplicationId = pointer.To(msixPackageApplicationId)
+	}
+
+	if msixPackageFamilyName := d.Get("msix_package_family_name").(string); msixPackageFamilyName != "" {
+		payload.Properties.MsixPackageFamilyName = pointer.To(msixPackageFamilyName)
+	}
+
+	payload.Properties.ApplicationType = pointer.ToEnum[application.RemoteApplicationType](d.Get("application_type").(string))
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
