@@ -21,10 +21,11 @@ const attestationProviderResourceName = "azurerm_attestation_provider"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAttestationProviderCreate,
-		Read:   resourceAttestationProviderRead,
-		Update: resourceAttestationProviderUpdate,
-		Delete: resourceAttestationProviderDelete,
+		Description: "Manages an Attestation Provider.",
+		Create:      resourceAttestationProviderCreate,
+		Read:        resourceAttestationProviderRead,
+		Update:      resourceAttestationProviderUpdate,
+		Delete:      resourceAttestationProviderDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -62,6 +63,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Schema: func() map[string]*pluginsdk.Schema {
 			return map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name which should be used for this Attestation Provider.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -73,6 +75,7 @@ func RegisterResource() *pluginsdk.Resource {
 				"location": commonschema.Location(),
 
 				"policy_signing_certificate_data": {
+					Description:  "A valid X.509 certificate (Section 4 of [RFC4648](https://tools.ietf.org/html/rfc4648)).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -82,34 +85,40 @@ func RegisterResource() *pluginsdk.Resource {
 				"tags": commonschema.Tags(),
 
 				"attestation_uri": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The URI of the Attestation Service.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"trust_model": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Trust model used for the Attestation Service.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"open_enclave_policy_base64": {
+					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"sgx_enclave_policy_base64": {
+					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"tpm_policy_base64": {
+					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"sev_snp_policy_base64": {
+					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,

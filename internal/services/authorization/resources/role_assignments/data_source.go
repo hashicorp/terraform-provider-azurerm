@@ -45,21 +45,25 @@ var _ sdk.DataSource = DataSource{}
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scope": {
+			Description:  "The scope at which to list Role Assignments.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"limit_at_scope": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to limit the result exactly at the specified scope and not above or below it.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 		"principal_id": {
+			Description:  "The principal ID to filter the list of Role Assignments against.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 		"tenant_id": {
+			Description:  "The tenant ID for cross-tenant requests.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
@@ -75,44 +79,54 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"condition": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The condition that limits the resource the role can be assigned to.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"condition_version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The version of the condition.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"delegated_managed_identity_resource_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the delegated managed identity resource.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description for this Role Assignment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"principal_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The principal ID.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"principal_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type of the `principal_id`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"role_assignment_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Role Assignment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"role_assignment_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the Role Assignment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"role_assignment_scope": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The scope of the Role Assignment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"role_definition_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Role Definition.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -126,6 +140,10 @@ func (r DataSource) ModelObject() any {
 
 func (r DataSource) ResourceType() string {
 	return "azurerm_role_assignments"
+}
+
+func (r DataSource) Description() string {
+	return "Use this data source to access information about existing Role Assignments."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

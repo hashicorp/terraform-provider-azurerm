@@ -13,6 +13,7 @@ import (
 func automationDscNodeconfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Specifies the name of the DSC Node Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func automationDscNodeconfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
+			Description:  "The name of the automation account in which the DSC Node Configuration is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func automationDscNodeconfigurationSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"content_embedded": {
+			Description:  "The PowerShell DSC Node Configuration (mof content).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

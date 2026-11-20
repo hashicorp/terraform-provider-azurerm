@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Specifies the name of the Module.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_id": {
+			Description:  "The ID of Automation Account to manage this Watcher.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,8 +35,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"uri": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The URI of the module content (zip or nupkg).",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 
 					"hash": {
@@ -44,12 +47,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"algorithm": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Specifies the algorithm used for the hash content.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The hash value of the content.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
