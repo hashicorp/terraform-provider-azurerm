@@ -3,7 +3,10 @@
 
 package validate
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestWindowsAdminPassword(t *testing.T) {
 	testData := []struct {
@@ -70,5 +73,26 @@ func TestWindowsAdminPassword(t *testing.T) {
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
 		}
+	}
+}
+
+func TestWindowsAdminPasswordDoesNotExposePassword(t *testing.T) {
+	for _, field := range []string{"admin_password", "admin_password_wo"} {
+		t.Run(field, func(t *testing.T) {
+			for _, password := range []string{"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!"} {
+				_, errors := WindowsAdminPassword(password, field)
+				if len(errors) == 0 {
+					t.Fatal("expected the disallowed password to be rejected")
+				}
+				for _, err := range errors {
+					if strings.Contains(err.Error(), password) {
+						t.Fatal("validation diagnostic contains the supplied password")
+					}
+					if !strings.Contains(err.Error(), field) {
+						t.Fatal("validation diagnostic does not identify the password attribute")
+					}
+				}
+			}
+		})
 	}
 }

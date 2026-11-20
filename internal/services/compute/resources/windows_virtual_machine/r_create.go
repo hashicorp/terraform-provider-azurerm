@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -52,6 +53,16 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 
 	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]any)
 	additionalUnattendContent := helpers.ExpandAdditionalUnattendContent(additionalUnattendContentRaw)
+
+	adminPassword := d.Get("admin_password").(string)
+
+	woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !woPassword.IsNull() {
+		adminPassword = woPassword.AsString()
+	}
 
 	allowExtensionOperations := true
 	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
@@ -152,7 +163,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 		}
 
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
-			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
+			AdminPassword:            pointer.To(adminPassword),
 			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
 			ComputerName:             pointer.To(computerName),
 			AllowExtensionOperations: pointer.To(allowExtensionOperations),

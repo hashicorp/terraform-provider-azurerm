@@ -34,7 +34,7 @@ func WindowsAdminPassword(i any, k string) (warnings []string, errors []error) {
 	disallowedNames := []string{"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!"}
 	for _, value := range disallowedNames {
 		if value == v {
-			errors = append(errors, fmt.Errorf("%q specified is not allowed, got %q, cannot match: %q", k, v, strings.Join(disallowedNames, ", ")))
+			errors = append(errors, fmt.Errorf("%q must not be one of the disallowed Windows administrator passwords", k))
 		}
 	}
 
