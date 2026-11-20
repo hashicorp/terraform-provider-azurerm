@@ -227,7 +227,6 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 		"container": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -256,15 +255,25 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 					},
 
+					"config_map": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
 					"cpu_limit": {
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.FloatAtLeast(0.0),
 					},
 
 					"memory_limit": {
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.FloatAtLeast(0.0),
 					},
 
