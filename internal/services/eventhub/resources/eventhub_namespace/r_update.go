@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +26,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := ehnamespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
@@ -37,9 +37,9 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 	t := d.Get("tags").(map[string]any)
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 
-	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	publicNetworkEnabled := ehnamespaces.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+		publicNetworkEnabled = ehnamespaces.PublicNetworkAccessDisabled
 	}
 
 	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
@@ -49,17 +49,17 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	parameters := namespaces.EHNamespace{
+	parameters := ehnamespaces.EHNamespace{
 		Location: &location,
-		Sku: &namespaces.Sku{
-			Name: namespaces.SkuName(sku),
-			Tier: func() *namespaces.SkuTier {
-				return pointer.ToEnum[namespaces.SkuTier](sku)
+		Sku: &ehnamespaces.Sku{
+			Name: ehnamespaces.SkuName(sku),
+			Tier: func() *ehnamespaces.SkuTier {
+				return pointer.ToEnum[ehnamespaces.SkuTier](sku)
 			}(),
 			Capacity: pointer.To(int64(capacity)),
 		},
 		Identity: identity,
-		Properties: &namespaces.EHNamespaceProperties{
+		Properties: &ehnamespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: pointer.To(autoInflateEnabled),
 			DisableLocalAuth:     pointer.To(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
@@ -72,7 +72,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[ehnamespaces.TlsVersion](tlsValue)
 	}
 
 	if d.HasChange("maximum_throughput_units") {
@@ -84,11 +84,11 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 	//
 	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/10244
 	//
-	if *parameters.Sku.Tier == namespaces.SkuTierBasic && !autoInflateEnabled {
+	if *parameters.Sku.Tier == ehnamespaces.SkuTierBasic && !autoInflateEnabled {
 		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(0))
 	}
 
-	if _, err = client.Update(ctx, id, parameters); err != nil {
+	if _, err = client.NamespacesUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -107,7 +107,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	if d.HasChange("network_rulesets") {
 		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name == namespaces.SkuNameBasic {
+		if parameters.Sku.Name == ehnamespaces.SkuNameBasic {
 			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
 		}
 

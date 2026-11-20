@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -23,7 +23,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Get("eventhub_namespace_id").(string))
+	id, err := ehnamespaces.ParseNamespaceID(d.Get("eventhub_namespace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	locks.ByName(id.NamespaceName, "azurerm_eventhub_namespace")
 	defer locks.UnlockByName(id.NamespaceName, "azurerm_eventhub_namespace")
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.NamespacesGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -48,8 +48,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace := resp.Model
-	namespace.Properties.Encryption = &namespaces.Encryption{
-		KeySource: pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
+	namespace.Properties.Encryption = &ehnamespaces.Encryption{
+		KeySource: pointer.To(ehnamespaces.KeySourceMicrosoftPointKeyVault),
 	}
 
 	keyVaultProps, err := expandEventHubNamespaceKeyVaultKeyIds(d.Get("key_vault_key_ids").(*pluginsdk.Set).List())
@@ -86,7 +86,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		}
 
 		for i := 0; i < len(*keyVaultProps); i++ {
-			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
+			(*keyVaultProps)[i].Identity = &ehnamespaces.UserAssignedIdentityProperties{
 				UserAssignedIdentity: &userAssignedIdentity,
 			}
 		}
@@ -96,12 +96,12 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	namespace.Properties.Encryption.RequireInfrastructureEncryption = pointer.To(d.Get("infrastructure_encryption_enabled").(bool))
 
 	if d.IsNewResource() {
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *namespace, sdk.SetIDCallback(meta, id, d)); err != nil {
+		if err := client.NamespacesCreateOrUpdateCallbackThenPoll(ctx, *id, *namespace, sdk.SetIDCallback(meta, id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", *id, err)
 		}
 		d.SetId(id.ID())
 	} else {
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
+		if err := client.NamespacesCreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 	}

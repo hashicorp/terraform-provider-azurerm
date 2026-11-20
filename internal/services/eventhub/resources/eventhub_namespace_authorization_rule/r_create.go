@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/authorizationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,7 +21,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := authorizationrulesnamespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id := authorizationrules.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.NamespacesGetAuthorizationRule(ctx, id)
@@ -40,9 +40,9 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	parameters := authorizationrulesnamespaces.AuthorizationRule{
+	parameters := authorizationrules.AuthorizationRule{
 		Name: &id.AuthorizationRuleName,
-		Properties: &authorizationrulesnamespaces.AuthorizationRuleProperties{
+		Properties: &authorizationrules.AuthorizationRuleProperties{
 			Rights: expandEventHubNamespaceAuthorizationRuleRights(d),
 		},
 	}
@@ -57,19 +57,19 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	return resourceEventHubNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func expandEventHubNamespaceAuthorizationRuleRights(d *pluginsdk.ResourceData) []authorizationrulesnamespaces.AccessRights {
-	rights := make([]authorizationrulesnamespaces.AccessRights, 0)
+func expandEventHubNamespaceAuthorizationRuleRights(d *pluginsdk.ResourceData) []authorizationrules.AccessRights {
+	rights := make([]authorizationrules.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, authorizationrulesnamespaces.AccessRightsListen)
+		rights = append(rights, authorizationrules.AccessRightsListen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, authorizationrulesnamespaces.AccessRightsSend)
+		rights = append(rights, authorizationrules.AccessRightsSend)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, authorizationrulesnamespaces.AccessRightsManage)
+		rights = append(rights, authorizationrules.AccessRightsManage)
 	}
 
 	return rights

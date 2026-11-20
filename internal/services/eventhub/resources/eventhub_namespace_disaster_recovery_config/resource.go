@@ -6,7 +6,7 @@ package eventhub_namespace_disaster_recovery_config
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/armdisasterrecoveries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +20,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Delete: resourceEventHubNamespaceDisasterRecoveryConfigDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(id)
+			_, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(id)
 			return err
 		}),
 

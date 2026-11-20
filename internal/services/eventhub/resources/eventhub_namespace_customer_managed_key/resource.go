@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +29,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := namespaces.ParseNamespaceID(id)
+			_, err := ehnamespaces.ParseNamespaceID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Eventhub.NamespacesClient
@@ -38,12 +38,12 @@ func RegisterResource() *pluginsdk.Resource {
 			ctx, cancel = timeouts.ForRead(ctx, d)
 			defer cancel()
 
-			id, err := namespaces.ParseNamespaceID(d.Id())
+			id, err := ehnamespaces.ParseNamespaceID(d.Id())
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.NamespacesGet(ctx, *id)
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

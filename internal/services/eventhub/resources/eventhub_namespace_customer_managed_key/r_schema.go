@@ -6,7 +6,7 @@ package eventhub_namespace_customer_managed_key
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -16,7 +16,7 @@ func eventhubNamespaceCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: namespaces.ValidateNamespaceID,
+			ValidateFunc: ehnamespaces.ValidateNamespaceID,
 		},
 
 		"key_vault_key_ids": {

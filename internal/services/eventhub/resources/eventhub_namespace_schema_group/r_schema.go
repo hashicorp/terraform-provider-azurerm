@@ -4,8 +4,8 @@
 package eventhub_namespace_schema_group
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/schemaregistry"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/schemagroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,14 +24,14 @@ func eventhubNamespaceSchemaGroupSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: namespaces.ValidateNamespaceID,
+			ValidateFunc: ehnamespaces.ValidateNamespaceID,
 		},
 
 		"schema_compatibility": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(schemaregistry.PossibleValuesForSchemaCompatibility(), false),
+			ValidateFunc: validation.StringInSlice(schemagroups.PossibleValuesForSchemaCompatibility(), false),
 		},
 
 		"schema_type": {
@@ -39,8 +39,8 @@ func eventhubNamespaceSchemaGroupSchema() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(schemaregistry.SchemaTypeUnknown),
-				string(schemaregistry.SchemaTypeAvro),
+				string(schemagroups.SchemaTypeUnknown),
+				string(schemagroups.SchemaTypeAvro),
 				"Json",
 			}, false),
 		},

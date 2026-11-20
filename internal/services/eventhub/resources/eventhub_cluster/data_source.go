@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,8 +51,8 @@ func dataSourceEventHubClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := eventhubsclusters.NewClusterID(subscriptionId, resourceGroup, name)
-	resp, err := client.ClustersGet(ctx, id)
+	id := clusters.NewClusterID(subscriptionId, resourceGroup, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)

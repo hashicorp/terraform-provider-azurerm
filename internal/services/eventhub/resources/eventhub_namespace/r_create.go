@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -29,10 +29,10 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := ehnamespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.NamespacesGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -58,24 +58,24 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	publicNetworkEnabled := ehnamespaces.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+		publicNetworkEnabled = ehnamespaces.PublicNetworkAccessDisabled
 	}
 
 	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
-	parameters := namespaces.EHNamespace{
+	parameters := ehnamespaces.EHNamespace{
 		Location: &location,
-		Sku: &namespaces.Sku{
-			Name: namespaces.SkuName(sku),
-			Tier: func() *namespaces.SkuTier {
-				return pointer.ToEnum[namespaces.SkuTier](sku)
+		Sku: &ehnamespaces.Sku{
+			Name: ehnamespaces.SkuName(sku),
+			Tier: func() *ehnamespaces.SkuTier {
+				return pointer.ToEnum[ehnamespaces.SkuTier](sku)
 			}(),
 			Capacity: pointer.To(int64(capacity)),
 		},
 		Identity: identity,
-		Properties: &namespaces.EHNamespaceProperties{
+		Properties: &ehnamespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: pointer.To(autoInflateEnabled),
 			DisableLocalAuth:     pointer.To(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
@@ -88,14 +88,14 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[ehnamespaces.TlsVersion](tlsValue)
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
 		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(v.(int)))
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.NamespacesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -104,7 +104,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
 	if hasRuleSets {
 		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name == namespaces.SkuNameBasic {
+		if parameters.Sku.Name == ehnamespaces.SkuNameBasic {
 			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
 		}
 

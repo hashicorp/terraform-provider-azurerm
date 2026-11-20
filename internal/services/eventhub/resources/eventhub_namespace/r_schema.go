@@ -6,9 +6,9 @@ package eventhub_namespace
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -31,7 +31,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
+			ValidateFunc: validation.StringInSlice(ehnamespaces.PossibleValuesForSkuName(), false),
 		},
 
 		"capacity": {
@@ -50,7 +50,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: eventhubsclusters.ValidateClusterID,
+			ValidateFunc: clusters.ValidateClusterID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -145,9 +145,9 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"minimum_tls_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(namespaces.TlsVersionOnePointTwo),
+			Default:  string(ehnamespaces.TlsVersionOnePointTwo),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointTwo),
+				string(ehnamespaces.TlsVersionOnePointTwo),
 			}, false),
 		},
 

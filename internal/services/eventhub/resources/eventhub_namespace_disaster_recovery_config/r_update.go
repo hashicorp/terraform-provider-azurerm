@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/armdisasterrecoveries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,7 +19,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	pairingStatus, err := client.Get(ctx, *id)
+	pairingStatus, err := client.DisasterRecoveryConfigsGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("checking the status of eventhub disaster recovery error: %+v", err)
 	}
@@ -44,7 +44,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 
 	if d.HasChange("partner_namespace_id") && breakPairFirst {
 		// break pairing
-		if _, err := client.BreakPairing(ctx, *id); err != nil {
+		if _, err := client.DisasterRecoveryConfigsBreakPairing(ctx, *id); err != nil {
 			return fmt.Errorf("breaking the pairing for %s: %+v", *id, err)
 		}
 	}
@@ -53,13 +53,13 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("waiting for the pairing to be broken for %s: %+v", *id, err)
 	}
 
-	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
-		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
+	parameters := armdisasterrecoveries.ArmDisasterRecovery{
+		Properties: &armdisasterrecoveries.ArmDisasterRecoveryProperties{
 			PartnerNamespace: pointer.To(d.Get("partner_namespace_id").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+	if _, err := client.DisasterRecoveryConfigsCreateOrUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
