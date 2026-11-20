@@ -166,6 +166,23 @@ func TestAccWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherZoneBalanceUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `zone_balance` is not set, so this also covers the nil value on creation
+			Config: r.otherZoneBalance(data, false),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherZoneBalance(data, true),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_otherEdgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -3722,4 +3739,50 @@ resource "azurerm_gallery_application_version" "test" {
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherZoneBalance(data acceptance.TestData, enabled bool) string {
+	zoneBalance := ""
+	if enabled {
+		zoneBalance = "\n  zone_balance = true\n"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  zones = ["1", "2", "3"]
+%s
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), zoneBalance)
 }

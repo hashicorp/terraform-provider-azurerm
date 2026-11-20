@@ -231,7 +231,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
-* `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
+* `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`.
 
 -> **Note:** This can only be set to `true` when one or more `zones` are configured.
 
