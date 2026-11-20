@@ -6,7 +6,9 @@ package eventgrid_namespace
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
+	"github.com/hashicorp/go-multierror"
 )
 
 func flattenInboundIPRules(ipRules *[]namespaces.InboundIPRule) []InboundIpRuleModel {
@@ -34,12 +36,21 @@ func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesCo
 	output.MaximumSessionExpiryInHours = pointer.From(topicSpacesConfig.MaximumSessionExpiryInHours)
 	output.MaximumClientSessionsPerAuthenticationName = pointer.From(topicSpacesConfig.MaximumClientSessionsPerAuthenticationName)
 	var routeId string
+	var err error
 	if topicSpacesConfig.RouteTopicResourceId != nil && *topicSpacesConfig.RouteTopicResourceId != "" {
-		id, err := topics.ParseTopicID(*topicSpacesConfig.RouteTopicResourceId)
-		if err != nil {
-			return nil, err
+		topicId, topicIdErr := topics.ParseTopicID(*topicSpacesConfig.RouteTopicResourceId)
+		if topicIdErr != nil {
+			err = multierror.Append(err, topicIdErr)
+			namespaceTopicId, namespaceTopicIdErr := namespacetopics.ParseNamespaceTopicID(*topicSpacesConfig.RouteTopicResourceId)
+			if namespaceTopicIdErr != nil {
+				err = multierror.Append(err, namespaceTopicIdErr)
+				return []TopicSpacesConfigurationModel{}, err
+			}
+
+			routeId = namespaceTopicId.ID()
+		} else {
+			routeId = topicId.ID()
 		}
-		routeId = id.ID()
 	}
 	output.RouteTopicResourceId = routeId
 

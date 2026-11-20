@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -79,8 +80,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"topic_spaces_configuration": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Type:       pluginsdk.TypeList,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Optional:   true,
+			// NOTE: O+C - `route_topic_id` property value is computed when `azurerm_eventgrid_namespace_topic_id_association` resource is created
+			Computed: true,
 			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -108,14 +112,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"route_topic_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: topics.ValidateTopicID,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.Any(
+							topics.ValidateTopicID,
+							namespacetopics.ValidateNamespaceTopicID,
+						),
 					},
 
 					"dynamic_routing_enrichment": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:       pluginsdk.TypeList,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Optional:   true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key": {
@@ -134,8 +142,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"static_routing_enrichment": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:       pluginsdk.TypeList,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Optional:   true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key": {
