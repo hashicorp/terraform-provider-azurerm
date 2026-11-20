@@ -5,6 +5,7 @@ package acceptance
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -32,6 +33,7 @@ func TestOnlyNewProperties(t *testing.T) {
 		{"new data source argument", plan + unknownArgument(`data "azurerm_virtual_network" "test"`, "resource_group_name"), true},
 		{"new provider block", plan + unknownBlock(`provider "azurerm"`, "features"), true},
 		{"several new properties", plan + unknownArgument(vnet, "advertised_gateway_prefixes") + unknownBlock(vnet, "ip_address_pool"), true},
+		{"new argument with the text wrapped", plan + strings.NewReplacer(", in ", ",\nin ", " named ", "\nnamed ").Replace(unknownArgument(vnet, "advertised_gateway_prefixes")), true},
 		{"misspelt argument", plan + unknownArgument(vnet, "advertised_gateway_prefixez"), false},
 		{"argument only reported, never set", plan + unknownArgument(vnet, "guid"), false},
 		{"block given as an argument", plan + unknownArgument(vnet, "ip_address_pool"), false},

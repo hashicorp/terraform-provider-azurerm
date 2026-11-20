@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -398,9 +399,68 @@ var notInReleaseRegex = regexp.MustCompile(`does\s+not\s+support\s+(resource\s+t
 // terraformErrorRegex finds where each error starts, as Terraform can report several at once.
 var terraformErrorRegex = regexp.MustCompile(`(?m)^Error: `)
 
-// unknownPropertyRegex matches one Terraform error saying a resource, data source or provider block has an argument or block it does not know,
-// capturing whether it is an argument, the kind of block it is in, that block's type and the property's name. Terraform may wrap the text anywhere.
-var unknownPropertyRegex = regexp.MustCompile(`^Error:\s+Unsupported\s+(argument|block\s+type)\s+on\s+\S+\s+line\s+\d+,\s+in\s+(resource|data|provider)\s+"([^"]+)"[^\n]*\n(?s:.*?)(?:argument\s+named|Blocks\s+of\s+type)\s+"([^"]+)"`)
+// unknownPropertyErrors are the errors Terraform gives for a property a provider does not know. To cover another, add its title and the words that
+// come just before the property's name in its message.
+var unknownPropertyErrors = []struct {
+	title      string
+	beforeName string
+	isBlock    bool
+}{
+	{title: "Unsupported argument", beforeName: "An argument named", isBlock: false},
+	{title: "Unsupported block type", beforeName: "Blocks of type", isBlock: true},
+}
+
+// errorLocationRegex matches where Terraform says an error is, capturing the kind of block and its type, such as:
+//
+//	terraform_plugin_test.tf line 47, in resource "azurerm_virtual_network"
+var errorLocationRegex = regexp.MustCompile(`^\S+ line \d+, in (resource|data|provider) "([^"]+)"`)
+
+// unknownProperty is a property Terraform said a provider does not know.
+type unknownProperty struct {
+	blockKind string // resource, data or provider
+	blockType string // such as azurerm_virtual_network
+	name      string
+	isBlock   bool
+}
+
+// parseUnknownProperty reads one Terraform error and returns the property it says is not known, or false for any other error. The error looks like:
+//
+//	Error: Unsupported argument
+//
+//	  on terraform_plugin_test.tf line 47, in resource "azurerm_virtual_network" "test":
+//	  47:   advertised_gateway_prefixes = true
+//
+//	An argument named "advertised_gateway_prefixes" is not expected here.
+func parseUnknownProperty(msg string) (unknownProperty, bool) {
+	// Terraform may wrap the text anywhere, so put it on one line with single spaces
+	text := strings.Join(strings.Fields(msg), " ")
+
+	for _, e := range unknownPropertyErrors {
+		location, found := strings.CutPrefix(text, "Error: "+e.title+" on ")
+		if !found {
+			continue
+		}
+
+		block := errorLocationRegex.FindStringSubmatch(location)
+		if block == nil {
+			return unknownProperty{}, false
+		}
+
+		_, afterWords, found := strings.Cut(location, e.beforeName+` "`)
+		if !found {
+			return unknownProperty{}, false
+		}
+
+		name, _, found := strings.Cut(afterWords, `"`)
+		if !found {
+			return unknownProperty{}, false
+		}
+
+		return unknownProperty{blockKind: block[1], blockType: block[2], name: name, isBlock: e.isBlock}, true
+	}
+
+	return unknownProperty{}, false
+}
 
 // skipWhenNotReleased skips a regression test whose config uses a resource, data source or property the previous version does not have yet, as
 // there is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing one is a
@@ -438,19 +498,19 @@ func onlyNewProperties(t *testing.T, msg string) bool {
 		return false
 	}
 
-	unknown := make([][]string, 0, len(starts))
+	unknown := make([]unknownProperty, 0, len(starts))
 	for i, start := range starts {
 		end := len(msg)
 		if i+1 < len(starts) {
 			end = starts[i+1][0]
 		}
 
-		m := unknownPropertyRegex.FindStringSubmatch(msg[start[0]:end])
-		if m == nil {
+		property, found := parseUnknownProperty(msg[start[0]:end])
+		if !found {
 			return false
 		}
 
-		unknown = append(unknown, m)
+		unknown = append(unknown, property)
 	}
 
 	ctx := context.Background()
@@ -466,20 +526,20 @@ func onlyNewProperties(t *testing.T, msg string) bool {
 		return false
 	}
 
-	for _, m := range unknown {
+	for _, property := range unknown {
 		var s *tfprotov5.Schema
-		switch m[2] {
+		switch property.blockKind {
 		case "resource":
-			s = schemas.ResourceSchemas[m[3]]
+			s = schemas.ResourceSchemas[property.blockType]
 		case "data":
-			s = schemas.DataSourceSchemas[m[3]]
+			s = schemas.DataSourceSchemas[property.blockType]
 		case "provider":
-			if m[3] == "azurerm" {
+			if property.blockType == "azurerm" {
 				s = schemas.Provider
 			}
 		}
 
-		if s == nil || !hasProperty(s.Block, m[4], m[1] != "argument") {
+		if s == nil || !hasProperty(s.Block, property.name, property.isBlock) {
 			return false
 		}
 	}
