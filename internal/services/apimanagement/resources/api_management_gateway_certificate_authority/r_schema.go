@@ -12,6 +12,7 @@ import (
 func apiManagementGatewayCertificateAuthoritySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_management_id": {
+			Description:  "The ID of the API Management Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,8 +24,9 @@ func apiManagementGatewayCertificateAuthoritySchema() map[string]*pluginsdk.Sche
 		"gateway_name": schemaz.SchemaApiManagementChildName(),
 
 		"is_trusted": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the API Management Gateway Certificate Authority is trusted.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 	}
 }

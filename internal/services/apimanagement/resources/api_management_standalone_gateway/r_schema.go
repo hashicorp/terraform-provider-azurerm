@@ -16,9 +16,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "Specifies the name which should be used for this API Management Standalone Gateway.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z](?:[a-zA-Z0-9-]{0,43}[a-zA-Z0-9])?$"),
 				"The `name` must be between 1 and 45 characters long and can only include letters, numbers, and hyphens. The first character must be a letter and last character must be a letter or a number.",
@@ -36,8 +37,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the SKU.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							// `Standard`: Deprecated - will be removed in a future version.
 							// `WorkspaceGatewayStandard`: Private Preview – not currently for general use.
@@ -45,6 +47,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"capacity": {
+						Description:  "The number of deployed units of the SKU.",
 						Type:         pluginsdk.TypeInt,
 						Default:      1,
 						Optional:     true,
@@ -55,6 +58,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_subnet_id": {
+			Description:  "Specifies the subnet ID in which the backend systems are hosted.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -65,9 +69,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsForceNew(),
 
 		"virtual_network_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "Specifies the type of VPN in which API Management gateway needs to be configured.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// Note: Whilst the `None` value exists it's handled in the Create/Update and Read functions.
 				string(apigateway.VirtualNetworkTypeExternal),

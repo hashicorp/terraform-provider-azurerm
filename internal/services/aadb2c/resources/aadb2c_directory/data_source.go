@@ -35,6 +35,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing AAD B2C Directory."
+}
+
 func (r DataSource) ModelObject() any {
 	return &AadB2cDirectoryDataSourceModel{}
 }
@@ -46,7 +50,7 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"domain_name": {
-			Description:  "Domain name of the B2C tenant, including onmicrosoft.com suffix.",
+			Description:  "Domain name of the B2C tenant, including the `.onmicrosoft.com` suffix.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -59,13 +63,13 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_type": {
-			Description: "The type of billing for the B2C tenant. Possible values include: `MAU` or `Auths`.",
+			Description: "The type of billing for the AAD B2C tenant.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"data_residency_location": {
-			Description: "Location in which the B2C tenant is hosted and data resides.",
+			Description: "Location in which the B2C tenant is hosted and data resides. See [official docs](https://aka.ms/B2CDataResidency) for more information.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
@@ -77,13 +81,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_id": {
-			Description: "The Tenant ID for the B2C tenant.",
+			Description: "The Tenant ID for the AAD B2C tenant.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"sku_name": {
-			Description: "Billing SKU for the B2C tenant.",
+			Description: "Billing SKU for the B2C tenant. See [official docs](https://aka.ms/b2cBilling) for more information.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

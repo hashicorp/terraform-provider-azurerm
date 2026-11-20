@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementCertificateCreateUpdate,
-		Read:   resourceApiManagementCertificateRead,
-		Update: resourceApiManagementCertificateCreateUpdate,
-		Delete: resourceApiManagementCertificateDelete,
+		Description: "Manages an Certificate within an API Management Service.",
+		Create:      resourceApiManagementCertificateCreateUpdate,
+		Read:        resourceApiManagementCertificateRead,
+		Update:      resourceApiManagementCertificateCreateUpdate,
+		Delete:      resourceApiManagementCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := certificate.ParseCertificateID(id)
 			return err

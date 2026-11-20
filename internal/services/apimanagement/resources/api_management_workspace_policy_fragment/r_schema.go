@@ -19,18 +19,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&policyfragment.WorkspaceId{}),
 
 		"xml_content": {
+			Description:      "Specifies the XML content of the API Management Workspace Policy Fragment.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: helpers.XmlWhitespaceDiffSuppress,
 		},
 
 		"description": {
+			Description:  "Specifies the description for the API Management Workspace Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"xml_format": {
+			Description:  "Specifies the XML format of the API Management Workspace Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(policyfragment.PolicyFragmentContentFormatXml),

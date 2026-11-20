@@ -20,6 +20,7 @@ func apiManagementPolicyFragmentSchema() map[string]*pluginsdk.Schema {
 		"api_management_id": commonschema.ResourceIDReferenceRequiredForceNew(&apimanagementservice.ServiceId{}),
 
 		"format": {
+			Description:  "The format of the Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
@@ -27,14 +28,16 @@ func apiManagementPolicyFragmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"value": {
+			Description:      "The value of the Policy Fragment.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: helpers.XmlWhitespaceDiffSuppress,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description for the Policy Fragment.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

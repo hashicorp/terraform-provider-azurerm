@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderTwitterCreateUpdate,
-		Read:   resourceApiManagementIdentityProviderTwitterRead,
-		Update: resourceApiManagementIdentityProviderTwitterCreateUpdate,
-		Delete: resourceApiManagementIdentityProviderTwitterDelete,
+		Description: "Manages an API Management Twitter Identity Provider.",
+		Create:      resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Read:        resourceApiManagementIdentityProviderTwitterRead,
+		Update:      resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Delete:      resourceApiManagementIdentityProviderTwitterDelete,
 
 		Importer: helpers.IdentityProviderImportFunc(identityprovider.IdentityProviderTypeTwitter),
 
