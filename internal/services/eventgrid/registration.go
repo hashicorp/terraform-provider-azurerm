@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_namespace_topic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_configuration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_namespace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_namespace_channel_topic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_registration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_system_topic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_system_topic_event_subscription"
@@ -57,6 +58,7 @@ func (r Registration) Resources() []sdk.Resource {
 		eventgrid_namespace_topic.Resource{},
 		eventgrid_partner_configuration.Resource{},
 		eventgrid_partner_namespace.Resource{},
+		eventgrid_partner_namespace_channel_topic.Resource{},
 		eventgrid_partner_registration.Resource{},
 	}
 }
@@ -100,5 +102,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		eventgrid_partner_namespace_channel_topic.ListResource{},
+	}
 }
