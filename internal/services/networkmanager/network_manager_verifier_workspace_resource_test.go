@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/verifierworkspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/verifierworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -105,7 +105,7 @@ func (r ManagerVerifierWorkspaceResource) Exists(ctx context.Context, client *cl
 		return nil, err
 	}
 
-	resp, err := client.Network.VerifierWorkspaces.Get(ctx, *id)
+	resp, err := client.NetworkManager.VerifierWorkspaces.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
