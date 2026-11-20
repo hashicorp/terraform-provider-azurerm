@@ -23,6 +23,9 @@ func TestExpandFeatures(t *testing.T) {
 			Expected: features.UserFeatures{
 				PersistIDOnCreateBeforePollingForCompletion:                 false,
 				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: false,
+				KubernetesCluster: features.KubernetesClusterFeatures{
+					NodePoolNameMaxLength: 12,
+				},
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -114,6 +117,11 @@ func TestExpandFeatures(t *testing.T) {
 				map[string]any{
 					"persist_id_on_create_before_polling_for_completion":                   true,
 					"skip_import_check_on_create_and_allow_overwriting_existing_resources": true,
+					"kubernetes_cluster": []any{
+						map[string]any{
+							"node_pool_name_max_length": 39,
+						},
+					},
 					"api_management": []any{
 						map[string]any{
 							"purge_soft_delete_on_destroy": true,
@@ -242,6 +250,9 @@ func TestExpandFeatures(t *testing.T) {
 			Expected: features.UserFeatures{
 				PersistIDOnCreateBeforePollingForCompletion:                 true,
 				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: true,
+				KubernetesCluster: features.KubernetesClusterFeatures{
+					NodePoolNameMaxLength: 39,
+				},
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -333,6 +344,11 @@ func TestExpandFeatures(t *testing.T) {
 				map[string]any{
 					"persist_id_on_create_before_polling_for_completion":                   false,
 					"skip_import_check_on_create_and_allow_overwriting_existing_resources": false,
+					"kubernetes_cluster": []any{
+						map[string]any{
+							"node_pool_name_max_length": 12,
+						},
+					},
 					"api_management": []any{
 						map[string]any{
 							"purge_soft_delete_on_destroy": false,
@@ -461,6 +477,9 @@ func TestExpandFeatures(t *testing.T) {
 			Expected: features.UserFeatures{
 				PersistIDOnCreateBeforePollingForCompletion:                 false,
 				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: false,
+				KubernetesCluster: features.KubernetesClusterFeatures{
+					NodePoolNameMaxLength: 12,
+				},
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 					RecoverSoftDeleted:       false,
@@ -2058,5 +2077,24 @@ func TestExpandFeaturesEnhancedValidation(t *testing.T) {
 		if !reflect.DeepEqual(result.EnhancedValidation, testCase.Expected.EnhancedValidation) {
 			t.Fatalf("Expected %+v but got %+v", testCase.Expected.EnhancedValidation, result.EnhancedValidation)
 		}
+	}
+}
+
+func TestExpandFeaturesKubernetesCluster(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		input []any
+		want  int
+	}{
+		{name: "omitted", want: 12},
+		{name: "empty list", input: []any{map[string]any{"kubernetes_cluster": []any{}}}, want: 12},
+		{name: "empty block", input: []any{map[string]any{"kubernetes_cluster": []any{map[string]any{}}}}, want: 12},
+		{name: "default", input: []any{map[string]any{"kubernetes_cluster": []any{map[string]any{"node_pool_name_max_length": 12}}}}, want: 12},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := expandFeatures(tc.input).KubernetesCluster.NodePoolNameMaxLength; got != tc.want {
+				t.Fatalf("expected node_pool_name_max_length=%d, got %d", tc.want, got)
+			}
+		})
 	}
 }

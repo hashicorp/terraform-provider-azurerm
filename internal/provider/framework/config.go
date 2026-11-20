@@ -214,6 +214,20 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.CognitiveAccount.PurgeSoftDeleteOnDestroy = true
 		}
 
+		if !features.KubernetesCluster.IsNull() && !features.KubernetesCluster.IsUnknown() {
+			var feature []KubernetesCluster
+			diags.Append(features.KubernetesCluster.ElementsAs(ctx, &feature, true)...)
+			if diags.HasError() {
+				return
+			}
+			f.KubernetesCluster.NodePoolNameMaxLength = 12
+			if len(feature) > 0 && !feature[0].NodePoolNameMaxLength.IsNull() && !feature[0].NodePoolNameMaxLength.IsUnknown() {
+				f.KubernetesCluster.NodePoolNameMaxLength = int(feature[0].NodePoolNameMaxLength.ValueInt64())
+			}
+		} else {
+			f.KubernetesCluster.NodePoolNameMaxLength = 12
+		}
+
 		if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
 			var feature []KeyVault
 			diags.Append(features.KeyVault.ElementsAs(ctx, &feature, true)...)

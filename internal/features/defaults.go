@@ -41,6 +41,9 @@ func Default() UserFeatures {
 			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedHSMKeys:        true,
 		},
+		KubernetesCluster: KubernetesClusterFeatures{
+			NodePoolNameMaxLength: 12,
+		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: false,
 		},

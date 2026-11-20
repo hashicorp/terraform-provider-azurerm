@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -113,6 +114,34 @@ func TestKubernetesAgentPoolName(t *testing.T) {
 			Errors:        0,
 		},
 		{
+			AgentPoolName: "a",
+			Errors:        0,
+		},
+		{
+			AgentPoolName: strings.Repeat("a", 12),
+			Errors:        0,
+		},
+		{
+			AgentPoolName: "linuxworkerpool01",
+			Errors:        0,
+		},
+		{
+			AgentPoolName: strings.Repeat("a", 26),
+			Errors:        0,
+		},
+		{
+			AgentPoolName: strings.Repeat("a", 27),
+			Errors:        0,
+		},
+		{
+			AgentPoolName: "a" + strings.Repeat("1", 38),
+			Errors:        0,
+		},
+		{
+			AgentPoolName: strings.Repeat("a", 40),
+			Errors:        1,
+		},
+		{
 			AgentPoolName: "123abc",
 			Errors:        1,
 		},
@@ -130,7 +159,7 @@ func TestKubernetesAgentPoolName(t *testing.T) {
 		},
 		{
 			AgentPoolName: "helloworld123",
-			Errors:        1,
+			Errors:        0,
 		},
 		{
 			AgentPoolName: "hello_world",
