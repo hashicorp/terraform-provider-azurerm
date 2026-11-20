@@ -561,6 +561,11 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			var config ManagedDevOpsPoolModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			state := ManagedDevOpsPoolModel{
 				Name:              id.PoolName,
 				ResourceGroupName: id.ResourceGroupName,
@@ -598,6 +603,10 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
 						if azureDevOpsOrganization, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
 							state.AzureDevOpsOrganization = flattenAzureDevOpsOrganizationToModel(azureDevOpsOrganization)
+							// `permissionProfile` is not returned via `GET` request, hence state `Permission` is assigned config value to avoid perpetual change
+							if len(config.AzureDevOpsOrganization) > 0 && len(config.AzureDevOpsOrganization[0].Permission) > 0 {
+								state.AzureDevOpsOrganization[0].Permission = config.AzureDevOpsOrganization[0].Permission
+							}
 						}
 					}
 
