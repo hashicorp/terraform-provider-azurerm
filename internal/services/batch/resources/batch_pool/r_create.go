@@ -119,6 +119,14 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](v.(string))
 	}
 
+	if v, ok := d.GetOk("application_package"); ok {
+		applicationPackageReference, err := ExpandBatchPoolApplicationPackages(v.([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `application_package`: %+v", err)
+		}
+		parameters.Properties.ApplicationPackages = &applicationPackageReference
+	}
+
 	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
