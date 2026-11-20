@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +22,7 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta any) error {
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
-	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
+	id, err := appplatform.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,7 @@ package spring_cloud_app_cosmosdb_association
 import (
 	"time"
 
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app_cosmosdb_association/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +29,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
-			_, err := appplatform_rm.ParseBindingIDInsensitively(id)
+			_, err := appplatform.ParseBindingIDInsensitively(id)
 			return err
 		}, helpers.ImportSpringCloudAppAssociation(helpers.SpringCloudAppAssociationTypeCosmosDb)),
 

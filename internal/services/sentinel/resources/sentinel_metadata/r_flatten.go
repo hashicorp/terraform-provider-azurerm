@@ -6,10 +6,10 @@ package sentinel_metadata
 import (
 	"encoding/json"
 
-	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 )
 
-func flattenMetadataSourceModel(input *sentinelmetadata.MetadataSource) []MetadataSourceModel {
+func flattenMetadataSourceModel(input *metadata.MetadataSource) []MetadataSourceModel {
 	if input == nil {
 		return []MetadataSourceModel{}
 	}
@@ -25,7 +25,7 @@ func flattenMetadataSourceModel(input *sentinelmetadata.MetadataSource) []Metada
 	return []MetadataSourceModel{output}
 }
 
-func flattenMetadataAuthorModel(input *sentinelmetadata.MetadataAuthor) []MetadataAuthorModel {
+func flattenMetadataAuthorModel(input *metadata.MetadataAuthor) []MetadataAuthorModel {
 	if input == nil {
 		return []MetadataAuthorModel{}
 	}
@@ -42,7 +42,7 @@ func flattenMetadataAuthorModel(input *sentinelmetadata.MetadataAuthor) []Metada
 	return []MetadataAuthorModel{output}
 }
 
-func flattenMetadataSupportModel(input *sentinelmetadata.MetadataSupport) []MetadataSupportModel {
+func flattenMetadataSupportModel(input *metadata.MetadataSupport) []MetadataSupportModel {
 	if input == nil {
 		return []MetadataSupportModel{}
 	}
@@ -61,7 +61,7 @@ func flattenMetadataSupportModel(input *sentinelmetadata.MetadataSupport) []Meta
 	return []MetadataSupportModel{output}
 }
 
-func flattenMetadataCategoryModel(input *sentinelmetadata.MetadataCategories) []MetadataCategoryModel {
+func flattenMetadataCategoryModel(input *metadata.MetadataCategories) []MetadataCategoryModel {
 	if input == nil {
 		return []MetadataCategoryModel{}
 	}
@@ -75,7 +75,7 @@ func flattenMetadataCategoryModel(input *sentinelmetadata.MetadataCategories) []
 	return []MetadataCategoryModel{output}
 }
 
-func flattenMetadataDependencies(input *sentinelmetadata.MetadataDependencies) (string, error) {
+func flattenMetadataDependencies(input *metadata.MetadataDependencies) (string, error) {
 	if input == nil {
 		return "", nil
 	}

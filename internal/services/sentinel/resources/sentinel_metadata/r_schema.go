@@ -5,7 +5,7 @@ package sentinel_metadata
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
-	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +37,7 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 		"kind": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(sentinelmetadata.PossibleValuesForKind(), false),
+			ValidateFunc: validation.StringInSlice(metadata.PossibleValuesForKind(), false),
 		},
 
 		"parent_id": {
@@ -57,7 +57,7 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 					"kind": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(sentinelmetadata.PossibleValuesForSourceKind(), false),
+						ValidateFunc: validation.StringInSlice(metadata.PossibleValuesForSourceKind(), false),
 					},
 					"name": {
 						Type:         pluginsdk.TypeString,
@@ -109,7 +109,7 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 					"tier": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(sentinelmetadata.PossibleValuesForSupportTier(), false),
+						ValidateFunc: validation.StringInSlice(metadata.PossibleValuesForSupportTier(), false),
 					},
 
 					"name": {

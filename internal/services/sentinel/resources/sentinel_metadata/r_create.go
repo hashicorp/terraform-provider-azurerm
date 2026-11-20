@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
-	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,21 +19,21 @@ import (
 func (a Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			var plan MetadataModel
-			if err := metadata.Decode(&plan); err != nil {
+			if err := meta.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.Sentinel.MetadataClient
+			client := meta.Client.Sentinel.MetadataClient
 
 			parsedWorkspaceId, err := workspaces.ParseWorkspaceID(plan.WorkspaceId)
 			if err != nil {
 				return fmt.Errorf("parsing workspace id: %+v", err)
 			}
 
-			id := sentinelmetadata.NewMetadataID(parsedWorkspaceId.SubscriptionId, parsedWorkspaceId.ResourceGroupName, parsedWorkspaceId.WorkspaceName, plan.Name)
+			id := metadata.NewMetadataID(parsedWorkspaceId.SubscriptionId, parsedWorkspaceId.ResourceGroupName, parsedWorkspaceId.WorkspaceName, plan.Name)
 
-			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !meta.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
@@ -41,14 +41,14 @@ func (a Resource) Create() sdk.ResourceFunc {
 					}
 				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return metadata.ResourceRequiresImport(a.ResourceType(), id)
+					return meta.ResourceRequiresImport(a.ResourceType(), id)
 				}
 			}
 
-			input := sentinelmetadata.MetadataModel{
-				Properties: &sentinelmetadata.MetadataProperties{
+			input := metadata.MetadataModel{
+				Properties: &metadata.MetadataProperties{
 					ParentId:   plan.ParentId,
-					Kind:       sentinelmetadata.Kind(plan.Kind),
+					Kind:       metadata.Kind(plan.Kind),
 					Author:     expandMetadataAuthorModel(plan.Author),
 					Categories: expandMetadataCategoryModel(plan.Category),
 					Source:     expandMetadataSourceModel(plan.Source),
@@ -119,19 +119,19 @@ func (a Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
+			meta.SetID(id)
 			return nil
 		},
 	}
 }
 
-func expandMetadataSourceModel(input []MetadataSourceModel) *sentinelmetadata.MetadataSource {
+func expandMetadataSourceModel(input []MetadataSourceModel) *metadata.MetadataSource {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0]
-	output := sentinelmetadata.MetadataSource{
-		Kind: sentinelmetadata.SourceKind(v.Kind),
+	output := metadata.MetadataSource{
+		Kind: metadata.SourceKind(v.Kind),
 	}
 	if v.Name != "" {
 		output.Name = pointer.To(v.Name)
@@ -142,12 +142,12 @@ func expandMetadataSourceModel(input []MetadataSourceModel) *sentinelmetadata.Me
 	return &output
 }
 
-func expandMetadataAuthorModel(input []MetadataAuthorModel) *sentinelmetadata.MetadataAuthor {
+func expandMetadataAuthorModel(input []MetadataAuthorModel) *metadata.MetadataAuthor {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0]
-	output := sentinelmetadata.MetadataAuthor{}
+	output := metadata.MetadataAuthor{}
 	if v.Name != "" {
 		output.Name = pointer.To(v.Name)
 	}
@@ -160,13 +160,13 @@ func expandMetadataAuthorModel(input []MetadataAuthorModel) *sentinelmetadata.Me
 	return &output
 }
 
-func expandMetadataSupportModel(input []MetadataSupportModel) *sentinelmetadata.MetadataSupport {
+func expandMetadataSupportModel(input []MetadataSupportModel) *metadata.MetadataSupport {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0]
-	output := sentinelmetadata.MetadataSupport{
-		Tier: sentinelmetadata.SupportTier(v.Tier),
+	output := metadata.MetadataSupport{
+		Tier: metadata.SupportTier(v.Tier),
 	}
 	if v.Name != "" {
 		output.Name = pointer.To(v.Name)
@@ -180,12 +180,12 @@ func expandMetadataSupportModel(input []MetadataSupportModel) *sentinelmetadata.
 	return &output
 }
 
-func expandMetadataCategoryModel(input []MetadataCategoryModel) *sentinelmetadata.MetadataCategories {
+func expandMetadataCategoryModel(input []MetadataCategoryModel) *metadata.MetadataCategories {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0]
-	output := sentinelmetadata.MetadataCategories{}
+	output := metadata.MetadataCategories{}
 	if len(v.Domains) > 0 {
 		output.Domains = &v.Domains
 	}
@@ -195,25 +195,25 @@ func expandMetadataCategoryModel(input []MetadataCategoryModel) *sentinelmetadat
 	return &output
 }
 
-func expandMetadataDependencies(input any) (dependencies *sentinelmetadata.MetadataDependencies, err error) {
+func expandMetadataDependencies(input any) (dependencies *metadata.MetadataDependencies, err error) {
 	if j, ok := input.(map[string]any); ok {
-		dependencies = &sentinelmetadata.MetadataDependencies{}
+		dependencies = &metadata.MetadataDependencies{}
 		// "name" is not returned in response, so it's not supported for now.
 		if v, ok := j["contentId"]; ok {
 			dependencies.ContentId = pointer.To(v.(string))
 		}
 		if v, ok := j["kind"]; ok {
-			dependencies.Kind = pointer.ToEnum[sentinelmetadata.Kind](v.(string))
+			dependencies.Kind = pointer.ToEnum[metadata.Kind](v.(string))
 		}
 		if v, ok := j["version"]; ok {
 			dependencies.Version = pointer.To(v.(string))
 		}
 		if v, ok := j["operator"]; ok {
-			dependencies.Operator = pointer.ToEnum[sentinelmetadata.Operator](v.(string))
+			dependencies.Operator = pointer.ToEnum[metadata.Operator](v.(string))
 		}
 		if v, ok := j["criteria"]; ok {
 			if array, ok := v.([]any); ok {
-				var deps []sentinelmetadata.MetadataDependencies
+				var deps []metadata.MetadataDependencies
 				for _, item := range array {
 					i, ok := item.(map[string]any)
 					if !ok {
@@ -234,7 +234,7 @@ func expandMetadataDependencies(input any) (dependencies *sentinelmetadata.Metad
 				if err != nil {
 					return nil, err
 				}
-				dependencies.Criteria = &[]sentinelmetadata.MetadataDependencies{*dep}
+				dependencies.Criteria = &[]metadata.MetadataDependencies{*dep}
 			}
 		}
 		return dependencies, nil

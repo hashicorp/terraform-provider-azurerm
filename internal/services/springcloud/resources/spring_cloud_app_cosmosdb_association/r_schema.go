@@ -4,7 +4,7 @@
 package spring_cloud_app_cosmosdb_association
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -25,7 +25,7 @@ func springCloudAppCosmosdbAssociationSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseAppIDInsensitively),
 		},
 
 		"cosmosdb_account_id": {

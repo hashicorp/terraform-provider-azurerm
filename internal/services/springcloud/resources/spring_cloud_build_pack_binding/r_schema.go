@@ -4,10 +4,9 @@
 package spring_cloud_build_pack_binding
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func springCloudBuildPackBindingSchema() map[string]*pluginsdk.Schema {
@@ -22,7 +21,7 @@ func springCloudBuildPackBindingSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseBuilderIDInsensitively),
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseBuilderIDInsensitively),
 		},
 
 		"binding_type": {

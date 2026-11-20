@@ -4,7 +4,7 @@
 package spring_cloud_active_deployment
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -16,7 +16,7 @@ func springCloudActiveDeploymentSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseAppIDInsensitively),
 		},
 
 		"deployment_name": {
