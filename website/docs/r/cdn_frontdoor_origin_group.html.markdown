@@ -58,6 +58,8 @@ The following arguments are supported:
 
 ---
 
+* `authentication` - (Optional) An `authentication` block as defined below.
+
 * `health_probe` - (Optional) A `health_probe` block as defined below.
 
 * `restore_traffic_time_to_healed_or_new_endpoint_in_minutes` - (Optional) Specifies the amount of time which should elapse before shifting traffic to another endpoint when a healthy endpoint becomes unhealthy or a new endpoint is added. Possible values are between `0` and `50` minutes (inclusive). Default is `10` minutes.
@@ -65,6 +67,18 @@ The following arguments are supported:
 -> **Note:** This property is currently not used, but will be in the near future.
 
 * `session_affinity_enabled` - (Optional) Specifies whether session affinity should be enabled on this host. Defaults to `true`.
+
+---
+
+An `authentication` block supports the following:
+
+* `type` - (Required) The type of managed identity Front Door uses to authenticate with the origins in this Origin Group. Possible values are `SystemAssignedIdentity` and `UserAssignedIdentity`.
+
+* `scope` - (Required) The scope (audience) of the access token requested by Front Door, e.g. `https://storage.azure.com/.default`.
+
+* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Identity used to authenticate with the origins. This must be specified when `type` is `UserAssignedIdentity`, and cannot be specified when `type` is `SystemAssignedIdentity`.
+
+-> **Note:** The managed identity must be assigned to the parent `azurerm_cdn_frontdoor_profile` via its `identity` block, and must be granted the required role on the origin resource. For more information please see the [product documentation](https://learn.microsoft.com/azure/frontdoor/origin-authentication-with-managed-identities).
 
 ---
 

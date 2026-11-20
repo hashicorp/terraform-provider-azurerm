@@ -146,6 +146,71 @@ func TestAccCdnFrontDoorOriginGroup_updateHealthProbe(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorOriginGroup_authenticationSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorOriginGroup_authenticationUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorOriginGroup_authenticationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontdoorOriginGroupResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("authentication.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authenticationUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authenticationSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authenticationNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("authentication.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontdoorOriginGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := afdorigingroups.ParseOriginGroupID(state.ID)
 	if err != nil {
@@ -316,6 +381,100 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginGroupResource) authenticationNone(data acceptance.TestData) string {
+	template := r.authenticationTemplate(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-origingroup-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginGroupResource) authenticationSystemAssignedIdentity(data acceptance.TestData) string {
+	template := r.authenticationTemplate(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-origingroup-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  authentication {
+    type  = "SystemAssignedIdentity"
+    scope = "https://storage.azure.com/.default"
+  }
+
+  load_balancing {
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginGroupResource) authenticationUserAssignedIdentity(data acceptance.TestData) string {
+	template := r.authenticationTemplate(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "acctest-origingroup-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  authentication {
+    type                      = "UserAssignedIdentity"
+    scope                     = "https://storage.azure.com/.default"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  load_balancing {
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginGroupResource) authenticationTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-cdn-afdx-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctest-cdnfdprofile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CdnFrontdoorOriginGroupResource) template(data acceptance.TestData) string {
