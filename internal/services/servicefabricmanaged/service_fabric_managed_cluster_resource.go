@@ -804,8 +804,6 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 
 	if rules := model.LBRules; len(rules) > 0 {
 		lbRules := make([]managedcluster.LoadBalancingRule, len(rules))
-		nsRules := make([]managedcluster.NetworkSecurityRule, len(rules))
-
 		for idx, rule := range rules {
 			lbRules[idx] = managedcluster.LoadBalancingRule{
 				BackendPort:      rule.BackendPort,
@@ -814,29 +812,8 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				ProbeRequestPath: pointer.To(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
-
-			fePortStr := strconv.FormatInt(rule.FrontendPort, 10)
-			var sgProto managedcluster.NsgProtocol
-			switch rule.Protocol {
-			case managedcluster.ProtocolTcp:
-				sgProto = managedcluster.NsgProtocolTcp
-			case managedcluster.ProtocolUdp:
-				sgProto = managedcluster.NsgProtocolUdp
-			}
-			nsRules[idx] = managedcluster.NetworkSecurityRule{
-				Access:                     managedcluster.AccessAllow,
-				SourceAddressPrefixes:      &[]string{"0.0.0.0/0"},
-				SourcePortRanges:           &[]string{"1-65535"},
-				DestinationPortRanges:      &[]string{fePortStr},
-				DestinationAddressPrefixes: &[]string{"0.0.0.0/0"},
-				Direction:                  managedcluster.DirectionInbound,
-				Name:                       fmt.Sprintf("rule%d-allow-fe", rule.FrontendPort),
-				Priority:                   1000,
-				Protocol:                   sgProto,
-			}
 		}
 		out.LoadBalancingRules = &lbRules
-		out.NetworkSecurityRules = &nsRules
 	}
 	return out
 }
