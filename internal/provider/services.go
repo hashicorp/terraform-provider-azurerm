@@ -126,6 +126,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sreagent"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover"
@@ -235,6 +236,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		servicenetworking.Registration{},
 		signalr.Registration{},
 		springcloud.Registration{},
+		sreagent.Registration{},
 		storage.Registration{},
 		storagecache.Registration{},
 		storagemover.Registration{},
@@ -479,6 +481,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		servicenetworking.Registration{},
 		signalr.Registration{},
 		springcloud.Registration{},
+		sreagent.Registration{},
 		storage.Registration{},
 		storagecache.Registration{},
 		storagemover.Registration{},
