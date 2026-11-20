@@ -132,9 +132,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"short_term_retention_policy": ShortTermRetentionPolicySchema(),
 
 		"max_size_gb": {
-			Type:         pluginsdk.TypeFloat,
-			Optional:     true,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
+			Type:     pluginsdk.TypeFloat,
+			Optional: true,
+			// NOTE: O+C secondary databases inherit size from the primary (and Azure sets a SKU default if omitted); sending the cached state value on secondary updates fails.
+			Computed:     true,
 			ValidateFunc: validation.FloatBetween(0.1, 4096),
 		},
 
