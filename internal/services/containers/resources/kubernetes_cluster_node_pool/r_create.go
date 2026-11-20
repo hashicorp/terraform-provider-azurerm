@@ -271,7 +271,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		if osType != string(managedclusters.OSTypeLinux) {
 			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
-		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(d, "linux_os_config.0.", linuxOSConfig)
 		if err != nil {
 			return err
 		}
