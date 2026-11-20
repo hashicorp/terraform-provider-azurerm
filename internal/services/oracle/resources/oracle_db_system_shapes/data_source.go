@@ -19,6 +19,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`

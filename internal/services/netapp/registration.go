@@ -58,11 +58,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_netapp_account":         netapp_account.RegisterResource(),
-		"azurerm_netapp_pool":            netapp_pool.RegisterResource(),
-		"azurerm_netapp_snapshot":        netapp_snapshot.RegisterResource(),
-		"azurerm_netapp_snapshot_policy": netapp_snapshot_policy.RegisterResource(),
-		"azurerm_netapp_volume":          netapp_volume.RegisterResource(),
+		"azurerm_netapp_account":  netapp_account.RegisterResource(),
+		"azurerm_netapp_pool":     netapp_pool.RegisterResource(),
+		"azurerm_netapp_snapshot": netapp_snapshot.RegisterResource(),
+		"azurerm_netapp_volume":   netapp_volume.RegisterResource(),
 	}
 }
 
@@ -86,6 +85,7 @@ func (r Registration) Resources() []sdk.Resource {
 		netapp_account_encryption.Resource{},
 		netapp_backup_policy.Resource{},
 		netapp_backup_vault.Resource{},
+		netapp_snapshot_policy.Resource{},
 		netapp_volume_bucket.Resource{},
 		netapp_volume_bucket_with_server.Resource{},
 		netapp_volume_group_oracle.Resource{},

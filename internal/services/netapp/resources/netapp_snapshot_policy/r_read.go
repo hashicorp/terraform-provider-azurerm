@@ -6,7 +6,6 @@ package netapp_snapshot_policy
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -14,63 +13,55 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (Resource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetApp.SnapshotPoliciesClient
 
-	id, err := snapshotpolicies.ParseSnapshotPolicyID(d.Id())
-	if err != nil {
-		return err
+			id, err := snapshotpolicies.ParseSnapshotPolicyID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			state := NetAppSnapshotPolicyResourceModel{
+				Name:              id.SnapshotPolicyName,
+				ResourceGroupName: id.ResourceGroupName,
+				AccountName:       id.NetAppAccountName,
+			}
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+
+				props := model.Properties
+				state.Enabled = pointer.From(props.Enabled)
+				state.HourlySchedule = flattenNetAppSnapshotPolicyHourlySchedule(props.HourlySchedule)
+				state.DailySchedule = flattenNetAppSnapshotPolicyDailySchedule(props.DailySchedule)
+				state.WeeklySchedule = flattenNetAppSnapshotPolicyWeeklySchedule(props.WeeklySchedule)
+				state.MonthlySchedule = flattenNetAppSnapshotPolicyMonthlySchedule(props.MonthlySchedule)
+
+				state.Tags = pointer.From(model.Tags)
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] NetApp SnapshotPolicy %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("reading %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.SnapshotPolicyName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.NetAppAccountName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		props := model.Properties
-		d.Set("enabled", props.Enabled)
-		if err = d.Set("hourly_schedule", flattenNetAppVolumeSnapshotPolicyHourlySchedule(props.HourlySchedule)); err != nil {
-			return fmt.Errorf("setting `hourly_schedule`: %+v", err)
-		}
-		if err = d.Set("daily_schedule", flattenNetAppVolumeSnapshotPolicyDailySchedule(props.DailySchedule)); err != nil {
-			return fmt.Errorf("setting `daily_schedule`: %+v", err)
-		}
-		if err = d.Set("weekly_schedule", flattenNetAppVolumeSnapshotPolicyWeeklySchedule(props.WeeklySchedule)); err != nil {
-			return fmt.Errorf("setting `weekly_schedule`: %+v", err)
-		}
-		if err = d.Set("monthly_schedule", flattenNetAppVolumeSnapshotPolicyMonthlySchedule(props.MonthlySchedule)); err != nil {
-			return fmt.Errorf("setting `monthly_schedule`: %+v", err)
-		}
-
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func findVolumesUsingSnapshotPolicy(ctx context.Context, client *clients.Client, snapshotPolicyId snapshotpolicies.SnapshotPolicyId) ([]string, error) {

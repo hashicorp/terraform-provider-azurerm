@@ -37,14 +37,14 @@ To add an exception, insert an entry to `internal/tools/preview-api-version-lint
   service: compute
   version: 2021-06-01-preview
   stableVersionTargetDate: 2026-01-01
-  responsibleIndividual: github.com/gerrytan
+  responsibleIndividual: github.com/gerrytan, github.com/somebody
 ```
 
 - `module`: go module name as per go.mod, see internal/tools/preview-api-version-linter/sdk/sdk_types.go for supported modules
 - `service`: service name as per the vendor path, for `vendor/github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-01-06-preview` the service name is `compute`
 - `version`: preview version as per the vendor path
 - `stableVersionTargetDate`: estimated stable API version release date, does not have to be the actual stable version string
-- `responsibleIndividual`: individual with deep expertise of the API that can be contacted in the future, has to be a `github.com/myuser` GitHub handle or an email address
+- `responsibleIndividual`: individual(s) with deep expertise of the API that can be contacted in the future, has to be one or more comma-separated `github.com/myuser` GitHub handles or email addresses
 
 Entries have to be sorted alphabetically by `module`, `service` and `version`.
 
