@@ -38,7 +38,7 @@ func (p dataProtectionBackupInstanceRBACPoller) Poll(ctx context.Context) (*poll
 
 		if strings.Contains(err.Error(), "UserErrorExtensionMSIMissingPermissions") ||
 			strings.Contains(err.Error(), "UserErrorMissingMSIPermissionsOnSnapshotResourceGroup") ||
-			 strings.Contains(err.Error(), "UserErrorBackupStorageLocationNotReady") {
+			strings.Contains(err.Error(), "UserErrorBackupStorageLocationNotReady") {
 			log.Printf("[DEBUG] Waiting for backup RBAC permissions to propagate for %s: %+v", p.id, err)
 			return &pollers.PollResult{
 				PollInterval: 30 * time.Second,
