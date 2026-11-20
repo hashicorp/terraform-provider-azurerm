@@ -38,6 +38,8 @@ The following attributes are exported:
 
 * `enabled` - Specifies whether this Front Door Endpoint is enabled or not.
 
+* `domain_name_label_reuse_scope` - The scope level of the endpoint's domain reuse behaviour.
+
 * `host_name` - Specifies the host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
 
 * `tags` - Specifies a mapping of Tags assigned to this Front Door Endpoint.
