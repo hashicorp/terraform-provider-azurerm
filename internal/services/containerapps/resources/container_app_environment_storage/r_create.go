@@ -60,10 +60,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
-						AccountKey:  pointer.To(storage.AccessKey),
 						AccountName: pointer.To(storage.AccountName),
 						ShareName:   pointer.To(storage.ShareName),
 					},
+				}
+				if len(storage.AccessKeyVaultSecret) > 0 {
+					managedEnvironmentStorage.Properties.AzureFile.AccountKeyVaultProperties = expandContainerAppEnvironmentStorageKeyVaultSecret(storage.AccessKeyVaultSecret)
+				} else {
+					managedEnvironmentStorage.Properties.AzureFile.AccountKey = pointer.To(storage.AccessKey)
 				}
 			}
 
@@ -75,5 +79,16 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func expandContainerAppEnvironmentStorageKeyVaultSecret(input []ContainerAppEnvironmentStorageKeyVaultSecret) *managedenvironmentsstorages.SecretKeyVaultProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &managedenvironmentsstorages.SecretKeyVaultProperties{
+		Identity:    pointer.To(input[0].Identity),
+		KeyVaultURL: pointer.To(input[0].KeyVaultSecretId),
 	}
 }

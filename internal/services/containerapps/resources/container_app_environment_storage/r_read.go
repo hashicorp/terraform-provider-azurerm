@@ -46,6 +46,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 							state.AccessMode = string(*azureFile.AccessMode)
 						}
 						state.ShareName = pointer.From(azureFile.ShareName)
+						state.AccessKeyVaultSecret = flattenContainerAppEnvironmentStorageKeyVaultSecret(azureFile.AccountKeyVaultProperties)
 					} else if nfsAzureFile := props.NfsAzureFile; nfsAzureFile != nil {
 						state.NfsServer = pointer.From(nfsAzureFile.Server)
 						if nfsAzureFile.AccessMode != nil {
@@ -60,6 +61,19 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func flattenContainerAppEnvironmentStorageKeyVaultSecret(input *managedenvironmentsstorages.SecretKeyVaultProperties) []ContainerAppEnvironmentStorageKeyVaultSecret {
+	if input == nil || input.KeyVaultURL == nil {
+		return []ContainerAppEnvironmentStorageKeyVaultSecret{}
+	}
+
+	return []ContainerAppEnvironmentStorageKeyVaultSecret{
+		{
+			Identity:         pointer.From(input.Identity),
+			KeyVaultSecretId: pointer.From(input.KeyVaultURL),
 		},
 	}
 }

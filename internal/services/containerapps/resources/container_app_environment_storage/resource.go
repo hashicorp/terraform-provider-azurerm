@@ -11,7 +11,10 @@ import (
 
 type Resource struct{}
 
-var _ sdk.ResourceWithUpdate = Resource{}
+var (
+	_ sdk.ResourceWithUpdate        = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
+)
 
 func (r Resource) ResourceType() string {
 	return "azurerm_container_app_environment_storage"
