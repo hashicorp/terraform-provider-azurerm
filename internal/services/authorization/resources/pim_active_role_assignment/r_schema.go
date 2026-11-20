@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
+	authorizationValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,10 +37,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"role_definition_id": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			Description: "Role definition ID for this role assignment",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Description:  "Role definition ID for this role assignment",
+			ValidateFunc: authorizationValidate.RoleDefinitionResourceID,
+			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				return parse.RoleDefinitionResourceIdsMatch(old, new)
+			},
 		},
 
 		"principal_id": {
