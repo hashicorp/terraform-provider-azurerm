@@ -202,6 +202,13 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 
 	if d.HasChange("node_network_profile") {
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]any))
+		if props.NetworkProfile == nil {
+			props.NetworkProfile = &agentpools.AgentPoolNetworkProfile{
+				Dranet: &agentpools.DRANETProfile{
+					Mode: pointer.To(agentpools.DRANETModeUnmanaged),
+				},
+			}
+		}
 	}
 
 	if d.HasChange("security") {

@@ -175,7 +175,7 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
+		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile, len(d.Get("node_network_profile").([]any)) > 0)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
@@ -439,8 +439,15 @@ func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) [
 	}
 }
 
-func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []any {
-	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile, hasExistingBlock bool) []any {
+	if input == nil {
+		input = &agentpools.AgentPoolNetworkProfile{}
+	}
+	dranetMode := string(agentpools.DRANETModeUnmanaged)
+	if input.Dranet != nil && input.Dranet.Mode != nil {
+		dranetMode = string(*input.Dranet.Mode)
+	}
+	if !hasExistingBlock && dranetMode == string(agentpools.DRANETModeUnmanaged) && input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
 		return []any{}
 	}
 
@@ -448,6 +455,7 @@ func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) [
 		map[string]any{
 			"allowed_host_ports":             flattenAgentPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
 			"application_security_group_ids": pluginsdk.FlattenSlice(input.ApplicationSecurityGroups),
+			"dranet_mode":                    dranetMode,
 			"node_public_ip_tags":            flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}

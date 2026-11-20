@@ -612,6 +612,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		agentProfile := helpers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
+		if d.HasChange("default_node_pool.0.node_network_profile") && agentProfile.Properties.NetworkProfile == nil {
+			agentProfile.Properties.NetworkProfile = &agentpools.AgentPoolNetworkProfile{
+				Dranet: &agentpools.DRANETProfile{
+					Mode: pointer.To(agentpools.DRANETModeUnmanaged),
+				},
+			}
+		}
+
 		if d.HasChange("default_node_pool.0.security") {
 			// there is one specific case where default_node_pool.0.name can be updated so we need to grab the old name from state before calling GetNodePool
 			currentNodePoolId := defaultNodePoolId
