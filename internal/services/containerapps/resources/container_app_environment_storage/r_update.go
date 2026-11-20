@@ -34,12 +34,19 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s for update: %+v", *id, err)
 			}
 
-			if existing.Model.Properties == nil || existing.Model.Properties.AzureFile == nil {
+			if existing.Model == nil || existing.Model.Properties == nil || existing.Model.Properties.AzureFile == nil {
 				return fmt.Errorf("could not update %s: existing resource is missing `AzureFile` properties", *id)
 			}
 
-			// This *must* be sent, and is currently the only updatable property on the resource.
-			existing.Model.Properties.AzureFile.AccountKey = pointer.To(metadata.ResourceData.Get("access_key").(string))
+			// One of the account key or Key Vault reference must be sent on every update.
+			azureFile := existing.Model.Properties.AzureFile
+			if len(storage.AccessKeyVaultSecret) > 0 {
+				azureFile.AccountKey = nil
+				azureFile.AccountKeyVaultProperties = expandContainerAppEnvironmentStorageKeyVaultSecret(storage.AccessKeyVaultSecret)
+			} else {
+				azureFile.AccountKey = pointer.To(storage.AccessKey)
+				azureFile.AccountKeyVaultProperties = nil
+			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
