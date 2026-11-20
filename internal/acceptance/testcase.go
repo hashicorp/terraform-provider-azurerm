@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -165,7 +166,7 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 // The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The second step uses the locally built provider code.
-// It is skipped when the previous version does not have a resource or data source its config uses yet.
+// It is skipped when the previous version does not have a resource, data source or property its config uses yet.
 func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	if len(steps) != 2 {
 		if len(steps) == 1 {
@@ -350,7 +351,7 @@ func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []Test
 // All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The final step uses the locally built provider code.
-// It is skipped when the previous version does not have a resource or data source its config uses yet.
+// It is skipped when the previous version does not have a resource, data source or property its config uses yet.
 func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	l := len(steps)
 	if l < 3 {
@@ -394,9 +395,16 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 // notInReleaseRegex matches Terraform saying a provider does not have a resource or data source type, which it may break across lines anywhere.
 var notInReleaseRegex = regexp.MustCompile(`does\s+not\s+support\s+(resource\s+type|data\s+source)\s+"`)
 
-// skipWhenNotReleased skips a regression test whose config uses a resource or data source the previous version does not have yet, as there
-// is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing a type
-// is a real failure.
+// terraformErrorRegex finds where each error starts, as Terraform can report several at once.
+var terraformErrorRegex = regexp.MustCompile(`(?m)^Error: `)
+
+// unknownPropertyRegex matches one Terraform error saying a resource, data source or provider block has an argument or block it does not know,
+// capturing whether it is an argument, the kind of block it is in, that block's type and the property's name. Terraform may wrap the text anywhere.
+var unknownPropertyRegex = regexp.MustCompile(`^Error:\s+Unsupported\s+(argument|block\s+type)\s+on\s+\S+\s+line\s+\d+,\s+in\s+(resource|data|provider)\s+"([^"]+)"[^\n]*\n(?s:.*?)(?:argument\s+named|Blocks\s+of\s+type)\s+"([^"]+)"`)
+
+// skipWhenNotReleased skips a regression test whose config uses a resource, data source or property the previous version does not have yet, as
+// there is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing one is a
+// real failure.
 func skipWhenNotReleased(t *testing.T, steps []TestStep, previousVersion string) resource.ErrorCheckFunc {
 	// the testing library does not say which step failed, so the last step, the local build, flags itself as it starts
 	local := false
@@ -414,8 +422,90 @@ func skipWhenNotReleased(t *testing.T, steps []TestStep, previousVersion string)
 			t.Skipf("skipping, provider version %q does not have a type this test uses yet: %+v", providerRelease(previousVersion), err)
 		}
 
+		if !local && onlyNewProperties(t, err.Error()) {
+			t.Skipf("skipping, provider version %q does not have a property this test uses yet: %+v", providerRelease(previousVersion), err)
+		}
+
 		return err
 	}
+}
+
+// onlyNewProperties reports whether every error in msg is the previous version not knowing an argument or block that the local build does have, which
+// means it was added since that release. A misspelt or removed property, one from another provider, or any other error is not skipped.
+func onlyNewProperties(t *testing.T, msg string) bool {
+	starts := terraformErrorRegex.FindAllStringIndex(msg, -1)
+	if len(starts) == 0 {
+		return false
+	}
+
+	unknown := make([][]string, 0, len(starts))
+	for i, start := range starts {
+		end := len(msg)
+		if i+1 < len(starts) {
+			end = starts[i+1][0]
+		}
+
+		m := unknownPropertyRegex.FindStringSubmatch(msg[start[0]:end])
+		if m == nil {
+			return false
+		}
+
+		unknown = append(unknown, m)
+	}
+
+	ctx := context.Background()
+	server, _, err := framework.ProtoV5ProviderServerFactoryWithTestName(ctx, t.Name())
+	if err != nil {
+		t.Logf("not checking for new properties, building the local provider failed: %+v", err)
+		return false
+	}
+
+	schemas, err := server().GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+	if err != nil {
+		t.Logf("not checking for new properties, reading the local provider schema failed: %+v", err)
+		return false
+	}
+
+	for _, m := range unknown {
+		var s *tfprotov5.Schema
+		switch m[2] {
+		case "resource":
+			s = schemas.ResourceSchemas[m[3]]
+		case "data":
+			s = schemas.DataSourceSchemas[m[3]]
+		case "provider":
+			if m[3] == "azurerm" {
+				s = schemas.Provider
+			}
+		}
+
+		if s == nil || !hasProperty(s.Block, m[4], m[1] != "argument") {
+			return false
+		}
+	}
+
+	return true
+}
+
+// hasProperty reports whether block, or a block nested in it, has a settable argument or, when isBlock is set, a block with this name.
+func hasProperty(block *tfprotov5.SchemaBlock, name string, isBlock bool) bool {
+	if block == nil {
+		return false
+	}
+
+	for _, a := range block.Attributes {
+		if !isBlock && a.Name == name && (a.Required || a.Optional) {
+			return true
+		}
+	}
+
+	for _, b := range block.BlockTypes {
+		if (isBlock && b.TypeName == name) || hasProperty(b.Block, name, isBlock) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
