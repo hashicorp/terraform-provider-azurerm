@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package storagecache_test
+package managed_lustre_file_system_test
 
 import (
 	"context"
