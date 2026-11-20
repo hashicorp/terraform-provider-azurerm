@@ -629,6 +629,7 @@ resource "azurerm_container_app_job" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
+  workload_profile_name        = "Consumption"
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -730,6 +731,7 @@ resource "azurerm_container_app_job" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
+  workload_profile_name        = "Consumption"
 
   replica_timeout_in_seconds = 1800
   replica_retry_limit        = 10
@@ -787,6 +789,7 @@ resource "azurerm_container_app_job" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
+  workload_profile_name        = "Consumption"
 
   replica_timeout_in_seconds = 10
   replica_retry_limit        = 10
@@ -1544,6 +1547,7 @@ resource "azurerm_container_app_job" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
+  workload_profile_name        = "Consumption"
 
   identity {
     type = "SystemAssigned"
@@ -1766,6 +1770,11 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   logs_destination           = "log-analytics"
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

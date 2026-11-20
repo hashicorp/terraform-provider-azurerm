@@ -98,6 +98,11 @@ resource "azurerm_container_app_environment" "test" {
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   logs_destination           = "log-analytics"
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
