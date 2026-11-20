@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
@@ -77,6 +78,14 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			firewall.Properties = props
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				firewall.Identity = expandedIdentity
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				firewall.Tags = tags.Expand(model.Tags)

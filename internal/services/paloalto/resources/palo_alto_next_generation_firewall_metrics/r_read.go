@@ -1,0 +1,38 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package palo_alto_next_generation_firewall_metrics
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+func (r Resource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.MetricsObjectFirewallResources
+
+			id, err := metricsobjectfirewallresources.ParseFirewallID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.MetricsObjectFirewallGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving Metrics Object for %s: %+v", id, err)
+			}
+
+			return r.flatten(metadata, id, existing.Model)
+		},
+	}
+}

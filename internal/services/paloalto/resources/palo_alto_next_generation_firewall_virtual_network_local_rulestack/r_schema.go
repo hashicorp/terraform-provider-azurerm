@@ -51,6 +51,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
+		"identity": commonschema.UserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 	}
 }
