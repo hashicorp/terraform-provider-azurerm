@@ -11,6 +11,8 @@ type PimActiveRoleAssignmentModel struct {
 	Justification    string                                `tfschema:"justification"`
 	TicketInfo       []PimActiveRoleAssignmentTicketInfo   `tfschema:"ticket"`
 	ScheduleInfo     []PimActiveRoleAssignmentScheduleInfo `tfschema:"schedule"`
+	Condition        string                                `tfschema:"condition"`
+	ConditionVersion string                                `tfschema:"condition_version"`
 }
 
 func (Resource) ModelObject() any {
