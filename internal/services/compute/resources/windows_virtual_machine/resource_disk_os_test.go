@@ -240,9 +240,18 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumLRS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSStorageAccountType(data, "Premium_LRS"),
+			Config: r.diskOSStorageAccountTypePremiumLRS(data, "P20"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_disk.0.tier").HasValue("P20"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.diskOSStorageAccountTypePremiumLRS(data, "P30"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_disk.0.tier").HasValue("P30"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1100,6 +1109,37 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data), accountType)
+}
+
+func (r WindowsVirtualMachineResource) diskOSStorageAccountTypePremiumLRS(data acceptance.TestData, tier string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2s_v2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+    tier                 = "%s"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data), tier)
 }
 
 func (r WindowsVirtualMachineResource) diskOSStorageAccountTypeWithRestrictedLocation(data acceptance.TestData, accountType string, location string) string {
