@@ -38,46 +38,58 @@ type ValidationRequest struct {
 // "redisEnterprise" are distinct validation types that do not always match the ID segment).
 //
 // NOTE: The Azure Preflight Validation API validates full ARM PUT payloads only; PATCH
-// operations are not supported. The `properties` argument must represent the complete
+// operations are not supported. The `requestBody` argument must represent the complete
 // resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
 // payload will produce unreliable validation results. See internal/preflight/README.md
 // for implementation patterns and guidance.
-func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, properties any) (ValidationRequest, error) {
+func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, requestBody any) (ValidationRequest, error) {
 	scope, provider, resourceType, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
 
-	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, requestBody)
 }
 
 // NewValidationRequestWithTypeOverride is like NewValidationRequest but accepts an explicit
 // resourceType, overriding the value that would otherwise be derived from the ARM ID's path
 // segments. Use this when the preflight API requires a type discriminator that differs from
 // the ARM resource type path segment. Example: Microsoft.Cache/redis vs Microsoft.Cache/redisEnterprise.
-func NewValidationRequestWithTypeOverride(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
+func NewValidationRequestWithTypeOverride(location *string, id resourceids.ResourceId, resourceType, apiVersion string, requestBody any) (ValidationRequest, error) {
 	scope, provider, _, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
 
-	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, requestBody)
 }
 
-func buildValidationRequest(location *string, id resourceids.ResourceId, provider, resourceType, resourceName, scope, apiVersion string, properties any) ValidationRequest {
+func buildValidationRequest(location *string, id resourceids.ResourceId, provider, resourceType, resourceName, scope, apiVersion string, requestBody any) (ValidationRequest, error) {
+	body, err := json.Marshal(requestBody)
+	if err != nil {
+		return ValidationRequest{}, fmt.Errorf("marshalling ARM request body for preflight validation: %w", err)
+	}
+
+	var resource *preflightsdk.ResourceValidationRequestResource
+	if err := json.Unmarshal(body, &resource); err != nil {
+		return ValidationRequest{}, fmt.Errorf("unmarshalling ARM request body for preflight validation: %w", err)
+	}
+	if resource == nil {
+		return ValidationRequest{}, errors.New("ARM request body for preflight validation must be a JSON object")
+	}
+
+	resource.ApiVersion = apiVersion
+	resource.Name = resourceName
+	resource.Type = fmt.Sprintf("%s/%s", provider, resourceType)
+
 	return ValidationRequest{
 		Location:   location,
 		Provider:   provider,
 		ResourceId: id,
 		Type:       resourceType,
 		Scope:      scope,
-		Resource: preflightsdk.ResourceValidationRequestResource{
-			ApiVersion: apiVersion,
-			Name:       resourceName,
-			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
-			Properties: properties,
-		},
-	}
+		Resource:   *resource,
+	}, nil
 }
 
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
