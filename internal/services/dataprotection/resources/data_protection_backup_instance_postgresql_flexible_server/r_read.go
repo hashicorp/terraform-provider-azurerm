@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +23,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DataProtection.BackupInstanceClient
+			client := metadata.Client.DataProtection.BackupInstanceClient20260701
 
 			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -62,6 +62,17 @@ func (r Resource) Read() sdk.ResourceFunc {
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
 
+					state.BackupSolutionType = string(backupinstanceresources.BackupSolutionTypeLogicalBackup)
+					if policyParas := props.PolicyInfo.PolicyParameters; policyParas != nil {
+						if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
+							if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
+								if parameter, ok := dsp[0].(backupinstanceresources.PostgreSqlFlexibleServerBackupDatasourceParameters); ok && parameter.BackupSolutionType != nil {
+									state.BackupSolutionType = pointer.FromEnum(parameter.BackupSolutionType)
+								}
+							}
+						}
+					}
+
 					state.ProtectionState = pointer.FromEnum(props.CurrentProtectionState)
 				}
 			}
@@ -71,24 +82,5 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 			return metadata.Encode(&state)
 		},
-	}
-}
-
-func dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
-	return func() (any, string, error) {
-		resp, err := client.BackupInstancesGet(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		if resp.Model == nil {
-			return nil, "", fmt.Errorf("polling for %s: `model` was nil", id)
-		}
-
-		if resp.Model.Properties == nil {
-			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
-		}
-
-		return resp, pointer.FromEnum(resp.Model.Properties.CurrentProtectionState), nil
 	}
 }
