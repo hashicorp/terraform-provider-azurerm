@@ -2431,7 +2431,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 func (r OrchestratedVirtualMachineScaleSetResource) zoneBalance(data acceptance.TestData, enabled bool) string {
 	zoneBalance := ""
 	if enabled {
-		zoneBalance = "zone_balance                = true\n  "
+		zoneBalance = "\n  zone_balance = true\n"
 	}
 
 	return fmt.Sprintf(`
@@ -2452,7 +2452,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   zones                       = ["1", "2", "3"]
-  %[4]splatform_fault_domain_count = 1
+  platform_fault_domain_count = 1
+%[4]s
 
   sku_name  = "Standard_D1_v2"
   instances = 3
