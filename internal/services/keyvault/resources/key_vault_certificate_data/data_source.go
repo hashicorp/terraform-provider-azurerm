@@ -211,7 +211,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta an
 	if *pfx.ContentType == "application/x-pkcs12" {
 		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)
 		if err != nil {
-			// try to parse as a EC key
+			// try to parse as an EC key
 			eckey, err := x509.ParseECPrivateKey(pemKey)
 			if err != nil {
 				return fmt.Errorf("decoding private key: not RSA or ECDSA type (%q): %+v", id.Name, err)

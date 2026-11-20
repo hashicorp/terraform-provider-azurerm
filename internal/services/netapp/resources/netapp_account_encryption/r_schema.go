@@ -40,7 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-			Description:  "The versionless encryption key url.",
+			Description:  "The versionless encryption key URL.",
 		},
 
 		"federated_client_id": {

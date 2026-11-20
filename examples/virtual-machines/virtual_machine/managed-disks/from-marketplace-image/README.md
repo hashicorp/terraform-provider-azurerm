@@ -1,4 +1,4 @@
-## Example: Deploying a Virtual Machine from a Azure Marketplace image
+## Example: Deploying a Virtual Machine from an Azure Marketplace image
 
 This example provisions a Virtual Machine from an Azure Marketplace image.
 

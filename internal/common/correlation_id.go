@@ -27,7 +27,7 @@ func withCorrelationRequestID(uuid string) autorest.PrepareDecorator {
 	return autorest.WithHeader(HeaderCorrelationRequestID, uuid)
 }
 
-// correlationRequestID generates an UUID to pass through `x-ms-correlation-request-id` header.
+// correlationRequestID generates a UUID to pass through `x-ms-correlation-request-id` header.
 func correlationRequestID() string {
 	msCorrelationRequestIDOnce.Do(func() {
 		var err error

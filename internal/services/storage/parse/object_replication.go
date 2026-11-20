@@ -40,7 +40,7 @@ func (id ObjectReplicationId) ID() string {
 	return fmt.Sprintf("%s;%s", id.Src.ID(), id.Dst.ID())
 }
 
-// ObjectReplicationID parses a ObjectReplication ID into an ObjectReplicationId struct
+// ObjectReplicationID parses an ObjectReplication ID into an ObjectReplicationId struct
 func ObjectReplicationID(input string) (*ObjectReplicationId, error) {
 	ids := strings.Split(input, ";")
 	if len(ids) != 2 {

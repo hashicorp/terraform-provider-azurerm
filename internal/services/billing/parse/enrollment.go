@@ -30,7 +30,7 @@ func (id EnrollmentId) ID() string {
 	return fmt.Sprintf(fmtString, id.EnrollmentAccountName)
 }
 
-// EnrollmentID parses a Enrollment ID into an EnrollmentId struct
+// EnrollmentID parses an Enrollment ID into an EnrollmentId struct
 func EnrollmentID(input string) (*EnrollmentId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {

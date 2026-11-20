@@ -20,7 +20,7 @@ type ApplicationGatewayBackendAddressPoolId struct {
 	BackendAddressPoolName string
 }
 
-// ApplicationGatewayBackendAddressPoolID parses 'input' into a ApplicationGatewayBackendAddressPoolId
+// ApplicationGatewayBackendAddressPoolID parses 'input' into an ApplicationGatewayBackendAddressPoolId
 func ApplicationGatewayBackendAddressPoolID(input string) (*ApplicationGatewayBackendAddressPoolId, error) {
 	parser := resourceids.NewParserFromResourceIdType(&ApplicationGatewayBackendAddressPoolId{})
 	parsed, err := parser.Parse(input, false)

@@ -383,7 +383,7 @@ func TestAccApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T)
 }
 
 // Api Management doesn't support hostname keyvault using UserAssigned Identity
-// There will be a inevitable dependency cycle here when using SystemAssigned Identity
+// There will be an inevitable dependency cycle here when using SystemAssigned Identity
 // 1. create SystemAssigned Identity, grant the identity certificate access
 // 2. Update the hostname configuration of the keyvault certificate
 func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(t *testing.T) {

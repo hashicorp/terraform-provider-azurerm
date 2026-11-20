@@ -40,7 +40,7 @@ func (id ManagementGroupTemplateDeploymentId) ID() string {
 	return fmt.Sprintf(fmtString, id.ManagementGroupName, id.DeploymentName)
 }
 
-// ManagementGroupTemplateDeploymentID parses a ManagementGroupTemplateDeployment ID into an ManagementGroupTemplateDeploymentId struct
+// ManagementGroupTemplateDeploymentID parses a ManagementGroupTemplateDeployment ID into a ManagementGroupTemplateDeploymentId struct
 func ManagementGroupTemplateDeploymentID(input string) (*ManagementGroupTemplateDeploymentId, error) {
 	idURL, err := url.ParseRequestURI(input)
 	if err != nil {

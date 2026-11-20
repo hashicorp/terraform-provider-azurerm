@@ -32,7 +32,7 @@ func (id MicrosoftPartnerAccountBillingScopeId) ID() string {
 	return fmt.Sprintf(fmtString, id.BillingAccountName, id.CustomerName)
 }
 
-// MicrosoftPartnerAccountBillingScopeID parses a MPABillingScope ID into an MicrosoftPartnerAccountBillingScopeId struct
+// MicrosoftPartnerAccountBillingScopeID parses an MPABillingScope ID into a MicrosoftPartnerAccountBillingScopeId struct
 func MicrosoftPartnerAccountBillingScopeID(input string) (*MicrosoftPartnerAccountBillingScopeId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {

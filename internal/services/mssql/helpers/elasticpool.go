@@ -30,7 +30,7 @@ type Sku struct {
 // getDTUMaxGB: this map holds all of the DTU to 'max_size_gb' mappings based on a DTU lookup
 //              note that the value can be below the returned value; except for 'basic' its
 //              value must match exactly what is returned else it will be rejected by the API
-//              which will return a 'Internal Server Error'
+//              which will return an 'Internal Server Error'
 
 var GetDTUMaxGB = map[string]map[int]float64{
 	"basic": {

@@ -364,7 +364,7 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringLenBetween(1, 128),
 									Sensitive:    true,
 									// not returned by API - This prevents a diff, however, the state value will be nil so cannot be exported
-									// TODO - Convert this to an Write Only property?
+									// TODO - Convert this to a Write Only property?
 									DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
 										return len(newValue) == 0
 									},

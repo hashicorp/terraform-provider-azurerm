@@ -144,7 +144,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 // RandomIntOfLength is a random 8 to 18 digit integer which is unique to this test case
 func (td *TestData) RandomIntOfLength(length int) int {
 	// length should not be
-	//  - greater then 18, longest a int can represent
+	//  - greater then 18, longest an int can represent
 	//  - less then 8, as that gives us YYMMDDRR
 	if 8 > length || length > 18 {
 		panic("Invalid Test: RandomIntOfLength: length is not between 8 or 18 inclusive")

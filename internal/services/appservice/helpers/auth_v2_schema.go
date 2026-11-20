@@ -171,7 +171,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ForwardProxyConventionNoProxy),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
-					Description:  "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+					Description:  "The convention used to determine the URL of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -277,7 +277,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"forward_proxy_convention": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The convention used to determine the url of the request made.",
+					Description: "The convention used to determine the URL of the request made.",
 				},
 
 				"forward_proxy_custom_host_header_name": {

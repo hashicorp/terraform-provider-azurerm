@@ -117,7 +117,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		}),
 	}
 
-	// Not all resources support update - so this is an separate interface
+	// Not all resources support update - so this is a separate interface
 	// implementations can opt to interface
 	if v, ok := rw.resource.(ResourceWithUpdate); ok {
 		resource.UpdateContext = rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {

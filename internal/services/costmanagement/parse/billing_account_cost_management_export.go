@@ -31,7 +31,7 @@ func (id BillingAccountCostManagementExportId) ID() string {
 	return fmt.Sprintf(fmtString, id.BillingAccountName, id.ExportName)
 }
 
-// BillingAccountCostManagementExportID parses a BillingAccountCostManagementExport ID into an BillingAccountCostManagementExportId struct
+// BillingAccountCostManagementExportID parses a BillingAccountCostManagementExport ID into a BillingAccountCostManagementExportId struct
 func BillingAccountCostManagementExportID(input string) (*BillingAccountCostManagementExportId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {

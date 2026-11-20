@@ -58,7 +58,7 @@ While inlining might make a lot of sense for many APIs, there are also good reas
 ### Category 3: relations between resources (_"It is complicated"_)
 
 - It is a mediator: there is a separate endpoint to create a relation between two existing resources
-- It requires more permissions on another resource to create the connection than to create the resource itself (i.e. connecting a NSG resource to a Subnet)
+- It requires more permissions on another resource to create the connection than to create the resource itself (i.e. connecting an NSG resource to a Subnet)
 
 ## Both inline and separate
 

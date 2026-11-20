@@ -58,7 +58,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 			},
 		},
 		// if an upgrade policy's been configured previously (which it will have) it must be threaded through
-		// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
+		// this doesn't matter for Manual - but breaks when updating anything on an Automatic and Rolling Mode Scale Set
 		UpgradePolicy: existing.Model.Properties.UpgradePolicy,
 	}
 	update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{}

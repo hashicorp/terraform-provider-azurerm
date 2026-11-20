@@ -54,7 +54,7 @@ func (t *TimeoutDiffItem) ValueString() string {
 		val, suf = t.Want/(60*60), "hour"
 	}
 	if val > 1 {
-		suf += "s" // add a 's' suffix
+		suf += "s" // add an 's' suffix
 	}
 	return fmt.Sprintf("%d %s", val, suf)
 }

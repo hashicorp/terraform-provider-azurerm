@@ -32,7 +32,7 @@ func (id ManagementGroupAssignmentId) ID() string {
 	return fmt.Sprintf(fmtString, id.ManagementGroupName, id.PolicyAssignmentName)
 }
 
-// ManagementGroupAssignmentID parses a ManagementGroupAssignment ID into an ManagementGroupAssignmentId struct
+// ManagementGroupAssignmentID parses a ManagementGroupAssignment ID into a ManagementGroupAssignmentId struct
 func ManagementGroupAssignmentID(input string) (*ManagementGroupAssignmentId, error) {
 	// TODO: the generator should support outputting this method too
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)

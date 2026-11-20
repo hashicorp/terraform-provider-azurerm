@@ -70,7 +70,7 @@ func ValidateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 
 	servicePrincipalsRaw, ok := v.([]any)
 	if !ok || len(servicePrincipalsRaw) == 0 {
-		// if it's an existing cluster, we need to check if there's currently a SP used on this cluster that isn't
+		// if it's an existing cluster, we need to check if there's currently an SP used on this cluster that isn't
 		// defined locally, if so, we need to error out
 		if cluster != nil {
 			servicePrincipalExists := false

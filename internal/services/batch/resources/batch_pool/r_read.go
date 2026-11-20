@@ -250,7 +250,7 @@ func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *pool.Po
 }
 
 // validateUserIdentity validates that the user identity for a start task has been well specified
-// it should have a auto_user block or a user_name defined, but not both at the same time.
+// it should have an auto_user block or a user_name defined, but not both at the same time.
 func validateUserIdentity(userIdentity *pool.UserIdentity) error {
 	if userIdentity == nil {
 		return errors.New("user_identity block needs to be specified")

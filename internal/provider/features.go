@@ -145,42 +145,42 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"purge_soft_delete_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g. purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_certificates_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g. purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_keys_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g. purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_secrets_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g. purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_hardware_security_modules_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g. purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_hardware_security_module_keys_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g. purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,

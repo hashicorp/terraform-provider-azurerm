@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// ForCreate returns the context wrapped with the timeout for an Create operation
+// ForCreate returns the context wrapped with the timeout for a Create operation
 //
 // If the 'SupportsCustomTimeouts' feature toggle is enabled - this is wrapped with a context
 // Otherwise this returns the default context
@@ -18,7 +18,7 @@ func ForCreate(ctx context.Context, d *pluginsdk.ResourceData) (context.Context,
 	return buildWithTimeout(ctx, d.Timeout(pluginsdk.TimeoutCreate))
 }
 
-// ForCreateUpdate returns the context wrapped with the timeout for an combined Create/Update operation
+// ForCreateUpdate returns the context wrapped with the timeout for a combined Create/Update operation
 //
 // If the 'SupportsCustomTimeouts' feature toggle is enabled - this is wrapped with a context
 // Otherwise this returns the default context
@@ -30,7 +30,7 @@ func ForCreateUpdate(ctx context.Context, d *pluginsdk.ResourceData) (context.Co
 	return ForUpdate(ctx, d)
 }
 
-// ForDelete returns the context wrapped with the timeout for an Delete operation
+// ForDelete returns the context wrapped with the timeout for a Delete operation
 //
 // If the 'SupportsCustomTimeouts' feature toggle is enabled - this is wrapped with a context
 // Otherwise this returns the default context
@@ -38,7 +38,7 @@ func ForDelete(ctx context.Context, d *pluginsdk.ResourceData) (context.Context,
 	return buildWithTimeout(ctx, d.Timeout(pluginsdk.TimeoutDelete))
 }
 
-// ForRead returns the context wrapped with the timeout for an Read operation
+// ForRead returns the context wrapped with the timeout for a Read operation
 //
 // If the 'SupportsCustomTimeouts' feature toggle is enabled - this is wrapped with a context
 // Otherwise this returns the default context

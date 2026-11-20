@@ -180,7 +180,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	// This Resource is 1:1 with a Storage Account, therefore we use it's Resource ID for this Resource
+	// This Resource is 1:1 with a Storage Account, therefore we use its Resource ID for this Resource
 	// however we want to ensure it's in the same subscription, so we'll build this up here
 	id := commonids.NewStorageAccountID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName)
 	if d.IsNewResource() {

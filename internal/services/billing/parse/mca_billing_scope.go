@@ -34,7 +34,7 @@ func (id MicrosoftCustomerAccountBillingScopeId) ID() string {
 	return fmt.Sprintf(fmtString, id.BillingAccountName, id.BillingProfileName, id.InvoiceSectionName)
 }
 
-// MicrosoftCustomerAccountBillingScopeID parses a MCABillingScope ID into an MicrosoftCustomerAccountBillingScopeId struct
+// MicrosoftCustomerAccountBillingScopeID parses an MCABillingScope ID into a MicrosoftCustomerAccountBillingScopeId struct
 func MicrosoftCustomerAccountBillingScopeID(input string) (*MicrosoftCustomerAccountBillingScopeId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {

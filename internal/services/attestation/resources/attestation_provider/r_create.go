@@ -46,7 +46,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta any) erro
 		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	// NOTE: This maybe an slice in a future release or even a slice of slices
+	// NOTE: This maybe a slice in a future release or even a slice of slices
 	//    The service team does not currently have any user data for this
 	//    pluginsdk.
 	policySigningCertificate := d.Get("policy_signing_certificate_data").(string)

@@ -183,7 +183,7 @@ func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clie
 	if pwds == nil {
 		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties.credentials.passwords", id)
 	}
-	// ACR token with no password returns a empty array for ".password"
+	// ACR token with no password returns an empty array for ".password"
 	return pointer.To(len(*pwds) != 0), nil
 }
 

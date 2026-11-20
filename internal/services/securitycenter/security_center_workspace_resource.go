@@ -107,7 +107,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("updating Security Center Workspace: %+v", err)
 	}
 
-	// api returns "" for workspace id after an create/update and eventually the new value
+	// api returns "" for workspace id after a create/update and eventually the new value
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")

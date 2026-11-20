@@ -83,13 +83,13 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 					"kerberos_ad_name": {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
-						Description: "Name of the active directory machine. This optional parameter is used only while creating kerberos volume.",
+						Description: "Name of the active directory machine. This optional parameter is used only while creating Kerberos volume.",
 					},
 					"kerberos_kdc_ip": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsIPv4Address,
-						Description:  "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating kerberos volume.",
+						Description:  "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating Kerberos volume.",
 					},
 					"aes_encryption_enabled": {
 						Type:        pluginsdk.TypeBool,

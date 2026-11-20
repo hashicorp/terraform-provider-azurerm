@@ -37,7 +37,7 @@ func (id TenantTemplateDeploymentId) ID() string {
 	return fmt.Sprintf(fmtString, id.DeploymentName)
 }
 
-// TenantTemplateDeploymentID parses a TenantTemplateDeployment ID into an TenantTemplateDeploymentId struct
+// TenantTemplateDeploymentID parses a TenantTemplateDeployment ID into a TenantTemplateDeploymentId struct
 func TenantTemplateDeploymentID(input string) (*TenantTemplateDeploymentId, error) {
 	idURL, err := url.ParseRequestURI(input)
 	if err != nil {

@@ -18,7 +18,7 @@ var _ pollers.PollerType = &EnableMonitoringPoller{}
 
 // EnableMonitoringPoller polls until the Monitoring for the specified HDInsight Cluster has been enabled
 // This works around an issue outlined in  https://github.com/hashicorp/go-azure-sdk/issues/518 where the API
-// is a LRO which doesn't use `provisioningState`.
+// is an LRO which doesn't use `provisioningState`.
 type EnableMonitoringPoller struct {
 	client    *extensions.ExtensionsClient
 	clusterId commonids.HDInsightClusterId

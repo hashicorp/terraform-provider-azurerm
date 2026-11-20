@@ -47,7 +47,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 		CustomEmails:                   pluginsdk.ExpandStringSlice([]any{}),
 	}
 
-	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
+	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to its default values.
 	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil

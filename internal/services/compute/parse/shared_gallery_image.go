@@ -40,7 +40,7 @@ func (id SharedGalleryImageId) Segments() []resourceids.Segment {
 	}
 }
 
-// SharedGalleryImageID parses a SharedGalleryImage Unique ID into an SharedGalleryImageId struct
+// SharedGalleryImageID parses a SharedGalleryImage Unique ID into a SharedGalleryImageId struct
 func SharedGalleryImageID(input string) (*SharedGalleryImageId, error) {
 	id := SharedGalleryImageId{}
 	parsed, err := resourceids.NewParserFromResourceIdType(&id).Parse(input, false)

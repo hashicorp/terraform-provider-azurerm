@@ -134,7 +134,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				// There are two billing model in Azure Storage (at least for File): Provisioned (V1 or V2) and PAYG.
 				// (https://learn.microsoft.com/azure/storage/files/understanding-billing)
 				// The version only applies to Provisioned model. When reflecting to the API payload, Provisioned V1 and PAYG
-				// look the same, i.e. the `sku.name` will be no suffix for it's first part (e.g. "Standard" in "Standard_LRS").
+				// look the same, i.e. the `sku.name` will be no suffix for its first part (e.g. "Standard" in "Standard_LRS").
 				// Only for Provisioned V2, there will be a "V2" suffix added, e.g. "StandardV2" in "StandardV2_LRS".
 				// Due to this, we don't differentiate the empty string and "V1" here, as they ends up to be an empty suffix.
 				//

@@ -168,7 +168,7 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 				"description": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The description of the ip restriction rule.",
+					Description: "The description of the IP restriction rule.",
 				},
 			},
 		},

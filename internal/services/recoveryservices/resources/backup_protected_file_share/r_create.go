@@ -61,7 +61,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	protectionContainerId := protectioncontainers.NewProtectionContainerID(subscriptionId, resourceGroup, vaultName, "Azure", containerName)
 
 	// There is an issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11184 (When a new file share is added to an existing storage account,
-	// it cannot be listed by Backup Protectable Items - List API after the storage account is registered with a RSV).
+	// it cannot be listed by Backup Protectable Items - List API after the storage account is registered with an RSV).
 	// After confirming with the service team, whenever new file shares are added, we need to run an 'inquire' API. but inquiry APIs are long running APIs and hence can't be included in GET API's (Backup Protectable Items - List) response.
 	// Therefore, add 'inquire' API to inquire all unprotected files shares under a storage account to fix this usecase.
 	respContainer, err := protectionContainerClient.Inquire(ctx, protectionContainerId, protectioncontainers.InquireOperationOptions{Filter: pointer.To(filter)})

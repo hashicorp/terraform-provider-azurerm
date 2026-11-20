@@ -34,8 +34,8 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta any) error 
 		}
 		if !response.WasNotFound(existing.Response.Response) {
 			// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
-			// So if the channel includes `Default Site`, it means it's default channel and delete it.
-			// So if the channel includes other site, it means it's user custom channel and throws conflict error.
+			// So if the channel includes `Default Site`, it means its default channel and delete it.
+			// So if the channel includes other site, it means its user custom channel and throws conflict error.
 			if props := existing.Properties; props != nil {
 				defaultChannel, ok := props.AsWebChatChannel()
 				if ok && defaultChannel.Properties != nil {

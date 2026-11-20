@@ -8,7 +8,7 @@ This example provisions:
   - One subnet for the ACI node
 - A Service Principal to be used as the AKS cluster identity
 - Assigns a *Network Contributor* role to the Service Principal over the subnet where ACI nodes will be provisioned
-- AKS cluster with a user managed service principal and a *aci_connector_linux* *addon_profile*
+- AKS cluster with a user managed service principal and an *aci_connector_linux* *addon_profile*
 
 Note that the ACI subnet must be configured with a service delegations:
 ```

@@ -22,7 +22,7 @@ func ListPublishingCredentials(ctx context.Context, client *webapps.WebAppsClien
 	}
 
 	// The credentials are regenerated at some point in the creation process, the initial response is not the final
-	// value. The final result error is populated on success as a 404, so we're ignoring it here since this is a R/O
+	// value. The final result error is populated on success as a 404, so we're ignoring it here since this is an R/O
 	// pair of properties
 	_ = siteCredentials.Poller.PollUntilDone(ctx)
 	siteCredentials, err = client.ListPublishingCredentials(ctx, id)
@@ -47,7 +47,7 @@ func ListPublishingCredentialsSlot(ctx context.Context, client *webapps.WebAppsC
 		return nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 	}
 	// The credentials are regenerated at some point in the creation process, the initial response is not the final
-	// value. The final result error is populated on success as a 404, so we're ignoring it here since this is a R/O
+	// value. The final result error is populated on success as a 404, so we're ignoring it here since this is an R/O
 	// pair of properties
 	_ = siteCredentials.Poller.PollUntilDone(ctx)
 	siteCredentials, err = client.ListPublishingCredentialsSlot(ctx, id)

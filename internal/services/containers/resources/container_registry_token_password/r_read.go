@@ -39,7 +39,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			// ACR token with no password returns a empty array for ".password"
+			// ACR token with no password returns an empty array for ".password"
 			if len(pwds) == 0 {
 				return metadata.MarkAsGone(id)
 			}

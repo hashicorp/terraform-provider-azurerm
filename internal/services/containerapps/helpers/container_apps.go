@@ -2035,7 +2035,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Computed:    true,
-					Description: "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+					Description: "The URI to use for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -2130,7 +2130,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+					Description: "The URI to use for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -2316,7 +2316,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Computed:    true,
-					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -2403,7 +2403,7 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -2580,7 +2580,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Computed:    true,
-					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
+					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {

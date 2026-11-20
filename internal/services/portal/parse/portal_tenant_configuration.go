@@ -36,7 +36,7 @@ func (id PortalTenantConfigurationId) ID() string {
 	return fmt.Sprintf(fmtString, id.Name)
 }
 
-// PortalTenantConfigurationID parses a PortalTenantConfiguration ID into an PortalTenantConfigurationId struct
+// PortalTenantConfigurationID parses a PortalTenantConfiguration ID into a PortalTenantConfigurationId struct
 func PortalTenantConfigurationID(input string) (*PortalTenantConfigurationId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {

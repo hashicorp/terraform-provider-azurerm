@@ -15,7 +15,7 @@ type PolicyAssignmentId struct {
 
 // TODO: This paring function is currently suppressing every case difference due to github issue: https://github.com/Azure/azure-rest-api-specs/issues/8353
 func PolicyAssignmentID(input string) (*PolicyAssignmentId, error) {
-	// in general, the id of a assignment should be:
+	// in general, the id of an assignment should be:
 	// {scope}/providers/Microsoft.Authorization/policyAssignment/{name}
 	regex := regexp.MustCompile(`/providers/[Mm]icrosoft\.[Aa]uthorization/policy[Aa]ssignments/`)
 	if !regex.MatchString(input) {
