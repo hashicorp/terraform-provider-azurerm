@@ -276,6 +276,11 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "import" {
   backup_policy_id             = azurerm_data_protection_backup_instance_kubernetes_cluster.test.backup_policy_id
   kubernetes_cluster_id        = azurerm_data_protection_backup_instance_kubernetes_cluster.test.kubernetes_cluster_id
   snapshot_resource_group_name = azurerm_data_protection_backup_instance_kubernetes_cluster.test.snapshot_resource_group_name
+
+  backup_datasource_parameters = {
+    volume_snapshot_enabled          = false
+    cluster_scoped_resources_enabled = false
+  }
 }
 `, config)
 }
@@ -292,6 +297,11 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.test.id
   kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
   snapshot_resource_group_name = azurerm_resource_group.snap.name
+
+  backup_datasource_parameters = {
+    volume_snapshot_enabled          = false
+    cluster_scoped_resources_enabled = false
+  }
 }
 `, template, data.RandomInteger)
 }
