@@ -20,7 +20,7 @@ import (
 
 func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
+	certificatesClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -50,7 +50,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 		meta.(*clients.Client).KeyVault.AddToCache(*id, vaultUri)
 	}
 
-	return resourceKeyVaultFlatten(ctx, managementClient, d, id, resp.Model, true)
+	return resourceKeyVaultFlatten(ctx, certificatesClient, d, id, resp.Model, true)
 }
 
 func keyVaultRefreshFunc(ctx context.Context, vaultUri string) pluginsdk.StateRefreshFunc {

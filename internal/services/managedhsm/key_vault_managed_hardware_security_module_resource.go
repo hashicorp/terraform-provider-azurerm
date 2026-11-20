@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -240,8 +241,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
 
-		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
+		certificatesClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates
+		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, certificatesClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -300,8 +301,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
 
-		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
+		certificatesClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates
+		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, certificatesClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -457,7 +458,7 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []any {
 	}
 }
 
-func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []any, quorum int) (encDataStr string, err error) {
+func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, certificatesClient *certificates.CertificatesClient, vaultBaseUrl string, certIds []any, quorum int) (encDataStr string, err error) {
 	var param kv74.CertificateInfoObject
 
 	param.Required = pointer.To(int32(quorum))
@@ -472,11 +473,11 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		if err != nil {
 			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
 		}
-		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseURL, keyID.Name, keyID.Version)
+		certRes, err := certificatesClient.Clone(keyID.KeyVaultBaseURL).GetCertificate(ctx, certificates.NewCertificateversionID(keyID.KeyVaultBaseURL, keyID.Name, keyID.Version))
 		if err != nil {
 			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
 		}
-		if certRes.Cer == nil {
+		if certRes.Model == nil || certRes.Model.Cer == nil {
 			return "", fmt.Errorf("got nil key for %s", certID)
 		}
 		cert := kv74.SecurityDomainJSONWebKey{
@@ -484,13 +485,14 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 			KeyOps: &[]string{""},
 			Alg:    pointer.To("RSA-OAEP-256"),
 		}
-		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
-			cert.Kty = pointer.To(string(certRes.Policy.KeyProperties.KeyType))
+		if certRes.Model.Policy != nil && certRes.Model.Policy.KeyProps != nil {
+			cert.Kty = pointer.To(pointer.FromEnum(certRes.Model.Policy.KeyProps.Kty))
 		}
-		x5c := ""
-		if contents := certRes.Cer; contents != nil {
-			x5c = base64.StdEncoding.EncodeToString(*contents)
+		der, err := base64.StdEncoding.DecodeString(*certRes.Model.Cer)
+		if err != nil {
+			return "", fmt.Errorf("decoding certificate contents for %s: %+v", certID, err)
 		}
+		x5c := base64.StdEncoding.EncodeToString(der)
 		cert.X5c = &[]string{x5c}
 
 		sum256 := sha256.Sum256([]byte(x5c))

@@ -12,19 +12,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedstorage"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv74 "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -50,43 +50,48 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 		return fmt.Errorf("looking up Base URI for Managed Storage Account Key Vault %s: %+v", *keyVaultId, err)
 	}
 
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Storage.Clone(*keyVaultBaseUri)
+	sasId := storage.NewSaID(*keyVaultBaseUri, storageAccount.Name, name)
+
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
+			existing, err := client.GetSasDefinition(ctx, sasId)
 			if err != nil {
-				if !response.WasNotFound(existing.Response.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 				}
 			}
 
-			if existing.ID != nil && *existing.ID != "" {
-				return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account_sas_token_definition", *existing.ID)
+			if model := existing.Model; model != nil && pointer.From(model.Id) != "" {
+				return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account_sas_token_definition", *model.Id)
 			}
 		}
 	}
 
 	t := d.Get("tags").(map[string]any)
-	parameters := kv74.SasDefinitionCreateParameters{
-		TemplateURI:    pointer.To(d.Get("sas_template_uri").(string)),
-		SasType:        kv74.SasTokenType(d.Get("sas_type").(string)),
-		ValidityPeriod: pointer.To(d.Get("validity_period").(string)),
-		SasDefinitionAttributes: &kv74.SasDefinitionAttributes{
+	parameters := storage.SasDefinitionCreateParameters{
+		TemplateUri:    d.Get("sas_template_uri").(string),
+		SasType:        storage.SasTokenType(d.Get("sas_type").(string)),
+		ValidityPeriod: d.Get("validity_period").(string),
+		Attributes: &storage.SasDefinitionAttributes{
 			Enabled: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if resp, err := client.SetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name, parameters); err != nil {
+	if resp, err := client.SetSasDefinition(ctx, sasId, parameters); err != nil {
 		// In the case that the Storage Account already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && response.WasConflict(resp.Response.Response) {
-			recoveredStorageAccount, err := client.RecoverDeletedSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && response.WasConflict(resp.HttpResponse) {
+			deletedStorageClient := keyVaultsClient.DataPlaneKeyVaultClient.DeletedStorage.Clone(*keyVaultBaseUri)
+			recoveredStorageAccount, err := deletedStorageClient.RecoverDeletedSasDefinition(ctx, deletedstorage.NewDeletedstorageSaID(*keyVaultBaseUri, storageAccount.Name, name))
 			if err != nil {
 				return fmt.Errorf("recovery of Managed Storage Account SAS Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 			}
 			log.Printf("[DEBUG] Recovering Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q)", name, storageAccount.Name, *keyVaultId)
 			// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
-			if secret := recoveredStorageAccount.ID; secret != nil {
+			if model := recoveredStorageAccount.Model; model != nil && model.Id != nil {
+				secret := model.Id
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
@@ -102,7 +107,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 				}
 				log.Printf("[DEBUG] Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q) recovered", name, storageAccount.Name, *keyVaultId)
 
-				if _, err := client.SetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name, parameters); err != nil {
+				if _, err := client.SetSasDefinition(ctx, sasId, parameters); err != nil {
 					return fmt.Errorf("creation of Managed Storage Account SAS Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 				}
 			}
@@ -111,21 +116,21 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 		}
 	}
 
-	read, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
+	read, err := client.GetSasDefinition(ctx, sasId)
 	if err != nil {
 		return err
 	}
 
-	if read.ID == nil {
+	if read.Model == nil || read.Model.Id == nil {
 		return fmt.Errorf("cannot read Managed Storage Account Sas Definition  %q (Storage Account %q, Key Vault %q)", name, storageAccount.Name, *keyVaultId)
 	}
 
-	sasId, err := parse.SasDefinitionID(*read.ID)
+	parsedSasId, err := parse.SasDefinitionID(*read.Model.Id)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(sasId.ID())
+	d.SetId(parsedSasId.ID())
 
 	return resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d, meta)
 }

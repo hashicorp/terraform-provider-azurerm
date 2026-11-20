@@ -18,7 +18,7 @@ import (
 func (r Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KeyVault.ManagementClient
+			client := metadata.Client.KeyVault.DataPlaneKeyVaultClient.Certificates
 
 			id, err := parse.CertificateContactsID(metadata.ResourceData.Id())
 			if err != nil {
@@ -29,9 +29,9 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			defer locks.UnlockByID(id.ID())
 
 			// check if any contacts exist in vault, if they do not then nothing to delete
-			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+			resp, err := client.Clone(id.KeyVaultBaseUrl).GetCertificateContacts(ctx)
 			if err != nil {
-				if response.WasNotFound(resp.Response.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					log.Printf("[DEBUG] Key Vault Certificate Contact %q was not found in Key Vault at URI %q - removing from state", id.ID(), id.KeyVaultBaseUrl)
 					return nil
 				}
@@ -39,7 +39,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("checking if any contacts exist in key vault at url %q: %v", id.KeyVaultBaseUrl, err)
 			}
 
-			if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+			if _, err := client.Clone(id.KeyVaultBaseUrl).DeleteCertificateContacts(ctx); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

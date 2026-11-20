@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
@@ -74,7 +74,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -90,7 +89,12 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta any) err
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	certificateList, err := client.GetCertificatesComplete(ctx, *keyVaultBaseUri, pointer.To(int32(25)), &includePending)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+	opts := certificates.GetCertificatesOperationOptions{
+		IncludePending: &includePending,
+		Maxresults:     pointer.To(int64(25)),
+	}
+	certificateList, err := client.GetCertificatesComplete(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}
@@ -99,21 +103,14 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta any) err
 
 	var names []string
 	var certs []map[string]any
-	if certificateList.Response().Value != nil {
-		for certificateList.NotDone() {
-			for _, v := range *certificateList.Response().Value {
-				nestedItem, err := keyvault.ParseNestedItemID(pointer.From(v.ID), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
-				if err != nil {
-					return err
-				}
-
-				names = append(names, nestedItem.Name)
-				certs = append(certs, expandCertificate(nestedItem.Name, v))
-				if err = certificateList.NextWithContext(ctx); err != nil {
-					return fmt.Errorf("retrieving next page of Certificates from %s: %+v", *keyVaultId, err)
-				}
-			}
+	for _, v := range certificateList.Items {
+		nestedItem, err := keyvault.ParseNestedItemID(pointer.From(v.Id), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
+		if err != nil {
+			return err
 		}
+
+		names = append(names, nestedItem.Name)
+		certs = append(certs, expandCertificate(nestedItem.Name, v))
 	}
 
 	d.Set("names", names)
@@ -123,10 +120,10 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta any) err
 	return nil
 }
 
-func expandCertificate(name string, item kv.CertificateItem) map[string]any {
+func expandCertificate(name string, item certificates.CertificateItem) map[string]any {
 	cert := map[string]any{
 		"name": name,
-		"id":   *item.ID,
+		"id":   pointer.From(item.Id),
 	}
 
 	if item.Attributes != nil && item.Attributes.Enabled != nil {
@@ -134,7 +131,7 @@ func expandCertificate(name string, item kv.CertificateItem) map[string]any {
 	}
 
 	if item.Tags != nil {
-		cert["tags"] = tags.Flatten(item.Tags)
+		cert["tags"] = tags.Flatten(tags.FromTypedObject(pointer.From(item.Tags)))
 	}
 
 	return cert

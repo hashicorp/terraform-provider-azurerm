@@ -150,7 +150,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		PartnerId:        builder.PartnerID,
 		TerraformVersion: builder.TerraformVersion,
 
-		KeyVaultAuthorizer:        autorest.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
 		ManagedHSMAuthorizer:      autorest.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: autorest.AutorestAuthorizer(resourceManagerAuth),
 		SynapseAuthorizer:         autorest.AutorestAuthorizer(synapseAuth),

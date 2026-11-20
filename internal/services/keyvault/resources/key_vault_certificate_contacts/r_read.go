@@ -11,22 +11,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			vaultClient := metadata.Client.KeyVault
-			client := metadata.Client.KeyVault.ManagementClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
 			id, err := parse.CertificateContactsID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
+
+			vaultClient := metadata.Client.KeyVault
+			client := metadata.Client.KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseUrl)
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 			keyVaultIdRaw, err := vaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
@@ -42,18 +42,23 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing Key Vault ID: %+v", err)
 			}
 
-			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+			existing, err := client.GetCertificateContacts(ctx)
 			if err != nil {
-				if response.WasNotFound(existing.Response.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 			}
 
+			var contacts *[]certificates.Contact
+			if existing.Model != nil {
+				contacts = existing.Model.Contacts
+			}
+
 			state := KeyVaultCertificateContactsResourceModel{
 				KeyVaultId: keyVaultId.ID(),
-				Contact:    flattenKeyVaultCertificateContactsContact(existing.ContactList),
+				Contact:    flattenKeyVaultCertificateContactsContact(contacts),
 			}
 
 			return metadata.Encode(&state)
@@ -62,7 +67,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenKeyVaultCertificateContactsContact(input *[]keyvault.Contact) []Contact {
+func flattenKeyVaultCertificateContactsContact(input *[]certificates.Contact) []Contact {
 	result := make([]Contact, 0)
 	if input == nil {
 		return result
@@ -70,7 +75,7 @@ func flattenKeyVaultCertificateContactsContact(input *[]keyvault.Contact) []Cont
 
 	for _, item := range *input {
 		result = append(result, Contact{
-			Email: pointer.From(item.EmailAddress),
+			Email: pointer.From(item.Email),
 			Name:  pointer.From(item.Name),
 			Phone: pointer.From(item.Phone),
 		})

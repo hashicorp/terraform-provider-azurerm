@@ -16,7 +16,7 @@ import (
 func (r Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KeyVault.ManagementClient
+			client := metadata.Client.KeyVault.DataPlaneKeyVaultClient.Certificates
 
 			var state KeyVaultCertificateContactsResourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -31,16 +31,20 @@ func (r Resource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+			existing, err := client.Clone(id.KeyVaultBaseUrl).GetCertificateContacts(ctx)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving Certificate Contacts (Key Vault %q): `model` was nil", id.KeyVaultBaseUrl)
+			}
+			contacts := *existing.Model
 
 			if metadata.ResourceData.HasChange("contact") {
-				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
+				contacts.Contacts = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+			if _, err := client.Clone(id.KeyVaultBaseUrl).SetCertificateContacts(ctx, contacts); err != nil {
 				return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
 			}
 

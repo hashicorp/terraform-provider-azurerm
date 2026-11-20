@@ -10,15 +10,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -54,9 +53,10 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any) 
 		return nil
 	}
 
-	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseUrl)
+	resp, err := client.GetCertificateIssuer(ctx, certificates.NewIssuernameID(id.KeyVaultBaseUrl, id.Name))
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist - removing from state", id.Name, id.KeyVaultBaseUrl)
 			d.SetId("")
 			return nil
@@ -67,23 +67,25 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any) 
 
 	d.Set("name", id.Name)
 
-	if resp.Provider != nil {
-		d.Set("provider_name", resp.Provider)
-	}
-	if resp.OrganizationDetails != nil {
-		if resp.OrganizationDetails.ID != nil {
-			d.Set("org_id", resp.OrganizationDetails.ID)
+	if model := resp.Model; model != nil {
+		if model.Provider != nil {
+			d.Set("provider_name", model.Provider)
 		}
-		d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
-	}
-	if resp.Credentials != nil {
-		d.Set("account_id", resp.Credentials.AccountID)
+		if model.OrgDetails != nil {
+			if model.OrgDetails.Id != nil {
+				d.Set("org_id", model.OrgDetails.Id)
+			}
+			d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(model.OrgDetails.AdminDetails))
+		}
+		if model.Credentials != nil {
+			d.Set("account_id", model.Credentials.AccountId)
+		}
 	}
 
 	return nil
 }
 
-func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) []any {
+func flattenKeyVaultCertificateIssuerAdmins(input *[]certificates.AdministratorDetails) []any {
 	results := make([]any, 0)
 	if input == nil {
 		return results
@@ -91,7 +93,7 @@ func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetai
 
 	for _, admin := range *input {
 		results = append(results, map[string]any{
-			"email_address": pointer.From(admin.EmailAddress),
+			"email_address": pointer.From(admin.Email),
 			"first_name":    pointer.From(admin.FirstName),
 			"last_name":     pointer.From(admin.LastName),
 			"phone":         pointer.From(admin.Phone),

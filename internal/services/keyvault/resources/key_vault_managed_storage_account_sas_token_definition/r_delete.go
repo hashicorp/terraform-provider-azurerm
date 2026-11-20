@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,7 +17,6 @@ import (
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -49,6 +49,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.
 		return nil
 	}
 
-	_, err = client.DeleteSasDefinition(ctx, id.KeyVaultBaseUrl, id.StorageAccountName, id.Name)
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Storage.Clone(id.KeyVaultBaseUrl)
+	_, err = client.DeleteSasDefinition(ctx, storage.NewSaID(id.KeyVaultBaseUrl, id.StorageAccountName, id.Name))
 	return err
 }

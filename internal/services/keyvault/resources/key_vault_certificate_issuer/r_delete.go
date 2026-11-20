@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,7 +17,6 @@ import (
 )
 
 func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -48,9 +48,11 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta any
 		return nil
 	}
 
-	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseUrl)
+	issuerId := certificates.NewIssuernameID(id.KeyVaultBaseUrl, id.Name)
+	resp, err := client.GetCertificateIssuer(ctx, issuerId)
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Certificate Issuer %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
 			return nil
 		}
@@ -58,6 +60,6 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta any
 		return fmt.Errorf("checking if Issuer %q in key vault %q at url %q exists: %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
 	}
 
-	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	_, err = client.DeleteCertificateIssuer(ctx, issuerId)
 	return err
 }
