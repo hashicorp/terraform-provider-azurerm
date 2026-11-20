@@ -175,11 +175,13 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
-		v, err := calculateMaxSizeBytes(v.(float64))
-		if err != nil {
-			return err
+		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
+			v, err := calculateMaxSizeBytes(v.(float64))
+			if err != nil {
+				return err
+			}
+			props.MaxSizeBytes = v
 		}
-		props.MaxSizeBytes = v
 
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
