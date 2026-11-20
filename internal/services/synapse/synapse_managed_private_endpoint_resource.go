@@ -72,6 +72,8 @@ func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
 			"fully_qualified_domain_names": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because Azure can return FQDNs when none are configured.
+				Computed: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -179,7 +181,13 @@ func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta a
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("fully_qualified_domain_names", pointer.From(props.Fqdns))
+			// Synapse can omit FQDNs from GET responses even when they were supplied at creation.
+			// Preserve prior values when absent, but honor an explicitly empty list.
+			fqdns := d.Get("fully_qualified_domain_names")
+			if props.Fqdns != nil {
+				fqdns = pointer.From(props.Fqdns)
+			}
+			d.Set("fully_qualified_domain_names", fqdns)
 			d.Set("subresource_name", props.GroupId)
 			d.Set("target_resource_id", props.PrivateLinkResourceId)
 		}
