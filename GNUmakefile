@@ -21,16 +21,18 @@ TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
 PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
 # non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
-# cannot bump them): shellcheck, lychee, typos and zizmor are static binaries downloaded from their github
+# cannot bump them): shellcheck, lychee, typos, harper and zizmor are static binaries downloaded from their github
 # releases, yamllint
 # is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a repo-local
 # prefix. all rebuild when this makefile changes.
+HARPER_VERSION=v3.3.0
 LYCHEE_VERSION=v0.24.2
 MARKDOWNLINT_CLI2_VERSION=0.23.2
 SHELLCHECK_VERSION=v0.11.0
 TYPOS_VERSION=v1.50.1
 YAMLLINT_VERSION=1.38.0
 ZIZMOR_VERSION=v1.30.1
+HARPER=$(TOOLS_BIN)/harper-cli
 LYCHEE=$(TOOLS_BIN)/lychee
 MARKDOWNLINT=$(TOOLS_BIN)/markdownlint-cli2
 SHELLCHECK=$(TOOLS_BIN)/shellcheck
@@ -77,6 +79,11 @@ $(TYPOS): GNUmakefile | $(TOOLS_BIN)
 	@case "$(HOST_OS)" in darwin) target=apple-darwin;; *) target=unknown-linux-musl;; esac; \
 		curl -sSfL https://github.com/crate-ci/typos/releases/download/$(TYPOS_VERSION)/typos-$(TYPOS_VERSION)-$(HOST_ARCH)-$$target.tar.gz | tar -xzO ./typos > $@ && chmod +x $@
 
+$(HARPER): GNUmakefile | $(TOOLS_BIN)
+	@echo "==> Downloading harper $(HARPER_VERSION)..."
+	@case "$(HOST_OS)" in darwin) target=apple-darwin;; *) target=unknown-linux-musl;; esac; \
+		curl -sSfL https://github.com/Automattic/harper/releases/download/$(HARPER_VERSION)/harper-cli-$(HOST_ARCH)-$$target.tar.gz | tar -xzO harper-cli > $@ && chmod +x $@
+
 $(YAMLLINT): GNUmakefile | $(TOOLS_BIN)
 	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
 	@echo "==> Installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
@@ -111,7 +118,7 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: $(ACTIONLINT) $(CHANGELOGGY) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) $(ZIZMOR) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
+tools: $(ACTIONLINT) $(CHANGELOGGY) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(HARPER) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) $(ZIZMOR) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -226,6 +233,14 @@ typos: $(TYPOS) ## Check spelling in code, docs and examples with typos (config 
 
 typos-fix: $(TYPOS) ## Fix spelling errors found by typos
 	@$(TYPOS) --write-changes
+
+harper: $(HARPER) ## Check grammar in comments, markdown and schema descriptions with harper (words in .harper/dictionary.txt)
+	@echo "==> Checking grammar with harper..."
+	@go run $(CURDIR)/internal/tools/harper-check -harper $(HARPER) code
+
+harper-docs: $(HARPER) ## Check grammar in the website docs with harper, reported at the schema description the text came from
+	@echo "==> Checking grammar in the website docs with harper..."
+	@go run $(CURDIR)/internal/tools/harper-check -harper $(HARPER) docs
 
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking dependencies.."
@@ -364,4 +379,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint lint-diff lint-diff-fix actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint lint-diff lint-diff-fix actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix harper harper-docs depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

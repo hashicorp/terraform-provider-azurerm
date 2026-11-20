@@ -313,6 +313,70 @@ jobs:
 
   # ------------------------------------------
 
+  harper:
+    needs: paths-filter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
+        with:
+          go-version-file: ./.go-version
+      # make downloads the harper version pinned in GNUmakefile into .tools
+      - name: Run harper
+        run: make harper
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::harper found grammar or spelling errors."
+          echo ""
+          echo "Run 'make harper' locally to reproduce."
+          echo "Correct words Harper does not know (Azure names, API enum values) go in .harper/dictionary.txt, wrong reports in .harper/ignore.txt."
+
+  harper-save-artifacts:
+    needs: harper
+    if: always() && needs.harper.result == 'failure'
+    uses: $/.github/workflows/pr-save-artifacts.yaml
+
+  harper-on-fail:
+    needs: harper
+    if: always() && needs.harper.result == 'failure'
+    uses: $/.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
+    with:
+      check_name: "Harper"
+
+  harper-on-success:
+    needs: harper
+    if: always() && needs.harper.result == 'success'
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
+    with:
+      check_name: "Harper"
+
+  # the website docs step, off until the docs are generated from the schema: until then nearly all of the docs text has no schema description to
+  # report against. remove the `if` to turn it on.
+  harper-docs:
+    if: false
+    needs: paths-filter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Run harper on the website docs
+        run: make harper-docs
+
+  # ------------------------------------------
+
   website-lint:
     needs: paths-filter
     if: needs.paths-filter.outputs.website == 'true'

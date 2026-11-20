@@ -1,0 +1,18 @@
+# Reports from `make harper` that are wrong and should be left alone, one per line, written as:
+#
+#   path: rule: the whole line the report is on, without its leading spaces
+#
+# An entry keeps working when the line moves and stops working when the line is edited.
+
+.teamcity/scripts/go_cache.sh: AnA: # files or directories named <hash>-a and <hash>-d, and Go rebuilds anything it finds missing.
+internal/services/appservice/actions/web_app_set_slot_distribution/action.go: SpellCheck: Description:         "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.",
+internal/services/cdn/actions/azure_front_door_cache_purge/action.go: SpellCheck: Description:         "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
+internal/services/loadbalancer/resources/lb/resource.go: AnA: // Azure does not allow an LB to have all frontend removed, it results in the following error:
+internal/services/managedredis/actions/managed_redis_flush_databases/action.go: SpellCheck: Description:         "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.",
+internal/services/managedredis/databaselink/force_link_unlink_invocations.go: AnA: // Given an input fromIds: ['a'] and idsToLink: ['b', 'c'], following is the sequence of API invocations that should be made:
+internal/services/managedredis/databaselink/force_link_unlink_invocations.go: AnA: //   - POST /databases/b/forceLinkToReplicationGroup with linkedDatabaseIds: ['a', 'b'] (POST /databases/a also works since neither are in the GR group yet)
+internal/services/managedredis/databaselink/force_link_unlink_invocations.go: AnA: //   - POST /databases/c/forceLinkToReplicationGroup with linkedDatabaseIds: ['a', 'b', 'c'] (API call has to be made against 'c' because 'a' and 'b' are already in the GR group)
+internal/services/mssql/resources/mssql_database/r_create.go: AnA: // When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
+internal/services/mssql/resources/mssql_database/r_update.go: AnA: // When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
+internal/tools/pr-guide-suggestions/lint/gitdiff.go: AnA: p = p[i+1:] // strip the a/ or b/ prefix
+contributing/topics/guide-new-resource-vs-inline.md: AnA: - Resources are really separate and have `1:many` and `many:1` relations with a (i.e. a relation property with a resource within a completely different Resource Provider `/subscriptions/<subscriptionId>/resourceGroups/<resourceGroup>/providers/Microsoft.Network/networkSecurityGroups/example-nsg` and `/subscriptions/<subscriptionId>/resourceGroups/<resourceGroup>/providers/Microsoft.Storage/storageAccounts/example-storage`: which `azurerm_storage_account` is used to store the logs from a resource).
