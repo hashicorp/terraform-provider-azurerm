@@ -144,7 +144,7 @@ The following arguments are supported:
 
 * `user_data_base64` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
 
-* `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
+* `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`.
 
 ~> **Note:** This can only be set to `true` when one or more `zones` are configured.
 

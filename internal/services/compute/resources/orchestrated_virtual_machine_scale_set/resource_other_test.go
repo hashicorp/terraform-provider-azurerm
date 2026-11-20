@@ -48,6 +48,23 @@ func TestAccOrchestratedVirtualMachineScaleSet_zoneUpdate(t *testing.T) {
 	})
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_zoneBalanceUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `zone_balance` is not set, so this also covers the nil value on creation
+			Config: r.zoneBalance(data, false),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.zoneBalance(data, true),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -2409,4 +2426,70 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, vmSku)
+}
+
+func (r OrchestratedVirtualMachineScaleSetResource) zoneBalance(data acceptance.TestData, enabled bool) string {
+	zoneBalance := ""
+	if enabled {
+		zoneBalance = "\n  zone_balance = true\n"
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  zones                       = ["1", "2", "3"]
+  platform_fault_domain_count = 1
+%[4]s
+
+  sku_name  = "Standard_D1_v2"
+  instances = 3
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix = "testvm-%[1]d"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), zoneBalance)
 }

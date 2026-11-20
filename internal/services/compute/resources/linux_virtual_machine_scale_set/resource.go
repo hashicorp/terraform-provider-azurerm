@@ -92,6 +92,15 @@ func RegisterResource() *pluginsdk.Resource {
 				return nil
 			}),
 
+			// `zone_balance` can only be enabled when availability zones are specified
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+				if diff.Get("zone_balance").(bool) && len(zones.ExpandUntyped(diff.Get("zones").(*schema.Set).List())) == 0 {
+					return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
+				}
+
+				return nil
+			}),
+
 			pluginsdk.CustomizeDiffShim(helpers.VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 
 			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) bool {

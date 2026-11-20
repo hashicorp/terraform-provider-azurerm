@@ -71,6 +71,16 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 		}
 	}
 
+	if d.HasChange("zone_balance") {
+		// `zoneBalance` is not part of the Update (PATCH) model, so it is changed by sending the existing
+		// model back with the new value, which is what the Azure CLI does for `az vmss update`. This does
+		// not change any instances.
+		existing.Model.Properties.ZoneBalance = pointer.To(d.Get("zone_balance").(bool))
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating `zone_balance` for Linux %s: %+v", id, err)
+		}
+	}
+
 	if d.HasChange("zones") {
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
