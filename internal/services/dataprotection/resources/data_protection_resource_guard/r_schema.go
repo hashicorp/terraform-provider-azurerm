@@ -5,6 +5,7 @@ package data_protection_resource_guard
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -27,7 +28,7 @@ func dataProtectionResourceGuardSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.ResourceGuardVaultCriticalOperationExclusionList(),
 			},
 		},
 
