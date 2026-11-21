@@ -418,6 +418,7 @@ func TestAccKeyVaultCertificate_updatedImportedCertificate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep("certificate"),
@@ -503,6 +504,10 @@ resource "azurerm_key_vault_certificate" "test" {
     contents = filebase64("testdata/keyvaultcert.pfx")
     password = ""
   }
+
+  tags = {
+    environment = "test"
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -542,6 +547,10 @@ resource "azurerm_key_vault_certificate" "test" {
   certificate {
     contents = filebase64("testdata/ecdsa.pfx")
     password = ""
+  }
+
+  tags = {
+    environment = "test"
   }
 }
 `, r.template(data), data.RandomString)

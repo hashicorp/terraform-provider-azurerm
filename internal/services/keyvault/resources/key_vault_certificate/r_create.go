@@ -6,13 +6,11 @@ package key_vault_certificate
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
@@ -58,12 +56,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) erro
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
 		certificate := expandKeyVaultCertificate(v)
-		importParameters := kv.CertificateImportParameters{
-			Base64EncodedCertificate: pointer.To(certificate.CertificateData),
-			Password:                 pointer.To(certificate.CertificatePassword),
-			CertificatePolicy:        policy,
-			Tags:                     tags.Expand(t),
-		}
+		importParameters := expandKeyVaultCertificateImportParameters(certificate, policy, t)
 		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 		if err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
