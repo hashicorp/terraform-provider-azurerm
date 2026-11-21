@@ -369,7 +369,7 @@ resource "azurerm_horizondb_cluster" "test" {
   administrator_login          = "acctestadmin"
   administrator_password       = "P@ssword-123!"
   geo_redundant_backup_enabled = true
-  retention_days               = 14
+  backup_retention_in_days     = 14
 
   read_write_pool {
     name                   = "primary"
@@ -395,12 +395,12 @@ variable "point_in_time_utc" {
 }
 
 resource "azurerm_horizondb_cluster" "restored" {
-  name                   = "acctest-horizondb-restored-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "acctestadmin"
-  administrator_password = "P@ssword-123!"
-  retention_days         = 14
+  name                     = "acctest-horizondb-restored-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  administrator_login      = "acctestadmin"
+  administrator_password   = "P@ssword-123!"
+  backup_retention_in_days = 14
 
   point_in_time_restore {
     source_horizondb_cluster_id = azurerm_horizondb_cluster.test.id
