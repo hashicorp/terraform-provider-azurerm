@@ -38,10 +38,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
 			certificate := expandKeyVaultCertificate(v)
-			importParameters := kv.CertificateImportParameters{
-				Base64EncodedCertificate: pointer.To(certificate.CertificateData),
-				Password:                 pointer.To(certificate.CertificatePassword),
-			}
+			importParameters := expandKeyVaultCertificateImportParameters(certificate, nil, d.Get("tags").(map[string]any))
 			resp, err := client.ImportCertificate(ctx, id.KeyVaultBaseURL, id.Name, importParameters)
 			if err != nil {
 				return err
