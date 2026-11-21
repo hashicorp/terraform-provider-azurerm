@@ -13,6 +13,7 @@ type WindowsWebAppSlotModel struct {
 	AppServiceId                       string                                     `tfschema:"app_service_id"`
 	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
 	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
 	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
 	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                             []helpers.Backup                           `tfschema:"backup"`

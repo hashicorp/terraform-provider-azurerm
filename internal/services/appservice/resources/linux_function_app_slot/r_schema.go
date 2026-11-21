@@ -206,6 +206,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"site_config": SiteConfigSchemaLinuxFunctionAppSlot(),
 
+		"sticky_settings": helpers.StickySettingsSchema(),
+
 		"storage_account": helpers.StorageAccountSchema(),
 
 		"tags": commonschema.Tags(),

@@ -274,6 +274,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
 
+			stickySettings := helpers.ExpandStickySettings(functionAppSlot.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, *functionAppId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
 				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)

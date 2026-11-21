@@ -90,6 +90,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, appId)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			webApp, err := client.Get(ctx, appId)
 			if err != nil {
 				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
@@ -119,6 +124,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					Kind:                             pointer.From(model.Kind),
 					Tags:                             pointer.From(model.Tags),
 					AppSettings:                      helpers.FlattenWebStringDictionary(appSettings.Model),
+					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
