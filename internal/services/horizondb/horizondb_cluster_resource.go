@@ -323,6 +323,7 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 					Network:      &clusters.Network{PublicAccess: pointer.ToEnum[clusters.PublicNetworkAccessState](state.PublicNetworkAccess)},
 					Backup: &clusters.BackupProperties{
 						GeoRedundancy: geoRedundancy,
+						RetentionDays: pointer.To(state.BackupRetentionInDays),
 					},
 				},
 			}
@@ -337,8 +338,6 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 
 			if len(state.PointInTimeRestore) == 0 {
 				payload.Properties.PostgreSqlVersion = pointer.ToEnum[clusters.PostgreSqlVersion](state.PostgresqlVersion)
-				// Set backup retention days only when not performing a point-in-time restore
-				payload.Properties.Backup.RetentionDays = pointer.To(state.BackupRetentionInDays)
 			} else {
 				payload.Properties.CreationMode = pointer.To(clusters.ClusterCreateModePointInTimeRestore)
 				restore := state.PointInTimeRestore[0]
