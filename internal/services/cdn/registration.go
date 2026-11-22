@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_batch_rule_set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_custom_domain"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_custom_domain_association"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_edge_action"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_endpoint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_firewall_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_origin"
@@ -77,6 +78,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		cdn_frontdoor_edge_action.Resource{},
 		cdn_frontdoor_batch_rule_set.Resource{},
 		cdn_frontdoor_rule.Resource{},
 	}
@@ -125,6 +127,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		cdn_frontdoor_edge_action.ListResource{},
 		cdn_frontdoor_batch_rule_set.ListResource{},
 		cdn_frontdoor_origin_group.ListResource{},
 		cdn_frontdoor_origin.ListResource{},
