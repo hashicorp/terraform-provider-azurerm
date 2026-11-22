@@ -83,7 +83,8 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				"auth_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the AuthV2 Settings be enabled? Defaults to `false`.", // azignore:AZS014 - the zero value, the schema sets no Default
+					Default:     false,
+					Description: "Should the AuthV2 Settings be enabled?",
 				},
 
 				"runtime_version": {
@@ -790,7 +791,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the www-authenticate provider should be omitted from the request? Defaults to `false`.", // azignore:AZS014 - the zero value, the schema sets no Default
+					Default:     false,
+					Description: "Should the www-authenticate provider should be omitted from the request?",
 				},
 
 				"allowed_groups": {
