@@ -11,7 +11,7 @@ destination: ./bin
 plugins:
   - module: "github.com/katbyte/azproviderlint"
     import: "github.com/katbyte/azproviderlint/plugin"
-    version: v0.13.1-0.20261122183423-edf8401fc22e # main at edf8401, until v0.14.0 is tagged
+    version: v0.14.0
   - module: "github.com/katbyte/tfproviderlint-golangci"
     import: "github.com/katbyte/tfproviderlint-golangci/plugin"
     version: v0.31.0
