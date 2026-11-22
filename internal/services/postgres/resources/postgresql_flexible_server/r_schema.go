@@ -26,6 +26,7 @@ const (
 	postgresqlVersion16 = "16"
 	postgresqlVersion17 = "17"
 	postgresqlVersion18 = "18"
+	postgresqlVersion19 = "19"
 )
 
 func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
@@ -181,6 +182,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 				postgresqlVersion16,
 				postgresqlVersion17,
 				postgresqlVersion18,
+				postgresqlVersion19,
 			}, false),
 		},
 
