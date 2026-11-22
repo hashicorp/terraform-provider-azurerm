@@ -99,7 +99,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The default publicly resolvable name of this Container App Environment",
+			Description: "The default publicly resolvable name of this Container App Environment.",
 		},
 
 		"docker_bridge_cidr": {

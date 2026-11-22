@@ -72,7 +72,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
+					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
 				},
 
 				"api_management_api_id": {
@@ -99,7 +99,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -133,7 +133,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Should connections for Azure Container Registry use Managed Identity?",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -164,7 +164,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Specifies if the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -180,7 +180,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -204,7 +204,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -212,7 +212,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"pre_warmed_instance_count": {
@@ -220,14 +220,14 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Should Remote Debugging be enabled?",
 				},
 
 				"remote_debugging_version": {
@@ -237,13 +237,13 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Should Functions Runtime Scale Monitoring be enabled?",
 				},
 
 				"scm_type": {
@@ -256,14 +256,14 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker.",
+					Description: "Should the Linux Web App use a 32-bit worker?",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Should Web Sockets be enabled?",
 				},
 
 				"ftps_state": {
@@ -271,13 +271,13 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Description:  "State of FTP / FTPS service for this Function App.",
 				},
 
 				"health_check_path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The path to be checked for this function app health.",
+					Description: "The path to be checked for this Function App health.",
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
@@ -285,7 +285,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
 				},
 
 				"worker_count": {
@@ -301,7 +301,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -309,7 +309,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"minimum_tls_cipher_suite": {
@@ -325,19 +325,19 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Is detailed error logging enabled?",
 				},
 
 				"linux_fx_version": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Linux FX Version",
+					Description: "The Linux FX Version.",
 				},
 			},
 		},

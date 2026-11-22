@@ -63,7 +63,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.IsIpOrCIDRRangeList,
-					Description:  "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32` or `fe80::/64` or `13.107.6.152/31,13.107.128.0/22`",
+					Description:  "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32` or `fe80::/64` or `13.107.6.152/31,13.107.128.0/22`.",
 				},
 
 				"service_tag": {
@@ -104,7 +104,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 						"Allow",
 						"Deny",
 					}, false),
-					Description: "The action to take. Possible values are `Allow` or `Deny`.",
+					Description: "The action to take.",
 				},
 
 				"headers": IpRestrictionHeadersSchema(),
@@ -168,7 +168,7 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 				"description": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The description of the ip restriction rule.",
+					Description: "The description of the IP restriction rule.",
 				},
 			},
 		},
@@ -333,7 +333,7 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Are credentials allowed in CORS requests? Defaults to `false`.",
+					Description: "Are credentials allowed in CORS requests?",
 				},
 			},
 		},
@@ -508,7 +508,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					// Note: O+C because Once set, cannot be unset
 					Computed:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForBuiltInAuthenticationProvider(), false),
-					Description:  "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
+					Description:  "The default authentication provider to use when multiple providers are configured.",
 				},
 
 				"issuer": {
@@ -529,7 +529,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeFloat,
 					Optional:    true,
 					Default:     72,
-					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 					DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
 						// If `auth_settings` is not defined in config, the Create request doesn't send an `auth_settings` request.
 						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
@@ -548,7 +548,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.",
+					Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows?",
 				},
 
 				"unauthenticated_client_action": {
@@ -557,7 +557,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					// Note: O+C because Once set, cannot be removed
 					Computed:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientAction(), false),
-					Description:  "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
+					Description:  "The action to take when an unauthenticated client attempts to access the app.",
 				},
 
 				"active_directory": AadAuthSettingsSchema(),
@@ -687,7 +687,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					ConflictsWith: []string{
 						"auth_settings.0.active_directory.0.client_secret_setting_name",
 					},
-					Description: "The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.",
+					Description: "The Client Secret for the Client ID.",
 				},
 
 				"client_secret_setting_name": {
@@ -697,7 +697,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					ConflictsWith: []string{
 						"auth_settings.0.active_directory.0.client_secret",
 					},
-					Description: "The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.",
+					Description: "The App Setting name that contains the client secret of the Client.",
 				},
 
 				"allowed_audiences": {
@@ -781,7 +781,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.facebook.0.app_secret",
 						"auth_settings.0.facebook.0.app_secret_setting_name",
 					},
-					Description: "The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.",
+					Description: "The App Secret of the Facebook app used for Facebook Login.",
 				},
 
 				"app_secret_setting_name": {
@@ -792,7 +792,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.facebook.0.app_secret",
 						"auth_settings.0.facebook.0.app_secret_setting_name",
 					},
-					Description: "The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.",
+					Description: "The app setting name that contains the `app_secret` value used for Facebook Login.",
 				},
 
 				"oauth_scopes": {
@@ -876,7 +876,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.google.0.client_secret",
 						"auth_settings.0.google.0.client_secret_setting_name",
 					},
-					Description: "The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.",
+					Description: "The client secret associated with the Google web application.",
 				},
 
 				"client_secret_setting_name": {
@@ -887,7 +887,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.google.0.client_secret",
 						"auth_settings.0.google.0.client_secret_setting_name",
 					},
-					Description: "The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.",
+					Description: "The app setting name that contains the `client_secret` value used for Google Login.",
 				},
 
 				"oauth_scopes": {
@@ -971,7 +971,7 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.microsoft.0.client_secret",
 						"auth_settings.0.microsoft.0.client_secret_setting_name",
 					},
-					Description: "The OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret_setting_name`.",
+					Description: "The OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"client_secret_setting_name": {
@@ -982,7 +982,7 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.microsoft.0.client_secret",
 						"auth_settings.0.microsoft.0.client_secret_setting_name",
 					},
-					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication. Cannot be specified with `client_secret`.",
+					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"oauth_scopes": {
@@ -1063,7 +1063,7 @@ func TwitterAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.twitter.0.consumer_secret",
 						"auth_settings.0.twitter.0.consumer_secret_setting_name",
 					},
-					Description: "The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.",
+					Description: "The OAuth 1.0a consumer secret of the Twitter application used for sign-in.",
 				},
 
 				"consumer_secret_setting_name": {
@@ -1133,7 +1133,7 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.github.0.client_secret",
 						"auth_settings.0.github.0.client_secret_setting_name",
 					},
-					Description: "The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.",
+					Description: "The Client Secret of the GitHub app used for GitHub Login.",
 				},
 
 				"client_secret_setting_name": {
@@ -1143,7 +1143,7 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 						"auth_settings.0.github.0.client_secret",
 						"auth_settings.0.github.0.client_secret_setting_name",
 					},
-					Description: "The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.",
+					Description: "The app setting name that contains the `client_secret` value used for GitHub Login.",
 				},
 
 				"oauth_scopes": {

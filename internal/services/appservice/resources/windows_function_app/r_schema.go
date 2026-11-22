@@ -39,14 +39,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
-			Description:  "The ID of the App Service Plan within which to create this Function App",
+			Description:  "The ID of the App Service Plan within which to create this Function App.",
 		},
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
-			Description:  "The backend storage account name which will be used by this Function App.",
+			Description:  "The backend Storage Account name which will be used by this Function App.",
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
@@ -62,7 +62,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_uses_managed_identity",
 				"storage_key_vault_secret_id",
 			},
-			Description: "The access key which will be used to access the storage account for the Function App.",
+			Description: "The access key which will be used to access the Storage Account for the Function App.",
 		},
 
 		"storage_uses_managed_identity": {
@@ -84,7 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_account_name",
 				"storage_key_vault_secret_id",
 			},
-			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the Storage Account for this Function App.",
 		},
 
 		"app_settings": {
@@ -93,7 +93,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -106,14 +106,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
+			Description: "Should built in logging be enabled? Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the function app use Client Certificates",
+			Description: "Should the Function App use Client Certificates?",
 		},
 
 		"client_certificate_mode": {
@@ -121,13 +121,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
-			Description:  "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests.",
 		},
 
 		"client_certificate_exclusion_paths": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Paths to exclude when using client certificates, separated by ;",
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -137,14 +137,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      0,
 			ValidateFunc: validation.IntAtLeast(0),
-			Description:  "The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps in Consumption Plans.",
+			Description:  "The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects Function Apps in Consumption Plans.",
 		},
 
 		"enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Windows Function App enabled.",
+			Description: "Is the Windows Function App enabled?",
 		},
 
 		"content_share_force_disabled": {
@@ -226,7 +226,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+			Description: "Is container image pull over Virtual Network enabled?",
 		},
 
 		"zip_deploy_file": {

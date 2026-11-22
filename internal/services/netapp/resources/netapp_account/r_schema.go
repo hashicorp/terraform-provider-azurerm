@@ -72,18 +72,18 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						Default:     "CN=Computers",
-						Description: "The Organizational Unit (OU) within the Windows Active Directory where machines will be created. If blank, defaults to 'CN=Computers'",
+						Description: "The Organizational Unit (OU) within the Windows Active Directory where machines will be created.",
 					},
 					"site_name": {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						Default:     "Default-First-Site-Name",
-						Description: "The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to 'Default-First-Site-Name'",
+						Description: "The Active Directory site the service will limit Domain Controller discovery to.",
 					},
 					"kerberos_ad_name": {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
-						Description: "Name of the active directory machine. This optional parameter is used only while creating kerberos volume.",
+						Description: "Name of the Active Directory machine. This optional parameter is used only while creating kerberos volume.",
 					},
 					"kerberos_kdc_ip": {
 						Type:         pluginsdk.TypeString,
@@ -177,7 +177,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ActiveDirectoryUserName,
 						},
-						Description: "Domain users to be added to the built-in Administrators active directory group.",
+						Description: "Domain users to be added to the built-in Administrators Active Directory group.",
 					},
 					"backup_users": {
 						Type:     pluginsdk.TypeSet,
@@ -186,7 +186,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ActiveDirectoryUserName,
 						},
-						Description: "Domain users to be added to the built-in Backup Operators active directory group.",
+						Description: "Domain users to be added to the built-in Backup Operators Active Directory group.",
 					},
 					"security_users": {
 						Type:     pluginsdk.TypeSet,

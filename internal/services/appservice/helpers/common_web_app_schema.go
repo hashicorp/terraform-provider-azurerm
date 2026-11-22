@@ -381,14 +381,14 @@ func BackupSchema() *pluginsdk.Schema {
 									"Day",
 									"Hour",
 								}, false),
-								Description: "The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.",
+								Description: "The unit of time for how often the backup should take place.",
 							},
 
 							"keep_at_least_one_backup": {
 								Type:        pluginsdk.TypeBool,
 								Optional:    true,
 								Default:     false,
-								Description: "Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.",
+								Description: "Should the service keep at least one backup, regardless of age of backup?",
 							},
 
 							"retention_period_days": {
@@ -465,7 +465,7 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 							"keep_at_least_one_backup": {
 								Type:        pluginsdk.TypeBool,
 								Computed:    true,
-								Description: "Does the service keep at least one backup, regardless of age of backup.",
+								Description: "Does the service keep at least one backup, regardless of age of backup?",
 							},
 
 							"retention_period_days": {
@@ -516,7 +516,7 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
-					Description:  "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
+					Description:  "Type of database.",
 				},
 
 				"value": {

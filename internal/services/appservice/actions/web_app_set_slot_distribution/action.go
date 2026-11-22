@@ -46,8 +46,8 @@ func (*Action) Schema(ctx context.Context, _ action.SchemaRequest, response *act
 			},
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.",
-				MarkdownDescription: "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.",
+				Description:         "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 		Blocks: map[string]schema.Block{

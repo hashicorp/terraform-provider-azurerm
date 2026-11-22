@@ -57,7 +57,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				LogsDestinationAzureMonitor,
 				LogsDestinationLogAnalytics,
 			}, false),
-			Description: "The destination for the application logs. Possible values include `log-analytics` and `azure-monitor`.  Omitting this value will result in logs being streamed only.",
+			Description: "The destination for the application logs. Omitting this value will result in logs being streamed only.",
 		},
 
 		"infrastructure_resource_group_name": {
@@ -73,7 +73,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				}
 				return false
 			},
-			Description: "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+			Description: "Name of the platform-managed Resource Group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this Resource Group will be created in the same subscription as `infrastructure_subnet_id`.",
 		},
 
 		"infrastructure_subnet_id": {
@@ -90,7 +90,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
-			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
 		},
 
 		"public_network_access": {
@@ -113,7 +113,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"mutual_tls_enabled": {
-			Description: "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+			Description: "Should mutual transport layer security (mTLS) be enabled? **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -136,7 +136,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The default publicly resolvable name of this Container App Environment",
+			Description: "The default publicly resolvable name of this Container App Environment.",
 		},
 
 		"docker_bridge_cidr": {

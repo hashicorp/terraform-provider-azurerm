@@ -114,7 +114,7 @@ func GithubActionConfigSchema() *pluginsdk.Schema {
 					Optional:    true,
 					ForceNew:    true,
 					Default:     true,
-					Description: "Should the service generate the GitHub Action Workflow file. Defaults to `true`",
+					Description: "Should the service generate the GitHub Action Workflow file?",
 				},
 
 				"linux_action": {

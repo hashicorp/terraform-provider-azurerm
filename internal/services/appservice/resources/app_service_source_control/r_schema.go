@@ -58,7 +58,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"use_mercurial",
 				"rollback_enabled",
 			},
-			Description: "Should the App use local Git configuration.",
+			Description: "Should the App use local Git configuration?",
 		},
 
 		"use_manual_integration": {
@@ -66,7 +66,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub. Defaults to `false`.",
+			Description: "Should code be deployed manually? Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub.",
 		},
 
 		"github_action_configuration": helpers.GithubActionConfigSchema(),
@@ -76,7 +76,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "The repository specified is Mercurial. Defaults to `false`.",
+			Description: "The repository specified is Mercurial.",
 		},
 
 		"rollback_enabled": {
@@ -84,7 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Should the Deployment Rollback be enabled? Defaults to `false`.",
+			Description: "Should the Deployment Rollback be enabled?",
 		},
 	}
 }

@@ -334,7 +334,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
-						Description:  "The ID of the backup vault to associate with this volume.",
+						Description:  "The ID of the Backup Vault to associate with this volume.",
 					},
 				},
 			},
@@ -383,7 +383,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Enable non browsable share setting for SMB/Dual Protocol volume. When enabled, it restricts windows clients to browse the share",
+			Description: "Enable non browsable share setting for SMB/Dual Protocol volume. When enabled, it restricts windows clients to browse the share.",
 		},
 
 		"smb_access_based_enumeration_enabled": {
