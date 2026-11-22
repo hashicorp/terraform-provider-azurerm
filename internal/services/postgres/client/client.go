@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/firewallrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/administratormicrosoftentras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/backupautomaticandondemands"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
