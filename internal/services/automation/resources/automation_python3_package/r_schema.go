@@ -55,7 +55,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hash_value": {
-			Description:  "Specity the hash value of the content.",
+			Description:  "Specify the hash value of the content.",
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,

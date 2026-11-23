@@ -49,7 +49,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"automatic_sync": {
-			Description: "Whether auto async the Source Control.",
+			Description: "Whether to automatically sync the Source Control.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -90,7 +90,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"refresh_token": {
-						Description:  "The refresh token of specified rpeo.",
+						Description:  "The refresh token of specified repository.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(0, 1024),
