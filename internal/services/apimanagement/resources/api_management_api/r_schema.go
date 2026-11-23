@@ -249,7 +249,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorization_server_name": {
-						Description:  "OAuth authorization server identifier. The name of an [OAuth2 Authorization Server](https://www.terraform.io/docs/providers/azurerm/r/api_management_authorization_server.html).",
+						Description:  "OAuth authorization server identifier. The name of an [OAuth2 Authorization Server](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_authorization_server).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ApiManagementChildName,
@@ -272,7 +272,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"openid_provider_name": {
-						Description:  "OpenID Connect provider identifier. The name of an [OpenID Connect Provider](https://www.terraform.io/docs/providers/azurerm/r/api_management_openid_connect_provider.html).",
+						Description:  "OpenID Connect provider identifier. The name of an [OpenID Connect Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_openid_connect_provider).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ApiManagementChildName,

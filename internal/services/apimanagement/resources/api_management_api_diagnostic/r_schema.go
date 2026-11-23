@@ -40,7 +40,7 @@ func apiManagementApiDiagnosticSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sampling_percentage": {
-			Description:  "Sampling (%). For high traffic APIs, please read this [documentation](https://docs.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling.",
+			Description:  "Sampling (%). For high traffic APIs, please read this [documentation](https://learn.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
