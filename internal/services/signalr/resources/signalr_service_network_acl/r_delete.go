@@ -37,12 +37,6 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta any)
 
 	model := *resp.Model
 
-	defaultRequestTypes := []signalr.SignalRRequestType{
-		signalr.SignalRRequestTypeClientConnection,
-		signalr.SignalRRequestTypeRESTAPI,
-		signalr.SignalRRequestTypeServerConnection,
-		signalr.SignalRRequestTypeTrace,
-	}
 	networkACL := &signalr.SignalRNetworkACLs{
 		DefaultAction: pointer.To(signalr.ACLActionDeny),
 		PublicNetwork: &signalr.NetworkACL{
