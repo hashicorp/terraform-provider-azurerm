@@ -88,3 +88,9 @@ A Data Protection Backup Policy for Elastic SAN Volumes can be imported using th
 ```shell
 terraform import azurerm_data_protection_backup_policy_elastic_san_volume.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DataProtection/backupVaults/backupVault1/backupPolicies/backupPolicy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection` - 2026-06-01

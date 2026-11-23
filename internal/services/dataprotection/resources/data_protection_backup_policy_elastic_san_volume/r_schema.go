@@ -49,19 +49,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"daily_retention_duration": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
 			ConflictsWith: []string{"weekly_backup_schedule"},
-			ValidateFunc: validation.ISO8601Duration,
+			ValidateFunc:  validation.ISO8601Duration,
 		},
 
 		"monthly_retention_duration": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
 			ConflictsWith: []string{"daily_backup_schedule"},
-			ValidateFunc: validation.ISO8601Duration,
+			ValidateFunc:  validation.ISO8601Duration,
 		},
 
 		"weekly_backup_schedule": {

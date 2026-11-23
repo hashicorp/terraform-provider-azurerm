@@ -65,7 +65,6 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *basebackuppolicyres
 }
 
 func flattenBackupPolicyElasticSanVolumePolicyRules(input []basebackuppolicyresources.BasePolicyRule, state *BackupPolicyElasticSanVolumeModel) error {
-	var taggingCriteria []basebackuppolicyresources.TaggingCriteria
 	for _, item := range input {
 		switch rule := item.(type) {
 		case basebackuppolicyresources.AzureBackupRule:
@@ -85,7 +84,6 @@ func flattenBackupPolicyElasticSanVolumePolicyRules(input []basebackuppolicyreso
 			default:
 				return fmt.Errorf("unsupported repeating time interval `%s` for backup rule `%s`", backupSchedule, rule.Name)
 			}
-			taggingCriteria = append(taggingCriteria, trigger.TaggingCriteria...)
 		case basebackuppolicyresources.AzureRetentionRule:
 			if len(rule.Lifecycles) != 1 {
 				return fmt.Errorf("retention rule `%s` must have exactly one lifecycle", rule.Name)
