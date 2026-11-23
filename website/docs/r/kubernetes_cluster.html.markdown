@@ -746,6 +746,10 @@ An `advanced_networking` block supports the following:
 
 * `security_enabled` - (Optional) Is security enabled? Defaults to `false`. This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
 
+* `transit_encryption_type` - (Optional) The type of in-transit encryption between nodes. Possible values are `None` and `WireGuard`. Defaults to `None`. `WireGuard` can only be used when `security_enabled` is set to `true`.
+
+~> **Note:** Changing `transit_encryption_type` on an existing cluster restarts the Cilium agents, which can briefly affect workloads. WireGuard encrypts pod traffic between nodes only, and UDP port `51871` must be allowed between nodes. See [the documentation](https://learn.microsoft.com/azure/aks/how-to-apply-wireguard) for more information.
+
 ---
 
 A `load_balancer_profile` block supports the following:

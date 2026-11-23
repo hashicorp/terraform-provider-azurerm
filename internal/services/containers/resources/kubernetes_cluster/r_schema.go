@@ -1156,6 +1156,12 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Default:      false,
 									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
 								},
+								"transit_encryption_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(managedclusters.TransitEncryptionTypeNone),
+									ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForTransitEncryptionType(), false),
+								},
 							},
 						},
 					},
