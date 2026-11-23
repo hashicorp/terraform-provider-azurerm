@@ -54,7 +54,7 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"allow_tracing": {
-			Description: "Indicates whether tracing is enabled.",
+			Description: "Whether tracing is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

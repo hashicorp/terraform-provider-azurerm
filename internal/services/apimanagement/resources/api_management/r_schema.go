@@ -46,7 +46,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"virtual_network_type": {
-			Description:  "The type of virtual network you want to use.",
+			Description:  "The type of Virtual Network you want to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(apimanagementservice.VirtualNetworkTypeNone),
@@ -60,7 +60,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Description:  "The id of the subnet that will be used for the API Management.",
+						Description:  "The ID of the subnet that will be used for the API Management.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
@@ -103,7 +103,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"gateway_disabled": {
-						Description: "Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.",
+						Description: "Only valid for an API Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -118,7 +118,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"subnet_id": {
-									Description:  "The id of the subnet that will be used for the API Management.",
+									Description:  "The ID of the subnet that will be used for the API Management.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: commonids.ValidateSubnetID,
@@ -428,13 +428,13 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subscriptions_enabled": {
-						Description: "Should subscription requests be delegated to an external url?",
+						Description: "Should subscription requests be delegated to an external URL?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"user_registration_enabled": {
-						Description: "Should user registration requests be delegated to an external url?",
+						Description: "Should user registration requests be delegated to an external URL?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -476,7 +476,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
-									Description: "Should Terms of Service be displayed during sign up?.",
+									Description: "Should Terms of Service be displayed during sign up?",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},

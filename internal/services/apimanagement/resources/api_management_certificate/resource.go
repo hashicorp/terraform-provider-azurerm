@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages an Certificate within an API Management Service.",
+		Description: "Manages a Certificate within an API Management Service.",
 		Create:      resourceApiManagementCertificateCreateUpdate,
 		Read:        resourceApiManagementCertificateRead,
 		Update:      resourceApiManagementCertificateCreateUpdate,

@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a Subscription within a API Management Service.",
+		Description: "Manages a Subscription within an API Management Service.",
 		Create:      resourceApiManagementSubscriptionCreateUpdate,
 		Read:        resourceApiManagementSubscriptionRead,
 		Update:      resourceApiManagementSubscriptionCreateUpdate,

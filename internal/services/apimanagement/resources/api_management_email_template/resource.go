@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a API Management Email Template.",
+		Description: "Manages an API Management Email Template.",
 		Create:      resourceApiManagementEmailTemplateCreateUpdate,
 		Read:        resourceApiManagementEmailTemplateRead,
 		Update:      resourceApiManagementEmailTemplateCreateUpdate,

@@ -16,7 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of the API Management Workspace Certificate.",
+			Description: "The name of the API Management Workspace Certificate.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -29,7 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"certificate_data_base64": {
-			Description:  "Specifies the base64-encoded string containing the certificate in PKCS#12 (.pfx) format.",
+			Description:  "The base64-encoded string containing the certificate in PKCS#12 (.pfx) format.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -38,7 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_secret_id": {
-			Description:  "Specifies the ID of the key vault secret.",
+			Description:  "The ID of the Key Vault Secret.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
@@ -46,7 +46,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"password": {
-			Description:  "Specifies the password used to access the `certificate_data_base64`.",
+			Description:  "The password used to access the `certificate_data_base64`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -55,7 +55,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"user_assigned_identity_client_id": {
-			Description:  "Specifies the client ID of user-assigned identity to be used for accessing the `key_vault_secret_id`.",
+			Description:  "The client ID of user-assigned identity to be used for accessing the `key_vault_secret_id`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,

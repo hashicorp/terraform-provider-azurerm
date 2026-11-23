@@ -17,7 +17,7 @@ func apiManagementIdentityProviderMicrosoftSchema() map[string]*pluginsdk.Schema
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"client_id": {
-			Description:  "Client Id of the Azure AD Application.",
+			Description:  "Client ID of the Azure AD Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,

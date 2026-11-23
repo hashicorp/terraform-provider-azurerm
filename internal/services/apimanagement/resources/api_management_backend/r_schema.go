@@ -45,13 +45,13 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 						),
 					},
 					"trip_duration": {
-						Description:  "Specifies the duration for which the circuit remains open before retrying, in ISO 8601 format.",
+						Description:  "The duration for which the circuit remains open before retrying, in ISO 8601 format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.ISO8601Duration,
 					},
 					"accept_retry_after_enabled": {
-						Description: "Specifies whether the circuit breaker should honour `Retry-After` requests.",
+						Description: "Whether the circuit breaker should honour `Retry-After` requests.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -63,20 +63,20 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"interval_duration": {
-									Description:  "Specifies the time window over which failures are counted, in ISO 8601 format.",
+									Description:  "The time window over which failures are counted, in ISO 8601 format.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.ISO8601Duration,
 								},
 								"count": {
-									Description:  "Specifies the number of failures within the specified interval that will trigger the circuit breaker.",
+									Description:  "The number of failures within the specified interval that will trigger the circuit breaker.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									ValidateFunc: validation.IntBetween(1, 10000),
 								},
 								"error_reasons": {
-									Description:  "Specifies a list of error reasons to consider as failures.",
+									Description:  "A list of error reasons to consider as failures.",
 									Type:         pluginsdk.TypeList,
 									Optional:     true,
 									MaxItems:     10,
@@ -87,7 +87,7 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 									},
 								},
 								"percentage": {
-									Description:  "Specifies the percentage of failures within the specified interval that will trigger the circuit breaker.",
+									Description:  "The percentage of failures within the specified interval that will trigger the circuit breaker.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
@@ -101,13 +101,13 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"min": {
-												Description:  "Specifies the minimum HTTP status code to consider as a failure.",
+												Description:  "The minimum HTTP status code to consider as a failure.",
 												Type:         pluginsdk.TypeInt,
 												Required:     true,
 												ValidateFunc: validation.IntBetween(200, 599),
 											},
 											"max": {
-												Description:  "Specifies the maximum HTTP status code to consider as a failure.",
+												Description:  "The maximum HTTP status code to consider as a failure.",
 												Type:         pluginsdk.TypeInt,
 												Required:     true,
 												ValidateFunc: validation.IntBetween(200, 599),
@@ -230,7 +230,7 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_id": {
-			Description:  "The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster.",
+			Description:  "The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 2000),
@@ -243,7 +243,7 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_certificate_id": {
-						Description:  "The client certificate resource id for the management endpoint.",
+						Description:  "The client certificate resource ID for the management endpoint.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -272,7 +272,7 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 						Required:    true,
 					},
 					"server_certificate_thumbprints": {
-						Description:   "A list of thumbprints of the server certificates of the Service Fabric cluster.",
+						Description:   "A list of thumbprints of the server certificates of the Service Fabric Cluster.",
 						Type:          pluginsdk.TypeSet,
 						Optional:      true,
 						ConflictsWith: []string{"service_fabric_cluster.0.server_x509_name"},

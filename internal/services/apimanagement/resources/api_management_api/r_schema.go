@@ -173,7 +173,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Description:  "The name of the license .",
+						Description:  "The name of the license.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -235,7 +235,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_api_id": {
-			Description:  "The API id of the source API, which could be in format `azurerm_api_management_api.example.id` or in format `azurerm_api_management_api.example.id;rev=1`",
+			Description:  "The API ID of the source API, which could be in format `azurerm_api_management_api.example.id` or in format `azurerm_api_management_api.example.id;rev=1`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),

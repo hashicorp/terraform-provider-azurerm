@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a API Management Redis Cache.",
+		Description: "Manages an API Management Redis Cache.",
 		Create:      resourceApiManagementRedisCacheCreateUpdate,
 		Read:        resourceApiManagementRedisCacheRead,
 		Update:      resourceApiManagementRedisCacheCreateUpdate,

@@ -25,7 +25,7 @@ func ResourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 					ValidateFunc: validation.IntBetween(0, 8192),
 				},
 				"headers_to_log": {
-					Description: "Specifies a list of headers to log.",
+					Description: "A list of headers to log.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
 					Elem: &pluginsdk.Schema{

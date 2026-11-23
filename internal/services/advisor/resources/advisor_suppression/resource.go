@@ -18,7 +18,7 @@ func (Resource) ResourceType() string {
 }
 
 func (Resource) Description() string {
-	return "Specifies a suppression for an Azure Advisor recommendation."
+	return "A suppression for an Azure Advisor recommendation."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

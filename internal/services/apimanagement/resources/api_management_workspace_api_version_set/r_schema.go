@@ -20,7 +20,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of the API Management Workspace API Version Set.",
+			Description: "The name of the API Management Workspace API Version Set.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -33,28 +33,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"display_name": {
-			Description:  "Specifies the display name of the API Management Workspace API Version Set.",
+			Description:  "The display name of the API Management Workspace API Version Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"versioning_scheme": {
-			Description:  "Specifies where in a request that the API Version should be read from.",
+			Description:  "Where in a request that the API Version should be read from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(apiversionset.PossibleValuesForVersioningScheme(), false),
 		},
 
 		"description": {
-			Description:  "Specifies the description of the API Management Workspace API Version Set.",
+			Description:  "The description of the API Management Workspace API Version Set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"version_header_name": {
-			Description:   "Specifies the name of the header to read from inbound requests to determine the API version.",
+			Description:   "The name of the header to read from inbound requests to determine the API version.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{"version_query_name"},
@@ -62,7 +62,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"version_query_name": {
-			Description:   "Specifies the name of the query string parameter to read from inbound requests to determine the API version.",
+			Description:   "The name of the query string parameter to read from inbound requests to determine the API version.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{"version_header_name"},

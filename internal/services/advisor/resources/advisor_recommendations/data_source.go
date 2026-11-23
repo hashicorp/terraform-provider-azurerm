@@ -30,7 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"filter_by_category": {
-				Description: "Specifies a list of categories in which the Advisor Recommendations will be listed.",
+				Description: "A list of categories in which the Advisor Recommendations will be listed.",
 				Type:        pluginsdk.TypeSet,
 				Optional:    true,
 				Elem: &pluginsdk.Schema{
@@ -42,7 +42,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional(),
 
 			"filter_by_resource_ids": {
-				Description: "Specifies a list of resource about which the Advisor Recommendations will be listed.",
+				Description: "A list of resource about which the Advisor Recommendations will be listed.",
 				Type:        pluginsdk.TypeSet,
 				Optional:    true,
 				Elem: &pluginsdk.Schema{
@@ -52,7 +52,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"filter_by_recommendation_type_guids": {
-				Description: "Specifies a list of recommendation types about which the Advisor Recommendations will be listed.",
+				Description: "A list of recommendation types about which the Advisor Recommendations will be listed.",
 				Type:        pluginsdk.TypeSet,
 				Optional:    true,
 				Elem: &pluginsdk.Schema{
@@ -96,7 +96,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"recommendation_type_id": {
-							Description: "The recommendation type id of the Advisor Recommendation.",
+							Description: "The recommendation type ID of the Advisor Recommendation.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},
@@ -123,7 +123,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"updated_time": {
-							Description: "The most recent time that Advisor checked the validity of the recommendation..",
+							Description: "The most recent time that Advisor checked the validity of the recommendation.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},

@@ -21,7 +21,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"resource_id": {
-			Description:  "The target resource id which will be linked in the API-Management portal page.",
+			Description:  "The target resource ID which will be linked in the API-Management portal page.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -72,7 +72,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"user_assigned_identity_client_id": {
-						Description:  "The Client Id of the User Assigned Identity with the \"Azure Event Hubs Data Sender\" role to the target EventHub Namespace. If not specified the System Assigned Identity will be used.",
+						Description:  "The Client ID of the User Assigned Identity with the \"Azure Event Hubs Data Sender\" role to the target EventHub Namespace. If not specified the System Assigned Identity will be used.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
@@ -121,7 +121,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"identity_client_id": {
-						Description: "The Client Id of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the \"Monitoring Metrics Publisher\" role on the target Application Insights resource. Requires `connection_string` to be set.",
+						Description: "The Client ID of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the \"Monitoring Metrics Publisher\" role on the target Application Insights resource.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ValidateFunc: validation.Any(
@@ -140,7 +140,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"buffered": {
-			Description: "Specifies whether records should be buffered in the Logger prior to publishing.",
+			Description: "Whether records should be buffered in the Logger prior to publishing.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

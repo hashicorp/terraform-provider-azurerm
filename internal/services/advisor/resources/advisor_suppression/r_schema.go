@@ -31,7 +31,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: azure.ValidateResourceID,
 		},
 		"ttl": {
-			Description:  "A optional time to live value. If omitted, the suppression will not expire.",
+			Description:  "An optional time to live value. If omitted, the suppression will not expire.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

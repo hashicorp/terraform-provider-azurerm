@@ -15,7 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name which should be used for this API Management Workspace.",
+			Description: "The name which should be used for this API Management Workspace.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,

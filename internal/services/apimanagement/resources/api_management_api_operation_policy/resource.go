@@ -13,7 +13,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages an API Management API Operation Policy",
+		Description: "Manages an API Management API Operation Policy.",
 		Create:      resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Read:        resourceApiManagementAPIOperationPolicyRead,
 		Update:      resourceApiManagementAPIOperationPolicyCreateUpdate,

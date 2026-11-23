@@ -91,7 +91,7 @@ func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allow_tracing": {
-			Description: "Determines whether tracing can be enabled.",
+			Description: "Whether tracing can be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

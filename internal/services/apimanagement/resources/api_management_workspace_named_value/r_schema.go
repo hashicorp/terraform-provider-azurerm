@@ -43,7 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"secret": {
-			Description: "Specifies whether the API Management Workspace Named Value is secret.",
+			Description: "Whether the API Management Workspace Named Value is secret.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -82,7 +82,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					},
 					"identity_client_id": {
-						Description:  "The client ID of the User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used if not specified.",
+						Description:  "The client ID of the User Assigned Identity, for the API Management Service, which will be used to access the Key Vault Secret. The System Assigned Identity will be used if not specified.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,

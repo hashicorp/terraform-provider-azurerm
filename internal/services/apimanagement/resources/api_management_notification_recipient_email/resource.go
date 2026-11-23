@@ -18,7 +18,7 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) Description() string {
-	return "Manages a API Management Notification Recipient Email."
+	return "Manages an API Management Notification Recipient Email."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

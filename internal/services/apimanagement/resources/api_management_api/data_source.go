@@ -94,7 +94,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"soap_pass_through": {
-				Description: "Should this API expose a SOAP frontend, rather than a HTTP frontend?",
+				Description: "Should this API expose a SOAP frontend, rather than an HTTP frontend?",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

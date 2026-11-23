@@ -17,7 +17,7 @@ func apiManagementIdentityProviderAadSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"client_id": {
-			Description:  "Client Id of the Application in the AAD Identity Provider.",
+			Description:  "Client ID of the Application in the AAD Identity Provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,

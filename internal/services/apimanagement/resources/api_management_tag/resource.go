@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a API Management Tag.",
+		Description: "Manages an API Management Tag.",
 		Create:      resourceApiManagementTagCreateUpdate,
 		Read:        resourceApiManagementTagRead,
 		Update:      resourceApiManagementTagCreateUpdate,

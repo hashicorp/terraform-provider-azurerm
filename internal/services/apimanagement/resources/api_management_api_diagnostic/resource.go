@@ -14,7 +14,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a API Management Service API Diagnostics Logs.",
+		Description: "Manages an API Management Service API Diagnostics Logs.",
 		Create:      resourceApiManagementApiDiagnosticCreateUpdate,
 		Read:        resourceApiManagementApiDiagnosticRead,
 		Update:      resourceApiManagementApiDiagnosticCreateUpdate,

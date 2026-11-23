@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages an OpenID Connect Provider within a API Management Service.",
+		Description: "Manages an OpenID Connect Provider within an API Management Service.",
 		Create:      resourceApiManagementOpenIDConnectProviderCreateUpdate,
 		Read:        resourceApiManagementOpenIDConnectProviderRead,
 		Update:      resourceApiManagementOpenIDConnectProviderCreateUpdate,

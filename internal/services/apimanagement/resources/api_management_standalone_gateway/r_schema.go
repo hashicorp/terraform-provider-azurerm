@@ -16,7 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name which should be used for this API Management Standalone Gateway.",
+			Description: "The name which should be used for this API Management Standalone Gateway.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -58,7 +58,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_subnet_id": {
-			Description:  "Specifies the subnet ID in which the backend systems are hosted.",
+			Description:  "The subnet ID in which the backend systems are hosted.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -69,7 +69,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsForceNew(),
 
 		"virtual_network_type": {
-			Description: "Specifies the type of VPN in which API Management gateway needs to be configured.",
+			Description: "The type of VPN in which API Management gateway needs to be configured.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,

@@ -20,7 +20,7 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"authorization_endpoint": {
-			Description:  "The OAUTH Authorization Endpoint.",
+			Description:  "The OAuth Authorization Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -82,7 +82,7 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_authentication_method": {
-			Description: "The Authentication Methods supported by the Token endpoint of this Authorization Server..",
+			Description: "The Authentication Methods supported by the Token endpoint of this Authorization Server.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			Elem: &pluginsdk.Schema{
@@ -151,7 +151,7 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"token_endpoint": {
-			Description: "The OAUTH Token Endpoint.",
+			Description: "The OAuth Token Endpoint.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 		},

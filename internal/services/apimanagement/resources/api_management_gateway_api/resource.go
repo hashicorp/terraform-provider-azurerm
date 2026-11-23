@@ -13,7 +13,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a API Management Gateway API.",
+		Description: "Manages an API Management Gateway API.",
 		Create:      resourceApiManagementGatewayApiCreate,
 		Read:        resourceApiManagementGatewayApiRead,
 		Delete:      resourceApiManagementGatewayApiDelete,

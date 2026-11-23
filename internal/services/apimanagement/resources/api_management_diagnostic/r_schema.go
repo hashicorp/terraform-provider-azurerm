@@ -31,7 +31,7 @@ func apiManagementDiagnosticSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"api_management_logger_id": {
-			Description:  "The id of the target API Management Logger where the API Management Diagnostic should be saved.",
+			Description:  "The ID of the target API Management Logger where the API Management Diagnostic should be saved.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: logger.ValidateLoggerID,

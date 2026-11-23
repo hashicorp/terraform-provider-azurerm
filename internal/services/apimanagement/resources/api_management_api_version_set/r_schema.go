@@ -27,7 +27,7 @@ func apiManagementApiVersionSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"versioning_scheme": {
-			Description:  "Specifies where in an Inbound HTTP Request that the API Version should be read from.",
+			Description:  "Where in an Inbound HTTP Request that the API Version should be read from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(apiversionset.PossibleValuesForVersioningScheme(), false),

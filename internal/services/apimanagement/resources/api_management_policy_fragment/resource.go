@@ -17,7 +17,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages an Api Management Policy Fragment.",
+		Description: "Manages an API Management Policy Fragment.",
 		Create:      resourceApiManagementPolicyFragmentCreate,
 		Read:        resourceApiManagementPolicyFragmentRead,
 		Update:      resourceApiManagementPolicyFragmentUpdate,

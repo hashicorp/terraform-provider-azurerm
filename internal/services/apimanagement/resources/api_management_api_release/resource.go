@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a API Management API Release.",
+		Description: "Manages an API Management API Release.",
 		Create:      resourceApiManagementApiReleaseCreateUpdate,
 		Read:        resourceApiManagementApiReleaseRead,
 		Update:      resourceApiManagementApiReleaseCreateUpdate,

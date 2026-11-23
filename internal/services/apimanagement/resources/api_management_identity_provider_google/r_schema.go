@@ -18,7 +18,7 @@ func apiManagementIdentityProviderGoogleSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"client_id": {
-			Description:  "Client Id for Google Sign-in.",
+			Description:  "Client ID for Google Sign-in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.GoogleClientID,

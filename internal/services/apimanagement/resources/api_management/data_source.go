@@ -49,7 +49,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"public_ip_address_id": {
-				Description: "ID of the standard SKU IPv4 Public IP. Available only for Premium and Developer SKU deployed in a virtual network.",
+				Description: "ID of the standard SKU IPv4 Public IP. Available only for Premium and Developer SKU deployed in a Virtual Network.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},
@@ -156,13 +156,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"public_ip_address_id": {
-							Description: "ID of the standard SKU IPv4 Public IP. Available only for Premium SKU deployed in a virtual network.",
+							Description: "ID of the standard SKU IPv4 Public IP. Available only for Premium SKU deployed in a Virtual Network.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},
 
 						"private_ip_addresses": {
-							Description: "Private IP addresses of the API Management service in the additional location, for instances using virtual network mode.",
+							Description: "Private IP addresses of the API Management service in the additional location, for instances using Virtual Network mode.",
 							Type:        pluginsdk.TypeList,
 							Computed:    true,
 							Elem: &pluginsdk.Schema{
