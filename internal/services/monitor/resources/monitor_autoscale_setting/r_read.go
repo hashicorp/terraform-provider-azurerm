@@ -75,7 +75,7 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta any) er
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://learn.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",

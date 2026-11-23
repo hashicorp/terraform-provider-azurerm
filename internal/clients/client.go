@@ -81,6 +81,7 @@ import (
 	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
+	horizondb "github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb/client"
 	hsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/client"
 	hybridcompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
@@ -223,6 +224,7 @@ type Client struct {
 	Graph                             *graph.Client
 	HSM                               *hsm.Client
 	HDInsight                         *hdinsight_v2021_06_01.Client
+	HorizonDB                         *horizondb.Client
 	HybridCompute                     *hybridcompute.Client
 	HealthCare                        *healthcare.Client
 	IoTCentral                        *iotcentral.Client
@@ -489,6 +491,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
+	}
+	if client.HorizonDB, err = horizondb.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HorizonDB: %+v", err)
 	}
 	if client.HybridCompute, err = hybridcompute.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HybridCompute: %+v", err)

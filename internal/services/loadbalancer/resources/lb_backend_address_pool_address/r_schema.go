@@ -44,7 +44,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			ConflictsWith: []string{"virtual_network_id"},
 			ValidateFunc:  loadbalancers.ValidateFrontendIPConfigurationID,
-			Description:   "For global load balancer, user needs to specify the `backend_address_ip_configuration_id` of the added regional load balancers",
+			Description:   "For global load balancer, user needs to specify the `backend_address_ip_configuration_id` of the added regional load balancers.",
 		},
 	}
 }

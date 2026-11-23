@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot. Defaults to `true`.",
+			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot.",
 			ForceNew:    true,
 		},
 	}
@@ -32,7 +32,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"last_successful_swap": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The timestamp of the last successful swap with `Production`",
+			Description: "The timestamp of the last successful swap with `Production`.",
 		},
 	}
 }
