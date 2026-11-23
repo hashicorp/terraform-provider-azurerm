@@ -16,15 +16,22 @@ func NodePoolAzureContainerLinuxCustomizeDiff(nodePoolPath string) pluginsdk.Cus
 	if nodePoolPath != "" {
 		prefix = nodePoolPath + ".0."
 	}
+	osSKUPath := prefix + "os_sku"
+	securityPath := prefix + "security.0."
 
 	return func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
+		osSKU, ok := d.GetOkExists(osSKUPath)
+		if !ok || osSKU.(string) != string(agentpools.OSSKUAzureContainerLinux) {
+			return nil
+		}
+
 		rawConfig := d.GetRawConfig()
 		if !rawConfig.IsKnown() || rawConfig.IsNull() {
 			return nil
 		}
 		if nodePoolPath != "" {
 			nodePools := rawConfig.GetAttr(nodePoolPath)
-			if !nodePools.IsKnown() || nodePools.IsNull() || len(nodePools.AsValueSlice()) == 0 {
+			if !nodePools.IsKnown() || nodePools.IsNull() || nodePools.LengthInt() == 0 {
 				return nil
 			}
 			rawConfig = nodePools.AsValueSlice()[0]
@@ -33,32 +40,31 @@ func NodePoolAzureContainerLinuxCustomizeDiff(nodePoolPath string) pluginsdk.Cus
 			}
 		}
 
-		osSKU := rawConfig.GetAttr("os_sku")
-		if !osSKU.IsKnown() || d.Get(prefix+"os_sku").(string) != string(agentpools.OSSKUAzureContainerLinux) {
-			return nil
-		}
-
 		security := rawConfig.GetAttr("security")
 		if !security.IsKnown() {
 			return nil
 		}
-		if security.IsNull() || len(security.AsValueSlice()) == 0 {
-			return fmt.Errorf("`%ssecurity.0.secure_boot_enabled` must be set to `true` when `%sos_sku` is `AzureContainerLinux`", prefix, prefix)
+		if security.IsNull() || security.LengthInt() == 0 {
+			return fmt.Errorf("`%ssecure_boot_enabled` must be set to `true` when `%s` is `AzureContainerLinux`", securityPath, osSKUPath)
 		}
 		security = security.AsValueSlice()[0]
 		if !security.IsKnown() {
 			return nil
 		}
+		if security.IsNull() {
+			return fmt.Errorf("`%ssecure_boot_enabled` must be set to `true` when `%s` is `AzureContainerLinux`", securityPath, osSKUPath)
+		}
 
 		for _, flag := range []string{"secure_boot_enabled", "vtpm_enabled"} {
-			path := prefix + "security.0." + flag
-			if security.IsNull() {
-				return fmt.Errorf("`%s` must be set to `true` when `%sos_sku` is `AzureContainerLinux`", path, prefix)
+			path := securityPath + flag
+			value, ok := d.GetOkExists(path)
+			if ok && value.(bool) {
+				continue
 			}
-			value := security.GetAttr(flag)
-			if value.IsKnown() && (value.IsNull() || !value.True()) {
-				return fmt.Errorf("`%s` must be set to `true` when `%sos_sku` is `AzureContainerLinux`", path, prefix)
+			if !ok && !security.GetAttr(flag).IsNull() {
+				continue
 			}
+			return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
 		}
 		return nil
 	}
