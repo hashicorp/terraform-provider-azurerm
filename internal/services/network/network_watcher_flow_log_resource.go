@@ -101,7 +101,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"enabled_filtering_criteria": {
+			"filtering_criteria": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 1000),
@@ -264,7 +264,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta any) er
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if criteria, ok := d.GetOk("enabled_filtering_criteria"); ok {
+	if criteria, ok := d.GetOk("filtering_criteria"); ok {
 		parameters.Properties.EnabledFilteringCriteria = pointer.To(criteria.(string))
 	}
 
@@ -327,8 +327,8 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta any) er
 		payload.Properties.Enabled = pointer.To(d.Get("enabled").(bool))
 	}
 
-	if d.HasChange("enabled_filtering_criteria") {
-		payload.Properties.EnabledFilteringCriteria = pointer.To(d.Get("enabled_filtering_criteria").(string))
+	if d.HasChange("filtering_criteria") {
+		payload.Properties.EnabledFilteringCriteria = pointer.To(d.Get("filtering_criteria").(string))
 	}
 
 	if d.HasChange("retention_policy") {
@@ -404,8 +404,8 @@ func resourceNetworkWatcherFlowLogFlatten(d *pluginsdk.ResourceData, id *flowlog
 
 			d.Set("enabled", props.Enabled)
 
-			if err := d.Set("enabled_filtering_criteria", pointer.From(props.EnabledFilteringCriteria)); err != nil {
-				return fmt.Errorf("setting `enabled_filtering_criteria`: %+v", err)
+			if err := d.Set("filtering_criteria", pointer.From(props.EnabledFilteringCriteria)); err != nil {
+				return fmt.Errorf("setting `filtering_criteria`: %+v", err)
 			}
 
 			version := 0
