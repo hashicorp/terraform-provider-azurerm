@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package appgateway
+package application_gateway
 
 import (
 	"context"
@@ -17,19 +17,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApplicationGatewayListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(ApplicationGatewayListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (r ApplicationGatewayListResource) ResourceFunc() *pluginsdk.Resource {
-	return resourceApplicationGateway()
+func (r ListResource) ResourceFunc() *pluginsdk.Resource {
+	return RegisterResource()
 }
 
-func (r ApplicationGatewayListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_application_gateway"
 }
 
-func (r ApplicationGatewayListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.AppGateway.ApplicationGateways
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -69,7 +69,7 @@ func (r ApplicationGatewayListResource) List(ctx context.Context, request list.L
 
 			result.DisplayName = pointer.From(applicationgateway.Name)
 
-			rd := resourceApplicationGateway().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 
 			id, err := applicationgateways.ParseApplicationGatewayID(pointer.From(applicationgateway.Id))
 			if err != nil {

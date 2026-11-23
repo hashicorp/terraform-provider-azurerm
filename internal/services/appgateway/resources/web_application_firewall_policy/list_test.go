@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package appgateway_test
+package web_application_firewall_policy_test
 
 import (
 	"context"
@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccApplicationGateway_listBySubscriptionAndRG(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "testlist1")
-	r := ApplicationGatewayResource{}
+func TestAccWebApplicationFirewallPolicy_listBySubscriptionAndRG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "testlist1")
+	r := WebApplicationFirewallPolicyResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -34,9 +34,9 @@ func TestAccApplicationGateway_listBySubscriptionAndRG(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_application_gateway.list", 1), // expect at least the 1 we created
+					querycheck.ExpectLengthAtLeast("azurerm_web_application_firewall_policy.list", 1), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
-						"azurerm_application_gateway.list",
+						"azurerm_web_application_firewall_policy.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
@@ -49,9 +49,9 @@ func TestAccApplicationGateway_listBySubscriptionAndRG(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_application_gateway.list", 1), // expect at least the 1 we created
+					querycheck.ExpectLength("azurerm_web_application_firewall_policy.list", 1), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
-						"azurerm_application_gateway.list",
+						"azurerm_web_application_firewall_policy.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
@@ -64,9 +64,9 @@ func TestAccApplicationGateway_listBySubscriptionAndRG(t *testing.T) {
 	})
 }
 
-func (r ApplicationGatewayResource) basicQuery() string {
+func (r WebApplicationFirewallPolicyResource) basicQuery() string {
 	return `
-list "azurerm_application_gateway" "list" {
+list "azurerm_web_application_firewall_policy" "list" {
   provider = azurerm
   config {
   }
@@ -74,9 +74,9 @@ list "azurerm_application_gateway" "list" {
 `
 }
 
-func (r ApplicationGatewayResource) basicQueryByResourceGroupName() string {
+func (r WebApplicationFirewallPolicyResource) basicQueryByResourceGroupName() string {
 	return `
-list "azurerm_application_gateway" "list" {
+list "azurerm_web_application_firewall_policy" "list" {
   provider = azurerm
   config {
     resource_group_name = azurerm_resource_group.test.name

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package appgateway
+package web_application_firewall_policy
 
 import (
 	"context"
@@ -17,19 +17,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WebApplicationFirewallPolicyListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(WebApplicationFirewallPolicyListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (r WebApplicationFirewallPolicyListResource) ResourceFunc() *pluginsdk.Resource {
-	return resourceWebApplicationFirewallPolicy()
+func (r ListResource) ResourceFunc() *pluginsdk.Resource {
+	return RegisterResource()
 }
 
-func (r WebApplicationFirewallPolicyListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_web_application_firewall_policy"
 }
 
-func (r WebApplicationFirewallPolicyListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.AppGateway.WebApplicationFirewallPolicies
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -69,7 +69,7 @@ func (r WebApplicationFirewallPolicyListResource) List(ctx context.Context, requ
 
 			result.DisplayName = pointer.From(webapplicationfirewallpolicy.Name)
 
-			rd := resourceWebApplicationFirewallPolicy().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 
 			id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(pointer.From(webapplicationfirewallpolicy.Id))
 			if err != nil {

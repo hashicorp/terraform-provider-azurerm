@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package appgateway_test
+package web_application_firewall_policy_test
 
 import (
 	"testing"
