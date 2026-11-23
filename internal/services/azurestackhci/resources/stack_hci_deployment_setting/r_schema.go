@@ -384,7 +384,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"starting_address": {
-												Description:  "Specifies ending IP address for the management network. A minimum of six free, contiguous IPv4 addresses (excluding your host IPs) are needed for infrastructure services such as clustering.",
+												Description:  "The ending IP address for the management network. A minimum of six free, contiguous IPv4 addresses (excluding your host IPs) are needed for infrastructure services such as clustering.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -392,7 +392,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 											},
 
 											"ending_address": {
-												Description:  "Specifies starting IP address for the management network. A minimum of six free, contiguous IPv4 addresses (excluding your host IPs) are needed for infrastructure services such as clustering.",
+												Description:  "The starting IP address for the management network. A minimum of six free, contiguous IPv4 addresses (excluding your host IPs) are needed for infrastructure services such as clustering.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
