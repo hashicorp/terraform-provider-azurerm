@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDiskEncryptionSetRead,
+		Description: "Use this data source to access information about an existing Disk Encryption Set.",
+		Read:        dataSourceDiskEncryptionSetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,6 +32,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the existing Disk Encryption Set.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -41,13 +43,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_key_rotation_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is the Azure Disk Encryption Set Key automatically rotated to latest version?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"key_vault_key_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL for the Key Vault Key or Key Vault Secret that is currently being used by the service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),

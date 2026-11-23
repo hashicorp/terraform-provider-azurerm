@@ -15,9 +15,10 @@ import (
 func availabilitySetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Availability Set.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$"),
 				"The Availability set name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin a letter or number and end with a letter, number or underscore.",
@@ -29,6 +30,7 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"platform_update_domain_count": {
+			Description:  "The number of update domains that are used.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      5,
@@ -37,6 +39,7 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"platform_fault_domain_count": {
+			Description:  "The number of fault domains that are used.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      3,
@@ -45,16 +48,18 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"managed": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether the Availability Set is managed or not.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			ForceNew:    true,
 		},
 
 		"proximity_placement_group_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The ID of the Proximity Placement Group to which this Virtual Machine should be assigned.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 
 			// We have to ignore case due to incorrect capitalisation of resource group name in
 			// proximity placement group ID in the response we get from the API request

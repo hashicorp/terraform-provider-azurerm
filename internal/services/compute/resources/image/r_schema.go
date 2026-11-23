@@ -15,9 +15,10 @@ import (
 func imageSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the image.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -25,6 +26,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_resilient": {
+			Description:   "Is zone resiliency enabled?",
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Default:       false,
@@ -33,6 +35,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"hyper_v_generation": {
+			Description:  "The Hyper-V Generation Type of the Virtual Machine created from the image as `V1`, `V2`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(images.HyperVGenerationTypesVOne),
@@ -41,6 +44,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_virtual_machine_id": {
+			Description:  "The Virtual Machine ID from which to create the image.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualMachineID,
@@ -55,18 +59,21 @@ func imageSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"os_type": {
+						Description:  "The type of operating system contained in the Virtual Machine image.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemTypes(), false),
 					},
 
 					"os_state": {
+						Description:  "The state of the operating system contained in the blob. Currently, the only value is Generalized.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemStateTypes(), false),
 					},
 
 					"managed_disk_id": {
+						Description:      "The ID of the Managed Disk resource that you want to use to create the image.",
 						Type:             pluginsdk.TypeString,
 						Computed:         true, // azignore:AZS007 - pre-existing violation
 						Optional:         true,
@@ -75,6 +82,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"blob_uri": {
+						Description:  "The URI in Azure storage of the blob that you want to use to create the image.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -83,6 +91,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"caching": {
+						Description:  "The caching mode as `ReadWrite`, `ReadOnly`, or `None`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(images.CachingTypesNone),
@@ -90,6 +99,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"size_gb": {
+						Description:  "The size of the image to be created.",
 						Type:         pluginsdk.TypeInt,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
 						Optional:     true,
@@ -98,6 +108,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"disk_encryption_set_id": {
+						Description:  "The ID of the Disk Encryption Set which should be used to encrypt this disk.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -106,7 +117,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 
 					"storage_type": {
 						Type:         pluginsdk.TypeString,
-						Description:  "The type of storage disk.",
+						Description:  "The type of Storage Disk to use.",
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
@@ -122,11 +133,13 @@ func imageSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"lun": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The logical unit number of the data disk.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 					},
 
 					"managed_disk_id": {
+						Description:  "The ID of the Managed Disk resource that you want to use to create the image.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -134,6 +147,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"blob_uri": {
+						Description:  "The URI in Azure storage of the blob that you want to use to create the image.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -141,6 +155,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"caching": {
+						Description:  "The caching mode as `ReadWrite`, `ReadOnly`, or `None`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(images.CachingTypesNone),
@@ -148,6 +163,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"size_gb": {
+						Description:  "The size of the image to be created. The target size can't be smaller than the source size.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -155,6 +171,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"disk_encryption_set_id": {
+						Description:  "The ID of the Disk Encryption Set which should be used to encrypt this disk.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -163,7 +180,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 
 					"storage_type": {
 						Type:         pluginsdk.TypeString,
-						Description:  "The type of storage disk.",
+						Description:  "The type of Storage Disk to use.",
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
