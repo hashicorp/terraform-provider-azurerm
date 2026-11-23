@@ -13,7 +13,7 @@ import (
 func automationModuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Module.",
+			Description:  "The name of the Module.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,7 +21,7 @@ func automationModuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Module is created.",
+			Description:  "The name of the Automation Account in which the Module is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,7 +49,7 @@ func automationModuleSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"algorithm": {
-									Description: "Specifies the algorithm used for the hash content.",
+									Description: "The algorithm used for the hash content.",
 									Type:        pluginsdk.TypeString,
 									Required:    true,
 								},

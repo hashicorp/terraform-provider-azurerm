@@ -35,7 +35,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"branch": {
-			Description:  "Specify the repo branch of the Source Control. Empty value is valid only for `VsoTfvc`.",
+			Description:  "The repo branch of the Source Control. Empty value is valid only for `VsoTfvc`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(0, 255),
@@ -97,7 +97,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"token_type": {
-						Description:  "Specify the token type.",
+						Description:  "The token type.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(sourcecontrol.PossibleValuesForTokenType(), false),

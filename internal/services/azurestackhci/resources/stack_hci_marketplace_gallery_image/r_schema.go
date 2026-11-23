@@ -65,7 +65,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sku": {
-						Description:  "The sku of the Azure Stack HCI Marketplace Gallery Image.",
+						Description:  "The SKU of the Azure Stack HCI Marketplace Gallery Image.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,

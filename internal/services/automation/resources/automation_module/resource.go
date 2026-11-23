@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a Automation Module.",
+		Description: "Manages an Automation Module.",
 		Create:      resourceAutomationModuleCreate,
 		Read:        resourceAutomationModuleRead,
 		Update:      resourceAutomationModuleUpdate,

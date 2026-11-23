@@ -18,7 +18,7 @@ func (m Resource) ResourceType() string {
 }
 
 func (m Resource) Description() string {
-	return "Manages a Automation Hybrid Runbook Worker Group."
+	return "Manages an Automation Hybrid Runbook Worker Group."
 }
 
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -18,7 +18,7 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) Description() string {
-	return "Manages a Automation Powershell 7.2 Module."
+	return "Manages an Automation Powershell 7.2 Module."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

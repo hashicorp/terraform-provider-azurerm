@@ -69,7 +69,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"automation_account_id": {
-			Description:  "The ID of the automation account in which the Automation Runtime Environment is created.",
+			Description:  "The ID of the Automation Account in which the Automation Runtime Environment is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -97,28 +97,28 @@ func RegisterResource() *pluginsdk.Resource {
 				},
 
 				"open_enclave_policy_base64": {
-					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+					Description:  "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"sgx_enclave_policy_base64": {
-					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+					Description:  "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"tpm_policy_base64": {
-					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+					Description:  "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"sev_snp_policy_base64": {
-					Description:  "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+					Description:  "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,

@@ -23,7 +23,7 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) Description() string {
-	return "Manages a custom Role Definition, used to assign Roles to Users/Principals. See ['Understand role definitions'](https://docs.microsoft.com/azure/role-based-access-control/role-definitions) in the Azure documentation for more details."
+	return "Manages a custom Role Definition, used to assign Roles to Users/Principals. See ['Understand Role Definitions'](https://docs.microsoft.com/azure/role-based-access-control/role-definitions) in the Azure documentation for more details."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

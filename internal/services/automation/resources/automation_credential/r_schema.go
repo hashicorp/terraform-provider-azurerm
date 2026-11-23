@@ -12,7 +12,7 @@ import (
 func automationCredentialSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of the Credential.",
+			Description: "The name of the Credential.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -21,7 +21,7 @@ func automationCredentialSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Credential is created.",
+			Description:  "The name of the Automation Account in which the Credential is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

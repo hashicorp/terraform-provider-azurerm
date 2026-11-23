@@ -13,7 +13,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a integer variable in Azure Automation",
+		Description: "Manages an integer variable in Azure Automation.",
 		Create:      resourceAutomationVariableIntCreate,
 		Read:        resourceAutomationVariableIntRead,
 		Update:      resourceAutomationVariableIntUpdate,

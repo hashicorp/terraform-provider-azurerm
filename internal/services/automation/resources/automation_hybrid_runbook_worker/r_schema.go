@@ -14,7 +14,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Hybrid Worker is created.",
+			Description:  "The name of the Automation Account in which the Hybrid Worker is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,7 +30,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"worker_id": {
-			Description:  "Specify the ID of this HybridWorker in UUID notation.",
+			Description:  "The ID of this HybridWorker in UUID notation.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,7 +38,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"vm_resource_id": {
-			Description:  "The ID of the virtual machine used for this HybridWorker.",
+			Description:  "The ID of the Virtual Machine used for this HybridWorker.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -19,7 +19,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The scope for this eligible role assignment, should be a valid resource ID.",
+			Description: "The scope for this eligible Role Assignment, should be a valid resource ID.",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
 				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
@@ -38,14 +38,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The role definition ID for this eligible role assignment.",
+			Description: "The Role Definition ID for this eligible Role Assignment.",
 		},
 
 		"principal_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "Object ID of the principal for this eligible role assignment.",
+			Description:  "Object ID of the principal for this eligible Role Assignment.",
 			ValidateFunc: validation.IsUUID,
 		},
 
@@ -54,7 +54,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The justification of the role assignment.",
+			Description: "The justification of the Role Assignment.",
 		},
 
 		"condition": {
@@ -83,7 +83,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The schedule details for this eligible role assignment",
+			Description: "The schedule details for this eligible Role Assignment.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date_time": {
@@ -92,7 +92,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Computed:    true,
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
-						Description: "The start date/time of the role assignment.",
+						Description: "The start date/time of the Role Assignment.",
 					},
 
 					"expiration": { // if none specified, it's a permanent assignment
@@ -110,7 +110,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_hours",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the role assignment in days.",
+									Description: "The duration of the Role Assignment in days.",
 								},
 
 								"duration_hours": {
@@ -122,7 +122,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the role assignment in hours.",
+									Description: "The duration of the Role Assignment in hours.",
 								},
 
 								"end_date_time": {
@@ -134,7 +134,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.duration_hours",
 									},
-									Description: "The end date/time of the role assignment.",
+									Description: "The end date/time of the Role Assignment.",
 								},
 							},
 						},
@@ -149,7 +149,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "Ticket details relating to the eligible assignment",
+			Description: "Ticket details relating to the eligible assignment.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"number": {

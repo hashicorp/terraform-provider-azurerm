@@ -19,7 +19,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"stack_hci_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&deploymentsettings.ClusterId{}),
 
 		"arc_resource_ids": {
-			Description: "Specifies a list of IDs of Azure ARC machine resource to be part of cluster.",
+			Description: "A list of IDs of Azure ARC machine resource to be part of cluster.",
 			Type:        pluginsdk.TypeList,
 			Required:    true,
 			ForceNew:    true,
@@ -48,7 +48,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_directory_organizational_unit_path": {
-						Description:  "Specify the full name of the Active Directory Organizational Unit container object prepared for the deployment, including the domain components. For example:`OU=HCI01,DC=contoso,DC=com`.",
+						Description:  "The full name of the Active Directory Organizational Unit container object prepared for the deployment, including the domain components. For example: `OU=HCI01,DC=contoso,DC=com`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -63,7 +63,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Description: "Specifies the name of the cluster.",
+									Description: "The name of the cluster.",
 									Type:        pluginsdk.TypeString,
 									Required:    true,
 									ForceNew:    true,
@@ -74,7 +74,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"azure_service_endpoint": {
-									Description: "Specifies the Azure blob service endpoint, for example, `core.windows.net`.",
+									Description: "The Azure blob service endpoint, for example, `core.windows.net`.",
 									Type:        pluginsdk.TypeString,
 									Required:    true,
 									ForceNew:    true,
@@ -85,7 +85,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"cloud_account_name": {
-									Description:  "Specifies the Azure Storage account name of the cloud witness for the Azure Stack HCI cluster.",
+									Description:  "The Azure Storage Account name of the cloud witness for the Azure Stack HCI cluster.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -93,7 +93,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"witness_type": {
-									Description: "Specifies the type of the witness.",
+									Description: "The type of the witness.",
 									Type:        pluginsdk.TypeString,
 									Required:    true,
 									ForceNew:    true,
@@ -104,7 +104,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"witness_path": {
-									Description:  "Specifies the fileshare path of the local witness for the Azure Stack HCI cluster.",
+									Description:  "The fileshare path of the local witness for the Azure Stack HCI cluster.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -115,7 +115,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"domain_fqdn": {
-						Description: "Specifies the FQDN for deploying cluster.",
+						Description: "The FQDN for deploying cluster.",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ForceNew:    true,
@@ -140,7 +140,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"name": {
-												Description:  "Specifies the name of the intent.",
+												Description:  "The name of the intent.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -148,7 +148,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 											},
 
 											"adapter": {
-												Description: "Specifies a list of ID of network interfaces used for the network intent.",
+												Description: "A list of ID of network interfaces used for the network intent.",
 												Type:        pluginsdk.TypeList,
 												Required:    true,
 												ForceNew:    true,
@@ -160,7 +160,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 											},
 
 											"traffic_type": {
-												Description: "Specifies a list of network traffic types.",
+												Description: "A list of network traffic types.",
 												Type:        pluginsdk.TypeList,
 												Required:    true,
 												ForceNew:    true,
@@ -225,7 +225,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"bandwidth_percentage_smb": {
-															Description:  "Specifies the percentage of the allocated storage traffic bandwidth. This parameter should only be modified based on your OEM guidance.",
+															Description:  "The percentage of the allocated storage traffic bandwidth. This parameter should only be modified based on your OEM guidance.",
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
@@ -233,7 +233,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 														},
 
 														"priority_value8021_action_cluster": {
-															Description:  "Specifies the Cluster traffic priority. This parameter should only be modified based on your OEM guidance.",
+															Description:  "The Cluster traffic priority. This parameter should only be modified based on your OEM guidance.",
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
@@ -241,7 +241,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 														},
 
 														"priority_value8021_action_smb": {
-															Description:  "Specifies the Priority Flow Control where Data Center Bridging (DCB) is used. This parameter should only be modified based on your OEM guidance.",
+															Description:  "The Priority Flow Control where Data Center Bridging (DCB) is used. This parameter should only be modified based on your OEM guidance.",
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
@@ -267,7 +267,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"enable_iov": {
-															Description:  "Specifies the IoV enable status for Virtual Switch.",
+															Description:  "The IoV enable status for Virtual Switch.",
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
@@ -275,7 +275,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 														},
 
 														"load_balancing_algorithm": {
-															Description:  "Specifies the load balancing algorithm for Virtual Switch.",
+															Description:  "The load balancing algorithm for Virtual Switch.",
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
@@ -320,7 +320,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 											},
 
 											"vlan_id": {
-												Description:  "Specifies the ID for the VLAN storage network. This setting is applied to the network interfaces that route the storage and VM migration traffic.",
+												Description:  "The ID for the VLAN storage network. This setting is applied to the network interfaces that route the storage and VM migration traffic.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -339,7 +339,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"storage_connectivity_switchless_enabled": {
-									Description: "Defines how the storage adapters between nodes are connected either switch or switch less.",
+									Description: "How the storage adapters between nodes are connected either switch or switch less.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									ForceNew:    true,
@@ -357,7 +357,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"dns_server": {
-									Description: "Specifies a list of IPv4 addresses of the DNS servers in your environment.",
+									Description: "A list of IPv4 addresses of the DNS servers in your environment.",
 									Type:        pluginsdk.TypeList,
 									Required:    true,
 									ForceNew:    true,
@@ -369,7 +369,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"gateway": {
-									Description:  "Specifies the default gateway that should be used for the provided IP address space.",
+									Description:  "The default gateway that should be used for the provided IP address space.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -403,7 +403,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"subnet_mask": {
-									Description:  "Specifies the subnet mask that matches the provided IP address space.",
+									Description:  "The subnet mask that matches the provided IP address space.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -422,7 +422,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"name_prefix": {
-						Description: "Specifies the name prefix to deploy cluster.",
+						Description: "The name prefix to deploy cluster.",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ForceNew:    true,
@@ -440,7 +440,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"custom_location": {
-									Description:  "Specifies the name of custom location. A custom location will be created after the deployment is completed.",
+									Description:  "The name of custom location. A custom location will be created after the deployment is completed.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -466,7 +466,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"ipv4_address": {
-									Description:  "Specifies the IPv4 address assigned to each physical server on your Azure Stack HCI cluster.",
+									Description:  "The IPv4 address assigned to each physical server on your Azure Stack HCI cluster.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,

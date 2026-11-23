@@ -14,7 +14,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a DateTime variable in Azure Automation",
+		Description: "Manages a DateTime variable in Azure Automation.",
 		Create:      resourceAutomationVariableDateTimeCreate,
 		Read:        resourceAutomationVariableDateTimeRead,
 		Update:      resourceAutomationVariableDateTimeUpdate,

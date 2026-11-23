@@ -14,7 +14,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a string variable in Azure Automation",
+		Description: "Manages a string variable in Azure Automation.",
 		Create:      resourceAutomationVariableStringCreate,
 		Read:        resourceAutomationVariableStringRead,
 		Update:      resourceAutomationVariableStringUpdate,

@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a Automation Credential.",
+		Description: "Manages an Automation Credential.",
 		Create:      resourceAutomationCredentialCreate,
 		Read:        resourceAutomationCredentialRead,
 		Update:      resourceAutomationCredentialUpdate,

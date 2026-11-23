@@ -76,7 +76,7 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_type": {
-			Description: "The type of the `principal_id`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.",
+			Description: "The type of the `principal_id`. It is necessary to explicitly set this attribute when creating Role Assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -96,7 +96,7 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"delegated_managed_identity_resource_id": {
-			Description:  "The delegated Azure Resource Id which contains a Managed Identity.",
+			Description:  "The delegated Azure Resource ID which contains a Managed Identity.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

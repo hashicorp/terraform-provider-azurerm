@@ -31,7 +31,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		"location": commonschema.Location(),
 
 		"distro": {
-			Description:  "Specifies a supported Fabric/Infrastructure for this Arc Resource Bridge Appliance.",
+			Description:  "A supported Fabric/Infrastructure for this Arc Resource Bridge Appliance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(appliances.PossibleValuesForDistro(), false),

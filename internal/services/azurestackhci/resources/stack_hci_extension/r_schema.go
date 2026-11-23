@@ -45,7 +45,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"type": {
-			Description:  "Specifies the type of the extension. For example `CustomScriptExtension` or `AzureMonitorLinuxAgent`.",
+			Description:  "The type of the extension. For example `CustomScriptExtension` or `AzureMonitorLinuxAgent`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -53,7 +53,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"auto_upgrade_minor_version_enabled": {
-			Description: "Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
+			Description: "Whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -61,14 +61,14 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"automatic_upgrade_enabled": {
-			Description: "Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available.",
+			Description: "Whether the extension should be automatically upgraded by the platform if there is a newer version available.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"protected_settings": {
-			Description:      "The json formatted protected settings for the extension.",
+			Description:      "The JSON formatted protected settings for the extension.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
@@ -77,7 +77,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"settings": {
-			Description:      "The json formatted public settings for the extension.",
+			Description:      "The JSON formatted public settings for the extension.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -85,7 +85,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"type_handler_version": {
-			Description:  "Specifies the version of the script handler.",
+			Description:  "The version of the script handler.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

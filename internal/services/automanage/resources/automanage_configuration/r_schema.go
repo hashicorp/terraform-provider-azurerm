@@ -342,7 +342,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// "AutomationAccount/Enable": boolean,
 		"automation_account_enabled": {
-			Description: "Whether the automation account is enabled.",
+			Description: "Whether the Automation Account is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -373,7 +373,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// "LogAnalytics/Enable": boolean,
 		"log_analytics_enabled": {
-			Description: "Whether log analytics are enabled.",
+			Description: "Whether Log Analytics are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

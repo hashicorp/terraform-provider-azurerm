@@ -16,7 +16,7 @@ import (
 func automationRunbookSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Runbook.",
+			Description:  "The name of the Runbook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,7 +24,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Runbook is created.",
+			Description:  "The name of the Automation Account in which the Runbook is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,7 +36,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"runbook_type": {
-			Description:  "The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `PowerShell72`, `Python`, `Python3`, `Python2` or `Script`.",
+			Description:  "The type of the runbook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -102,7 +102,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"job_schedule_id": {
-						Description: "The UUID of automation runbook job schedule ID.",
+						Description: "The UUID of Automation Runbook job schedule ID.",
 						Type:        pluginsdk.TypeString,
 						Computed:    true,
 					},
@@ -138,7 +138,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"output_types": {
-						Description: "Specifies the output types of the runbook.",
+						Description: "The output types of the runbook.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{
@@ -160,7 +160,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"type": {
-									Description:  "Specifies the type of this parameter.",
+									Description:  "The type of this parameter.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -174,14 +174,14 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"position": {
-									Description:  "Specifies the position of the parameter.",
+									Description:  "The position of the parameter.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ValidateFunc: validation.IntAtLeast(0),
 								},
 
 								"default_value": {
-									Description:  "Specifies the default value of the parameter.",
+									Description:  "The default value of the parameter.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -194,7 +194,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_activity_trace_level": {
-			Description:  "Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Must turn on Verbose logging in order to see the tracing.",
+			Description:  "The activity-level tracing options of the runbook, available only for Graphical runbooks. Must turn on Verbose logging in order to see the tracing.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(0),
@@ -229,7 +229,7 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 				},
 
 				"version": {
-					Description:  "Specifies the version of the content",
+					Description:  "The version of the content.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -242,14 +242,14 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"algorithm": {
-								Description:  "Specifies the hash algorithm used to hash the content.",
+								Description:  "The hash algorithm used to hash the content.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"value": {
-								Description:  "Specifies the expected hash value of the content.",
+								Description:  "The expected hash value of the content.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,

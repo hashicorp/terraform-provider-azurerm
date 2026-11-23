@@ -17,7 +17,7 @@ import (
 func automationAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Automation Account.",
+			Description:  "The name of the Automation Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -89,7 +89,7 @@ func automationAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Whether public network access is allowed for the automation account.",
+			Description: "Whether public network access is allowed for the Automation Account.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

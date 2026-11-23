@@ -12,7 +12,7 @@ import (
 func automationCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Certificate.",
+			Description:  "The name of the Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,7 +22,7 @@ func automationCertificateSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Certificate is created.",
+			Description:  "The name of the Automation Account in which the Certificate is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

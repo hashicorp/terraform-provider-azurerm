@@ -111,7 +111,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description: "The scope to which this Role Management Policy applies. Can refer to a management group, a subscription, a resource group or a resource.",
+			Description: "The scope to which this Role Management Policy applies. Can refer to a Management Group, a subscription, a Resource Group or a resource.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ValidateFunc: validation.Any(
@@ -133,31 +133,31 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "The name of the policy",
+			Description: "The name of the policy.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"description": {
-			Description: "The Description of the policy",
+			Description: "The Description of the policy.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"eligible_assignment_rules": {
-			Description: "The rules for eligible assignment of the policy",
+			Description: "The rules for eligible assignment of the policy.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "(Boolean) Must an assignment have an expiry date.",
+						Description: "Must an assignment have an expiry date?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"expire_after": {
-						Description: "(String) The maximum length of time an assignment can be valid, as an ISO8601 duration.",
+						Description: "The maximum length of time an assignment can be valid, as an ISO8601 duration.",
 						Type:        pluginsdk.TypeString,
 						Computed:    true,
 					},
@@ -166,37 +166,37 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"active_assignment_rules": {
-			Description: "The rules for active assignment of the policy",
+			Description: "The rules for active assignment of the policy.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "(Boolean) Must an assignment have an expiry date.",
+						Description: "Must an assignment have an expiry date?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"expire_after": {
-						Description: "(String) The maximum length of time an assignment can be valid, as an ISO8601 duration.",
+						Description: "The maximum length of time an assignment can be valid, as an ISO8601 duration.",
 						Type:        pluginsdk.TypeString,
 						Computed:    true,
 					},
 
 					"require_multifactor_authentication": {
-						Description: "(Boolean) Is multi-factor authentication required to create new assignments.",
+						Description: "Is multi-factor authentication required to create new assignments?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_justification": {
-						Description: "(Boolean) Is a justification required to create new assignments.",
+						Description: "Is a justification required to create new assignments?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_ticket_info": {
-						Description: "(Boolean) Is ticket information required to create new assignments.",
+						Description: "Is ticket information required to create new assignments?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -205,43 +205,43 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"activation_rules": {
-			Description: "The activation rules of the policy",
+			Description: "The activation rules of the policy.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"maximum_duration": {
-						Description: "(String) The maximum length of time an activated role can be valid, in an ISO8601 Duration format.",
+						Description: "The maximum length of time an activated role can be valid, in an ISO8601 Duration format.",
 						Type:        pluginsdk.TypeString,
 						Computed:    true,
 					},
 
 					"require_approval": {
-						Description: "(Boolean) Is approval required for activation.",
+						Description: "Is approval required for activation?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"approval_stage": {
-						Description: "The approval stages for the activation",
+						Description: "The approval stages for the activation.",
 						Type:        pluginsdk.TypeList,
 						Computed:    true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"primary_approver": {
-									Description: "The IDs of the users or groups who can approve the activation",
+									Description: "The IDs of the users or groups who can approve the activation.",
 									Type:        pluginsdk.TypeSet,
 									Computed:    true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"object_id": {
-												Description: "(String) The ID of the object which will act as an approver.",
+												Description: "The ID of the object which will act as an approver.",
 												Type:        pluginsdk.TypeString,
 												Computed:    true,
 											},
 
 											"type": {
-												Description: "(String) The type of object acting as an approver. Either `User` or `Group`.",
+												Description: "The type of object acting as an approver.",
 												Type:        pluginsdk.TypeString,
 												Computed:    true,
 											},
@@ -253,25 +253,25 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"required_conditional_access_authentication_context": {
-						Description: "(String) The Entra ID Conditional Access context that must be present for activation.",
+						Description: "The Entra ID Conditional Access context that must be present for activation.",
 						Type:        pluginsdk.TypeString,
 						Computed:    true,
 					},
 
 					"require_multifactor_authentication": {
-						Description: "(Boolean) Is multi-factor authentication required to activate the role.",
+						Description: "Is multi-factor authentication required to activate the role?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_justification": {
-						Description: "(Boolean) Is a justification required during activation of the role.",
+						Description: "Is a justification required during activation of the role?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_ticket_info": {
-						Description: "(Boolean) Is ticket information required during activation of the role.",
+						Description: "Is ticket information required during activation of the role?",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -280,13 +280,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"notification_rules": {
-			Description: "The notification rules of the policy",
+			Description: "The notification rules of the policy.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_assignments": {
-						Description: "Notifications about active assignments",
+						Description: "Notifications about active assignments.",
 						Type:        pluginsdk.TypeList,
 						Computed:    true,
 						Elem: &pluginsdk.Resource{
@@ -295,7 +295,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"eligible_activations": {
-						Description: "Notifications about activations of eligible assignments",
+						Description: "Notifications about activations of eligible assignments.",
 						Type:        pluginsdk.TypeList,
 						Computed:    true,
 						Elem: &pluginsdk.Resource{
@@ -304,7 +304,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"eligible_assignments": {
-						Description: "Notifications about eligible assignments",
+						Description: "Notifications about eligible assignments.",
 						Type:        pluginsdk.TypeList,
 						Computed:    true,
 						Elem: &pluginsdk.Resource{
@@ -527,7 +527,7 @@ func flattenNotificationDataSourceSettings(rule rolemanagementpolicies.RoleManag
 func notificationRuleDataSourceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"admin_notifications": {
-			Description: "Admin notification settings",
+			Description: "Admin notification settings.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
@@ -536,7 +536,7 @@ func notificationRuleDataSourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"approver_notifications": {
-			Description: "Approver notification settings",
+			Description: "Approver notification settings.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
@@ -545,7 +545,7 @@ func notificationRuleDataSourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"assignee_notifications": {
-			Description: "Assignee notification settings",
+			Description: "Assignee notification settings.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Resource{
@@ -558,13 +558,13 @@ func notificationRuleDataSourceSchema() map[string]*pluginsdk.Schema {
 func notificationSettingsDataSourceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"notification_level": {
-			Description: "(String) What level of notifications should be sent. Either `All` or `Critical`.",
+			Description: "What level of notifications should be sent.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"default_recipients": {
-			Description: "(Boolean) Should the default recipients receive these notifications.",
+			Description: "Should the default recipients receive these notifications?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

@@ -89,7 +89,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed:    true,
 					},
 					"delegated_managed_identity_resource_id": {
-						Description: "The ID of the delegated managed identity resource.",
+						Description: "The ID of the delegated Managed Identity resource.",
 						Type:        pluginsdk.TypeString,
 						Computed:    true,
 					},

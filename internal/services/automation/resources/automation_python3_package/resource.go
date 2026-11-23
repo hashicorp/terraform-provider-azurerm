@@ -18,7 +18,7 @@ func (m Resource) ResourceType() string {
 }
 
 func (m Resource) Description() string {
-	return "Manages a Automation Python3 Package."
+	return "Manages an Automation Python3 Package."
 }
 
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

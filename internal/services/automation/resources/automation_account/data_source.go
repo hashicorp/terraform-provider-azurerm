@@ -91,7 +91,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Description: "Whether public network access is allowed for the automation account.",
+				Description: "Whether public network access is allowed for the Automation Account.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

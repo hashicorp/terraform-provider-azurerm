@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a Automation Runbook.",
+		Description: "Manages an Automation Runbook.",
 		Create:      resourceAutomationRunbookCreateUpdate,
 		Read:        resourceAutomationRunbookRead,
 		Update:      resourceAutomationRunbookCreateUpdate,

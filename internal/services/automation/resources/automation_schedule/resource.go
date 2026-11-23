@@ -19,7 +19,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a Automation Schedule.",
+		Description: "Manages an Automation Schedule.",
 		Create:      resourceAutomationScheduleCreate,
 		Read:        resourceAutomationScheduleRead,
 		Update:      resourceAutomationScheduleUpdate,

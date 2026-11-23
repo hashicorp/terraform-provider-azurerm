@@ -13,7 +13,7 @@ import (
 func automationConnectionCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Connection.",
+			Description:  "The name of the Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,7 +23,7 @@ func automationConnectionCertificateSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Connection is created.",
+			Description:  "The name of the Automation Account in which the Connection is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,14 +31,14 @@ func automationConnectionCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_certificate_name": {
-			Description:  "The name of the automation certificate.",
+			Description:  "The name of the Automation Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subscription_id": {
-			Description:  "The id of subscription where the automation certificate exists.",
+			Description:  "The ID of subscription where the Automation Certificate exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,

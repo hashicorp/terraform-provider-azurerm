@@ -43,7 +43,7 @@ type PermissionDataSourceModel struct {
 func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the Name of either a built-in or custom Role Definition.",
+			Description: "The Name of either a built-in or custom Role Definition.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -55,7 +55,7 @@ func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"role_definition_id": {
-			Description: "Specifies the ID of the Role Definition as a UUID/GUID.",
+			Description: "The ID of the Role Definition as a UUID/GUID.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -67,7 +67,7 @@ func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description:  "Specifies the Scope at which the Custom Role Definition exists.",
+			Description:  "The Scope at which the Custom Role Definition exists.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateScopeID,

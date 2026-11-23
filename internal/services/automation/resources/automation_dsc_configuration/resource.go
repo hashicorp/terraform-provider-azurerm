@@ -12,7 +12,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a Automation DSC Configuration.",
+		Description: "Manages an Automation DSC Configuration.",
 		Create:      resourceAutomationDscConfigurationCreate,
 		Read:        resourceAutomationDscConfigurationRead,
 		Update:      resourceAutomationDscConfigurationUpdate,

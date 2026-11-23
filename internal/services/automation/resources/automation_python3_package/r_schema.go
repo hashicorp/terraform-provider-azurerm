@@ -22,7 +22,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Python3 Package is created.",
+			Description:  "The name of the Automation Account in which the Python3 Package is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,7 +38,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"content_version": {
-			Description:  "Specify the version of the python3 package.",
+			Description:  "The version of the python3 package.",
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,
@@ -46,7 +46,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hash_algorithm": {
-			Description:  "Specify the hash algorithm used to hash the content of the python3 package.",
+			Description:  "The hash algorithm used to hash the content of the python3 package.",
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,

@@ -16,7 +16,7 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
-			Description:  "Specifies the name of the Webhook.",
+			Description:  "The name of the Webhook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,7 +24,7 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Webhook is created.",
+			Description:  "The name of the Automation Account in which the Webhook is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

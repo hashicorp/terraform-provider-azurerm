@@ -14,7 +14,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Connection is created.",
+			Description:  "The name of the Automation Account in which the Connection is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

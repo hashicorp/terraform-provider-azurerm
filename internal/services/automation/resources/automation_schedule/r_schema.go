@@ -20,7 +20,7 @@ import (
 func automationScheduleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Schedule.",
+			Description:  "The name of the Schedule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,7 +30,7 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the Schedule is created.",
+			Description:  "The name of the Automation Account in which the Schedule is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -80,7 +80,7 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"timezone": {
-			Description:  "The timezone of the start time. For possible values see: <https://docs.microsoft.com/rest/api/maps/timezone/gettimezoneenumwindows>",
+			Description:  "The timezone of the start time. For possible values see: <https://docs.microsoft.com/rest/api/maps/timezone/gettimezoneenumwindows>.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "Etc/UTC",

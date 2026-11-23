@@ -52,24 +52,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"sev_snp_policy_base64": {
-				Description: "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},
 
 			"open_enclave_policy_base64": {
-				Description: "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},
 			"sgx_enclave_policy_base64": {
-				Description: "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},
 
 			"tpm_policy_base64": {
-				Description: "Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},

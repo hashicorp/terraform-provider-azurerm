@@ -15,7 +15,7 @@ import (
 func automationDscConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of the DSC Configuration.",
+			Description: "The name of the DSC Configuration.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -26,7 +26,7 @@ func automationDscConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
-			Description:  "The name of the automation account in which the DSC Configuration is created.",
+			Description:  "The name of the Automation Account in which the DSC Configuration is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

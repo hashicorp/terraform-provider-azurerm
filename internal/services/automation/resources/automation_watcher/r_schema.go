@@ -40,14 +40,14 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"execution_frequency_in_seconds": {
-			Description:  "Specify the frequency at which the watcher is invoked.",
+			Description:  "The frequency at which the watcher is invoked.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"script_name": {
-			Description:  "Specify the name of an existing runbook this watcher is attached to.",
+			Description:  "The name of an existing runbook this watcher is attached to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -55,7 +55,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"script_parameters": {
-			Description: "Specifies a list of key-value parameters.",
+			Description: "A list of key-value parameters.",
 			Type:        pluginsdk.TypeMap,
 			Optional:    true,
 			ForceNew:    true,
@@ -65,7 +65,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"script_run_on": {
-			Description:  "Specify the name of the Hybrid work group the watcher will run on.",
+			Description:  "The name of the Hybrid work group the watcher will run on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

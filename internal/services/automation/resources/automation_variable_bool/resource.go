@@ -13,7 +13,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Manages a boolean variable in Azure Automation",
+		Description: "Manages a boolean variable in Azure Automation.",
 		Create:      resourceAutomationVariableBoolCreate,
 		Read:        resourceAutomationVariableBoolRead,
 		Update:      resourceAutomationVariableBoolUpdate,

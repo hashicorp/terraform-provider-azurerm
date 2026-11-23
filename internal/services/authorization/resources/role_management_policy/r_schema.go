@@ -24,7 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description: "The scope to which this Role Management Policy will apply. Can refer to a management group, a subscription, a resource group or a resource.",
+			Description: "The scope to which this Role Management Policy will apply. Can refer to a Management Group, a subscription, a Resource Group or a resource.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -43,7 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eligible_assignment_rules": {
-			Description: "The rules for eligible assignment of the policy",
+			Description: "The rules for eligible assignment of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -51,14 +51,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "Must an assignment have an expiry date. `false` allows permanent assignment.",
+						Description: "Must an assignment have an expiry date? `false` allows permanent assignment.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"expire_after": {
-						Description:  "The maximum length of time an assignment can be valid, as an ISO8601 duration. Permitted values: `P15D`, `P30D`, `P90D`, `P180D`, or `P365D`.",
+						Description:  "The maximum length of time an assignment can be valid, as an ISO8601 duration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -69,7 +69,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"active_assignment_rules": {
-			Description: "The rules for active assignment of the policy",
+			Description: "The rules for active assignment of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -77,14 +77,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "Must an assignment have an expiry date. `false` allows permanent assignment.",
+						Description: "Must an assignment have an expiry date? `false` allows permanent assignment.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"expire_after": {
-						Description:  "The maximum length of time an assignment can be valid, as an ISO8601 duration. Permitted values: `P15D`, `P30D`, `P90D`, `P180D`, or `P365D`.",
+						Description:  "The maximum length of time an assignment can be valid, as an ISO8601 duration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -92,21 +92,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_multifactor_authentication": {
-						Description: "Is multi-factor authentication required to create new assignments.",
+						Description: "Is multi-factor authentication required to create new assignments?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_justification": {
-						Description: "Is a justification required to create new assignments.",
+						Description: "Is a justification required to create new assignments?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_ticket_info": {
-						Description: "Is ticket information required to create new assignments.",
+						Description: "Is ticket information required to create new assignments?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -116,7 +116,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"activation_rules": {
-			Description: "The activation rules of the policy",
+			Description: "The activation rules of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -137,14 +137,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_approval": {
-						Description: "Is approval required for activation. If `true` an `approval_stage` block must be provided.",
+						Description: "Is approval required for activation? If `true` an `approval_stage` block must be provided.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"approval_stage": {
-						Description: "The approval stages for the activation",
+						Description: "The approval stages for the activation.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						// Note: O+C because when `activation_rules` is specified, there will be an empty "approval_stage" populated by the API.
@@ -153,7 +153,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"primary_approver": {
-									Description: "The IDs of the users or groups who can approve the activation",
+									Description: "The IDs of the users or groups who can approve the activation.",
 									Type:        pluginsdk.TypeSet,
 									Required:    true,
 									MinItems:    1,
@@ -189,7 +189,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_multifactor_authentication": {
-						Description:   "Is multi-factor authentication required to activate the role.",
+						Description:   "Is multi-factor authentication required to activate the role?",
 						Type:          pluginsdk.TypeBool,
 						Optional:      true,
 						Computed:      true, // azignore:AZS007 - pre-existing violation
@@ -197,14 +197,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_justification": {
-						Description: "Is a justification required during activation of the role.",
+						Description: "Is a justification required during activation of the role?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_ticket_info": {
-						Description: "Is ticket information required during activation of the role.",
+						Description: "Is ticket information required during activation of the role?",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -214,7 +214,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"notification_rules": {
-			Description: "The notification rules of the policy",
+			Description: "The notification rules of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -222,7 +222,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_assignments": {
-						Description: "Notifications about active assignments",
+						Description: "Notifications about active assignments.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -233,7 +233,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"eligible_activations": {
-						Description: "Notifications about activations of eligible assignments",
+						Description: "Notifications about activations of eligible assignments.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -244,7 +244,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"eligible_assignments": {
-						Description: "Notifications about eligible assignments",
+						Description: "Notifications about eligible assignments.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -262,13 +262,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "(String) The name of this policy, which is typically a UUID and may change over time.",
+			Description: "The name of this policy, which is typically a UUID and may change over time.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"description": {
-			Description: "(String) The description of this policy.",
+			Description: "The description of this policy.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
