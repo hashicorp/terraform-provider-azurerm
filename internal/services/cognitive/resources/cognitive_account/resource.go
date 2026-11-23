@@ -99,6 +99,40 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 			}
 
+			if kind == "QnAMaker" && d.NewValueKnown("qna_runtime_endpoint") {
+				if _, ok := d.GetOk("qna_runtime_endpoint"); !ok {
+					return errors.New("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+				}
+			}
+
+			if kind != "TextAnalytics" {
+				if _, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
+					return errors.New("`custom_question_answering_search_service_id` can only be set when `kind` is set to `TextAnalytics`")
+				}
+
+				if _, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
+					return errors.New("`custom_question_answering_search_service_key` can only be set when `kind` is set to `TextAnalytics`")
+				}
+			}
+
+			if kind != "MetricsAdvisor" {
+				if _, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
+					return errors.New("`metrics_advisor_aad_client_id` can only be set when `kind` is set to `MetricsAdvisor`")
+				}
+
+				if _, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
+					return errors.New("`metrics_advisor_aad_tenant_id` can only be set when `kind` is set to `MetricsAdvisor`")
+				}
+
+				if _, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
+					return errors.New("`metrics_advisor_super_user_name` can only be set when `kind` is set to `MetricsAdvisor`")
+				}
+
+				if _, ok := d.GetOk("metrics_advisor_website_name"); ok {
+					return errors.New("`metrics_advisor_website_name` can only be set when `kind` is set to `MetricsAdvisor`")
+				}
+			}
+
 			return nil
 		},
 	}
