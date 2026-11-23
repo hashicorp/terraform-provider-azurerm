@@ -46,7 +46,7 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 		Attributes: map[string]schema.Attribute{
 			"subscription_id": schema.StringAttribute{
 				Optional:    true,
-				Description: "The ID of the subscription to query. Defaults to the value specified in the Provider Configuration.",
+				Description: "The ID of the subscription to query. Defaults to the value specified in the Provider Configuration.", // azignore:AZS014 - a list resource cannot set a Default in its schema
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: validation.IsUUID,

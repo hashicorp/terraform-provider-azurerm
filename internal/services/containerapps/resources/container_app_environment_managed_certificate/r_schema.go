@@ -49,7 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 				false,
 			),
-			Description: "The domain control validation type for the managed certificate. Possible values are `CNAME` and `HTTP`. Defaults to `HTTP`.",
+			Description: "The domain control validation type for the managed certificate.",
 		},
 
 		"tags": commonschema.Tags(),

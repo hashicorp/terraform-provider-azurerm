@@ -799,7 +799,7 @@ func (w WindowsFunctionAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
-						Description: "Should HTTPS be required on connections? Defaults to true.",
+						Description: "Should HTTPS be required on connections?",
 					},
 
 					"http_route_api_prefix": {
@@ -1250,7 +1250,7 @@ func (w WindowsFunctionAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
-						Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
+						Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
 					},
 
 					"scm_ip_restriction": {

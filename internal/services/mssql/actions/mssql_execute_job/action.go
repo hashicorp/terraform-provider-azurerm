@@ -51,14 +51,14 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 
 			"wait_for_completion": schema.BoolAttribute{
 				Optional:            true,
-				Description:         "Whether to poll the job execution for completion. Defaults to `false`",
-				MarkdownDescription: "Whether to poll the job execution for completion. Defaults to `false`",
+				Description:         "Whether to poll the job execution for completion. Defaults to `false`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Whether to poll the job execution for completion. Defaults to `false`.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the action to complete. Defaults to `15m`.",
-				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `15m`.",
+				Description:         "Timeout duration for the action to complete. Defaults to `15m`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `15m`.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 	}
