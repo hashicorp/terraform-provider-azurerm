@@ -12,9 +12,7 @@ Manages a Data Protection Backup Instance for an Elastic SAN Volume Group.
 
 ## Example Usage
 
-~> **Note:** Elastic SAN backup uses the Backup Vault's System Assigned Identity. Grant this identity the `Elastic SAN Snapshot Exporter` role on the source Elastic SAN and the `Disk Snapshot Contributor` role on the snapshot Resource Group. User Assigned Identities are not supported.
-
-~> **Note:** Before creating the backup instance, the provider validates backup readiness and retries the `UserErrorMSIMissingPermissionsOnSnapshotRG` error for up to 10 minutes. The required role assignments must exist; this validation does not create them.
+~> **Note:** Elastic SAN backup uses the Backup Vault's System Assigned Identity. Grant this identity the `Elastic SAN Snapshot Exporter` role on the source Elastic SAN and the `Disk Snapshot Contributor` role on the snapshot Resource Group.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -121,10 +119,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Data Protection Backup Instance for the Elastic SAN Volume Group.
+* `create` - (Defaults to 1 hour) Used when creating the Data Protection Backup Instance for the Elastic SAN Volume Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Protection Backup Instance for the Elastic SAN Volume Group.
-* `update` - (Defaults to 60 minutes) Used when updating the Data Protection Backup Instance for the Elastic SAN Volume Group.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Data Protection Backup Instance for the Elastic SAN Volume Group.
+* `update` - (Defaults to 1 hour) Used when updating the Data Protection Backup Instance for the Elastic SAN Volume Group.
+* `delete` - (Defaults to 1 hour) Used when deleting the Data Protection Backup Instance for the Elastic SAN Volume Group.
 
 ## Import
 
