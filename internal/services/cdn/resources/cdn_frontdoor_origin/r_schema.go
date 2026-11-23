@@ -19,6 +19,7 @@ import (
 func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Front Door Origin.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_origin_group_id": {
+			Description:  "The ID of the Front Door Origin Group within which this Front Door Origin should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,23 +35,27 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"host_name": {
+			Description:  "The IPv4 address, IPv6 address or Domain name of the Origin.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"certificate_name_check_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether certificate name checks are enabled for this origin.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the origin be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"http_port": {
+			Description:  "The value of the HTTP port.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      80,
@@ -57,6 +63,7 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"https_port": {
+			Description:  "The value of the HTTPS port.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      443,
@@ -64,12 +71,14 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"origin_host_header": {
+			Description:  "The host header value (an IPv4 address, IPv6 address or Domain name) which is sent to the origin with each request. If unspecified the hostname from the request will be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.Any(validation.IsIPv6Address, validation.IsIPv4Address, validation.StringIsNotEmpty),
 		},
 
 		"priority": {
+			Description:  "Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      1,
@@ -85,8 +94,9 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 					"location": commonschema.Location(),
 
 					"private_link_target_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The ID of the Azure Resource to connect to via the Private Link.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.Any(
 							apimanagementservice.ValidateServiceID,
 							applicationgateways.ValidateApplicationGatewayID,
@@ -98,6 +108,7 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"request_message": {
+						Description:  "The request message that will be submitted to the `private_link_target_id` when requesting the Private Link endpoint connection.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "Access request for CDN FrontDoor Private Link Origin",
@@ -105,8 +116,9 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"target_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The type of target for this Private Link Endpoint.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"blob",
 							"blob_secondary",
@@ -122,6 +134,7 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"weight": {
+			Description:  "The weight of the origin in a given origin group for load balancing.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      500,

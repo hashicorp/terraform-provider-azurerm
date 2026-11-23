@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Services Account Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
 
 		"account_key": {
+			Description:  "The account key used for authentication.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"category": {
+			Description:  "The category of the connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,14 +41,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// `metadata` is required because all categories supported by this resource currently require metadata
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Required: true,
+			Description: "A mapping of metadata key-value pairs for the connection.",
+			Type:        pluginsdk.TypeMap,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"target": {
+			Description:  "The target endpoint or resource for the connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

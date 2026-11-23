@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Services Account Project Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,9 +24,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"cognitive_account_project_id": commonschema.ResourceIDReferenceRequiredForceNew(&projectconnectionresource.ProjectId{}),
 
 		"category": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The category of the connection.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(projectconnectionresource.ConnectionCategoryAIServices),
 				string(projectconnectionresource.ConnectionCategoryApiManagement),
@@ -43,14 +45,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target": {
+			Description:  "The target endpoint or resource for the connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A mapping of metadata key-value pairs for the connection.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -61,8 +65,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The authentication type of the connection.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -13,6 +13,7 @@ import (
 func cdnFrontdoorEndpointSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Front Door Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func cdnFrontdoorEndpointSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_profile_id": {
+			Description:  "The ID of the Front Door Profile within which this Front Door Endpoint should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,16 +29,18 @@ func cdnFrontdoorEndpointSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Front Door Endpoint is enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tags": commonschema.Tags(),
 
 		"host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

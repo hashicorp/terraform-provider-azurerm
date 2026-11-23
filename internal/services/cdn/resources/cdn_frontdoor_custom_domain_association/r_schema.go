@@ -12,6 +12,7 @@ import (
 func cdnFrontdoorCustomDomainAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cdn_frontdoor_custom_domain_id": {
+			Description:  "The ID of the Front Door Custom Domain that should be managed by the association resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,8 +20,9 @@ func cdnFrontdoorCustomDomainAssociationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_route_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "One or more IDs of the Front Door Route to which the Front Door Custom Domain is associated with.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
