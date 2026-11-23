@@ -60,7 +60,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"specialized": {
-				Description: "Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run).",
+				Description: "Whether the Operating System used inside this Image has been specialized. (for example, `sysprep` on Windows has been run).",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
