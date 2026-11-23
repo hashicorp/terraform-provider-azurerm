@@ -30,7 +30,7 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.Any(
 				// Elevated access (aka User Access Administrator role) is needed to assign roles in the following scopes:
-				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				validation.StringMatch(regexp.MustCompile("/"), "Root scope (/) is invalid"),
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Capacity"), "Capacity scope is invalid"),
