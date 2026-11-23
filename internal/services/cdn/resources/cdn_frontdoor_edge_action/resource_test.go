@@ -18,6 +18,17 @@ import (
 
 type CdnFrontdoorEdgeActionResource struct{}
 
+func TestAccCdnFrontdoorEdgeAction_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
+	r := CdnFrontdoorEdgeActionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontdoorEdgeAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
 	r := CdnFrontdoorEdgeActionResource{}

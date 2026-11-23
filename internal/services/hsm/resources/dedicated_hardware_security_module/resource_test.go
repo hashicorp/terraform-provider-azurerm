@@ -18,6 +18,17 @@ import (
 
 type DedicatedHardwareSecurityModuleResource struct{}
 
+func TestAccDedicatedHardwareSecurityModule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
+	r := DedicatedHardwareSecurityModuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDedicatedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 	r := DedicatedHardwareSecurityModuleResource{}

@@ -13,6 +13,16 @@ import (
 
 type HDInsightClusterDataSourceResource struct{}
 
+func TestAccDataSourceHDInsightCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
+	r := HDInsightClusterDataSourceResource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.hadoop(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceHDInsightCluster_hadoop(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}

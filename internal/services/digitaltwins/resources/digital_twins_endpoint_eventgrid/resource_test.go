@@ -19,6 +19,17 @@ import (
 
 type DigitalTwinsEndpointEventGridResource struct{}
 
+func TestAccDigitalTwinsEndpointEventGrid_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
+	r := DigitalTwinsEndpointEventGridResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	r := DigitalTwinsEndpointEventGridResource{}

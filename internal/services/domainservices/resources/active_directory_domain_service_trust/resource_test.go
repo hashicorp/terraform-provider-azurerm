@@ -75,6 +75,20 @@ func NewDomainServiceTrustResource() (*DomainServiceTrustResource, error) {
 	}, nil
 }
 
+func TestAccDomainServiceTrust_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_active_directory_domain_service_trust", "test")
+	r, err := NewDomainServiceTrustResource()
+	if err != nil {
+		t.Skipf("Skipping: %v", err)
+	}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDomainServiceTrust_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_active_directory_domain_service_trust", "test")
 	r, err := NewDomainServiceTrustResource()

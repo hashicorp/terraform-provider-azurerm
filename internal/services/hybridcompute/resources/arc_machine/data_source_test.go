@@ -38,6 +38,19 @@ func generateRandomPassword(n int) string {
 	return string(b)
 }
 
+func TestAccArcMachine_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_arc_machine", "test")
+	d := ArcMachineDataSource{}
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	randomUUID, _ := uuid.GenerateUUID()
+	password := generateRandomPassword(15)
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data, clientSecret, randomUUID, password),
+		},
+	}, "")
+}
+
 func TestAccArcMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_arc_machine", "test")
 	d := ArcMachineDataSource{}

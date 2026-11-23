@@ -13,6 +13,17 @@ import (
 
 type VirtualDesktopHostPoolDataSource struct{}
 
+func TestAccVirtualDesktopHostPoolDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualDesktopHostPoolDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolDataSource{}

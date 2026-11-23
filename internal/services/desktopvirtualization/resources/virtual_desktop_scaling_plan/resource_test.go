@@ -19,6 +19,18 @@ import (
 
 type VirtualDesktopScalingPlanResource struct{}
 
+func TestAccVirtualDesktopScalingPlan_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")
+	r := VirtualDesktopScalingPlanResource{}
+	roleAssignmentId := uuid.New().String()
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, roleAssignmentId),
+		},
+	}, "")
+}
+
 func TestAccVirtualDesktopScalingPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")
 	r := VirtualDesktopScalingPlanResource{}

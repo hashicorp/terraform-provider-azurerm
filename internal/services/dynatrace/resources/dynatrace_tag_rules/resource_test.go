@@ -34,6 +34,18 @@ func NewTagRulesResource() TagRulesResource {
 	}
 }
 
+func TestAccDynatraceTagRules_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_tag_rules", "test")
+	r := NewTagRulesResource()
+	r.preCheck(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDynatraceTagRules_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_tag_rules", "test")
 	r := NewTagRulesResource()

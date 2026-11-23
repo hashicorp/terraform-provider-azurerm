@@ -19,6 +19,17 @@ import (
 
 type VirtualDesktopHostPoolResource struct{}
 
+func TestAccVirtualDesktopHostPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolResource{}

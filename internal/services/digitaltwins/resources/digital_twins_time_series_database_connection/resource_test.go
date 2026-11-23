@@ -18,6 +18,16 @@ import (
 
 type TimeSeriesDatabaseConnectionResource struct{}
 
+func TestAccTimeSeriesDatabaseConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_time_series_database_connection", "test")
+	r := TimeSeriesDatabaseConnectionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccTimeSeriesDatabaseConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_time_series_database_connection", "test")
 	r := TimeSeriesDatabaseConnectionResource{}

@@ -18,6 +18,17 @@ import (
 
 type DevCenterNetworkConnectionTestResource struct{}
 
+func TestAccDevCenterNetworkConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center_network_connection", "test")
+	r := DevCenterNetworkConnectionTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenterNetworkConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_network_connection", "test")
 	r := DevCenterNetworkConnectionTestResource{}

@@ -13,6 +13,17 @@ import (
 
 type DnsCNameRecordDataSource struct{}
 
+func TestAccDataSourceDnsCNameRecord_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_cname_record", "test")
+	r := DnsCNameRecordDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceDnsCNameRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordDataSource{}

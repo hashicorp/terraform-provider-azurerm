@@ -13,6 +13,17 @@ import (
 
 type HealthCareWorkspaceIotConnectorDataSource struct{}
 
+func TestAccHealthCareWorkspaceIotConnectorDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_medtech_service", "test")
+	r := HealthCareWorkspaceIotConnectorDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccHealthCareWorkspaceIotConnectorDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_medtech_service", "test")
 	r := HealthCareWorkspaceIotConnectorDataSource{}

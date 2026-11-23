@@ -18,6 +18,17 @@ import (
 
 type ArcMachineResource struct{}
 
+func TestAccArcMachineResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine", "test")
+	r := ArcMachineResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccArcMachineResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine", "test")
 	r := ArcMachineResource{}

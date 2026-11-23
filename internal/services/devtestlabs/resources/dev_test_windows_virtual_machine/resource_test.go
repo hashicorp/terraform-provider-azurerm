@@ -18,6 +18,17 @@ import (
 
 type DevTestVirtualMachineResource struct{}
 
+func TestAccDevTestWindowsVirtualMachine_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
+	r := DevTestVirtualMachineResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDevTestWindowsVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}

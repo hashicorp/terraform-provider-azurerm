@@ -13,6 +13,17 @@ import (
 
 type DnsSoaRecordDataSource struct{}
 
+func TestAccDataSourceDnsSoaRecord_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_soa_record", "test")
+	r := DnsSoaRecordDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicWithDataSource(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceDnsSoaRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_soa_record", "test")
 	r := DnsSoaRecordDataSource{}

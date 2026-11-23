@@ -18,6 +18,17 @@ import (
 
 type HealthCareDicomResource struct{}
 
+func TestAccHealthCareDicomResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
+	r := HealthCareDicomResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccHealthCareDicomResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_dicom_service", "test")
 	r := HealthCareDicomResource{}

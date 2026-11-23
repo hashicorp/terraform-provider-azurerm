@@ -19,6 +19,17 @@ import (
 
 type DigitalTwinsEndpointEventHubResource struct{}
 
+func TestAccDigitalTwinsEndpointEventHub_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventhub", "test")
+	r := DigitalTwinsEndpointEventHubResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDigitalTwinsEndpointEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventhub", "test")
 	r := DigitalTwinsEndpointEventHubResource{}

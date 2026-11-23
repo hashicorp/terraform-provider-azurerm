@@ -19,6 +19,17 @@ import (
 
 type IoTCentralOrganizationResource struct{}
 
+func TestAccIoTCentralOrganization_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
+	r := IoTCentralOrganizationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccIoTCentralOrganization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
 	r := IoTCentralOrganizationResource{}

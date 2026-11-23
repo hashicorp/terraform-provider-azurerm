@@ -18,6 +18,17 @@ import (
 
 type DevCenterProjectEnvironmentTypeTestResource struct{}
 
+func TestAccDevCenterProjectEnvironmentType_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
+	r := DevCenterProjectEnvironmentTypeTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenterProjectEnvironmentType_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
 	r := DevCenterProjectEnvironmentTypeTestResource{}

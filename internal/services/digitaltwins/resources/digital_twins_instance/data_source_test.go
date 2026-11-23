@@ -13,6 +13,17 @@ import (
 
 type DigitalTwinsInstanceDataSource struct{}
 
+func TestAccDigitalTwinsInstanceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_digital_twins_instance", "test")
+	r := DigitalTwinsInstanceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDigitalTwinsInstanceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_digital_twins_instance", "test")
 	r := DigitalTwinsInstanceDataSource{}

@@ -45,6 +45,20 @@ type ActiveDirectoryDomainServiceResource struct {
 
 type ActiveDirectoryDomainServiceReplicaSetResource struct{}
 
+func TestAccActiveDirectoryDomainService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_active_directory_domain_service", "test")
+
+	r := ActiveDirectoryDomainServiceResource{
+		adminPassword: fmt.Sprintf("%s%s", "p@$$Wd", acceptance.RandString(6)),
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 // AADDS has a single test which also includes a step for the data source, because:
 // - There can only be a single domain service per tenant, or per subscription
 // - It takes around 60 mins to stand up each replica set (including the initial one built into the resource)

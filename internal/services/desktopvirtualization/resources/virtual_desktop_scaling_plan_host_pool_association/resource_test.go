@@ -20,6 +20,18 @@ import (
 
 type VirtualDesktopScalingPlanAssociationResource struct{}
 
+func TestAccVirtualDesktopScalingPlanAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan_host_pool_association", "test")
+	r := VirtualDesktopScalingPlanAssociationResource{}
+	roleAssignmentId := uuid.New().String()
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, roleAssignmentId),
+		},
+	}, "")
+}
+
 func TestAccVirtualDesktopScalingPlanAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan_host_pool_association", "test")
 	r := VirtualDesktopScalingPlanAssociationResource{}

@@ -18,6 +18,17 @@ import (
 
 type DevCenterTestResource struct{}
 
+func TestAccDevCenter_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
+	r := DevCenterTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDevCenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
 	r := DevCenterTestResource{}

@@ -18,6 +18,17 @@ import (
 
 type DnsSrvRecordResource struct{}
 
+func TestAccDnsSrvRecord_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_srv_record", "test")
+	r := DnsSrvRecordResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDnsSrvRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_srv_record", "test")
 	r := DnsSrvRecordResource{}

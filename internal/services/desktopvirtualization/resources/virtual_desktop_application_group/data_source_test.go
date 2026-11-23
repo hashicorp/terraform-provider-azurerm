@@ -14,6 +14,17 @@ import (
 
 type DesktopVirtualizationApplicationGroupDataSource struct{}
 
+func TestAccDesktopVirtualizationApplicationGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_application_group", "test")
+	d := DesktopVirtualizationApplicationGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDesktopVirtualizationApplicationGroupDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_application_group", "test")
 	d := DesktopVirtualizationApplicationGroupDataSource{}
