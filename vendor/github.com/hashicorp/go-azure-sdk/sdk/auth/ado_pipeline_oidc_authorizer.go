@@ -11,8 +11,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"golang.org/x/oauth2"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 const (
@@ -108,7 +109,10 @@ func (a *ADOPipelineOIDCAuthorizer) adoPipelineAssertion(ctx context.Context, _ 
 		return nil, fmt.Errorf("adoPipelineAssertion: cannot request token: %v", err)
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
 		return nil, fmt.Errorf("adoPipelineAssertion: cannot parse response: %v", err)

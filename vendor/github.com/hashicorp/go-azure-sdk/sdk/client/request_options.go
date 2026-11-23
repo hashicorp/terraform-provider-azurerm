@@ -19,6 +19,11 @@ type RequestOptions struct {
 	// HttpMethod is the capitalized method verb for this request
 	HttpMethod string
 
+	// Idempotent optionally overrides whether this request is safe to retry on nil-response
+	// connection failures (for example, marking an ARM PUT as idempotent). When nil, only
+	// GET, HEAD, and OPTIONS are treated as idempotent.
+	Idempotent *bool
+
 	// OptionsObject is used for dynamically modifying the request at runtime
 	OptionsObject Options
 

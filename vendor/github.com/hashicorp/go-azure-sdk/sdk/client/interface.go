@@ -42,7 +42,9 @@ type BaseClient interface {
 	// ClearResponseMiddlewares removes all response middleware functions for the client
 	ClearResponseMiddlewares()
 
-	// SetTransport configures the transport to be used by the client
+	// SetTransport configures the transport to be used by the client.
+	// Consumers requiring isolation (multi-tenant isolation, mTLS, custom CAs, or custom proxy)
+	// should construct a dedicated transport via NewDefaultTransport() and pass it here.
 	SetTransport(http.RoundTripper)
 }
 

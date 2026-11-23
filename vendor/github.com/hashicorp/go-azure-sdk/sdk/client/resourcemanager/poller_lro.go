@@ -18,6 +18,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/go-azure-sdk/sdk/internal/transport"
 )
 
 var _ pollers.PollerType = &longRunningOperationPoller{}
@@ -134,10 +135,11 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		var respBody []byte
 		respBody, err = io.ReadAll(result.HttpResponse.Body)
 		if err != nil {
+			transport.DrainAndClose(result.HttpResponse.Body)
 			err = fmt.Errorf("parsing response body: %+v", err)
 			return
 		}
-		result.HttpResponse.Body.Close()
+		_ = result.HttpResponse.Body.Close()
 
 		result.HttpResponse.Body = io.NopCloser(bytes.NewReader(respBody))
 

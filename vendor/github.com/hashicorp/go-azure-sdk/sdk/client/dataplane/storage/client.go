@@ -45,7 +45,7 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	}
 
 	req.Client = c
-	req.Header.Add("x-ms-version", c.Client.ApiVersion)
+	req.Header.Add("x-ms-version", c.ApiVersion)
 
 	query := url.Values{}
 	if input.OptionsObject != nil {

@@ -6,6 +6,7 @@ package dataplane
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -23,28 +24,32 @@ type Client struct {
 	ApiVersion string
 }
 
-// NewClient returns a pointer to a Client. If the endpoint value is available at call-time, it will be set into the
-// BaseUri property of the underlying BaseClient
+var freshTransport = func() *http.Transport {
+	opts := client.DefaultTransportOptions()
+	opts.DisableKeepAlives = true
+	return client.NewTransport(opts)
+}()
+
+// NewClient returns a pointer to a Client configured with AuthorizeDataPlaneRequest and a fresh-connection
+// transport (DisableKeepAlives: true) so per-endpoint DNS cutovers (such as Private Endpoints) do not reuse
+// pre-cutover sockets. If connection pooling is desired for a specific client, call c.SetTransport(client.NewDefaultTransport()).
+// If the endpoint value is available at call-time, it will be set into the BaseUri property of the underlying BaseClient.
 func NewClient(endpoint string, serviceName, apiVersion string) (*Client, error) {
-	baseClient := client.NewClient(endpoint, serviceName, apiVersion)
+	c := NewDataPlaneClient(endpoint, serviceName, apiVersion)
+	c.AuthorizeRequest = AuthorizeDataPlaneRequest
+	c.SetTransport(freshTransport)
 
-	baseClient.AuthorizeRequest = AuthorizeDataPlaneRequest
-
-	baseClient.BaseUri = endpoint
-
-	return &Client{
-		Client:     baseClient,
-		ApiVersion: apiVersion,
-	}, nil
+	return c, nil
 }
 
+// NewDataPlaneClient returns a pointer to a Client configured with the shared pooled transport
+// (used by storage data-plane clients to avoid SNAT exhaustion).
+// To disable HTTP keep-alives for a specific client, call c.SetTransport(client.NewTransport(client.TransportOptions{DisableKeepAlives: true})).
 func NewDataPlaneClient(baseUri string, serviceName, apiVersion string) *Client {
-	client := &Client{
+	return &Client{
 		ApiVersion: apiVersion,
 		Client:     client.NewClient(baseUri, serviceName, apiVersion),
 	}
-
-	return client
 }
 
 func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*client.Request, error) {
@@ -114,14 +119,14 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 // simultaneously
 func (c *Client) CloneClient(endpoint string) *Client {
 	baseClient := *c.Client
-	if c.Client.RequestMiddlewares != nil {
-		middlewares := make([]client.RequestMiddleware, len(*c.Client.RequestMiddlewares))
-		copy(middlewares, *c.Client.RequestMiddlewares)
+	if c.RequestMiddlewares != nil {
+		middlewares := make([]client.RequestMiddleware, len(*c.RequestMiddlewares))
+		copy(middlewares, *c.RequestMiddlewares)
 		baseClient.RequestMiddlewares = &middlewares
 	}
-	if c.Client.ResponseMiddlewares != nil {
-		middlewares := make([]client.ResponseMiddleware, len(*c.Client.ResponseMiddlewares))
-		copy(middlewares, *c.Client.ResponseMiddlewares)
+	if c.ResponseMiddlewares != nil {
+		middlewares := make([]client.ResponseMiddleware, len(*c.ResponseMiddlewares))
+		copy(middlewares, *c.ResponseMiddlewares)
 		baseClient.ResponseMiddlewares = &middlewares
 	}
 	baseClient.BaseUri = endpoint

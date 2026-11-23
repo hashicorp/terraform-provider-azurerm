@@ -39,7 +39,7 @@ func (e *ErrorParser) FromResponse(resp *http.Response) error {
 	if err != nil {
 		return fmt.Errorf("could not parse response body")
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
 	res := storageError{}
