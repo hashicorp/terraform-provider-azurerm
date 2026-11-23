@@ -173,7 +173,6 @@ resource "azurerm_mssql_database_sensitivity_label" "test" {
   database_id = azurerm_mssql_database.test.id
   schema_name = "SalesLT"
   table_name  = "Customer"
-  label_name  = "Confidential"
 }
 `, r.template(data))
 }
