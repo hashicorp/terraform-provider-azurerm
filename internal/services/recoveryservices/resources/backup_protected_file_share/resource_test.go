@@ -317,17 +317,6 @@ resource "azurerm_storage_share" "testshare4" {
   }
 }
 
-resource "azurerm_storage_share" "testshare" {
-  name               = "acctest-ss-%[1]d"
-  storage_account_id = azurerm_storage_account.test2.id
-  quota              = 1
-  metadata           = {}
-
-  lifecycle {
-    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
-  }
-}
-
 resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-VAULT-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
@@ -376,6 +365,17 @@ resource "azurerm_backup_protected_file_share" "test" {
   backup_policy_id          = azurerm_backup_policy_file_share.test.id
 }
 
+resource "azurerm_storage_share" "testshare" {
+  name               = "acctest-ss-%[2]d"
+  storage_account_id = azurerm_storage_account.test2.id
+  quota              = 1
+  metadata           = {}
+
+  lifecycle {
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+  }
+}
+
 resource "azurerm_backup_protected_file_share" "test1" {
   resource_group_name       = azurerm_resource_group.test.name
   recovery_vault_name       = azurerm_recovery_services_vault.test.name
@@ -383,5 +383,5 @@ resource "azurerm_backup_protected_file_share" "test1" {
   source_file_share_name    = azurerm_storage_share.testshare.name
   backup_policy_id          = azurerm_backup_policy_file_share.test.id
 }
-`, r.baseMultiple(data))
+`, r.baseMultiple(data), data.RandomInteger)
 }
