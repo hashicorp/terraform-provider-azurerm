@@ -7,16 +7,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/signalr_service_network_acl/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var defaultRequestTypes = []webpubsub.WebPubSubRequestType{
-	webpubsub.WebPubSubRequestTypeRESTAPI,
-	webpubsub.WebPubSubRequestTypeClientConnection,
-	webpubsub.WebPubSubRequestTypeServerConnection,
-	webpubsub.WebPubSubRequestTypeTrace,
+var defaultRequestTypes = []signalr.SignalRRequestType{
+	signalr.SignalRRequestTypeRESTAPI,
+	signalr.SignalRRequestTypeClientConnection,
+	signalr.SignalRRequestTypeServerConnection,
+	signalr.SignalRRequestTypeTrace,
 }
 
 func RegisterResource() *pluginsdk.Resource {
