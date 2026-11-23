@@ -166,7 +166,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Description:  "The ID of the Custom Image which the Virtual Machines should be created from. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.",
+						Description:  "The ID of the Custom Image which the Virtual Machines should be created from. See [official documentation](https://learn.microsoft.com/azure/batch/batch-custom-images) for more details.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -522,7 +522,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 											"source_port_ranges": {
-												Description: "The source port ranges to match for the rule. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400.",
+												Description: "The source port ranges to match for the rule. Valid values `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400.",
 												Type:        pluginsdk.TypeList,
 												Optional:    true,
 												Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -679,7 +679,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"os_disk_placement": {
-			Description: "The ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>.",
+			Description: "The ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://learn.microsoft.com/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://learn.microsoft.com/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ValidateFunc: validation.StringInSlice(
@@ -811,7 +811,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"login_mode": {
-									Description:  "Specifies login mode for the user. Values supported are \"Batch\" and \"Interactive\".",
+									Description:  "The login mode for the user.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForLoginMode(), false),

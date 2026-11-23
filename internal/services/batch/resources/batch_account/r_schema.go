@@ -145,7 +145,7 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Description:  "The full URL path to the Azure Key Vault Key ID that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Both versioned and versionless keys are supported.",
+						Description:  "The full URL path to the Azure Key Vault Key ID that should be used to encrypt data, as documented [here](https://learn.microsoft.com/azure/batch/batch-customer-managed-key). Both versioned and versionless keys are supported.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),

@@ -625,7 +625,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"login_mode": {
-										Description: "Specifies login mode for the user.",
+										Description: "The login mode for the user.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
