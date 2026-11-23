@@ -826,6 +826,21 @@ func TestAccMsSqlDatabase_withShortTermRetentionPolicyImmutability(t *testing.T)
 	})
 }
 
+func TestAccMsSqlDatabase_withShortTermRetentionPolicyImmutabilityLocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withShortTermRetentionPolicyImmutability(data, true, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}

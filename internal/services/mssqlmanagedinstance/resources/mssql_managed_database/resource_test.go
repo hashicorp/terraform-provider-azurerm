@@ -129,6 +129,21 @@ func TestAccMsSqlManagedDatabase_shortTermRetentionImmutability(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedDatabase_shortTermRetentionImmutabilityLocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.shortTermRetentionImmutability(data, true, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlManagedDatabase_withPartialRetentionPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
 	r := MsSqlManagedDatabase{}
