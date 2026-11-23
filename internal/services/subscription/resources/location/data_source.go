@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package subscription
+package location
 
 import (
 	"context"
@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.DataSource = LocationDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type LocationDataSource struct{}
+type DataSource struct{}
 
 type LocationDataSourceModel struct {
 	Location     string                `tfschema:"location"`
@@ -34,21 +34,21 @@ type LocationZoneMapping struct {
 	PhysicalZone string `tfschema:"physical_zone"`
 }
 
-func (r LocationDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_location"
 }
 
-func (r LocationDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &LocationDataSourceModel{}
 }
 
-func (r LocationDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationWithoutForceNew(),
 	}
 }
 
-func (r LocationDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"display_name": {
 			Type:     pluginsdk.TypeString,
@@ -73,7 +73,7 @@ func (r LocationDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocationDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

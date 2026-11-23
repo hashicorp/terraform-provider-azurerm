@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package subscription
+package extended_locations
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceExtendedLocations() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceExtendedLocationsRead,
 

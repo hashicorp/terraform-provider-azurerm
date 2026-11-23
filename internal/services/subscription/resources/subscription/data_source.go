@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceSubscription() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceSubscriptionRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
