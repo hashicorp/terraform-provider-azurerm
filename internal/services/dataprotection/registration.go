@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_cosmosdb_account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_data_lake_storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_disk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_elastic_san_volume"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_kubernetes_cluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_mysql_flexible_server"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_postgresql_flexible_server"
@@ -36,6 +37,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		data_protection_backup_instance_cosmosdb_account.ListResource{},
 		data_protection_backup_policy_cosmosdb_account.ListResource{},
+		data_protection_backup_policy_elastic_san_volume.ListResource{},
 		data_protection_backup_vault_resource_guard_association.ListResource{},
 	}
 }
@@ -115,6 +117,7 @@ func (r Registration) Resources() []sdk.Resource {
 		data_protection_backup_instance_postgresql_flexible_server.Resource{},
 		data_protection_backup_policy_cosmosdb_account.Resource{},
 		data_protection_backup_policy_data_lake_storage.Resource{},
+		data_protection_backup_policy_elastic_san_volume.Resource{},
 		data_protection_backup_policy_kubernetes_cluster.Resource{},
 		data_protection_backup_policy_mysql_flexible_server.Resource{},
 		data_protection_backup_policy_postgresql_flexible_server.Resource{},
