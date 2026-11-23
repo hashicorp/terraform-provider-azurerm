@@ -4,7 +4,12 @@
 package cost_management_scheduled_action
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -55,8 +60,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"email_address_sender": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because when using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -114,4 +121,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.Client.Account.AuthenticatedAsAServicePrincipal && metadata.ResourceDiff.Get("email_address_sender") == "" {
+				return fmt.Errorf("`email_address_sender` is required when authenticated as a service principal")
+			}
+			return nil
+		},
+	}
 }

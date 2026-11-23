@@ -7,6 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/resources/hdinsight_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/resources/hdinsight_hadoop_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/resources/hdinsight_hbase_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/resources/hdinsight_interactive_query_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/resources/hdinsight_kafka_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/resources/hdinsight_spark_cluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,18 +42,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_hdinsight_cluster": dataSourceHDInsightSparkCluster(),
+		"azurerm_hdinsight_cluster": hdinsight_cluster.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_hdinsight_hadoop_cluster":            resourceHDInsightHadoopCluster(),
-		"azurerm_hdinsight_hbase_cluster":             resourceHDInsightHBaseCluster(),
-		"azurerm_hdinsight_interactive_query_cluster": resourceHDInsightInteractiveQueryCluster(),
-		"azurerm_hdinsight_kafka_cluster":             resourceHDInsightKafkaCluster(),
-		"azurerm_hdinsight_spark_cluster":             resourceHDInsightSparkCluster(),
+		"azurerm_hdinsight_hadoop_cluster":            hdinsight_hadoop_cluster.RegisterResource(),
+		"azurerm_hdinsight_hbase_cluster":             hdinsight_hbase_cluster.RegisterResource(),
+		"azurerm_hdinsight_interactive_query_cluster": hdinsight_interactive_query_cluster.RegisterResource(),
+		"azurerm_hdinsight_kafka_cluster":             hdinsight_kafka_cluster.RegisterResource(),
+		"azurerm_hdinsight_spark_cluster":             hdinsight_spark_cluster.RegisterResource(),
 	}
 }
 
