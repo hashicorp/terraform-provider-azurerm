@@ -38,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							"F0",
 							"F2",
 							"F4",
 							"F8",
