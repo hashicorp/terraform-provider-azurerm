@@ -803,7 +803,7 @@ func (w WindowsFunctionAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
-						Description: "Should HTTPS be required on connections? Defaults to true.",
+						Description: "Should HTTPS be required on connections?",
 					},
 
 					"http_route_api_prefix": {
@@ -904,14 +904,14 @@ func (w WindowsFunctionAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
+			Description: "Should built in logging be enabled? Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the function app use Client Certificates",
+			Description: "Should the Function App use Client Certificates?",
 		},
 
 		"client_certificate_mode": {

@@ -122,7 +122,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"storage_key_vault_secret_id": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.",
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String used to connect to the Storage Account for this Function App.",
 		},
 
 		"app_settings": {
@@ -157,7 +157,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"client_certificate_exclusion_paths": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "Paths to exclude when using client certificates, separated by ;",
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),

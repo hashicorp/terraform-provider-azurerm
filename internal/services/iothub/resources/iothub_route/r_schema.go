@@ -49,7 +49,7 @@ func iothubRouteSchema() map[string]*pluginsdk.Schema {
 		},
 		"condition": {
 			// The condition is a string value representing device-to-cloud message routes query expression
-			// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+			// https://learn.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "true",
