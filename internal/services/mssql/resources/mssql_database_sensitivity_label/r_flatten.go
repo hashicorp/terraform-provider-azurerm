@@ -17,16 +17,15 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *sensitivitylabels.Sen
 		DatabaseId: commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.DatabaseName).ID(),
 		SchemaName: id.SchemaName,
 		TableName:  id.TableName,
-		Rank:       pointer.To(string(sensitivitylabels.SensitivityLabelRankNone)),
 	}
 
 	if properties := model.Properties; properties != nil {
-		state.InformationType = properties.InformationType
-		state.InformationTypeId = properties.InformationTypeId
-		state.LabelId = properties.LabelId
-		state.LabelName = properties.LabelName
-		if properties.Rank != nil {
-			state.Rank = pointer.To(pointer.FromEnum(properties.Rank))
+		state.InformationType = pointer.From(properties.InformationType)
+		state.InformationTypeId = pointer.From(properties.InformationTypeId)
+		state.LabelId = pointer.From(properties.LabelId)
+		state.LabelName = pointer.From(properties.LabelName)
+		if properties.Rank != nil && *properties.Rank != sensitivitylabels.SensitivityLabelRankNone {
+			state.Rank = string(*properties.Rank)
 		}
 	}
 

@@ -38,19 +38,23 @@ func (Resource) Update() sdk.ResourceFunc {
 
 			properties := existing.Model.Properties
 			if metadata.ResourceData.HasChange("information_type") {
-				properties.InformationType = config.InformationType
+				properties.InformationType = pointer.ToOrNil(config.InformationType)
 			}
 			if metadata.ResourceData.HasChange("information_type_id") {
-				properties.InformationTypeId = config.InformationTypeId
+				properties.InformationTypeId = pointer.ToOrNil(config.InformationTypeId)
 			}
 			if metadata.ResourceData.HasChange("label_id") {
-				properties.LabelId = config.LabelId
+				properties.LabelId = pointer.ToOrNil(config.LabelId)
 			}
 			if metadata.ResourceData.HasChange("label_name") {
-				properties.LabelName = config.LabelName
+				properties.LabelName = pointer.ToOrNil(config.LabelName)
 			}
 			if metadata.ResourceData.HasChange("rank") {
-				properties.Rank = pointer.ToEnum[sensitivitylabels.SensitivityLabelRank](pointer.From(config.Rank))
+				rank := sensitivitylabels.SensitivityLabelRankNone
+				if config.Rank != "" {
+					rank = sensitivitylabels.SensitivityLabelRank(config.Rank)
+				}
+				properties.Rank = pointer.To(rank)
 			}
 
 			properties.ClientClassificationSource = pointer.To(sensitivitylabels.ClientClassificationSourceNative)

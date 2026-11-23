@@ -44,6 +44,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 128),
+			AtLeastOneOf: []string{"information_type", "label_name"},
 		},
 
 		"information_type_id": {
@@ -62,13 +63,19 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 128),
+			AtLeastOneOf: []string{"information_type", "label_name"},
 		},
 
 		"rank": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(sensitivitylabels.SensitivityLabelRankNone),
-			ValidateFunc: validation.StringInSlice(sensitivitylabels.PossibleValuesForSensitivityLabelRank(), false),
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				// Note: Whilst the `None` value exists it's handled in the Create/Update and Read functions.
+				string(sensitivitylabels.SensitivityLabelRankCritical),
+				string(sensitivitylabels.SensitivityLabelRankHigh),
+				string(sensitivitylabels.SensitivityLabelRankLow),
+				string(sensitivitylabels.SensitivityLabelRankMedium),
+			}, false),
 		},
 	}
 }

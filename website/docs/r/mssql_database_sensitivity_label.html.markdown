@@ -69,7 +69,9 @@ The following arguments are supported:
 
 * `label_name` - (Optional) The name of the sensitivity label assigned to the column. Must be between 1 and 128 characters in length.
 
-* `rank` - (Optional) The sensitivity rank of the column. Possible values are `Critical`, `High`, `Low`, `Medium`, and `None`. Defaults to `None`.
+~> **Note:** At least one of `information_type` or `label_name` must be specified.
+
+* `rank` - (Optional) The sensitivity rank of the column. Possible values are `Critical`, `High`, `Low`, and `Medium`.
 
 ## Attributes Reference
 

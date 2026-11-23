@@ -45,15 +45,20 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			rank := sensitivitylabels.SensitivityLabelRankNone
+			if config.Rank != "" {
+				rank = sensitivitylabels.SensitivityLabelRank(config.Rank)
+			}
+
 			columnId := sensitivitylabels.NewColumnID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.DatabaseName, id.SchemaName, id.TableName, id.ColumnName)
 			payload := sensitivitylabels.SensitivityLabel{
 				Properties: &sensitivitylabels.SensitivityLabelProperties{
 					ClientClassificationSource: pointer.To(sensitivitylabels.ClientClassificationSourceNative),
-					InformationType:            config.InformationType,
-					InformationTypeId:          config.InformationTypeId,
-					LabelId:                    config.LabelId,
-					LabelName:                  config.LabelName,
-					Rank:                       pointer.ToEnum[sensitivitylabels.SensitivityLabelRank](pointer.From(config.Rank)),
+					InformationType:            pointer.ToOrNil(config.InformationType),
+					InformationTypeId:          pointer.ToOrNil(config.InformationTypeId),
+					LabelId:                    pointer.ToOrNil(config.LabelId),
+					LabelName:                  pointer.ToOrNil(config.LabelName),
+					Rank:                       pointer.To(rank),
 				},
 			}
 
