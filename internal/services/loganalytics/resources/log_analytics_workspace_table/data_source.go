@@ -18,6 +18,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type LogAnalyticsWorkspaceTableDataSourceModel struct {
 	Name                 string `tfschema:"name"`
 	WorkspaceId          string `tfschema:"workspace_id"`
