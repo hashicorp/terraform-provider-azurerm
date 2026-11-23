@@ -12,7 +12,7 @@ import (
 
 func apiManagementProductSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"product_id": schemaz.SchemaApiManagementChildName(),
+		"product_id": schemaz.SchemaApiManagementChildName("The Identifier for this Product, which must be unique within the API Management Service."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 

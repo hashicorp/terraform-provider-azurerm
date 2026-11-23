@@ -16,7 +16,7 @@ func apiManagementProductPolicySchema() map[string]*pluginsdk.Schema {
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
-		"product_id": schemaz.SchemaApiManagementChildName(),
+		"product_id": schemaz.SchemaApiManagementChildName("The ID of the API Management Product within the API Management Service."),
 
 		"xml_content": {
 			Description: "The XML Content for this Policy.",

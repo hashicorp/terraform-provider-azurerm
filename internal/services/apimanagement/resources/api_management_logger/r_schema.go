@@ -14,7 +14,7 @@ import (
 
 func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of this Logger, which must be unique within the API Management Service."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -121,7 +121,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"identity_client_id": {
-						Description: "The Client Id of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the \"Monitoring Metrics Publisher\" role on the target Application Insights resource. Requires `connection_string` to be set. Cannot be used with `instrumentation_key`.",
+						Description: "The Client Id of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the \"Monitoring Metrics Publisher\" role on the target Application Insights resource. Requires `connection_string` to be set.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ValidateFunc: validation.Any(

@@ -12,7 +12,7 @@ import (
 
 func apiManagementOpenidConnectProviderSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the OpenID Connect Provider which should be created within the API Management Service."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

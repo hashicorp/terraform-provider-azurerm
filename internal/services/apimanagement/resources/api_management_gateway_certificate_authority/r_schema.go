@@ -19,9 +19,9 @@ func apiManagementGatewayCertificateAuthoritySchema() map[string]*pluginsdk.Sche
 			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
 
-		"certificate_name": schemaz.SchemaApiManagementChildName(),
+		"certificate_name": schemaz.SchemaApiManagementChildName("The name of the API Management Certificate."),
 
-		"gateway_name": schemaz.SchemaApiManagementChildName(),
+		"gateway_name": schemaz.SchemaApiManagementChildName("The name of the API Management Gateway."),
 
 		"is_trusted": {
 			Description: "Whether the API Management Gateway Certificate Authority is trusted.",

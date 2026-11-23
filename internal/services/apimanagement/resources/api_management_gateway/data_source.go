@@ -27,7 +27,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"name": schemaz.SchemaApiManagementChildDataSourceName(),
+			"name": schemaz.SchemaApiManagementChildDataSourceName("The name of the API Management Gateway."),
 
 			"api_management_id": {
 				Description:  "The ID of the API Management Service in which the Gateway exists.",

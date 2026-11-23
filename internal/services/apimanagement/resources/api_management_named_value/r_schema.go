@@ -14,7 +14,7 @@ import (
 
 func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the API Management Named Value."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

@@ -47,7 +47,7 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
 
-		"subscription_id": schemaz.SchemaApiManagementChildDataSourceName(),
+		"subscription_id": schemaz.SchemaApiManagementChildDataSourceName("The Identifier for the API Management Subscription."),
 	}
 }
 

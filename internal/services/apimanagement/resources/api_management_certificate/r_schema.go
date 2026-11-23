@@ -13,7 +13,7 @@ import (
 
 func apiManagementCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the API Management Certificate."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

@@ -13,7 +13,7 @@ import (
 
 func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of this Authorization Server."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 

@@ -16,9 +16,9 @@ func apiManagementApiOperationPolicySchema() map[string]*pluginsdk.Schema {
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The name of the API within the API Management Service where the Operation exists."),
 
-		"operation_id": schemaz.SchemaApiManagementChildName(),
+		"operation_id": schemaz.SchemaApiManagementChildName("The operation identifier within an API. Must be unique in the current API Management service instance."),
 
 		"xml_content": {
 			Description: "The XML Content for this Policy.",

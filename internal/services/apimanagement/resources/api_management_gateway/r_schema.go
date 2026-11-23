@@ -11,7 +11,7 @@ import (
 
 func apiManagementGatewaySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name which should be used for the API Management Gateway."),
 
 		"api_management_id": {
 			Description:  "The ID of the API Management Resource in which the gateway will be created.",

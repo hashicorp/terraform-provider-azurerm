@@ -12,9 +12,9 @@ import (
 
 func apiManagementApiSchemaSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"schema_id": schemaz.SchemaApiManagementChildName(),
+		"schema_id": schemaz.SchemaApiManagementChildName("A unique identifier for this API Schema."),
 
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The name of the API within the API Management Service where this API Schema should be created."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

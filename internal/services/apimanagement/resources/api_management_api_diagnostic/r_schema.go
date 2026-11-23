@@ -30,7 +30,7 @@ func apiManagementApiDiagnosticSchema() map[string]*pluginsdk.Schema {
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The name of the API on which to configure the Diagnostics Logs."),
 
 		"api_management_logger_id": {
 			Description:  "The ID (name) of the Diagnostics Logger.",

@@ -27,7 +27,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"product_id": schemaz.SchemaApiManagementChildDataSourceName(),
+			"product_id": schemaz.SchemaApiManagementChildDataSourceName("The Identifier for the API Management Product."),
 
 			"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
 

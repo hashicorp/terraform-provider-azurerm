@@ -13,7 +13,7 @@ import (
 
 func apiManagementApiVersionSetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the API Version Set. May only contain alphanumeric characters and dashes up to 80 characters in length."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

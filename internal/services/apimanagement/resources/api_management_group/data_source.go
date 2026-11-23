@@ -27,7 +27,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"name": schemaz.SchemaApiManagementChildDataSourceName(),
+			"name": schemaz.SchemaApiManagementChildDataSourceName("The Name of the API Management Group."),
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 

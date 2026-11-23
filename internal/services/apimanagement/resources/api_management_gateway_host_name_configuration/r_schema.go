@@ -13,7 +13,7 @@ import (
 
 func apiManagementGatewayHostNameConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the API Management Gateway Host Name Configuration."),
 
 		"api_management_id": {
 			Description:  "The ID of the API Management Service.",
@@ -23,7 +23,7 @@ func apiManagementGatewayHostNameConfigurationSchema() map[string]*pluginsdk.Sch
 			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
 
-		"gateway_name": schemaz.SchemaApiManagementChildName(),
+		"gateway_name": schemaz.SchemaApiManagementChildName("The name of the API Management Gateway."),
 
 		"certificate_id": {
 			Description:  "The certificate ID to be used for TLS connection establishment.",

@@ -14,7 +14,7 @@ import (
 
 func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementApiName(),
+		"name": schemaz.SchemaApiManagementApiName("The name of the API Management API."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 

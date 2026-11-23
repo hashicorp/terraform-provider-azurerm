@@ -11,9 +11,9 @@ import (
 
 func apiManagementApiOperationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"operation_id": schemaz.SchemaApiManagementChildName(),
+		"operation_id": schemaz.SchemaApiManagementChildName("A unique identifier for this API Operation."),
 
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The name of the API within the API Management Service where this API Operation should be created."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 

@@ -16,7 +16,7 @@ func apiManagementApiPolicySchema() map[string]*pluginsdk.Schema {
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The ID of the API Management API within the API Management Service."),
 
 		"xml_content": {
 			Description: "The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option. If you need to pass variables into your XML file, use Terraform's [templatefile function](https://developer.hashicorp.com/terraform/language/functions/templatefile).",

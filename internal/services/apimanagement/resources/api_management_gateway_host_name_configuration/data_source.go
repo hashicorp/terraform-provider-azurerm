@@ -40,7 +40,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
-			"gateway_name": schemaz.SchemaApiManagementChildDataSourceName(),
+			"gateway_name": schemaz.SchemaApiManagementChildDataSourceName("The name of the API Management Gateway."),
 
 			"certificate_id": {
 				Description: "The ID of the certificate used for TLS connection establishment.",

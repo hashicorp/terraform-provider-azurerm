@@ -413,7 +413,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"host_name": {
-			Description: "The hostname used.",
+			Description: "The hostname.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

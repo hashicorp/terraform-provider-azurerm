@@ -13,7 +13,7 @@ import (
 
 func apiManagementGlobalSchemaSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"schema_id": schemaz.SchemaApiManagementChildName(),
+		"schema_id": schemaz.SchemaApiManagementChildName("A unique identifier for this Schema."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
