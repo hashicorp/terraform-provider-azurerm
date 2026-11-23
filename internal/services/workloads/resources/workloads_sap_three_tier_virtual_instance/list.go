@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package workloads
+package workloads_sap_three_tier_virtual_instance
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkloadsSAPThreeTierVirtualInstanceListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(WorkloadsSAPThreeTierVirtualInstanceListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (WorkloadsSAPThreeTierVirtualInstanceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = WorkloadsSAPThreeTierVirtualInstanceResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (WorkloadsSAPThreeTierVirtualInstanceListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(WorkloadsSAPThreeTierVirtualInstanceResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Workloads.SAPVirtualInstances
 
 	var data sdk.DefaultListModel
@@ -45,7 +45,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceListResource) List(ctx context.Conte
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	resource := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	resource := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():

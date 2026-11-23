@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package workloads_test
+package workloads_sap_single_node_virtual_instance_test
 
 import (
 	"testing"

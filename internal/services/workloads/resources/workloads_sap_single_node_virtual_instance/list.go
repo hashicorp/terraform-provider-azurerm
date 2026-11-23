@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package workloads
+package workloads_sap_single_node_virtual_instance
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkloadsSAPSingleNodeVirtualInstanceListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(WorkloadsSAPSingleNodeVirtualInstanceListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (WorkloadsSAPSingleNodeVirtualInstanceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = WorkloadsSAPSingleNodeVirtualInstanceResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (WorkloadsSAPSingleNodeVirtualInstanceListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(WorkloadsSAPSingleNodeVirtualInstanceResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Workloads.SAPVirtualInstances
 
 	var data sdk.DefaultListModel
@@ -45,7 +45,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceListResource) List(ctx context.Cont
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	resource := WorkloadsSAPSingleNodeVirtualInstanceResource{}
+	resource := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
