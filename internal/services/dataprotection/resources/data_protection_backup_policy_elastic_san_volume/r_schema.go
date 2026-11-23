@@ -41,29 +41,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"default_retention_duration": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.ISO8601Duration,
-		},
-
-		"daily_retention_duration": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"weekly_backup_schedule"},
-			ValidateFunc:  validation.ISO8601Duration,
-		},
-
-		"monthly_retention_duration": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"daily_backup_schedule"},
-			ValidateFunc:  validation.ISO8601Duration,
-		},
-
 		"weekly_backup_schedule": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -78,11 +55,42 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
+		"default_retention_duration": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.ISO8601DurationBetween("P7D", "P365D"),
+			),
+		},
+
+		"daily_retention_duration": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"weekly_backup_schedule"},
+			ValidateFunc: validation.All(
+				validation.ISO8601DurationBetween("P7D", "P365D"),
+			),
+		},
+
 		"weekly_retention_duration": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.ISO8601DurationBetween("P4W", "P52W"),
+			),
+		},
+
+		"monthly_retention_duration": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"daily_backup_schedule"},
+			ValidateFunc: validation.All(
+				validation.ISO8601DurationBetween("P1M", "P11M"),
+			),
 		},
 	}
 }

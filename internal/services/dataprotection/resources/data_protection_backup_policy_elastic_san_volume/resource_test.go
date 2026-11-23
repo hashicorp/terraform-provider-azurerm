@@ -179,7 +179,7 @@ resource "azurerm_data_protection_backup_policy_elastic_san_volume" "test" {
   daily_backup_schedule           = "R/2026-02-08T13:00:00+00:00/P1D"
   default_retention_duration      = "P7D"
   daily_retention_duration        = "P14D"
-  weekly_retention_duration       = "P28D"
+  weekly_retention_duration       = "P4W"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -193,7 +193,7 @@ resource "azurerm_data_protection_backup_policy_elastic_san_volume" "test" {
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   weekly_backup_schedule          = "R/2026-02-08T13:00:00+00:00/P1W"
   default_retention_duration      = "P7D"
-  weekly_retention_duration       = "P28D"
+  weekly_retention_duration       = "P4W"
   monthly_retention_duration      = "P3M"
 }
 `, r.template(data), data.RandomInteger)

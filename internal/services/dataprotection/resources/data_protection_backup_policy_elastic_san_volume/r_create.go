@@ -97,14 +97,16 @@ func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanV
 	}
 
 	backupSchedule := input.DailyBackupSchedule
+	backupRuleName := "BackupDaily"
 	if backupSchedule == "" {
 		backupSchedule = input.WeeklyBackupSchedule
+		backupRuleName = "BackupWeekly"
 	}
 	schedule := basebackuppolicyresources.BackupSchedule{
 		RepeatingTimeIntervals: []string{backupSchedule},
 	}
 	rules = append(rules, basebackuppolicyresources.AzureBackupRule{
-		Name: "Backup",
+		Name: backupRuleName,
 		BackupParameters: basebackuppolicyresources.AzureBackupParams{
 			BackupType: "Incremental",
 		},
