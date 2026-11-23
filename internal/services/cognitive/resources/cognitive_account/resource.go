@@ -43,6 +43,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			kind := d.Get("kind").(string)
+			kindKnown := d.NewValueKnown("kind")
 
 			if d.Get("project_management_enabled").(bool) {
 				if kind != "AIServices" {
@@ -99,13 +100,13 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 			}
 
-			if kind == "QnAMaker" && d.NewValueKnown("qna_runtime_endpoint") {
+			if kindKnown && kind == "QnAMaker" && d.NewValueKnown("qna_runtime_endpoint") {
 				if _, ok := d.GetOk("qna_runtime_endpoint"); !ok {
 					return errors.New("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
 				}
 			}
 
-			if kind != "TextAnalytics" {
+			if kindKnown && kind != "TextAnalytics" {
 				if _, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
 					return errors.New("`custom_question_answering_search_service_id` can only be set when `kind` is set to `TextAnalytics`")
 				}
@@ -115,7 +116,7 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 			}
 
-			if kind != "MetricsAdvisor" {
+			if kindKnown && kind != "MetricsAdvisor" {
 				if _, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
 					return errors.New("`metrics_advisor_aad_client_id` can only be set when `kind` is set to `MetricsAdvisor`")
 				}

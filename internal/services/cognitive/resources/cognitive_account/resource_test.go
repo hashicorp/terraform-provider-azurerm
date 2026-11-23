@@ -210,7 +210,6 @@ func TestAccCognitiveAccount_qnaRuntimeEndpoint(t *testing.T) {
 }
 
 func TestAccCognitiveAccount_qnaRuntimeEndpointUnspecified(t *testing.T) {
-	t.Skip("skipping as the kind `QnAMaker` was deprecated on 31 October 2025 and there is no available quota")
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 

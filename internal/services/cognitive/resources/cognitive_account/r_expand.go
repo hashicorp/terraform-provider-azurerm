@@ -72,28 +72,36 @@ func expandCognitiveAccountStorage(input []any) *[]cognitiveservicesaccounts.Use
 
 func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) *cognitiveservicesaccounts.ApiProperties {
 	props := cognitiveservicesaccounts.ApiProperties{}
-	if v, ok := d.GetOk("qna_runtime_endpoint"); ok {
-		props.QnaRuntimeEndpoint = pointer.To(v.(string))
+	kind := d.Get("kind")
+
+	if kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok {
+			props.QnaRuntimeEndpoint = pointer.To(v.(string))
+		}
 	}
 
-	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
-		props.QnaAzureSearchEndpointId = pointer.To(v.(string))
-	}
-	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
-		props.QnaAzureSearchEndpointKey = pointer.To(v.(string))
+	if kind == "TextAnalytics" {
+		if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
+			props.QnaAzureSearchEndpointId = pointer.To(v.(string))
+		}
+		if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
+			props.QnaAzureSearchEndpointKey = pointer.To(v.(string))
+		}
 	}
 
-	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
-		props.AadClientId = pointer.To(v.(string))
-	}
-	if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
-		props.AadTenantId = pointer.To(v.(string))
-	}
-	if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
-		props.SuperUser = pointer.To(v.(string))
-	}
-	if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
-		props.WebsiteName = pointer.To(v.(string))
+	if kind == "MetricsAdvisor" {
+		if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
+			props.AadClientId = pointer.To(v.(string))
+		}
+		if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
+			props.AadTenantId = pointer.To(v.(string))
+		}
+		if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
+			props.SuperUser = pointer.To(v.(string))
+		}
+		if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
+			props.WebsiteName = pointer.To(v.(string))
+		}
 	}
 
 	return &props
