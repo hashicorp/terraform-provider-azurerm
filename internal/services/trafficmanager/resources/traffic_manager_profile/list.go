@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package trafficmanager
+package traffic_manager_profile
 
 import (
 	"context"
@@ -17,19 +17,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TrafficManagerProfileListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(TrafficManagerProfileListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (r TrafficManagerProfileListResource) ResourceFunc() *pluginsdk.Resource {
-	return resourceArmTrafficManagerProfile()
+func (r ListResource) ResourceFunc() *pluginsdk.Resource {
+	return RegisterResource()
 }
 
-func (r TrafficManagerProfileListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = azureTrafficManagerProfileResourceName
 }
 
-func (r TrafficManagerProfileListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.TrafficManager.ProfilesClient
 
 	var data sdk.DefaultListModel
@@ -76,7 +76,7 @@ func (r TrafficManagerProfileListResource) List(ctx context.Context, request lis
 				return
 			}
 
-			rd := resourceArmTrafficManagerProfile().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
 			if err := resourceArmTrafficManagerProfileFlatten(rd, id, &profile); err != nil {

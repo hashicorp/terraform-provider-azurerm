@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package trafficmanager_test
+package traffic_manager_nested_endpoint_test
 
 import (
 	"context"

@@ -1,14 +1,14 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package trafficmanager
+package helpers
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 )
 
-func expandEndpointCustomHeaderConfig(input []any) *[]trafficmanagers.EndpointPropertiesCustomHeadersItem {
+func ExpandEndpointCustomHeaderConfig(input []any) *[]trafficmanagers.EndpointPropertiesCustomHeadersItem {
 	output := make([]trafficmanagers.EndpointPropertiesCustomHeadersItem, 0)
 
 	for _, header := range input {
@@ -22,7 +22,7 @@ func expandEndpointCustomHeaderConfig(input []any) *[]trafficmanagers.EndpointPr
 	return &output
 }
 
-func flattenEndpointCustomHeaderConfig(input *[]trafficmanagers.EndpointPropertiesCustomHeadersItem) []any {
+func FlattenEndpointCustomHeaderConfig(input *[]trafficmanagers.EndpointPropertiesCustomHeadersItem) []any {
 	result := make([]any, 0)
 	if input == nil {
 		return result
@@ -39,7 +39,7 @@ func flattenEndpointCustomHeaderConfig(input *[]trafficmanagers.EndpointProperti
 	return result
 }
 
-func expandEndpointSubnetConfig(input []any) *[]trafficmanagers.EndpointPropertiesSubnetsItem {
+func ExpandEndpointSubnetConfig(input []any) *[]trafficmanagers.EndpointPropertiesSubnetsItem {
 	output := make([]trafficmanagers.EndpointPropertiesSubnetsItem, 0)
 
 	for _, subnet := range input {
@@ -60,7 +60,7 @@ func expandEndpointSubnetConfig(input []any) *[]trafficmanagers.EndpointProperti
 	return &output
 }
 
-func flattenEndpointSubnetConfig(input *[]trafficmanagers.EndpointPropertiesSubnetsItem) []any {
+func FlattenEndpointSubnetConfig(input *[]trafficmanagers.EndpointPropertiesSubnetsItem) []any {
 	result := make([]any, 0)
 	if input == nil {
 		return result
