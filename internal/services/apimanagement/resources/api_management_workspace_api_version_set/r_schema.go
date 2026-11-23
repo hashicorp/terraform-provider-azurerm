@@ -29,7 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}, "API Management Workspace"),
 
 		"display_name": {
 			Type:         pluginsdk.TypeString,

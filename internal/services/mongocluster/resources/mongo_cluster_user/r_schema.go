@@ -20,7 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"mongo_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&users.MongoClusterId{}),
+		"mongo_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&users.MongoClusterId{}, "Mongo Cluster"),
 
 		"identity_provider_type": {
 			Type:     pluginsdk.TypeString,

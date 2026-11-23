@@ -23,7 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequiredForceNew(&pools.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequiredForceNew(&pools.ProjectId{}, "Dev Center Project"),
 
 		"dev_box_definition_name": {
 			Type:         pluginsdk.TypeString,

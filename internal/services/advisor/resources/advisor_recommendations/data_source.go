@@ -37,7 +37,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				},
 			},
 
-			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional(),
+			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional("Specifies a set of resource groups about which the Advisor Recommendations will be listed."),
 
 			"filter_by_resource_ids": {
 				Type:     pluginsdk.TypeSet,

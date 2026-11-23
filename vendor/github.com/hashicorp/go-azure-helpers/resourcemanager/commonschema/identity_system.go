@@ -21,19 +21,22 @@ func SystemAssignedIdentityRequired() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeSystemAssigned),
 					}, false),
 				},
 				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Principal ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Tenant ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -50,20 +53,23 @@ func SystemAssignedIdentityRequiredForceNew() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeSystemAssigned),
 					}, false),
 				},
 				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Principal ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Tenant ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -79,19 +85,22 @@ func SystemAssignedIdentityOptional() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeSystemAssigned),
 					}, false),
 				},
 				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Principal ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Tenant ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -108,20 +117,23 @@ func SystemAssignedIdentityOptionalForceNew() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeSystemAssigned),
 					}, false),
 				},
 				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Principal ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Tenant ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -136,16 +148,19 @@ func SystemAssignedIdentityComputed() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The type of Managed Service Identity configured on this resource.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"principal_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Principal ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"tenant_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The Tenant ID associated with this Managed Service Identity.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 			},
 		},

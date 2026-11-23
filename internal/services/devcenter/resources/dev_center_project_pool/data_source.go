@@ -43,7 +43,7 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DevCenterProjectPoolName,
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&pools.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&pools.ProjectId{}, "Dev Center Project"),
 	}
 }
 

@@ -20,9 +20,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devcenters.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devcenters.DevCenterId{}, "Dev Center"),
 
-		"network_connection_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkconnections.NetworkConnectionId{}),
+		"network_connection_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkconnections.NetworkConnectionId{}, "Dev Center Network Connection"),
 	}
 }
 
