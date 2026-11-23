@@ -106,14 +106,14 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"instrumentation_key": {
-			Description: "The Instrumentation Key for this Application Insights component..",
+			Description: "The Instrumentation Key for this Application Insights component.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
 		},
 
 		"connection_string": {
-			Description: "The Connection String for this Application Insights component..",
+			Description: "The Connection String for this Application Insights component.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,

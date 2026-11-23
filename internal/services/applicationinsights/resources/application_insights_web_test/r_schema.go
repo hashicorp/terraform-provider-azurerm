@@ -97,7 +97,7 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"configuration": {
-			Description:      "An XML configuration specification for a WebTest ([see here for more information](https://docs.microsoft.com/rest/api/application-insights/webtests/createorupdate/)).",
+			Description:      "An XML configuration specification for a WebTest ([see here for more information](https://learn.microsoft.com/rest/api/application-insights/webtests/createorupdate/)).",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: suppress.XmlDiff,

@@ -45,7 +45,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"connection_string": {
-				Description: "The connection string of the Application Insights component..",
+				Description: "The connection string of the Application Insights component.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 				Sensitive:   true,

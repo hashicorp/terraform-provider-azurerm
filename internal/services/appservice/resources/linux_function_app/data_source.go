@@ -140,7 +140,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"app_settings": {
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 			Type:        pluginsdk.TypeMap,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{
