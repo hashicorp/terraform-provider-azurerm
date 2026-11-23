@@ -100,8 +100,9 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"default_scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Default Scope used when requesting an Access Token, specified as a string containing space-delimited values.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"description": {
