@@ -18,6 +18,17 @@ import (
 
 type MonitorSmartDetectorAlertRuleResource struct{}
 
+func TestAccMonitorSmartDetectorAlertRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
+	r := MonitorSmartDetectorAlertRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorSmartDetectorAlertRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
 	r := MonitorSmartDetectorAlertRuleResource{}

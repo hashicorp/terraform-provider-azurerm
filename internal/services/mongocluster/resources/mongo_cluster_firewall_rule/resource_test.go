@@ -18,6 +18,17 @@ import (
 
 type MongoClusterFirewallRuleResource struct{}
 
+func TestAccMongoClusterFirewallRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster_firewall_rule", "test")
+	r := MongoClusterFirewallRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMongoClusterFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster_firewall_rule", "test")
 	r := MongoClusterFirewallRuleResource{}

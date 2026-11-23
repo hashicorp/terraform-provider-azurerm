@@ -18,6 +18,17 @@ import (
 
 type MapsAccountResource struct{}
 
+func TestAccMapsAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
+	r := MapsAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMapsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 	r := MapsAccountResource{}

@@ -13,6 +13,17 @@ import (
 
 type NetAppVolumeDataSource struct{}
 
+func TestAccDataSourceNetAppVolume_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
+	r := NetAppVolumeDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
 	r := NetAppVolumeDataSource{}

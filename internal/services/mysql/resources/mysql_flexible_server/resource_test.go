@@ -25,6 +25,17 @@ import (
 
 type MysqlFlexibleServerResource struct{}
 
+func TestAccMySqlFlexibleServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MysqlFlexibleServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}

@@ -19,6 +19,17 @@ import (
 
 type NetAppVolumeQuotaRuleResource struct{}
 
+func TestAccNetAppVolumeQuotaRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
+	r := NetAppVolumeQuotaRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.individualGroupQuotaType(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeQuotaRule_individualGroupQuotaType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
 	r := NetAppVolumeQuotaRuleResource{}

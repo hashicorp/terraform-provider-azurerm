@@ -13,6 +13,17 @@ import (
 
 type ManagementGroupDataSource struct{}
 
+func TestAccManagementGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
+	r := ManagementGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicByName(data),
+		},
+	}, "")
+}
+
 func TestAccManagementGroupDataSource_basicByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
 	r := ManagementGroupDataSource{}

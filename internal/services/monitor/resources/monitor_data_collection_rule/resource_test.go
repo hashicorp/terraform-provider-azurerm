@@ -35,6 +35,19 @@ func (r MonitorDataCollectionRuleResource) Exists(ctx context.Context, client *c
 	return pointer.To(true), nil
 }
 
+func TestAccMonitorDataCollectionRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	data.Locations.Primary = "westeurope"
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorDataCollectionRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}

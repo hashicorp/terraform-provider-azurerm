@@ -24,6 +24,17 @@ import (
 
 type MssqlDatabaseResource struct{}
 
+func TestAccMsSqlDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}

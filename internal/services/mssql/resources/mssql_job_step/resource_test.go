@@ -20,6 +20,17 @@ import (
 
 type MsSqlJobStepTestResource struct{}
 
+func TestAccMsSqlJobStep_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
+	r := MsSqlJobStepTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlJobStep_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
 	r := MsSqlJobStepTestResource{}

@@ -20,6 +20,17 @@ import (
 
 type MssqlVirtualMachineResource struct{}
 
+func TestAccMsSqlVirtualMachine_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MssqlVirtualMachineResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MssqlVirtualMachineResource{}

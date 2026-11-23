@@ -18,6 +18,17 @@ import (
 
 type MysqlFlexibleDatabaseResource struct{}
 
+func TestAccMySQLFlexibleDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
+	r := MysqlFlexibleDatabaseResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMySQLFlexibleDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
 	r := MysqlFlexibleDatabaseResource{}

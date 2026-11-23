@@ -20,6 +20,17 @@ import (
 
 type MssqlJobAgentResource struct{}
 
+func TestAccMsSqlJobAgent_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
+	r := MssqlJobAgentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, mssql_job_agent.SqlJobAgentSkuJA200),
+		},
+	}, "")
+}
+
 func TestAccMsSqlJobAgent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
 	r := MssqlJobAgentResource{}

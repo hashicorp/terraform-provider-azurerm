@@ -13,6 +13,17 @@ import (
 
 type NetAppBackupPolicyDataSource struct{}
 
+func TestAccNetAppBackupPolicyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_backup_policy", "test")
+	d := NetAppBackupPolicyDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppBackupPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_backup_policy", "test")
 	d := NetAppBackupPolicyDataSource{}

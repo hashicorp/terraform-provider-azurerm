@@ -19,6 +19,17 @@ import (
 
 type MonitorPrivateLinkScopedServiceResource struct{}
 
+func TestAccMonitorPrivateLinkScopedService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
+	r := MonitorPrivateLinkScopedServiceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorPrivateLinkScopedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
 	r := MonitorPrivateLinkScopedServiceResource{}

@@ -20,6 +20,17 @@ import (
 
 type MsSqlJobScheduleResource struct{}
 
+func TestAccMsSqlJobScheduleResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
+	r := MsSqlJobScheduleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlJobScheduleResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
 	r := MsSqlJobScheduleResource{}

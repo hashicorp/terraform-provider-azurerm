@@ -36,6 +36,17 @@ func (t NetAppBackupVaultResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(true), nil
 }
 
+func TestAccNetAppBackupVault_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_backup_vault", "test")
+	r := NetAppBackupVaultResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppBackupVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_backup_vault", "test")
 	r := NetAppBackupVaultResource{}

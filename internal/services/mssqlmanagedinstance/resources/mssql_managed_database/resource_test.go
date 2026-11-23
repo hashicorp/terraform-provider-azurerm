@@ -19,6 +19,17 @@ import (
 
 type MsSqlManagedDatabase struct{}
 
+func TestAccMsSqlManagedDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlManagedDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
 	r := MsSqlManagedDatabase{}

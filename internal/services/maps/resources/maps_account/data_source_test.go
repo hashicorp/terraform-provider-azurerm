@@ -13,6 +13,17 @@ import (
 
 type MapsAccountDataSource struct{}
 
+func TestAccMapsAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_maps_account", "test")
+	r := MapsAccountDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMapsAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_maps_account", "test")
 	r := MapsAccountDataSource{}

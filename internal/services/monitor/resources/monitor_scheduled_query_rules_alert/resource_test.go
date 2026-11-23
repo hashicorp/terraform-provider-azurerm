@@ -20,6 +20,17 @@ import (
 
 type MonitorScheduledQueryRulesAlertResource struct{}
 
+func TestAccMonitorScheduledQueryRules_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
+	r := MonitorScheduledQueryRulesAlertResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.AlertingActionConfigComplete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesAlertResource{}

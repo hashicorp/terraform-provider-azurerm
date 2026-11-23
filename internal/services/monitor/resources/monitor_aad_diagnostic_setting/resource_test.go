@@ -32,6 +32,7 @@ func TestAccMonitorAADDiagnosticSetting_sequential(t *testing.T) {
 			"storageAccount":        testAccMonitorAADDiagnosticSetting_storageAccount,
 			"storageAccountUpdate":  testAccMonitorAADDiagnosticSetting_updateToEnabledLog,
 			"updateEnabledLog":      testAccMonitorAADDiagnosticSetting_updateEnabledLog,
+			"regression":            testAccMonitorAADDiagnosticSetting_regressionTest,
 		},
 	}
 
@@ -44,6 +45,16 @@ func TestAccMonitorAADDiagnosticSetting_sequential(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testAccMonitorAADDiagnosticSetting_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
+	r := MonitorAADDiagnosticSettingResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventhubDefault(data),
+		},
+	}, "")
 }
 
 func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {

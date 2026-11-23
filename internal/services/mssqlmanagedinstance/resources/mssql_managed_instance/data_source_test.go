@@ -13,6 +13,16 @@ import (
 
 type MsSqlManagedInstanceDataSource struct{}
 
+func TestAccDataSourceMsSqlManagedInstance_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_instance", "test")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: MsSqlManagedInstanceDataSource{}.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMsSqlManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_instance", "test")
 

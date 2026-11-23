@@ -19,6 +19,17 @@ import (
 
 type MsSqlVirtualMachineGroupResource struct{}
 
+func TestAccMsSqlVirtualMachineGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
+	r := MsSqlVirtualMachineGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlVirtualMachineGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
 	r := MsSqlVirtualMachineGroupResource{}

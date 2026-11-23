@@ -19,6 +19,17 @@ import (
 
 type ServerDNSAliasResource struct{}
 
+func TestAccServerDNSAlias_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_dns_alias", "test")
+	r := ServerDNSAliasResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccServerDNSAlias_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_dns_alias", "test")
 	r := ServerDNSAliasResource{}

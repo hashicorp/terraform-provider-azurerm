@@ -35,6 +35,17 @@ func (r MonitorDataCollectionEndpointResource) Exists(ctx context.Context, clien
 	return pointer.To(true), nil
 }
 
+func TestAccMonitorDataCollectionEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_endpoint", "test")
+	r := MonitorDataCollectionEndpointResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorDataCollectionEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_endpoint", "test")
 	r := MonitorDataCollectionEndpointResource{}

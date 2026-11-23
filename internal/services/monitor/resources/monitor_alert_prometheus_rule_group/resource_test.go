@@ -19,6 +19,16 @@ import (
 
 type AlertPrometheusRuleGroupTestResource struct{}
 
+func TestAccAlertsManagementPrometheusRuleGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_prometheus_rule_group", "test")
+	r := AlertPrometheusRuleGroupTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAlertsManagementPrometheusRuleGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_prometheus_rule_group", "test")
 	r := AlertPrometheusRuleGroupTestResource{}

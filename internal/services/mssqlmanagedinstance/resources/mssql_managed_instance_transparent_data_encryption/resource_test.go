@@ -21,6 +21,17 @@ import (
 
 type MsSqlManagedInstanceTransparentDataEncryptionResource struct{}
 
+func TestAccMsSqlManagedInstanceTransparentDataEncryption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
+	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultSystemAssignedIdentity(data, "test"),
+		},
+	}, "")
+}
+
 func TestAccMsSqlManagedInstanceTransparentDataEncryption_keyVaultSystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}

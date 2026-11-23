@@ -19,6 +19,17 @@ import (
 
 type MonitorPrivateLinkScopeResource struct{}
 
+func TestAccMonitorPrivateLinkScope_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scope", "test")
+	r := MonitorPrivateLinkScopeResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Test", "Open", "Open"),
+		},
+	}, "")
+}
+
 func TestAccMonitorPrivateLinkScope_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scope", "test")
 	r := MonitorPrivateLinkScopeResource{}

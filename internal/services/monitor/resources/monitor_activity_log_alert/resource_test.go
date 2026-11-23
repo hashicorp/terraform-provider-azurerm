@@ -19,6 +19,17 @@ import (
 
 type MonitorActivityLogAlertResource struct{}
 
+func TestAccMonitorActivityLogAlert_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorActivityLogAlert_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}

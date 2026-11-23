@@ -18,6 +18,17 @@ import (
 
 type MonitorAlertProcessingRuleActionGroupResource struct{}
 
+func TestAccMonitorAlertProcessingRuleActionGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_action_group", "test")
+	r := MonitorAlertProcessingRuleActionGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorAlertProcessingRuleActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_action_group", "test")
 	r := MonitorAlertProcessingRuleActionGroupResource{}

@@ -14,6 +14,19 @@ import (
 
 type NetAppAccountEncryptionDataSource struct{}
 
+func TestAccNetAppAccountEncryptionDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account_encryption", "test")
+	d := NetAppAccountEncryptionDataSource{}
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data, tenantID),
+		},
+	}, "")
+}
+
 func TestAccNetAppAccountEncryptionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account_encryption", "test")
 	d := NetAppAccountEncryptionDataSource{}

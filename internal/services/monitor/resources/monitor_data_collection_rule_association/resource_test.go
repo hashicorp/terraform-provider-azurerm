@@ -35,6 +35,17 @@ func (r MonitorDataCollectionRuleAssociationResource) Exists(ctx context.Context
 	return pointer.To(true), nil
 }
 
+func TestAccMonitorDataCollectionRuleAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule_association", "test")
+	r := MonitorDataCollectionRuleAssociationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorDataCollectionRuleAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule_association", "test")
 	r := MonitorDataCollectionRuleAssociationResource{}

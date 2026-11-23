@@ -13,6 +13,17 @@ import (
 
 type MonitorWorkspaceDataSource struct{}
 
+func TestAccMonitorWorkspaceDataSourceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_workspace", "test")
+	d := MonitorWorkspaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorWorkspaceDataSourceDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_workspace", "test")
 	d := MonitorWorkspaceDataSource{}

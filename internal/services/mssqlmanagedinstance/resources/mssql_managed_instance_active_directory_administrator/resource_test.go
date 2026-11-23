@@ -21,6 +21,17 @@ import (
 
 type MsSqlManagedInstanceActiveDirectoryAdministratorResource struct{}
 
+func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_active_directory_administrator", "test")
+	r := MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, true),
+		},
+	}, "")
+}
+
 func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_active_directory_administrator", "test")
 	r := MsSqlManagedInstanceActiveDirectoryAdministratorResource{}

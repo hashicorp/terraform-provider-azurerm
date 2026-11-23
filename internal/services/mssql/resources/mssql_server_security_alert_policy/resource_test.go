@@ -21,6 +21,18 @@ import (
 
 type MsSqlServerSecurityAlertPolicyResource struct{}
 
+func TestAccMsSqlServerSecurityAlertPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
+
+	r := MsSqlServerSecurityAlertPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlServerSecurityAlertPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
 

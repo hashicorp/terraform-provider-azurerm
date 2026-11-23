@@ -13,6 +13,17 @@ import (
 
 type MonitorDataCollectionEndpointDataSource struct{}
 
+func TestAccMonitorDataCollectionEndpointDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_data_collection_endpoint", "test")
+	d := MonitorDataCollectionEndpointDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorDataCollectionEndpointDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_data_collection_endpoint", "test")
 	d := MonitorDataCollectionEndpointDataSource{}

@@ -14,6 +14,17 @@ import (
 
 type MonitorScheduledQueryRulesDataSource struct{}
 
+func TestAccDataSourceMonitorScheduledQueryRules_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_alert", "test")
+	r := MonitorScheduledQueryRulesDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.AlertingActionConfig(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesDataSource{}

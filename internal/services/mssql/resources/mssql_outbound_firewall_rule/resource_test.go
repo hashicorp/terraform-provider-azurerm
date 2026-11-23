@@ -19,6 +19,17 @@ import (
 
 type MsSqlOutboundFirewallRuleResource struct{}
 
+func TestAccMsSqlOutboundFirewallRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_outbound_firewall_rule", "test")
+	r := MsSqlOutboundFirewallRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlOutboundFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_outbound_firewall_rule", "test")
 	r := MsSqlOutboundFirewallRuleResource{}

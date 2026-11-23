@@ -19,6 +19,16 @@ import (
 
 type MonitorWorkspaceResource struct{}
 
+func TestAccMonitorWorksparkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
+	r := MonitorWorkspaceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorWorksparkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
 	r := MonitorWorkspaceResource{}

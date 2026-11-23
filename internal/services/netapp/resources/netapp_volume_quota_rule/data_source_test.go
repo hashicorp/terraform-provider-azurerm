@@ -13,6 +13,17 @@ import (
 
 type NetAppVolumeQuotaRuleDataSource struct{}
 
+func TestAccNetAppVolumeQuotaRuleDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_quota_rule", "test")
+	d := NetAppVolumeQuotaRuleDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeQuotaRuleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_quota_rule", "test")
 	d := NetAppVolumeQuotaRuleDataSource{}

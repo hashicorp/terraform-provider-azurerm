@@ -19,6 +19,16 @@ import (
 
 type sqlManagedInstanceStartStopScheduleResource struct{}
 
+func TestAccMsSqlManagedInstanceStartStopSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
+	r := sqlManagedInstanceStartStopScheduleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlManagedInstanceStartStopSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
 	r := sqlManagedInstanceStartStopScheduleResource{}

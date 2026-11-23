@@ -20,6 +20,17 @@ import (
 
 type MssqlElasticpoolResource struct{}
 
+func TestAccMsSqlElasticPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MssqlElasticpoolResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDTU(data, ""),
+		},
+	}, "")
+}
+
 func TestAccMsSqlElasticPool_basicDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MssqlElasticpoolResource{}

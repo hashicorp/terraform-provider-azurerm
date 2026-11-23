@@ -23,6 +23,17 @@ import (
 
 type MsSqlJobCredentialResource struct{}
 
+func TestAccMsSqlJobCredential_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_credential", "test")
+	r := MsSqlJobCredentialResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlJobCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_credential", "test")
 	r := MsSqlJobCredentialResource{}

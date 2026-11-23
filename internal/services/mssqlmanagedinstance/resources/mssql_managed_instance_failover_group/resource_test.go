@@ -19,6 +19,17 @@ import (
 
 type MsSqlManagedInstanceFailoverGroupResource struct{}
 
+func TestAccMsSqlManagedInstanceFailoverGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_failover_group", "test")
+	r := MsSqlManagedInstanceFailoverGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_failover_group", "test")
 	r := MsSqlManagedInstanceFailoverGroupResource{}

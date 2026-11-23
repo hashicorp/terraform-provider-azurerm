@@ -13,6 +13,17 @@ import (
 
 type NetAppVolumeGroupSAPHanaDataSource struct{}
 
+func TestAccNetAppVolumeGroupSAPHanaDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_group_sap_hana", "test")
+	d := NetAppVolumeGroupSAPHanaDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeGroupSAPHanaDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_group_sap_hana", "test")
 	d := NetAppVolumeGroupSAPHanaDataSource{}

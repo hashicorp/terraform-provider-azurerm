@@ -18,6 +18,17 @@ import (
 
 type MongoClusterUserResource struct{}
 
+func TestAccMongoClusterUser_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster_user", "test")
+	r := MongoClusterUserResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMongoClusterUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster_user", "test")
 	r := MongoClusterUserResource{}
