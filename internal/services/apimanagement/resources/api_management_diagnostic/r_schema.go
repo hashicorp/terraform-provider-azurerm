@@ -16,9 +16,10 @@ import (
 func apiManagementDiagnosticSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"identifier": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The diagnostic identifier for the API Management Service. At this time the.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"applicationinsights",
 				"azuremonitor",
@@ -30,12 +31,14 @@ func apiManagementDiagnosticSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"api_management_logger_id": {
+			Description:  "The ID of the target API Management Logger where the API Management Diagnostic should be saved.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: logger.ValidateLoggerID,
 		},
 
 		"sampling_percentage": {
+			Description:  "Sampling (%). For high traffic APIs, please read this [documentation](https://learn.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -43,12 +46,14 @@ func apiManagementDiagnosticSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"always_log_errors": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Always log errors. Send telemetry if there is an erroneous condition, regardless of sampling settings.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"verbosity": {
+			Description:  "Logging verbosity.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -56,17 +61,20 @@ func apiManagementDiagnosticSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_client_ip": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Log client IP address.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"metrics_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether custom metrics emitted via the `emit-metric` policy are sent to Application Insights.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"http_correlation_protocol": {
+			Description:  "The HTTP Correlation Protocol to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -82,6 +90,7 @@ func apiManagementDiagnosticSchema() map[string]*pluginsdk.Schema {
 		"backend_response": helpers.ResourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 		"operation_name_format": {
+			Description:  "The format of the Operation Name for Application Insights telemetries.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForOperationNameFormat(), false),

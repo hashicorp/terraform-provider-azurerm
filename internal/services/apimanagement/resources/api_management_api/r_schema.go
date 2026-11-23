@@ -14,13 +14,14 @@ import (
 
 func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementApiName(),
+		"name": schemaz.SchemaApiManagementApiName("The name of the API Management API."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"display_name": {
+			Description:  "The display name of the API.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -28,6 +29,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"path": {
+			Description:  "The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of its resource paths within the API Management Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -35,9 +37,10 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"protocols": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "A list of protocols the operations in this API can be invoked.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(api.PossibleValuesForProtocol(), false),
@@ -45,6 +48,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"revision": {
+			Description:  "The Revision which used for this API.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -52,6 +56,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"revision_description": {
+			Description:  "The description of the API Revision of the API Management API.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -59,8 +64,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 
 		// Optional
 		"api_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Type of API.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because the API sets a default api_type (http) when not specified
 			Computed:     true,
 			ValidateFunc: validation.StringInSlice(api.PossibleValuesForApiType(), false),
@@ -74,16 +80,19 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
+						Description:  "The email address of the contact person/organization.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsEmailAddress,
 					},
 					"name": {
+						Description:  "The name of the contact person/organization.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"url": {
+						Description:  "Absolute URL of the contact information.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -93,8 +102,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of the API Management API, which may include HTML formatting tags.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"import": {
@@ -104,14 +114,16 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content_value": {
+						Description:  "The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline. The URL must be accessible and return a valid document; otherwise, deployment may fail.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"content_format": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The format of the content from which the API Definition should be imported.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(api.ContentFormatOpenapi),
 							string(api.ContentFormatOpenapiPositivejson),
@@ -127,18 +139,21 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"wsdl_selector": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Description: "This can only be specified when `content_format` is `wsdl` or `wsdl-link`.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"service_name": {
+									Description:  "The name of service to import from WSDL.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"endpoint_name": {
+									Description:  "The name of endpoint (port) to import from WSDL.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -158,11 +173,13 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the license.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"url": {
+						Description:  "Absolute URL of the license.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -172,8 +189,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_url": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Absolute URL of the backend service implementing this API.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because Azure returns a computed service_url when not specified
 			Computed: true,
 		},
@@ -187,11 +205,13 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"header": {
+						Description:  "The name of the HTTP Header which should be used for the Subscription Key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"query": {
+						Description:  "The name of the QueryString parameter which should be used for the Subscription Key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -201,18 +221,21 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_required": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should this API require a subscription key?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"terms_of_service_url": {
+			Description:  "Absolute URL of the Terms of Service for the API.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"source_api_id": {
+			Description:  "The API ID of the source API, which could be in format `azurerm_api_management_api.example.id` or in format `azurerm_api_management_api.example.id;rev=1`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
@@ -226,13 +249,15 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorization_server_name": {
+						Description:  "OAuth authorization server identifier. The name of an [OAuth2 Authorization Server](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_authorization_server).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ApiManagementChildName,
 					},
 					"scope": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Operations scope.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// There is currently no validation, as any length and characters can be used in the field
 					},
 				},
@@ -247,13 +272,15 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"openid_provider_name": {
+						Description:  "OpenID Connect provider identifier. The name of an [OpenID Connect Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_openid_connect_provider).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ApiManagementChildName,
 					},
 					"bearer_token_sending_methods": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "How to send token to the server. A list of zero or more methods.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(api.PossibleValuesForBearerTokenSendingMethods(), false),
@@ -265,31 +292,36 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"is_current": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is this the current API Revision?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"is_online": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is this API Revision online/accessible via the Gateway?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Version number of this API, if this API is versioned.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			// Note: O+C because the API assigns a version identifier when not explicitly set
 			Optional: true,
 		},
 
 		"version_description": {
+			Description:  "The description of the API Version of the API Management API.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"version_set_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Version Set which this API is associated with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			// Note: O+C because the API assigns a version set ID when not explicitly set
 			Optional: true,
 		},
