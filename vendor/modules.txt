@@ -700,6 +700,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iot
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/defaultparametergroups
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/passwordauthentications
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/pools
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections
