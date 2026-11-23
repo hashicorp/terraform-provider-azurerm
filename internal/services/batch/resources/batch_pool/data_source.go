@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBatchPoolRead,
+		Description: "Use this data source to access information about an existing Batch pool.",
+		Read:        dataSourceBatchPoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,55 +29,64 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Batch pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PoolName,
 			},
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"account_name": {
+				Description:  "The Batch Account name associated with the Batch pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"auto_scale": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "An `auto_scale` block that describes the scale settings when using auto scale.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"evaluation_interval": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The interval to wait before evaluating if the pool needs to be scaled.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"formula": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The autoscale formula that needs to be used for scaling the Batch pool.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"container_configuration": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The container configuration used in the pool's VMs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of container configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"container_image_names": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of container image names to use, as would be specified by `docker pull`.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"container_registries": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "Additional container registries from which container images can be pulled by the pool's VMs.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Resource{
 								Schema: batchPoolDataContainerRegistry(),
 							},
@@ -86,37 +96,44 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"data_disks": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `data_disks` block describes the data disk settings.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"lun": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The LUN is used to uniquely identify each data disk.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The caching mode of data disks.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"disk_size_gb": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The initial disk size in GB when creating new data disk.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"storage_account_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Storage Account type to be used for the data disk.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 			"disk_encryption": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_encryption_target": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "On Linux pool, only `TemporaryDisk` is supported; on Windows pool, `OsDisk` and `TemporaryDisk` must be specified.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -128,41 +145,50 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"extensions": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "An `extensions` block describes the extension settings.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Virtual Machine Extension.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"publisher": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the extension handler publisher.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the extensions.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"type_handler_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The version of script handler.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"auto_upgrade_minor_version": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"settings_json": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "JSON formatted public settings for the extension.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"protected_settings": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"provision_after_extensions": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "The collection of extension names. Collection of extension names after which this extension needs to be provisioned.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -172,38 +198,45 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"fixed_scale": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `fixed_scale` block that describes the scale settings when using fixed scale.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"target_dedicated_nodes": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of nodes in the Batch pool.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"target_low_priority_nodes": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of low priority nodes in the Batch pool.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"resize_timeout": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The timeout for resize operations.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"inter_node_communication": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of on-premises license to be used when deploying the operating system.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"max_tasks_per_node": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of tasks that can run concurrently on a single compute node in the pool.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"metadata": {
@@ -214,8 +247,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				},
 			},
 			"mount": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `mount` block that describes mount configuration.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"azure_blob_file_system": {
@@ -224,32 +258,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Storage Account name.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"container_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Blob Storage Container name.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"relative_mount_path": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The relative path on compute node where the file system will be mounted. All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"account_key": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Storage Account key.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"sas_key": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Storage SAS token.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"identity_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ARM resource ID of the User Assigned Identity.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"blobfuse_options": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -260,24 +301,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Storage Account name.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"azure_file_url": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"account_key": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Storage Account key.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"relative_mount_path": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The relative path on compute node where the file system will be mounted. All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"mount_options": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -288,25 +334,30 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"user_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The user to use for authentication against the CIFS file system.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"source": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The URI of the file system to mount.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"relative_mount_path": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The relative path on compute node where the file system will be mounted. All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"mount_options": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"password": {
-										Type:      pluginsdk.TypeString,
-										Computed:  true,
-										Sensitive: true,
+										Description: "The password to use for authentication against the CIFS file system.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
+										Sensitive:   true,
 									},
 								},
 							},
@@ -317,16 +368,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"source": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The URI of the file system to mount.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"relative_mount_path": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The relative path on compute node where the file system will be mounted. All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"mount_options": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -341,69 +395,83 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dynamic_vnet_assignment_scope": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The scope of dynamic VNet assignment.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"accelerated_networking_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ARM resource identifier of the Virtual Network subnet which the compute nodes of the pool are joined to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_ips": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of public IP IDs that will be allocated to nodes.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"public_address_provisioning_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Type of public IP address provisioning.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"endpoint_configuration": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The inbound NAT pools that are used to address specific ports on the individual compute node externally.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The name of the endpoint.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"protocol": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The protocol of the endpoint.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"backend_port": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The port number on the compute node.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"frontend_port_range": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes in the format of `1000-1100`.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"network_security_group_rules": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
+										Description: "The list of Network Security Group rules that are applied to the endpoint.",
+										Type:        pluginsdk.TypeList,
+										Computed:    true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"priority": {
-													Type:     pluginsdk.TypeInt,
-													Computed: true,
+													Description: "The priority for this rule.",
+													Type:        pluginsdk.TypeInt,
+													Computed:    true,
 												},
 												"access": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The action that should be taken for a specified IP address, subnet range or tag.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 												"source_address_prefix": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The source address prefix or tag to match for the rule.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 												"source_port_ranges": {
-													Type:     pluginsdk.TypeList,
-													Computed: true,
+													Description: "The source port ranges to match for the rule.",
+													Type:        pluginsdk.TypeList,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -419,39 +487,45 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"node_agent_sku_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the node agents in the Batch pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"node_placement": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `node_placement` block that describes the placement policy for allocating nodes in the pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"policy": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The placement policy for allocating nodes in the pool.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"os_disk_placement": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ephemeral disk placement for operating system disk for all VMs in the pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"start_task": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `start_task` block that describes the start task settings for the Batch pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: startTaskDSSchema(),
 				},
 			},
 
 			"storage_image_reference": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The reference of the storage image used by the nodes in the Batch pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -483,65 +557,77 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"task_scheduling_policy": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "`Pack` means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. `Spread` means that tasks should be assigned evenly across all nodes in the pool.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"user_accounts": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the user account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The password for the user account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"elevation_level": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The elevation level of the user account. \"NonAdmin\" - The auto user is a standard user without elevated access. \"Admin\" - The auto user is a user with elevated access and operates with full Administrator permissions.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"linux_user_configuration": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"uid": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The group ID for the user account.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"gid": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The user ID of the user account.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"ssh_private_key": {
-										Type:      pluginsdk.TypeString,
-										Computed:  true,
-										Sensitive: true,
+										Description: "The SSH private key for the user account.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
+										Sensitive:   true,
 									},
 								},
 							},
 						},
 						"windows_user_configuration": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"login_mode": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Specifies login mode for the user.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -551,18 +637,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"vm_size": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The size of the VM created in the Batch pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"windows": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A `windows` block that describes the Windows configuration in the pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enable_automatic_updates": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether automatic updates are enabled on the Virtual Machine.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -574,22 +663,26 @@ func RegisterDataSource() *pluginsdk.Resource {
 func startTaskDSSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"command_line": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The command line executed by the start task.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"container": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The settings for the container under which the start task runs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"run_options": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Additional options to the container create command.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"image_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The image to use to create the container in which the task will run.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"registry": {
 						Type:     pluginsdk.TypeList,
@@ -599,26 +692,30 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"working_directory": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A flag to indicate where the container task working directory is.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"task_retry_maximum": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of retries.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"wait_for_success": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "A flag that indicates if the Batch pool should wait for the start task to be completed.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"common_environment_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of strings (key, value) that represents the environment variables to set in the start task.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			// Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -626,26 +723,31 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"user_identity": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A `user_identity` block that describes the user identity under which the start task runs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"user_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The username to be used by the Batch pool start task.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"auto_user": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "An `auto_user` block that describes the user identity under which the start task runs.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"elevation_level": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The elevation level of the user identity under which the start task runs.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"scope": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The scope of the user identity under which the start task runs.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -655,37 +757,45 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_file": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "One or more `resource_file` blocks that describe the files to be downloaded to a compute node.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"auto_storage_container_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Storage Container name in the auto Storage Account.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"blob_prefix": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The blob prefix used when downloading blobs from an Azure Storage Container.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"file_mode": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The file permission mode attribute represented as a string in octal format (e.g. `\"0644\"`).",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"file_path": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The location on the compute node to which to download the file, relative to the task's working directory. If the `http_url` property is specified, the `file_path` is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the `auto_storage_container_name` or `storage_container_url` property is specified.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"http_url": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URL of the file to download. If the URL is Azure Blob Storage, it must be readable using anonymous access.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"storage_container_url": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URL of the blob container within Azure Blob Storage.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"user_assigned_identity_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "An identity reference from pool's User Assigned Managed Identity list.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -696,21 +806,25 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 func batchPoolDataContainerRegistry() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"registry_server": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The container registry URL.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"user_assigned_identity_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The reference to the User Assigned Identity to use to access an Azure Container Registry instead of username and password.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"user_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The user name to log into the registry server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"password": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The password to log into the registry server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

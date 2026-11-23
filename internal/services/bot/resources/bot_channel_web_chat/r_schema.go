@@ -17,6 +17,7 @@ func botChannelWebChatSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,31 +25,36 @@ func botChannelWebChatSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"site": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A site represents a client application that you want to connect to your bot.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the site.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"user_upload_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Is the user upload enabled for this site?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"endpoint_parameters_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Is the endpoint parameters enabled for this site?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"storage_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Is the storage site enabled for detailed logging?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
