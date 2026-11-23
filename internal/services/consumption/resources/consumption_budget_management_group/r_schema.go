@@ -13,12 +13,14 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Management Group Consumption Budget.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"management_group_id": {
+			Description:  "The ID of the Management Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,34 +36,39 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Should the notification be enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"threshold": {
+						Description:  "Threshold value associated with a notification. Notification is sent when the cost exceeds the threshold. It is always percent and has to be between 0 and 1000.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					"threshold_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(budgets.ThresholdTypeActual),
+						Description: "The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     string(budgets.ThresholdTypeActual),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(budgets.ThresholdTypeActual),
 							"Forecasted",
 						}, false),
 					},
 					"operator": {
+						Description:  "The comparison operator for the notification.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForOperatorType(), false),
 					},
 
 					"contact_emails": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Description: "A list of email addresses to send the budget notification to when the threshold is exceeded.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
