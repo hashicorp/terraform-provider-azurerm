@@ -4,7 +4,7 @@
 package sentinel_metadata
 
 import (
-	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -18,5 +18,5 @@ func (a Resource) ResourceType() string {
 }
 
 func (a Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return sentinelmetadata.ValidateMetadataID
+	return metadata.ValidateMetadataID
 }

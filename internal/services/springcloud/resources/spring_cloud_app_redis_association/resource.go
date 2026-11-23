@@ -6,7 +6,7 @@ package spring_cloud_app_redis_association
 import (
 	"time"
 
-	appplatform "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_app_redis_association/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

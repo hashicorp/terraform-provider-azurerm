@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 )
 
 func ExpandSpringCloudAppAddon(input string) (map[string]any, error) {
@@ -31,7 +31,7 @@ func FlattenSpringCloudAppAddon(configs map[string]any) *string {
 	if raw, ok := configs["applicationConfigurationService"]; ok && raw != nil {
 		if applicationConfigurationService, ok := raw.(map[string]any); ok && len(applicationConfigurationService) != 0 {
 			if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
-				applicationConfigurationServiceId, err := appplatform_rm.ParseConfigurationServiceIDInsensitively(resourceId.(string))
+				applicationConfigurationServiceId, err := appplatform.ParseConfigurationServiceIDInsensitively(resourceId.(string))
 				if err == nil {
 					applicationConfigurationService["resourceId"] = applicationConfigurationServiceId.ID()
 					configs["applicationConfigurationService"] = applicationConfigurationService
@@ -42,7 +42,7 @@ func FlattenSpringCloudAppAddon(configs map[string]any) *string {
 	if raw, ok := configs["serviceRegistry"]; ok && raw != nil {
 		if serviceRegistry, ok := raw.(map[string]any); ok && len(serviceRegistry) != 0 {
 			if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
-				serviceRegistryId, err := appplatform_rm.ParseServiceRegistryIDInsensitively(resourceId.(string))
+				serviceRegistryId, err := appplatform.ParseServiceRegistryIDInsensitively(resourceId.(string))
 				if err == nil {
 					serviceRegistry["resourceId"] = serviceRegistryId.ID()
 					configs["serviceRegistry"] = serviceRegistry

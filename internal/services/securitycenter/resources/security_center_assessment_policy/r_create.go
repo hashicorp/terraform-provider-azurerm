@@ -6,7 +6,6 @@ package security_center_assessment_policy
 import (
 	"fmt"
 
-	//nolint:staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
