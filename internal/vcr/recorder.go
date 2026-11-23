@@ -5,22 +5,18 @@ package vcr
 
 import (
 	"bytes"
-	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
-	"time"
 
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"gopkg.in/dnaeon/go-vcr.v4/pkg/cassette"
 	"gopkg.in/dnaeon/go-vcr.v4/pkg/recorder"
 )
@@ -161,29 +157,11 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 		return headerMatcher(rCopy, iCopy)
 	})
 
-	// Note: this needs to match the same struct from go-azure-sdk/sdk/client/client.go:retryableClient()
-	defaultTransport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			d := &net.Dialer{Resolver: &net.Resolver{}}
-			return d.DialContext(ctx, network, addr)
-		},
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-	}
-
 	r, err := recorder.New(
 		cassettePath,
 		recorder.WithMode(mode),
 		recorder.WithSkipRequestLatency(true),
-		recorder.WithRealTransport(defaultTransport),
+		recorder.WithRealTransport(client.NewDefaultTransport()),
 		recorder.WithMatcher(matcher),
 		// recorder.WithFS(&GzipFS{}),
 		recorder.WithHook(func(i *cassette.Interaction) error {
