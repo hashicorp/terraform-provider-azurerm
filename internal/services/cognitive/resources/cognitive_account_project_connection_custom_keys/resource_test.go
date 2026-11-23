@@ -153,7 +153,7 @@ func TestAccCognitiveAccountProjectConnectionCustomKeys_importMismatchedAuthType
 				}
 				return rs.Primary.ID, nil
 			},
-			ExpectError: regexp.MustCompile("cannot be managed by"),
+			ExpectError: regexp.MustCompile("connection has auth type `AAD`, expected `CustomKeys`"),
 		},
 	})
 }
