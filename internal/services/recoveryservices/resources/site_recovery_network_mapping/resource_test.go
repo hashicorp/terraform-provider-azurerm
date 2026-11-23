@@ -18,6 +18,17 @@ import (
 
 type SiteRecoveryNetworkMappingResource struct{}
 
+func TestAccSiteRecoveryNetworkMapping_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_network_mapping", "test")
+	r := SiteRecoveryNetworkMappingResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryNetworkMapping_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_network_mapping", "test")
 	r := SiteRecoveryNetworkMappingResource{}

@@ -18,6 +18,17 @@ import (
 
 type SiteRecoveryProtectionContainerMappingResource struct{}
 
+func TestAccSiteRecoveryProtectionContainerMapping_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container_mapping", "test")
+	r := SiteRecoveryProtectionContainerMappingResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryProtectionContainerMapping_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container_mapping", "test")
 	r := SiteRecoveryProtectionContainerMappingResource{}

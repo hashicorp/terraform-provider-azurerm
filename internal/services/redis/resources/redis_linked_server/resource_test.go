@@ -18,6 +18,17 @@ import (
 
 type RedisLinkedServerResource struct{}
 
+func TestAccRedisLinkedServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_linked_server", "test")
+	r := RedisLinkedServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRedisLinkedServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_linked_server", "test")
 	r := RedisLinkedServerResource{}

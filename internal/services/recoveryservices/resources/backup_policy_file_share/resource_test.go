@@ -18,6 +18,17 @@ import (
 
 type BackupProtectionPolicyFileShareResource struct{}
 
+func TestAccBackupProtectionPolicyFileShare_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDaily(data),
+		},
+	}, "")
+}
+
 func TestAccBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 	r := BackupProtectionPolicyFileShareResource{}

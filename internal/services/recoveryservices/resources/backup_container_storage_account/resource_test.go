@@ -18,6 +18,17 @@ import (
 
 type BackupProtectionContainerStorageAccountResource struct{}
 
+func TestAccBackupProtectionContainerStorageAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
+	r := BackupProtectionContainerStorageAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
 	r := BackupProtectionContainerStorageAccountResource{}

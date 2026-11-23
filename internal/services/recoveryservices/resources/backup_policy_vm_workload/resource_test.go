@@ -18,6 +18,17 @@ import (
 
 type BackupProtectionPolicyVMWorkloadResource struct{}
 
+func TestAccBackupProtectionPolicyVMWorkload_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm_workload", "test")
+	r := BackupProtectionPolicyVMWorkloadResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBackupProtectionPolicyVMWorkload_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm_workload", "test")
 	r := BackupProtectionPolicyVMWorkloadResource{}

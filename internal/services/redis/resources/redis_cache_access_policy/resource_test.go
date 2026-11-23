@@ -18,6 +18,17 @@ import (
 
 type RedisCacheAccessPolicyResource struct{}
 
+func TestAccRedisCacheAccessPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy", "test")
+	r := RedisCacheAccessPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRedisCacheAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy", "test")
 	r := RedisCacheAccessPolicyResource{}

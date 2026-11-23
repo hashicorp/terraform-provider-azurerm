@@ -19,6 +19,17 @@ import (
 
 type RelayNamespaceAuthorizationRuleResource struct{}
 
+func TestAccRelayNamespaceAuthorizationRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_namespace_authorization_rule", "test")
+	r := RelayNamespaceAuthorizationRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRelayNamespaceAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace_authorization_rule", "test")
 	r := RelayNamespaceAuthorizationRuleResource{}

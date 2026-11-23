@@ -14,6 +14,17 @@ import (
 
 type PrivateDNSResolverDnsResolverDataSource struct{}
 
+func TestAccPrivateDNSResolverDnsResolverDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_resolver", "test")
+	d := PrivateDNSResolverDnsResolverDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPrivateDNSResolverDnsResolverDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_resolver", "test")
 	d := PrivateDNSResolverDnsResolverDataSource{}

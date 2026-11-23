@@ -13,6 +13,17 @@ import (
 
 type PrivateDnsAAAARecordDataSource struct{}
 
+func TestAccDataSourcePrivateDnsAAAARecord_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_aaaa_record", "test")
+	r := PrivateDnsAAAARecordDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourcePrivateDnsAAAARecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_aaaa_record", "test")
 	r := PrivateDnsAAAARecordDataSource{}

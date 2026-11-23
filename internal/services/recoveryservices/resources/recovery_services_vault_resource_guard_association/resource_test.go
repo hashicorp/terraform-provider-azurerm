@@ -18,6 +18,17 @@ import (
 
 type VaultResourceGuardAssociationResource struct{}
 
+func TestAccSiteRecoveryVaultResourceGuardAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault_resource_guard_association", "test")
+	r := VaultResourceGuardAssociationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryVaultResourceGuardAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault_resource_guard_association", "test")
 	r := VaultResourceGuardAssociationResource{}

@@ -18,6 +18,17 @@ import (
 
 type SiteRecoveryReplicationPolicyHyperVResource struct{}
 
+func TestAccSiteRecoveryReplicationPolicyHyperV_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy", "test")
+	r := SiteRecoveryReplicationPolicyHyperVResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, 2, 1, 300),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryReplicationPolicyHyperV_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy", "test")
 	r := SiteRecoveryReplicationPolicyHyperVResource{}
