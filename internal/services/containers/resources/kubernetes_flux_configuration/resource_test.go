@@ -534,7 +534,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_id             = azurerm_storage_container.test.id
+    container_id             = azurerm_storage_container.test.url
     account_key              = azurerm_storage_account.test.primary_access_key
     sync_interval_in_seconds = 800
     timeout_in_seconds       = 800
@@ -587,7 +587,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_id = azurerm_storage_container.test.id
+    container_id = azurerm_storage_container.test.url
     managed_identity {
       client_id = azurerm_kubernetes_cluster.test.kubelet_identity.0.client_id
     }
@@ -669,7 +669,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_id = azurerm_storage_container.test.id
+    container_id = azurerm_storage_container.test.url
     sas_token    = data.azurerm_storage_account_sas.test.sas
   }
 
@@ -737,7 +737,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_id = azurerm_storage_container.test.id
+    container_id = azurerm_storage_container.test.url
     service_principal {
       client_id     = azuread_service_principal.test.client_id
       tenant_id     = data.azurerm_client_config.test.tenant_id
@@ -807,7 +807,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_id = azurerm_storage_container.test.id
+    container_id = azurerm_storage_container.test.url
     service_principal {
       client_id                     = azuread_service_principal.test.client_id
       tenant_id                     = data.azurerm_client_config.test.tenant_id

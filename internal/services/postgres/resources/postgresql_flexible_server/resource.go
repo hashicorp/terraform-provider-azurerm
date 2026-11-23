@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -160,7 +160,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
 					version := diff.Get("version").(string)
-					if version == string(servers.PostgresMajorVersionOneOne) || version == string(servers.PostgresMajorVersionOneTwo) || version == string(servers.PostgresMajorVersionOneThree) {
+					if version == postgresqlVersion11 || version == postgresqlVersion12 || version == postgresqlVersion13 {
 						return fmt.Errorf("PostgreSQL version `%s` is not supported when `storage_type` is `PremiumV2_LRS`", version)
 					}
 
