@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package videoindexer
+package video_indexer_account
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AccountResourceList struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(AccountResourceList)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (AccountResourceList) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = AccountResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (AccountResourceList) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(AccountResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (AccountResourceList) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.VideoIndexer.AccountClient
 
 	var data sdk.DefaultListModel
@@ -45,7 +45,7 @@ func (AccountResourceList) List(ctx context.Context, request list.ListRequest, s
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := AccountResource{}
+	r := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package videoindexer_test
+package video_indexer_account_test
 
 import (
 	"testing"
