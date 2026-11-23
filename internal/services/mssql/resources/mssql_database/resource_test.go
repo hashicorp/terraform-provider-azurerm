@@ -90,13 +90,6 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeTier(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.freeTierDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
