@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package vmware_test
+package vmware_express_route_authorization_test
 
 import (
 	"context"
