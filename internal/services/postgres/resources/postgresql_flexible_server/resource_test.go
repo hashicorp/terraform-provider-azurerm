@@ -210,6 +210,13 @@ func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.withVersion(data, 19, "Default"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
