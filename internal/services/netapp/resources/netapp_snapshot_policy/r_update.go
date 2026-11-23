@@ -4,43 +4,50 @@
 package netapp_snapshot_policy
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (Resource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model NetAppSnapshotPolicyResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	id, err := snapshotpolicies.ParseSnapshotPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
+			client := metadata.Client.NetApp.SnapshotPoliciesClient
 
-	parameters := snapshotpolicies.SnapshotPolicyPatch{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Name:     pointer.To(id.SnapshotPolicyName),
-		Properties: &snapshotpolicies.SnapshotPolicyProperties{
-			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]any)),
-			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]any)),
-			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]any)),
-			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]any)),
-			Enabled:         pointer.To(d.Get("enabled").(bool)),
+			id, err := snapshotpolicies.ParseSnapshotPolicyID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			parameters := snapshotpolicies.SnapshotPolicyPatch{
+				Location: pointer.To(location.Normalize(model.Location)),
+				Name:     pointer.To(id.SnapshotPolicyName),
+				Properties: &snapshotpolicies.SnapshotPolicyProperties{
+					HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(model.HourlySchedule),
+					DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(model.DailySchedule),
+					WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(model.WeeklySchedule),
+					MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(model.MonthlySchedule),
+					Enabled:         pointer.To(model.Enabled),
+				},
+				Tags: pointer.To(model.Tags),
+			}
+
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
-
-	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	return resourceNetAppSnapshotPolicyRead(d, meta)
 }

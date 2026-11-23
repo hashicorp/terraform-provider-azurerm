@@ -149,7 +149,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 
 				"twitter_v2": TwitterAuthV2SettingsSchema(),
 
-				"login": authV2LoginSchema(),
+				"login": AuthV2LoginSchema(),
 
 				"require_https": {
 					Type:        pluginsdk.TypeBool,
@@ -260,7 +260,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 
 				"twitter_v2": TwitterAuthV2SettingsSchemaComputed(),
 
-				"login": authV2LoginSchemaComputed(),
+				"login": AuthV2LoginSchemaComputed(),
 
 				"require_https": {
 					Type:        pluginsdk.TypeBool,
@@ -310,7 +310,7 @@ type AuthV2Login struct {
 	NonceExpirationTime           string   `tfschema:"nonce_expiration_time"`
 }
 
-func authV2LoginSchema() *pluginsdk.Schema {
+func AuthV2LoginSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
@@ -410,7 +410,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 	}
 }
 
-func authV2LoginSchemaComputed() *pluginsdk.Schema {
+func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -488,7 +488,7 @@ func authV2LoginSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
+func ExpandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 	if len(input) == 0 {
 		return nil
 	}
@@ -546,7 +546,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 	return result
 }
 
-func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
+func FlattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 	if input == nil {
 		return []AuthV2Login{}
 	}
@@ -662,7 +662,7 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *webapps.Apple {
+func ExpandAppleAuthV2Settings(input []AppleAuthV2Settings) *webapps.Apple {
 	if len(input) == 1 {
 		apple := input[0]
 		return &webapps.Apple{
@@ -682,7 +682,7 @@ func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *webapps.Apple {
 	}
 }
 
-func flattenAppleAuthV2Settings(input *webapps.Apple) []AppleAuthV2Settings {
+func FlattenAppleAuthV2Settings(input *webapps.Apple) []AppleAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []AppleAuthV2Settings{}
 	}
@@ -944,7 +944,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDirectory {
+func ExpandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDirectory {
 	result := &webapps.AzureActiveDirectory{
 		Enabled: pointer.To(false),
 	}
@@ -1026,7 +1026,7 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDire
 	return result
 }
 
-func flattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Settings {
+func FlattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []AadAuthV2Settings{}
 	}
@@ -1123,7 +1123,7 @@ func StaticWebAppAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *webapps.AzureStaticWebApps {
+func ExpandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *webapps.AzureStaticWebApps {
 	if len(input) == 1 {
 		swa := input[0]
 		return &webapps.AzureStaticWebApps{
@@ -1139,7 +1139,7 @@ func expandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *webap
 	}
 }
 
-func flattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
+func FlattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
 	if input == nil || (input.Enabled != nil && !*input.Enabled) {
 		return []StaticWebAppAuthV2Settings{}
 	}
@@ -1342,7 +1342,7 @@ func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string]webapps.CustomOpenIdConnectProvider {
+func ExpandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string]webapps.CustomOpenIdConnectProvider {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1378,7 +1378,7 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 	return result
 }
 
-func flattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConnectProvider) []CustomOIDCAuthV2Settings {
+func FlattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConnectProvider) []CustomOIDCAuthV2Settings {
 	if input == nil || len(*input) == 0 {
 		return []CustomOIDCAuthV2Settings{}
 	}
@@ -1515,7 +1515,7 @@ func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *webapps.Facebook {
+func ExpandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *webapps.Facebook {
 	if len(input) == 1 {
 		facebook := input[0]
 		result := &webapps.Facebook{
@@ -1539,7 +1539,7 @@ func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *webapps.Faceb
 	}
 }
 
-func flattenFacebookAuthV2Settings(input *webapps.Facebook) []FacebookAuthV2Settings {
+func FlattenFacebookAuthV2Settings(input *webapps.Facebook) []FacebookAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []FacebookAuthV2Settings{}
 	}
@@ -1639,7 +1639,7 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
+func ExpandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	if len(input) == 1 {
 		github := input[0]
 		return &webapps.GitHub{
@@ -1659,7 +1659,7 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	}
 }
 
-func flattenGitHubAuthV2Settings(input *webapps.GitHub) []GithubAuthV2Settings {
+func FlattenGitHubAuthV2Settings(input *webapps.GitHub) []GithubAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []GithubAuthV2Settings{}
 	}
@@ -1780,7 +1780,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
+func ExpandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 	if len(input) == 1 {
 		google := input[0]
 		return &webapps.Google{
@@ -1803,7 +1803,7 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 	}
 }
 
-func flattenGoogleAuthV2Settings(input *webapps.Google) []GoogleAuthV2Settings {
+func FlattenGoogleAuthV2Settings(input *webapps.Google) []GoogleAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []GoogleAuthV2Settings{}
 	}
@@ -1926,7 +1926,7 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *webapps.LegacyMicrosoftAccount {
+func ExpandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *webapps.LegacyMicrosoftAccount {
 	if len(input) == 1 {
 		msft := input[0]
 		return &webapps.LegacyMicrosoftAccount{
@@ -1949,7 +1949,7 @@ func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *webapps.Leg
 	}
 }
 
-func flattenMicrosoftAuthV2Settings(input *webapps.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
+func FlattenMicrosoftAuthV2Settings(input *webapps.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []MicrosoftAuthV2Settings{}
 	}
@@ -2031,7 +2031,7 @@ func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
+func ExpandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
 	if len(input) == 1 {
 		twitter := input[0]
 		return &webapps.Twitter{
@@ -2048,7 +2048,7 @@ func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter
 	}
 }
 
-func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Settings {
+func FlattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []TwitterAuthV2Settings{}
 	}
@@ -2084,17 +2084,17 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
 		},
 		IdentityProviders: &webapps.IdentityProviders{
-			AzureActiveDirectory:         expandAadAuthV2Settings(settings.AzureActiveDirectoryAuth),
-			Facebook:                     expandFacebookAuthV2Settings(settings.FacebookAuth),
-			GitHub:                       expandGitHubAuthV2Settings(settings.GithubAuth),
-			Google:                       expandGoogleAuthV2Settings(settings.GoogleAuth),
-			Twitter:                      expandTwitterAuthV2Settings(settings.TwitterAuth),
-			CustomOpenIdConnectProviders: pointer.To(expandCustomOIDCAuthV2Settings(settings.CustomOIDCAuth)),
-			LegacyMicrosoftAccount:       expandMicrosoftAuthV2Settings(settings.MicrosoftAuth),
-			Apple:                        expandAppleAuthV2Settings(settings.AppleAuth),
-			AzureStaticWebApps:           expandStaticWebAppAuthV2Settings(settings.AzureStaticWebAuth),
+			AzureActiveDirectory:         ExpandAadAuthV2Settings(settings.AzureActiveDirectoryAuth),
+			Facebook:                     ExpandFacebookAuthV2Settings(settings.FacebookAuth),
+			GitHub:                       ExpandGitHubAuthV2Settings(settings.GithubAuth),
+			Google:                       ExpandGoogleAuthV2Settings(settings.GoogleAuth),
+			Twitter:                      ExpandTwitterAuthV2Settings(settings.TwitterAuth),
+			CustomOpenIdConnectProviders: pointer.To(ExpandCustomOIDCAuthV2Settings(settings.CustomOIDCAuth)),
+			LegacyMicrosoftAccount:       ExpandMicrosoftAuthV2Settings(settings.MicrosoftAuth),
+			Apple:                        ExpandAppleAuthV2Settings(settings.AppleAuth),
+			AzureStaticWebApps:           ExpandStaticWebAppAuthV2Settings(settings.AzureStaticWebAuth),
 		},
-		Login: expandAuthV2LoginSettings(settings.Login),
+		Login: ExpandAuthV2LoginSettings(settings.Login),
 		HTTPSettings: &webapps.HTTPSettings{
 			RequireHTTPS: pointer.To(settings.RequireHTTPS),
 			Routes: &webapps.HTTPSettingsRoutes{
@@ -2164,19 +2164,19 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 	}
 
 	if login := settings.Login; login != nil {
-		result.Login = flattenAuthV2LoginSettings(login)
+		result.Login = FlattenAuthV2LoginSettings(login)
 	}
 
 	if authProviders := settings.IdentityProviders; authProviders != nil {
-		result.AppleAuth = flattenAppleAuthV2Settings(authProviders.Apple)
-		result.AzureActiveDirectoryAuth = flattenAadAuthV2Settings(authProviders.AzureActiveDirectory)
-		result.AzureStaticWebAuth = flattenStaticWebAppAuthV2Settings(authProviders.AzureStaticWebApps)
-		result.CustomOIDCAuth = flattenCustomOIDCAuthV2Settings(authProviders.CustomOpenIdConnectProviders)
-		result.FacebookAuth = flattenFacebookAuthV2Settings(authProviders.Facebook)
-		result.GithubAuth = flattenGitHubAuthV2Settings(authProviders.GitHub)
-		result.GoogleAuth = flattenGoogleAuthV2Settings(authProviders.Google)
-		result.MicrosoftAuth = flattenMicrosoftAuthV2Settings(authProviders.LegacyMicrosoftAccount)
-		result.TwitterAuth = flattenTwitterAuthV2Settings(authProviders.Twitter)
+		result.AppleAuth = FlattenAppleAuthV2Settings(authProviders.Apple)
+		result.AzureActiveDirectoryAuth = FlattenAadAuthV2Settings(authProviders.AzureActiveDirectory)
+		result.AzureStaticWebAuth = FlattenStaticWebAppAuthV2Settings(authProviders.AzureStaticWebApps)
+		result.CustomOIDCAuth = FlattenCustomOIDCAuthV2Settings(authProviders.CustomOpenIdConnectProviders)
+		result.FacebookAuth = FlattenFacebookAuthV2Settings(authProviders.Facebook)
+		result.GithubAuth = FlattenGitHubAuthV2Settings(authProviders.GitHub)
+		result.GoogleAuth = FlattenGoogleAuthV2Settings(authProviders.Google)
+		result.MicrosoftAuth = FlattenMicrosoftAuthV2Settings(authProviders.LegacyMicrosoftAccount)
+		result.TwitterAuth = FlattenTwitterAuthV2Settings(authProviders.Twitter)
 	}
 
 	return []AuthV2Settings{result}

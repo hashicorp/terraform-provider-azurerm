@@ -4,13 +4,17 @@
 package netapp_snapshot_policy
 
 import (
+	"context"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func netappSnapshotPolicySchema() map[string]*pluginsdk.Schema {
+func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -158,5 +162,26 @@ func netappSnapshotPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
+
+func (Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			for _, schedule := range []string{"hourly_schedule", "daily_schedule", "weekly_schedule", "monthly_schedule"} {
+				if oldVal, newVal := metadata.ResourceDiff.GetChange(schedule); len(oldVal.([]any)) > 0 && len(newVal.([]any)) == 0 {
+					if err := metadata.ResourceDiff.ForceNew(schedule); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
 	}
 }
