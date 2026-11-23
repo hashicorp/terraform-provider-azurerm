@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `data_protection_backup_vault_id` - (Required) The ID of the Data Protection Backup Vault where the policy should exist. Changing this forces a new resource to be created.
 
-* `default_retention_duration` - (Required) The ISO 8601 duration for retaining backups under the default retention rule. Changing this forces a new resource to be created. Possible values range between `P7D` and `P365D`.
+* `default_retention_duration` - (Required) The ISO 8601 duration for retaining backups under the default retention rule, ranging between `P7D` and `P365D`. Changing this forces a new resource to be created.
 
 * `daily_backup_schedule` - (Optional) The ISO 8601 repeating time interval for daily backups. Changing this forces a new resource to be created.
 
@@ -53,11 +53,11 @@ The following arguments are supported:
 
 ~> **Note:** Exactly one of `daily_backup_schedule` and `weekly_backup_schedule` must be specified.
 
-* `daily_retention_duration` - (Optional) The ISO 8601 duration for retaining the first successful backup of each day. Changing this forces a new resource to be created. Possible values range between `P7D` and `P365D`.
+* `daily_retention_duration` - (Optional) The ISO 8601 duration for retaining the first successful backup of each day, ranging between `P7D` and `P365D`. Changing this forces a new resource to be created.
 
 ~> **Note:** The `daily_retention_duration` argument cannot be specified with `weekly_backup_schedule`.
 
-* `monthly_retention_duration` - (Optional) The ISO 8601 duration for retaining the first successful backup of each month. Changing this forces a new resource to be created. Possible values range between `P1M` and `P11M`.
+* `monthly_retention_duration` - (Optional) The ISO 8601 duration for retaining the first successful backup of each month, ranging between `P1M` and `P11M`. Changing this forces a new resource to be created.
 
 ~> **Note:** The `monthly_retention_duration` argument cannot be specified with `daily_backup_schedule`.
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 -> **Note:** The interval must start with `R/`, contain an ISO 8601 timestamp, and end with `/P1W`, for example `R/2026-02-08T13:00:00+00:00/P1W`.
 
-* `weekly_retention_duration` - (Optional) The ISO 8601 duration for retaining the first successful backup of each week. Changing this forces a new resource to be created. Possible values range between `P4W` and `P52W`.
+* `weekly_retention_duration` - (Optional) The ISO 8601 duration for retaining the first successful backup of each week, ranging between `P4W` and `P52W`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
