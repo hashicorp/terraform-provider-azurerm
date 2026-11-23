@@ -5,7 +5,7 @@ package mysql_flexible_server_active_directory_administrator
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/azureadadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/azureadadministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )

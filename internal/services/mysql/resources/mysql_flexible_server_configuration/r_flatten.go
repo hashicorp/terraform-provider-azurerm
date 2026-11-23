@@ -4,7 +4,7 @@
 package mysql_flexible_server_configuration
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -44,11 +44,11 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := flattenFlexibleServerIdentity(server.Identity)
+			flattenedIdentity, err := identity.FlattenUserAssignedMap(server.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", identity); err != nil {
+			if err := d.Set("identity", flattenedIdentity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -194,20 +194,4 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]any, err
 	}
 
 	return []any{item}, nil
-}
-
-func flattenFlexibleServerIdentity(input *servers.MySQLServerIdentity) (*[]any, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(*input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		for k := range *input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{}
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }
