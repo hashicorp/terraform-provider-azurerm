@@ -1,9 +1,9 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package legacy
+package helpers
 
-func expandZones(v []any) *[]string {
+func ExpandZones(v []any) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {
 		zones = append(zones, zone.(string))

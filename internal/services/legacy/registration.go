@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/resources/virtual_machine"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/resources/virtual_machine_scale_set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,8 +36,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_virtual_machine":           resourceVirtualMachine(),
-		"azurerm_virtual_machine_scale_set": resourceVirtualMachineScaleSet(),
+		"azurerm_virtual_machine":           virtual_machine.RegisterResource(),
+		"azurerm_virtual_machine_scale_set": virtual_machine_scale_set.RegisterResource(),
 	}
 }
 

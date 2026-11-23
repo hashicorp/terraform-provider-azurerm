@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package legacy_test
+package virtual_machine_scale_set_test
 
 import (
 	"context"
