@@ -50,6 +50,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							"F512",
 							"F1024",
 							"F2048",
+							"F4096",
+							"F8192",
 						}, false),
 					},
 					"tier": {
