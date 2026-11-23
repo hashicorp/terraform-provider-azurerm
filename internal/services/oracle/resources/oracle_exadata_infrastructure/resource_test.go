@@ -31,6 +31,16 @@ func (a ExadataInfraResource) Exists(ctx context.Context, client *clients.Client
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccExaInfra_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_exadata_infrastructure.Resource{}.ResourceType(), "test")
+	r := ExadataInfraResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccExaInfra_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_exadata_infrastructure.Resource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}

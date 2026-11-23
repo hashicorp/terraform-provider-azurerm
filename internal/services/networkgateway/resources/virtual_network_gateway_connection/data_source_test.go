@@ -14,6 +14,17 @@ import (
 
 type VirtualNetworkGatewayConnectionDataSource struct{}
 
+func TestAccDataSourceVirtualNetworkGatewayConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.siteToSite(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceVirtualNetworkGatewayConnection_siteToSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionDataSource{}

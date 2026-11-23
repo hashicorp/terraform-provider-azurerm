@@ -20,6 +20,17 @@ import (
 
 type ManagementGroupPolicySetDefinitionResourceTest struct{}
 
+func TestAccManagementGroupPolicySetDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
+	r := ManagementGroupPolicySetDefinitionResourceTest{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccManagementGroupPolicySetDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
 	r := ManagementGroupPolicySetDefinitionResourceTest{}

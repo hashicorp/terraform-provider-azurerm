@@ -31,6 +31,16 @@ func (a ConfigurationResource) Exists(ctx context.Context, client *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx_configuration.Resource{}.ResourceType(), "test")
+	r := ConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx_configuration.Resource{}.ResourceType(), "test")
 	r := ConfigurationResource{}

@@ -18,6 +18,17 @@ import (
 
 type PostgresqlFlexibleServerAdministratorResource struct{}
 
+func TestAccPostgresqlFlexibleServerAdministrator_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
+	r := PostgresqlFlexibleServerAdministratorResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPostgresqlFlexibleServerAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
 	r := PostgresqlFlexibleServerAdministratorResource{}

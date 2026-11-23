@@ -20,6 +20,17 @@ import (
 
 type PostgresqlFlexibleServerVirtualEndpointResource struct{}
 
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
 	r := PostgresqlFlexibleServerVirtualEndpointResource{}

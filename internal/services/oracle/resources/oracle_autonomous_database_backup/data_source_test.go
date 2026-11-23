@@ -13,6 +13,17 @@ import (
 
 type AutonomousDatabaseBackupDataSourceTest struct{}
 
+func TestAccAutonomousDatabaseBackupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_autonomous_database_backup", "test")
+	r := AutonomousDatabaseBackupDataSourceTest{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAutonomousDatabaseBackupDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_autonomous_database_backup", "test")
 	r := AutonomousDatabaseBackupDataSourceTest{}

@@ -18,6 +18,17 @@ import (
 
 type VirtualNetworkGatewayNatRuleResource struct{}
 
+func TestAccVirtualNetworkGatewayNatRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_nat_rule", "test")
+	r := VirtualNetworkGatewayNatRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualNetworkGatewayNatRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_nat_rule", "test")
 	r := VirtualNetworkGatewayNatRuleResource{}

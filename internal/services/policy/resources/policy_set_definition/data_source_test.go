@@ -13,6 +13,17 @@ import (
 
 type PolicySetDefinitionDataSource struct{}
 
+func TestAccDataSourceAzureRMPolicySetDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
+	d := PolicySetDefinitionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.builtIn("Audit machines with insecure password security settings"),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 	d := PolicySetDefinitionDataSource{}

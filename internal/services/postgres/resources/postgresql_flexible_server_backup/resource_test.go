@@ -18,6 +18,17 @@ import (
 
 type PostgresqlFlexibleServerBackupResource struct{}
 
+func TestAccPostgresqlFlexibleServerBackup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_backup", "test")
+	r := PostgresqlFlexibleServerBackupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPostgresqlFlexibleServerBackup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_backup", "test")
 	r := PostgresqlFlexibleServerBackupResource{}

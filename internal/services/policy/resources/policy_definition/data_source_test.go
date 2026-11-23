@@ -13,6 +13,17 @@ import (
 
 type PolicyDefinitionDataSource struct{}
 
+func TestAccDataSourceAzureRMPolicyDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
+	d := PolicyDefinitionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.builtIn("Allowed resource types"),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	d := PolicyDefinitionDataSource{}

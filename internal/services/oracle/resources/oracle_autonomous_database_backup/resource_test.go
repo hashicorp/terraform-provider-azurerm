@@ -21,6 +21,16 @@ import (
 
 type AutonomousDatabaseBackupResource struct{}
 
+func TestAccAutonomousDatabaseBackupResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_autonomous_database_backup.Resource{}.ResourceType(), "test")
+	r := AutonomousDatabaseBackupResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutonomousDatabaseBackupResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_autonomous_database_backup.Resource{}.ResourceType(), "test")
 	r := AutonomousDatabaseBackupResource{}

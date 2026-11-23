@@ -19,6 +19,17 @@ import (
 
 type SubscriptionAssignmentTestResource struct{}
 
+func TestAccSubscriptionPolicyAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomPolicyComplete(data),
+		},
+	}, "")
+}
+
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
 	r := SubscriptionAssignmentTestResource{}

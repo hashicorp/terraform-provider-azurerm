@@ -30,8 +30,19 @@ func TestAccNetworkFunctionCollectorPolicy_sequential(t *testing.T) {
 			"requiresImport": testAccNetworkFunctionCollectorPolicy_requiresImport,
 			"complete":       testAccNetworkFunctionCollectorPolicy_complete,
 			"update":         testAccNetworkFunctionCollectorPolicy_update,
+			"regression":     testAccNetworkFunctionCollectorPolicy_regressionTest,
 		},
 	})
+}
+
+func testAccNetworkFunctionCollectorPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
+	r := NetworkFunctionCollectorPolicyResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func testAccNetworkFunctionCollectorPolicy_basic(t *testing.T) {

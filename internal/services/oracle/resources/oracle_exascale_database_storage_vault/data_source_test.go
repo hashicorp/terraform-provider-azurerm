@@ -14,6 +14,17 @@ import (
 
 type ExascaleDatabasetorageVaultDataSource struct{}
 
+func TestAccDbStorageVaultDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%[1]s", oracle_exascale_database_storage_vault.DataSource{}.ResourceType()), "test")
+	r := ExascaleDatabasetorageVaultDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDbStorageVaultDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%[1]s", oracle_exascale_database_storage_vault.DataSource{}.ResourceType()), "test")
 	r := ExascaleDatabasetorageVaultDataSource{}

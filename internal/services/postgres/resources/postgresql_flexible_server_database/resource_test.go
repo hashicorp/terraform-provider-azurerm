@@ -18,6 +18,16 @@ import (
 
 type PostgresqlFlexibleServerDatabaseResource struct{}
 
+func TestAccPostgresqlFlexibleServerDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_database", "test")
+	r := PostgresqlFlexibleServerDatabaseResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPostgresqlFlexibleServerDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_database", "test")
 	r := PostgresqlFlexibleServerDatabaseResource{}

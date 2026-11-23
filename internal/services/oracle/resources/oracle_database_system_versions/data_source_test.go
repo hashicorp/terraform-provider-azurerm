@@ -13,6 +13,17 @@ import (
 
 type DatabaseVersionsDataSource struct{}
 
+func TestAccDatabaseVersionsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
+	r := DatabaseVersionsDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDatabaseVersionsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}

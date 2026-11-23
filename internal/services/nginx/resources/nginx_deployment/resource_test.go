@@ -32,6 +32,16 @@ func (a DeploymentResource) Exists(ctx context.Context, client *clients.Client, 
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccNginxDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx_deployment.Resource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNginxDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx_deployment.Resource{}.ResourceType(), "test")
 	r := DeploymentResource{}

@@ -19,6 +19,18 @@ import (
 
 type LocalRuleResource struct{}
 
+func TestAccPaloAltoLocalRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
+
+	r := LocalRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPaloAltoLocalRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 

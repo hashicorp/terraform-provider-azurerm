@@ -20,6 +20,21 @@ import (
 
 type NextGenerationFirewallVNetStrataCloudManagerResource struct{}
 
+func TestAccNextGenerationFirewallVNetStrataCloudManager_regressionTest(t *testing.T) {
+	if scmTenant := os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"); scmTenant == "" {
+		t.Skipf("skipping as Palo Alto Strata Cloud Manager tenant name not set in `ARM_PALO_ALTO_SCM_TENANT_NAME`")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager", "test")
+	r := NextGenerationFirewallVNetStrataCloudManagerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccNextGenerationFirewallVNetStrataCloudManager_basic(t *testing.T) {
 	if scmTenant := os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"); scmTenant == "" {
 		t.Skipf("skipping as Palo Alto Strata Cloud Manager tenant name not set in `ARM_PALO_ALTO_SCM_TENANT_NAME`")

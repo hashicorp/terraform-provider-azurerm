@@ -18,6 +18,17 @@ import (
 
 type PowerBIEmbeddedResource struct{}
 
+func TestAccPowerBIEmbedded_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
+	r := PowerBIEmbeddedResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPowerBIEmbedded_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 	r := PowerBIEmbeddedResource{}

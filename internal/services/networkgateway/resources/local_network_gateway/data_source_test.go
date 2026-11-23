@@ -13,6 +13,17 @@ import (
 
 type LocalNetworkGatewayDataSource struct{}
 
+func TestAccDataSourceLocalNetworkGateway_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_local_network_gateway", "test")
+	r := LocalNetworkGatewayDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceLocalNetworkGateway_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_local_network_gateway", "test")
 	r := LocalNetworkGatewayDataSource{}

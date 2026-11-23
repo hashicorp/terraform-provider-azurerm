@@ -18,6 +18,17 @@ import (
 
 type VirtualNetworkGatewayConnectionResource struct{}
 
+func TestAccVirtualNetworkGatewayConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.siteToSite(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualNetworkGatewayConnection_siteToSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}

@@ -18,6 +18,16 @@ import (
 
 type NotificationHubNamespaceResource struct{}
 
+func TestAccNotificationHubNamespace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	r := NotificationHubNamespaceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.free(data),
+		},
+	}, "")
+}
+
 func TestAccNotificationHubNamespace_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	r := NotificationHubNamespaceResource{}

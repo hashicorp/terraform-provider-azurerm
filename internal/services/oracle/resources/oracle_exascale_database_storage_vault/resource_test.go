@@ -31,6 +31,16 @@ func (a ExascaleDatabaseStorageVaultResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccDbStorageVaultResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_exascale_database_storage_vault.Resource{}.ResourceType(), "test")
+	r := ExascaleDatabaseStorageVaultResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDbStorageVaultResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_exascale_database_storage_vault.Resource{}.ResourceType(), "test")
 	r := ExascaleDatabaseStorageVaultResource{}

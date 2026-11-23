@@ -33,6 +33,18 @@ func (a APIKeyResource) Exists(ctx context.Context, client *clients.Client, stat
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccAPIKeyResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx_api_key.Resource{}.ResourceType(), "test")
+	secretText := uuid.NewString()
+	endDateTime := getEndDateTime(3)
+	r := APIKeyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, secretText, endDateTime),
+		},
+	}, "")
+}
+
 func TestAccAPIKeyResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx_api_key.Resource{}.ResourceType(), "test")
 	secretText := uuid.NewString()

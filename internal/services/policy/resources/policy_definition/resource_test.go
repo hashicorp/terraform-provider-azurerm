@@ -22,6 +22,17 @@ import (
 
 type PolicyDefinitionResource struct{}
 
+func TestAccPolicyDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPolicyDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}

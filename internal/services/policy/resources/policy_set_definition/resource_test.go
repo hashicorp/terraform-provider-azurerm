@@ -20,6 +20,17 @@ import (
 
 type PolicySetDefinitionResourceTest struct{}
 
+func TestAccAzureRMPolicySetDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResourceTest{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.builtIn(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResourceTest{}

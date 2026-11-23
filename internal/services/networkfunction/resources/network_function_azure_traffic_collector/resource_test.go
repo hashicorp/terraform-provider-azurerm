@@ -19,6 +19,16 @@ import (
 
 type NetworkFunctionAzureTrafficCollectorResource struct{}
 
+func TestAccNetworkFunctionAzureTrafficCollector_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_function_azure_traffic_collector", "test")
+	r := NetworkFunctionAzureTrafficCollectorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccNetworkFunctionAzureTrafficCollector_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_azure_traffic_collector", "test")
 	r := NetworkFunctionAzureTrafficCollectorResource{}

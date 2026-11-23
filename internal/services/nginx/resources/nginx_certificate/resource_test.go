@@ -31,6 +31,16 @@ func (a CertificateResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx_certificate.Resource{}.ResourceType(), "test")
+	r := CertificateResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx_certificate.Resource{}.ResourceType(), "test")
 	r := CertificateResource{}

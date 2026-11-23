@@ -14,6 +14,17 @@ import (
 
 type CloudVmClusterDataSource struct{}
 
+func TestAccCloudVmClusterDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_cloud_vm_cluster.DataSource{}.ResourceType(), "test")
+	r := CloudVmClusterDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCloudVmClusterDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_cloud_vm_cluster.DataSource{}.ResourceType(), "test")
 	r := CloudVmClusterDataSource{}

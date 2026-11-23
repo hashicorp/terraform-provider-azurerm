@@ -18,6 +18,16 @@ import (
 
 type PostgresqlFlexibleServerFirewallRuleResource struct{}
 
+func TestAccPostgresqlFlexibleServerFirewallRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_firewall_rule", "test")
+	r := PostgresqlFlexibleServerFirewallRuleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPostgresqlFlexibleServerFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_firewall_rule", "test")
 	r := PostgresqlFlexibleServerFirewallRuleResource{}

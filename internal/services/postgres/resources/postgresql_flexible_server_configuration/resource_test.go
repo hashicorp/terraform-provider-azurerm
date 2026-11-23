@@ -20,6 +20,17 @@ import (
 
 type PostgresqlFlexibleServerConfigurationResource struct{}
 
+func TestAccFlexibleServerConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+	name := "backslash_quote"
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, name, "on"),
+		},
+	}, "")
+}
+
 func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
 	r := PostgresqlFlexibleServerConfigurationResource{}

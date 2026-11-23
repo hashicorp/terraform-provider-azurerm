@@ -13,6 +13,18 @@ import (
 
 type LocalRulestackDataSource struct{}
 
+func TestAccLocalRulestackDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
+
+	d := LocalRulestackDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLocalRulestackDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 

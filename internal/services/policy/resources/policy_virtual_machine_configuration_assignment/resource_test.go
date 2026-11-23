@@ -20,6 +20,17 @@ import (
 
 type PolicyVirtualMachineConfigurationAssignmentResource struct{}
 
+func TestAccPolicyVirtualMachineConfigurationAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
+	r := PolicyVirtualMachineConfigurationAssignmentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPolicyVirtualMachineConfigurationAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
 	r := PolicyVirtualMachineConfigurationAssignmentResource{}

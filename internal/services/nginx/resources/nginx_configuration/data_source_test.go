@@ -13,6 +13,17 @@ import (
 
 type NginxConfigurationDataSource struct{}
 
+func TestAccNginxConfigurationDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_nginx_configuration", "test")
+	r := NginxConfigurationDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNginxConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nginx_configuration", "test")
 	r := NginxConfigurationDataSource{}

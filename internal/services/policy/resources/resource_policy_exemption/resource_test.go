@@ -20,6 +20,18 @@ import (
 
 type ResourcePolicyExemptionResource struct{}
 
+func TestAccAzureRMResourcePolicyExemption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
+	r := ResourcePolicyExemptionResource{}
+	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, endDate),
+		},
+	}, "")
+}
+
 func TestAccAzureRMResourcePolicyExemption_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
 	r := ResourcePolicyExemptionResource{}
