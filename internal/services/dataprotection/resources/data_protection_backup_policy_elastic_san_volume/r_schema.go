@@ -52,7 +52,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"daily_backup_schedule"},
+			ConflictsWith: []string{"weekly_backup_schedule"},
 			ValidateFunc: validation.ISO8601Duration,
 		},
 
@@ -60,7 +60,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"weekly_backup_schedule"},
+			ConflictsWith: []string{"daily_backup_schedule"},
 			ValidateFunc: validation.ISO8601Duration,
 		},
 

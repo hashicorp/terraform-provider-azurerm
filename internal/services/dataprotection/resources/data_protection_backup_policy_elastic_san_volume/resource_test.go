@@ -121,11 +121,11 @@ func (r DataProtectionBackupPolicyElasticSanVolumeResource) basic(data acceptanc
 %s
 
 resource "azurerm_data_protection_backup_policy_elastic_san_volume" "test" {
-  name                           = "acctest-dbp-esan-%d"
+  name                            = "acctest-dbp-esan-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  daily_backup_schedule          = "R/2026-02-08T13:00:00+00:00/P1D"
-  default_retention_duration     = "P7D"
-  daily_retention_duration       = "P14D"
+  daily_backup_schedule           = "R/2026-02-08T13:00:00+00:00/P1D"
+  default_retention_duration      = "P7D"
+  daily_retention_duration        = "P14D"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -135,11 +135,11 @@ func (r DataProtectionBackupPolicyElasticSanVolumeResource) basicWeekly(data acc
 %s
 
 resource "azurerm_data_protection_backup_policy_elastic_san_volume" "test" {
-  name                           = "acctest-dbp-esan-%d"
+  name                            = "acctest-dbp-esan-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  weekly_backup_schedule         = "R/2026-02-08T13:00:00+00:00/P1W"
-  default_retention_duration     = "P7D"
-  monthly_retention_duration     = "P3M"
+  weekly_backup_schedule          = "R/2026-02-08T13:00:00+00:00/P1W"
+  default_retention_duration      = "P7D"
+  monthly_retention_duration      = "P3M"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -149,11 +149,11 @@ func (r DataProtectionBackupPolicyElasticSanVolumeResource) requiresImport(data 
 %s
 
 resource "azurerm_data_protection_backup_policy_elastic_san_volume" "import" {
-  name                           = azurerm_data_protection_backup_policy_elastic_san_volume.test.name
+  name                            = azurerm_data_protection_backup_policy_elastic_san_volume.test.name
   data_protection_backup_vault_id = azurerm_data_protection_backup_policy_elastic_san_volume.test.data_protection_backup_vault_id
-  daily_backup_schedule          = azurerm_data_protection_backup_policy_elastic_san_volume.test.daily_backup_schedule
-  default_retention_duration     = azurerm_data_protection_backup_policy_elastic_san_volume.test.default_retention_duration
-  daily_retention_duration       = azurerm_data_protection_backup_policy_elastic_san_volume.test.daily_retention_duration
+  daily_backup_schedule           = azurerm_data_protection_backup_policy_elastic_san_volume.test.daily_backup_schedule
+  default_retention_duration      = azurerm_data_protection_backup_policy_elastic_san_volume.test.default_retention_duration
+  daily_retention_duration        = azurerm_data_protection_backup_policy_elastic_san_volume.test.daily_retention_duration
 }
 `, r.basic(data))
 }
@@ -163,13 +163,13 @@ func (r DataProtectionBackupPolicyElasticSanVolumeResource) complete(data accept
 %s
 
 resource "azurerm_data_protection_backup_policy_elastic_san_volume" "test" {
-  name                           = "acctest-dbp-esan-%d"
+  name                            = "acctest-dbp-esan-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  daily_backup_schedule          = "R/2026-02-08T13:00:00+00:00/P1D"
-  default_retention_duration     = "P7D"
-  daily_retention_duration       = "P14D"
-  weekly_retention_duration      = "P28D"
-  monthly_retention_duration     = "P3M"
+  daily_backup_schedule           = "R/2026-02-08T13:00:00+00:00/P1D"
+  default_retention_duration      = "P7D"
+  daily_retention_duration        = "P14D"
+  weekly_retention_duration       = "P28D"
+  monthly_retention_duration      = "P3M"
 }
 `, r.template(data), data.RandomInteger)
 }
