@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
 }
 
+func (r Resource) Description() string {
+	return "Manages an AAD B2C Directory."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tenants.ValidateB2CDirectoryID
 }

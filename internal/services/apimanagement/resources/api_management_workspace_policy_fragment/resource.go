@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_api_management_workspace_policy_fragment"
 }
 
+func (r Resource) Description() string {
+	return "Manages an API Management Workspace Policy Fragment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return policyfragment.ValidateWorkspacePolicyFragmentID
 }

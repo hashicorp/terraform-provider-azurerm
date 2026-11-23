@@ -14,13 +14,14 @@ import (
 
 func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of this Logger, which must be unique within the API Management Service."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"resource_id": {
+			Description:  "The target resource ID which will be linked in the API-Management portal page.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -36,12 +37,14 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of an EventHub.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ValidateEventHubName(),
 					},
 
 					"connection_string": {
+						Description:  "The connection string of an EventHub Namespace.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -56,6 +59,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"endpoint_uri": {
+						Description:  "The endpoint address of an EventHub Namespace.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -68,6 +72,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"user_assigned_identity_client_id": {
+						Description:  "The Client ID of the User Assigned Identity with the \"Azure Event Hubs Data Sender\" role to the target EventHub Namespace. If not specified the System Assigned Identity will be used.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
@@ -88,6 +93,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"connection_string": {
+						Description:  "The connection string of Application Insights.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -101,6 +107,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"instrumentation_key": {
+						Description:  "The instrumentation key used to push data to Application Insights.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -114,8 +121,9 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"identity_client_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The Client ID of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the \"Monitoring Metrics Publisher\" role on the target Application Insights resource.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.Any(
 							validation.IsUUID,
 							validation.StringInSlice([]string{"SystemAssigned"}, false),
@@ -132,14 +140,16 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"buffered": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether records should be buffered in the Logger prior to publishing.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of this Logger.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }
