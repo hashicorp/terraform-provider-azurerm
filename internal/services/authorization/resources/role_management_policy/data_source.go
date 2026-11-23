@@ -116,7 +116,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 			Required:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 

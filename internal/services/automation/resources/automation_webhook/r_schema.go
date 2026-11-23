@@ -68,7 +68,7 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 		"uri": {
-			Description: "URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.",
+			Description: "URI to initiate the webhook. Can be generated using [Generate URI API](https://learn.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,

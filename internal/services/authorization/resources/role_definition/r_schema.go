@@ -49,7 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"actions": {
-						Description: "One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
+						Description: "One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://learn.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{
@@ -57,7 +57,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"not_actions": {
-						Description: "One or more Disallowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
+						Description: "One or more Disallowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://learn.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{
@@ -65,7 +65,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"data_actions": {
-						Description: "One or more Allowed Data Actions, such as `*`, `Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read`. See ['Azure Resource Manager Resource Provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
+						Description: "One or more Allowed Data Actions, such as `*`, `Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read`. See ['Azure Resource Manager Resource Provider operations'](https://learn.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{
@@ -74,7 +74,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Set: pluginsdk.HashString,
 					},
 					"not_data_actions": {
-						Description: "One or more Disallowed Data Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
+						Description: "One or more Disallowed Data Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://learn.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{

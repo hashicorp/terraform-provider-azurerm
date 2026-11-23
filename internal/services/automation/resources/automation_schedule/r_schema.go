@@ -80,7 +80,7 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"timezone": {
-			Description:  "The timezone of the start time. For possible values see: <https://docs.microsoft.com/rest/api/maps/timezone/gettimezoneenumwindows>.",
+			Description:  "The timezone of the start time. For possible values see: <https://learn.microsoft.com/rest/api/maps/timezone/gettimezoneenumwindows>.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "Etc/UTC",
