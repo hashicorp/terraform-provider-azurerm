@@ -480,7 +480,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 					immutabilityStatus = pointer.From(shortTermPolicy.Model.Properties.ImmutabilityStatus)
 				}
 				if immutabilityStatus != backupshorttermretentionpolicies.ImmutabilityStatusEnabled {
-					return fmt.Errorf("`short_term_retention_policy.0.immutability_locked` cannot be set to `true` when `immutabilityStatus` is %q (must be %q)", immutabilityStatus, backupshorttermretentionpolicies.ImmutabilityStatusEnabled)
+					return fmt.Errorf("`short_term_retention_policy.0.immutability_locked` cannot be set to `true` when `immutabilityStatus` is `%s` (must be `%s`)", immutabilityStatus, backupshorttermretentionpolicies.ImmutabilityStatusEnabled)
 				}
 			}
 

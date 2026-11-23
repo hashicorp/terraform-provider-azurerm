@@ -79,7 +79,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 						immutabilityStatus = pointer.From(existingPolicy.Model.Properties.ImmutabilityStatus)
 					}
 					if immutabilityStatus != managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled {
-						return fmt.Errorf("`short_term_retention_immutability_locked` cannot be set to `true` when `immutabilityStatus` is %q (must be %q)", immutabilityStatus, managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled)
+						return fmt.Errorf("`short_term_retention_immutability_locked` cannot be set to `true` when `immutabilityStatus` is `%s` (must be `%s`)", immutabilityStatus, managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled)
 					}
 				}
 
