@@ -13,6 +13,16 @@ import (
 
 type LogicAppIntegrationAccountDataSource struct{}
 
+func TestAccLogicAppIntegrationAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_integration_account", "test")
+	r := LogicAppIntegrationAccountDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppIntegrationAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_integration_account", "test")
 	r := LogicAppIntegrationAccountDataSource{}

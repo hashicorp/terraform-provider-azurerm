@@ -18,6 +18,17 @@ import (
 
 type LogAnalyticsDataSourceWindowsPerformanceCounterResource struct{}
 
+func TestAccLogAnalyticsDataSourceWindowsPerformanceCounter_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
+	r := LogAnalyticsDataSourceWindowsPerformanceCounterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsDataSourceWindowsPerformanceCounter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
 	r := LogAnalyticsDataSourceWindowsPerformanceCounterResource{}

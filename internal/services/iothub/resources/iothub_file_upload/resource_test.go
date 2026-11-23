@@ -18,6 +18,17 @@ import (
 
 type IotHubFileUploadResource struct{}
 
+func TestAccIotHubFileUpload_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_file_upload", "test")
+	r := IotHubFileUploadResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubFileUpload_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_file_upload", "test")
 	r := IotHubFileUploadResource{}

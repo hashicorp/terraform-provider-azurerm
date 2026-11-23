@@ -18,6 +18,17 @@ import (
 
 type KustoClusterPrincipalAssignmentResource struct{}
 
+func TestAccKustoClusterPrincipalAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_principal_assignment", "test")
+	r := KustoClusterPrincipalAssignmentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKustoClusterPrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_principal_assignment", "test")
 	r := KustoClusterPrincipalAssignmentResource{}

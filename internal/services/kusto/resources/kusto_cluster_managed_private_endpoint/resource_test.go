@@ -18,6 +18,17 @@ import (
 
 type KustoClusterManagedPrivateEndpointResource struct{}
 
+func TestAccKustoClusterManagedPrivateEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_managed_private_endpoint", "test")
+	r := KustoClusterManagedPrivateEndpointResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoClusterManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_managed_private_endpoint", "test")
 	r := KustoClusterManagedPrivateEndpointResource{}

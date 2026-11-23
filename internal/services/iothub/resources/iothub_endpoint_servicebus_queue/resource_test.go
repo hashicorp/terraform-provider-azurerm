@@ -19,6 +19,17 @@ import (
 
 type IotHubEndpointServiceBusQueueResource struct{}
 
+func TestAccIotHubEndpointServiceBusQueue_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
+	r := IotHubEndpointServiceBusQueueResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubEndpointServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
 	r := IotHubEndpointServiceBusQueueResource{}

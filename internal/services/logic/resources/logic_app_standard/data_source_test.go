@@ -13,6 +13,17 @@ import (
 
 type LogicAppStandardDataSource struct{}
 
+func TestAccLogicAppStandardDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_standard", "test")
+	r := LogicAppStandardDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppStandardDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_standard", "test")
 	r := LogicAppStandardDataSource{}

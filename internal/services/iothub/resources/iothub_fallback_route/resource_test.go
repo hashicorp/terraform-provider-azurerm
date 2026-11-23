@@ -21,6 +21,17 @@ type IotHubFallbackRouteResource struct{}
 // NOTE: this resource intentionally doesn't support Requires Import
 //       since a fallback route is created by default
 
+func TestAccIotHubFallbackRoute_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
+	r := IotHubFallbackRouteResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubFallbackRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
 	r := IotHubFallbackRouteResource{}

@@ -18,6 +18,17 @@ import (
 
 type LogAnalyticsWorkspaceTableMicrosoftResource struct{}
 
+func TestAccLogAnalyticsWorkspaceTableMicrosoft_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_microsoft", "test")
+	r := LogAnalyticsWorkspaceTableMicrosoftResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsWorkspaceTableMicrosoft_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_microsoft", "test")
 	r := LogAnalyticsWorkspaceTableMicrosoftResource{}

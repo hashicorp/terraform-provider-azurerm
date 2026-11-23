@@ -40,6 +40,16 @@ func (k KustoCosmosDBDataConnectionResource) Exists(ctx context.Context, clients
 	}
 }
 
+func TestAccKustoCosmosDBDataConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cosmosdb_data_connection", "test")
+	r := KustoCosmosDBDataConnectionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoCosmosDBDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cosmosdb_data_connection", "test")
 	r := KustoCosmosDBDataConnectionResource{}

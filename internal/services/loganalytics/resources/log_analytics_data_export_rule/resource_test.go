@@ -18,6 +18,17 @@ import (
 
 type LogAnalyticsDataExportRuleResource struct{}
 
+func TestAccLogAnalyticsDataExportRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsDataExportRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
 	r := LogAnalyticsDataExportRuleResource{}

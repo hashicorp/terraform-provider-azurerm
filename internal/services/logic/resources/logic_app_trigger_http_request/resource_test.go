@@ -21,6 +21,17 @@ import (
 
 type LogicAppTriggerHttpRequestResource struct{}
 
+func TestAccLogicAppTriggerHttpRequest_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 	r := LogicAppTriggerHttpRequestResource{}

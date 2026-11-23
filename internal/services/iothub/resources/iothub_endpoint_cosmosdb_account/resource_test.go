@@ -19,6 +19,17 @@ import (
 
 type IotHubEndpointCosmosDBAccountResource struct{}
 
+func TestAccIotHubEndpointCosmosDBAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_cosmosdb_account", "test")
+	r := IotHubEndpointCosmosDBAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubEndpointCosmosDBAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_cosmosdb_account", "test")
 	r := IotHubEndpointCosmosDBAccountResource{}

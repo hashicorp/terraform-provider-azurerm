@@ -19,6 +19,17 @@ import (
 
 type LogicAppIntegrationAccountBatchConfigurationResource struct{}
 
+func TestAccLogicAppIntegrationAccountBatchConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_batch_configuration", "test")
+	r := LogicAppIntegrationAccountBatchConfigurationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppIntegrationAccountBatchConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_batch_configuration", "test")
 	r := LogicAppIntegrationAccountBatchConfigurationResource{}

@@ -22,6 +22,16 @@ var _ types.TestResourceVerifyingRemoved = BackendAddressPoolAddressResourceTest
 
 type BackendAddressPoolAddressResourceTests struct{}
 
+func TestAccBackendAddressPoolAddress_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
+	r := BackendAddressPoolAddressResourceTests{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBackendAddressPoolAddress_regionalLbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}

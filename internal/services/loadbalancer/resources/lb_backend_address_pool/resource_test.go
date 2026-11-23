@@ -21,6 +21,17 @@ type LbBackendAddressPoolResource struct{}
 
 // Basic and Standard use different API's for reasons, so we need to test both flows
 
+func TestAccBackendAddressPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LbBackendAddressPoolResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gatewaySkuComplete(data),
+		},
+	}, "")
+}
+
 func TestAccBackendAddressPool_basicSkuBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LbBackendAddressPoolResource{}

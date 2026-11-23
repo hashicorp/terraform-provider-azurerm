@@ -19,6 +19,17 @@ import (
 
 type KustoDatabaseResource struct{}
 
+func TestAccKustoDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	r := KustoDatabaseResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 	r := KustoDatabaseResource{}

@@ -14,6 +14,17 @@ import (
 
 type PlaywrightWorkspaceDataSource struct{}
 
+func TestAccPlaywrightWorkspaceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_playwright_workspace", "test")
+	r := PlaywrightWorkspaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPlaywrightWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_playwright_workspace", "test")
 	r := PlaywrightWorkspaceDataSource{}

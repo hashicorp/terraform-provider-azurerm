@@ -13,6 +13,16 @@ import (
 
 type KeyVaultAccessPolicyDataSource struct{}
 
+func TestAccDataSourceKeyVaultAccessPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.testAccDataSourceKeyVaultAccessPolicy("Key Management"),
+		},
+	}, "")
+}
+
 func TestAccDataSourceKeyVaultAccessPolicy_key(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyDataSource{}

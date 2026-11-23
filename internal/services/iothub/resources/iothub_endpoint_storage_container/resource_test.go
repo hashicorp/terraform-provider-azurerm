@@ -19,6 +19,17 @@ import (
 
 type IotHubEndpointStorageContainerResource struct{}
 
+func TestAccIotHubEndpointStorageContainer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	r := IotHubEndpointStorageContainerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubEndpointStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
 	r := IotHubEndpointStorageContainerResource{}

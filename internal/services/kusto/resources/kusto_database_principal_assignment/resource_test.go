@@ -18,6 +18,17 @@ import (
 
 type KustoDatabasePrincipalAssignmentResource struct{}
 
+func TestAccKustoDatabasePrincipalAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
+	r := KustoDatabasePrincipalAssignmentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKustoDatabasePrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
 	r := KustoDatabasePrincipalAssignmentResource{}

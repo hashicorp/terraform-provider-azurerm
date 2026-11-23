@@ -18,6 +18,17 @@ import (
 
 type LogAnalyticsSolutionResource struct{}
 
+func TestAccLogAnalyticsSolution_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
+	r := LogAnalyticsSolutionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerMonitoring(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 	r := LogAnalyticsSolutionResource{}

@@ -35,6 +35,17 @@ func (r LogAnalyticsQueryPackResource) Exists(ctx context.Context, client *clien
 	return pointer.To(true), nil
 }
 
+func TestAccLogAnalyticsQueryPack_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack", "test")
+	r := LogAnalyticsQueryPackResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsQueryPack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack", "test")
 	r := LogAnalyticsQueryPackResource{}

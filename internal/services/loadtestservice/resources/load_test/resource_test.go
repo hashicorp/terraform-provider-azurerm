@@ -21,6 +21,17 @@ import (
 
 type LoadTestTestResource struct{}
 
+func TestAccLoadTest_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
+	r := LoadTestTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLoadTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
 	r := LoadTestTestResource{}

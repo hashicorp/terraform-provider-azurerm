@@ -19,6 +19,16 @@ import (
 
 type IotHubDeviceUpdateAccountResource struct{}
 
+func TestAccIotHubDeviceUpdateAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_account", "test")
+	r := IotHubDeviceUpdateAccountResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubDeviceUpdateAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_account", "test")
 	r := IotHubDeviceUpdateAccountResource{}

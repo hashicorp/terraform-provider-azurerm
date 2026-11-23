@@ -11,6 +11,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
+func TestAccKustoClusterDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kusto_cluster", "test")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: testAccDataSourceKustoCluster_basic(data),
+		},
+	}, "")
+}
+
 func TestAccKustoClusterDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kusto_cluster", "test")
 

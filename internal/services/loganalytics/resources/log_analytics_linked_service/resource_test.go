@@ -19,6 +19,17 @@ import (
 
 type LogAnalyticsLinkedServiceResource struct{}
 
+func TestAccLogAnalyticsLinkedService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+	r := LogAnalyticsLinkedServiceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 	r := LogAnalyticsLinkedServiceResource{}

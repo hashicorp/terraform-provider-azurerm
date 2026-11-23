@@ -21,6 +21,17 @@ import (
 
 type LogicAppTriggerRecurrenceResource struct{}
 
+func TestAccLogicAppTriggerRecurrence_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "Month", 1),
+		},
+	}, "")
+}
+
 func TestAccLogicAppTriggerRecurrence_month(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 	r := LogicAppTriggerRecurrenceResource{}

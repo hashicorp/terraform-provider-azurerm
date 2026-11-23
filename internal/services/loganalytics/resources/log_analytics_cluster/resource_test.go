@@ -19,6 +19,22 @@ import (
 
 type LogAnalyticsClusterResource struct{}
 
+func TestAccLogAnalyticsCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
+	r := LogAnalyticsClusterResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	r := LogAnalyticsClusterResource{}

@@ -20,6 +20,17 @@ import (
 
 type KustoClusterCustomerManagedKeyResource struct{}
 
+func TestAccKustoClusterCustomerManagedKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 	r := KustoClusterCustomerManagedKeyResource{}

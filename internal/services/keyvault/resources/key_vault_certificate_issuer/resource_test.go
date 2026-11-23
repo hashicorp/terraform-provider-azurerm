@@ -20,6 +20,17 @@ import (
 
 type KeyVaultCertificateIssuerResource struct{}
 
+func TestAccKeyVaultCertificateIssuer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKeyVaultCertificateIssuer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 	r := KeyVaultCertificateIssuerResource{}

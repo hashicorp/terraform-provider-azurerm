@@ -18,6 +18,17 @@ import (
 
 type KustoAttachedDatabaseConfigurationResource struct{}
 
+func TestAccKustoAttachedDatabaseConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
+	r := KustoAttachedDatabaseConfigurationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
 	r := KustoAttachedDatabaseConfigurationResource{}
