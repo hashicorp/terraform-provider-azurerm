@@ -13,7 +13,7 @@ import (
 func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Application Insights Analytics Item.",
+			Description:  "The name of the Application Insights Analytics Item.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,7 +29,7 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"version": {
-			Description: "A string indicating the version of the query format",
+			Description: "A string indicating the version of the query format.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
@@ -41,7 +41,7 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description:  "The scope for the Analytics Item. Can be `shared` or `user`.",
+			Description:  "The scope for the Analytics Item.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,7 +49,7 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"type": {
-			Description: "The type of Analytics Item to create. Can be one of `query`, `function`, `folder`, `recent`.",
+			Description: "The type of Analytics Item to create.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,

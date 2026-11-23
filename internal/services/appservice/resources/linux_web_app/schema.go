@@ -15,7 +15,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Description: "Is this Linux Web App is Always On enabled.",
+					Description: "Is this Linux Web App is Always On enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -43,7 +43,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				"auto_heal_setting": autoHealSettingSchemaLinuxComputed(),
 
 				"container_registry_use_managed_identity": {
-					Description: "Do connections for Azure Container Registry use Managed Identity.",
+					Description: "Do connections for Azure Container Registry use Managed Identity?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -64,7 +64,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Is HTTP2.0 enabled.",
+					Description: "Is HTTP2.0 enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -77,7 +77,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Is the Linux Web App `ip_restriction` configuration used for the SCM also.",
+					Description: "Is the Linux Web App `ip_restriction` configuration used for the SCM also?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -90,7 +90,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"local_mysql_enabled": {
-					Description: "Is the Local MySQL enabled.",
+					Description: "Is the Local MySQL enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -108,7 +108,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Description: "Is Remote Debugging enabled.",
+					Description: "Is Remote Debugging enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -126,7 +126,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Description: "Does the Linux Web App use a 32-bit worker.",
+					Description: "Does the Linux Web App use a 32-bit worker?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -181,7 +181,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				"cors": helpers.CorsSettingsSchemaComputed(),
 
 				"detailed_error_logging_enabled": {
-					Description: "Is Detailed Error Logging enabled.",
+					Description: "Is Detailed Error Logging enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},

@@ -15,7 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name which should be used for this Arc Kubernetes Cluster Extension.",
+			Description: "The name which should be used for this Arc Kubernetes Cluster Extension.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -26,7 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_id": {
-			Description:  "Specifies the Cluster ID.",
+			Description:  "The Cluster ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,7 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension_type": {
-			Description:  "Specifies the type of extension. For more information, please refer to [Available Extensions for Arc-enabled Kubernetes clusters](https://learn.microsoft.com/azure/azure-arc/kubernetes/extensions-release).",
+			Description:  "The type of extension. For more information, please refer to [Available Extensions for Arc-enabled Kubernetes clusters](https://learn.microsoft.com/azure/azure-arc/kubernetes/extensions-release).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

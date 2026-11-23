@@ -60,7 +60,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"allow_new_private_endpoint_connections": {
-			Description: "Are new Private Endpoint Connections allowed.",
+			Description: "Are new Private Endpoint Connections allowed?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -92,7 +92,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_suffix": {
-			Description: "the DNS suffix for this App Service Environment V3.",
+			Description: "The DNS suffix for this App Service Environment V3.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

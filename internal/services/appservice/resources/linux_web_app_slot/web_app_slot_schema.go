@@ -95,7 +95,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"auto_heal_setting": helpers.AutoHealSettingSchemaLinux(),
 
 				"container_registry_use_managed_identity": {
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Should connections for Azure Container Registry use Managed Identity?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -109,7 +109,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"default_documents": {
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -136,7 +136,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Should the Linux Web App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Linux Web App `ip_restriction` configuration be used for the SCM also?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -182,7 +182,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_version": {
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -230,7 +230,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
+					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {

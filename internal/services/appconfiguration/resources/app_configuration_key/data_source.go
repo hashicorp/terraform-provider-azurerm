@@ -29,7 +29,7 @@ var _ sdk.DataSource = DataSource{}
 func (k DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Description:  "Specifies the id of the App Configuration.",
+			Description:  "The ID of the App Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
@@ -67,7 +67,7 @@ func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:    true,
 		},
 		"locked": {
-			Description: "Is this App Configuration Key be Locked to prevent changes.",
+			Description: "Is this App Configuration Key be Locked to prevent changes?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

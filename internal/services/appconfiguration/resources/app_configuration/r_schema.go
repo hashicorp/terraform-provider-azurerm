@@ -15,7 +15,7 @@ import (
 func appConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the App Configuration.",
+			Description:  "The name of the App Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,7 +35,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_plane_proxy_private_link_delegation_enabled": {
-			Description: "Whether data plane proxy private link delegation is enabled.",
+			Description: "Whether data plane proxy Private Link delegation is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -48,13 +48,13 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity_client_id": {
-						Description:  "Specifies the client ID of the identity which will be used to access key vault.",
+						Description:  "The client ID of the identity which will be used to access Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"key_vault_key_identifier": {
-						Description:  "Specifies the URI of the key vault key used to encrypt data.",
+						Description:  "The URI of the Key Vault Key used to encrypt data.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -81,7 +81,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"purge_protection_enabled": {
-			Description: "Whether Purge Protection is enabled. This field only works for `standard` sku.",
+			Description: "Whether Purge Protection is enabled. This field only works for `standard` SKU.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -95,7 +95,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Description:  "Specifies the name of the replica.",
+						Description:  "The name of the replica.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ConfigurationStoreReplicaName,
@@ -130,7 +130,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"soft_delete_retention_days": {
-			Description:  "The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days.",
+			Description:  "The number of days that items should be retained for once soft-deleted. This field only works for `standard` SKU.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      7,

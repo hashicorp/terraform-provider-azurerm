@@ -98,7 +98,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"auto_heal_setting": helpers.AutoHealSettingSchemaWindows(),
 
 				"container_registry_use_managed_identity": {
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Should connections for Azure Container Registry use Managed Identity?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -112,7 +112,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"default_documents": {
-					Description: "Specifies a list of Default Documents for the Windows Web App.",
+					Description: "A list of Default Documents for the Windows Web App.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -138,7 +138,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Should the Windows Web App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Windows Web App `ip_restriction` configuration be used for the SCM also?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -177,14 +177,14 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Description: "Should Remote Debugging be enabled.",
+					Description: "Should Remote Debugging be enabled?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 
 				"remote_debugging_version": {
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -199,14 +199,14 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Description: "Should the Windows Web App use a 32-bit worker.",
+					Description: "Should the Windows Web App use a 32-bit worker?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true, // Variable default value depending on several factors, such as plan type?
 				},
 
 				"websockets_enabled": {
-					Description: "Should Web Sockets be enabled.",
+					Description: "Should Web Sockets be enabled?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -232,7 +232,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
+					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -305,7 +305,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Description: "Is this Windows Web App is Always On enabled.",
+					Description: "Is this Windows Web App is Always On enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -333,7 +333,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				"auto_heal_setting": helpers.AutoHealSettingSchemaWindowsComputed(),
 
 				"container_registry_use_managed_identity": {
-					Description: "Do connections for Azure Container Registry use Managed Identity.",
+					Description: "Do connections for Azure Container Registry use Managed Identity?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -354,7 +354,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Is HTTP2.0 enabled.",
+					Description: "Is HTTP2.0 enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -367,7 +367,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Is the Windows Web App `ip_restriction` configuration used for the SCM also.",
+					Description: "Is the Windows Web App `ip_restriction` configuration used for the SCM also?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -380,7 +380,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"local_mysql_enabled": {
-					Description: "Is the Local MySQL enabled.",
+					Description: "Is the Local MySQL enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -415,7 +415,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Description: "Does the Windows Web App use a 32-bit worker.",
+					Description: "Does the Windows Web App use a 32-bit worker?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -439,7 +439,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"health_check_eviction_time_in_min": {
-					Description: "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
+					Description: "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
 				},
@@ -474,7 +474,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 				"virtual_application": helpers.VirtualApplicationsSchemaComputed(),
 
 				"detailed_error_logging_enabled": {
-					Description: "Is Detailed Error Logging enabled.",
+					Description: "Is Detailed Error Logging enabled?",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},

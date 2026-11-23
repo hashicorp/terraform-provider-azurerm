@@ -12,7 +12,7 @@ import (
 func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Application Insights API key.",
+			Description:  "The name of the Application Insights API key.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,7 +28,7 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"read_permissions": {
-			Description: "Specifies the list of read permissions granted to the API key. Please note these values are case sensitive.",
+			Description: "The list of read permissions granted to the API key. Please note these values are case sensitive.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
@@ -40,7 +40,7 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"write_permissions": {
-			Description: "Specifies the list of write permissions granted to the API key. Please note these values are case sensitive.",
+			Description: "The list of write permissions granted to the API key. Please note these values are case sensitive.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
@@ -52,7 +52,7 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"api_key": {
-			Description: "The API Key secret (Sensitive).",
+			Description: "The API Key secret.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,

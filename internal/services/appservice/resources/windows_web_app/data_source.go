@@ -165,7 +165,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
-			Description: "Does the Windows Web App require HTTPS connections.",
+			Description: "Does the Windows Web App require HTTPS connections?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -213,19 +213,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for the Windows Web App.",
+			Description: "Is Public Network Access enabled for the Windows Web App?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled.",
+			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -242,7 +242,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_subnet_id": {
-			Description: "The subnet id which the Windows Web App is vNet Integrated with.",
+			Description: "The subnet ID which the Windows Web App is VNet Integrated with.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

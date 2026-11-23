@@ -16,7 +16,7 @@ import (
 func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "Specifies the name of the Application Insights WebTest.",
+			Description:  "The name of the Application Insights WebTest.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -66,7 +66,7 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the test actively being monitored.",
+			Description: "Is the test actively being monitored?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

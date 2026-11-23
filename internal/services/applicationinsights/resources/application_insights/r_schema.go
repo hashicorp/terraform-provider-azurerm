@@ -13,7 +13,7 @@ import (
 func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of the Application Insights component.",
+			Description: "The name of the Application Insights component.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -24,7 +24,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"application_type": {
-			Description: "Specifies the type of Application Insights to create. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure.",
+			Description: "The type of Application Insights to create. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -41,7 +41,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workspace_id": {
-			Description: "Specifies the id of a log analytics workspace resource.",
+			Description: "The ID of a Log Analytics Workspace resource.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// NOTE: O+C A Log Analytics Workspace will be attached to the Application Insight by default, which should be computed=true
@@ -50,7 +50,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_in_days": {
-			Description: "Specifies the retention period in days.",
+			Description: "The retention period in days.",
 			Type:        pluginsdk.TypeInt,
 			Optional:    true,
 			Default:     90,
@@ -68,7 +68,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sampling_percentage": {
-			Description:  "Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.",
+			Description:  "The percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      100,
@@ -85,7 +85,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"daily_data_cap_in_gb": {
-			Description:  "Specifies the Application Insights component daily data volume cap in GB.",
+			Description:  "The Application Insights component daily data volume cap in GB.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      100,
@@ -106,14 +106,14 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"instrumentation_key": {
-			Description: "The Instrumentation Key for this Application Insights component. (Sensitive)",
+			Description: "The Instrumentation Key for this Application Insights component..",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
 		},
 
 		"connection_string": {
-			Description: "The Connection String for this Application Insights component. (Sensitive)",
+			Description: "The Connection String for this Application Insights component..",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
@@ -140,7 +140,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 			Default:     true,
 		},
 		"force_customer_storage_for_profiler": {
-			Description: "Should the Application Insights component force users to create their own storage account for profiling?",
+			Description: "Should the Application Insights component force users to create their own Storage Account for profiling?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

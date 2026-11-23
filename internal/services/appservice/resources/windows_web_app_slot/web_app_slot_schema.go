@@ -103,7 +103,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"container_registry_use_managed_identity": {
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Should connections for Azure Container Registry use Managed Identity?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -117,7 +117,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"default_documents": {
-					Description: "Specifies a list of Default Documents for the Windows Web App Slot.",
+					Description: "A list of Default Documents for the Windows Web App Slot.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -143,7 +143,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Should the Windows Web App Slot `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Windows Web App Slot `ip_restriction` configuration be used for the SCM also?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -182,14 +182,14 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Description: "Should Remote Debugging be enabled.",
+					Description: "Should Remote Debugging be enabled?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 
 				"remote_debugging_version": {
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -204,7 +204,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Description: "Should the Windows Web App Slot use a 32-bit worker.",
+					Description: "Should the Windows Web App Slot use a 32-bit worker?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					// Note: O+C because Variable default value depending on several factors, such as plan type.
@@ -212,7 +212,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"websockets_enabled": {
-					Description: "Should Web Sockets be enabled.",
+					Description: "Should Web Sockets be enabled?",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -238,7 +238,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
+					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {

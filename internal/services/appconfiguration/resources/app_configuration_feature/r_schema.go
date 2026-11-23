@@ -16,7 +16,7 @@ import (
 func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Description: "Specifies the id of the App Configuration.",
+			Description: "The ID of the App Configuration.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,

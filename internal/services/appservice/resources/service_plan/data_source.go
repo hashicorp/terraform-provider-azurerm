@@ -94,7 +94,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"premium_plan_auto_scale_enabled": {
-			Description: "Is premium plan autoscale enabled.",
+			Description: "Is premium plan autoscale enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

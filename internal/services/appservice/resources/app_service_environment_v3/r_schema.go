@@ -40,7 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"allow_new_private_endpoint_connections": {
-			Description: "Should new Private Endpoint Connections be allowed.",
+			Description: "Should new Private Endpoint Connections be allowed?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -69,7 +69,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dedicated_host_count": {
-			Description:  "This ASEv3 should use dedicated Hosts.",
+			Description:  "This ASEv3 should use Dedicated Hosts.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -80,7 +80,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"internal_load_balancing_mode": {
-			Description: "Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment.",
+			Description: "Which endpoints to serve internally in the Virtual Network for the App Service Environment.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
@@ -99,7 +99,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_redundant": {
-			Description: "Set to `true` to deploy the ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.",
+			Description: "Set to `true` to deploy the ASEv3 with Availability Zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.",
 			Type:        pluginsdk.TypeBool,
 			ForceNew:    true,
 			Optional:    true,
@@ -116,7 +116,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dns_suffix": {
-			Description: "the DNS suffix for this App Service Environment V3.",
+			Description: "The DNS suffix for this App Service Environment V3.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
@@ -178,7 +178,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"linux_outbound_ip_addresses": {
-			Description: "Outbound addresses of Linux based Apps in this App Service Environment V3",
+			Description: "Outbound addresses of Linux based Apps in this App Service Environment V3.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{

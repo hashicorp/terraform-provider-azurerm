@@ -97,7 +97,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -135,7 +135,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Windows Web App.",
+					Description: "A list of Default Documents for the Windows Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -149,7 +149,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the HTTP2 protocol should be enabled.",
+					Description: "Whether the HTTP2 protocol should be enabled.",
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -165,7 +165,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also?",
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -205,14 +205,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled.",
+					Description: "Should Remote Debugging be enabled?",
 				},
 
 				"remote_debugging_version": {
@@ -222,7 +222,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -241,14 +241,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker.",
+					Description: "Should the Windows Web App use a 32-bit worker?",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled.",
+					Description: "Should Web Sockets be enabled?",
 				},
 
 				"ftps_state": {
@@ -256,13 +256,13 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app.",
+					Description:  "State of FTP / FTPS service for this Function App.",
 				},
 
 				"health_check_path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The path to be checked for this function app health.",
+					Description: "The path to be checked for this Function App health.",
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
@@ -316,7 +316,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Is detailed error logging enabled?",
 				},
 
 				"windows_fx_version": {

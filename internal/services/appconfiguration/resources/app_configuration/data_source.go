@@ -50,7 +50,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"data_plane_proxy_private_link_delegation_enabled": {
-				Description: "Whether data plane proxy private link delegation is enabled.",
+				Description: "Whether data plane proxy Private Link delegation is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

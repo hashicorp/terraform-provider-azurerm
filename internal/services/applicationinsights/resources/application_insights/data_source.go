@@ -32,7 +32,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"name": {
-				Description:  "Specifies the name of the Application Insights component.",
+				Description:  "The name of the Application Insights component.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -45,7 +45,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"connection_string": {
-				Description: "The connection string of the Application Insights component. (Sensitive)",
+				Description: "The connection string of the Application Insights component..",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 				Sensitive:   true,
@@ -76,7 +76,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"workspace_id": {
-				Description: "The id of the associated Log Analytics workspace",
+				Description: "The ID of the associated Log Analytics Workspace.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},

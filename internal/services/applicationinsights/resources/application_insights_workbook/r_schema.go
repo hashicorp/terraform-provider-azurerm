@@ -13,7 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of this Workbook as a UUID/GUID. It should not contain any uppercase letters.",
+			Description: "The name of this Workbook as a UUID/GUID. It should not contain any uppercase letters.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -28,7 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"display_name": {
-			Description:  "Specifies the user-defined name (display name) of the workbook.",
+			Description:  "The user-defined name (display name) of the workbook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -59,7 +59,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Description:  "Specifies the description of the workbook.",
+			Description:  "The description of the workbook.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -68,7 +68,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 		"storage_container_id": {
-			Description:  "Specifies the Resource Manager ID of the Storage Container when bring your own storage is used.",
+			Description:  "The Resource Manager ID of the Storage Container when bring your own storage is used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

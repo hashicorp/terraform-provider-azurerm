@@ -22,7 +22,7 @@ func (Resource) ResourceType() string {
 }
 
 func (Resource) Description() string {
-	return "Manages a Application Insights Standard WebTest."
+	return "Manages an Application Insights Standard WebTest."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

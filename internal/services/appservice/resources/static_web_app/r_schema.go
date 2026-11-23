@@ -32,28 +32,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"configuration_file_changes_enabled": {
-			Description: "Should changes to the configuration file be permitted.",
+			Description: "Should changes to the configuration file be permitted?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"preview_environments_enabled": {
-			Description: "Are Preview (Staging) environments enabled.",
+			Description: "Are Preview (Staging) environments enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Static Web App.",
+			Description: "Should public network access be enabled for the Static Web App?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"sku_tier": {
-			Description: "Specifies the SKU tier of the Static Web App.",
+			Description: "The SKU tier of the Static Web App.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     string(resourceproviders.SkuNameFree),
@@ -64,7 +64,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_size": {
-			Description: "Specifies the SKU size of the Static Web App.",
+			Description: "The SKU size of the Static Web App.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     string(resourceproviders.SkuNameFree),
@@ -88,7 +88,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"repository_url": {
-			Description:  "Repository URL to use for the Static Web App. `repository_branch` and `repository_token` must also be set.",
+			Description:  "Repository URL to use for the Static Web App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -96,7 +96,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"repository_token": {
-			Description:  "Repository Token with `admin` privileges to use for the Static Web App. `repository_branch` and `repository_url` must also be set.",
+			Description:  "Repository Token with `admin` privileges to use for the Static Web App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -105,7 +105,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"repository_branch": {
-			Description:  "Repository branch to use for the Static Web App. `repository_url` and `repository_token` must also be set.",
+			Description:  "Repository branch to use for the Static Web App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

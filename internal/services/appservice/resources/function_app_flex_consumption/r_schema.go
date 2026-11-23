@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "The name which should be used for this Function App. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)",
+			Description:  "The name which should be used for this Function App. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions).",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -40,31 +40,31 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
-			Description:  "The storage container type used for the Function App. The current supported type is `blobContainer`.",
+			Description:  "The Storage Container type used for the Function App. The current supported type is `blobContainer`.",
 		},
 
 		"storage_container_endpoint": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
-			Description: "The backend storage container endpoint which will be used by this Function App.",
+			Description: "The backend Storage Container endpoint which will be used by this Function App.",
 		},
 
 		"storage_authentication_type": {
-			Description:  "The authentication type which will be used to access the backend storage account for the Function App.",
+			Description:  "The authentication type which will be used to access the backend Storage Account for the Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthenticationType(), false),
 		},
 
 		"storage_access_key": {
-			Description:  "The access key which will be used to access the backend storage account for the Function App.",
+			Description:  "The access key which will be used to access the backend Storage Account for the Function App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"storage_user_assigned_identity_id": {
-			Description:  "The user assigned Managed Identity to access the storage account.",
+			Description:  "The User Assigned Managed Identity to access the Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -92,7 +92,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"maximum_instance_count": {
-			Description:  "The number of workers this function app can scale out to.",
+			Description:  "The number of workers this Function App can scale out to.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      100,
@@ -100,7 +100,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"http_concurrency": {
-			Description:  "The Http concurrency of the instances on which your app runs.",
+			Description:  "The HTTP concurrency of the instances on which your app runs.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 1000),
@@ -180,7 +180,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Function App.",
+			Description: "Should public network access be enabled for the Function App?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -190,18 +190,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Is Https Connection enforced to the function app.",
+			Description: "Is HTTPS Connection enforced to the Function App?",
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"virtual_network_subnet_id": {
-			Description:  "The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
+			Description:  "The subnet ID which will be used by this Function App for [regional Virtual Network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -252,7 +252,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"outbound_ip_address_list": {
-			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{

@@ -115,20 +115,20 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_name": {
-			Description: "The backend storage account name used by this Function App.",
+			Description: "The backend Storage Account name used by this Function App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"storage_account_access_key": {
-			Description: "The access key used to access the backend storage account for the Function App.",
+			Description: "The access key used to access the backend Storage Account for the Function App.",
 			Type:        pluginsdk.TypeString,
 			Sensitive:   true,
 			Computed:    true,
 		},
 
 		"storage_uses_managed_identity": {
-			Description: "Does the Function App use Managed Identity to access the storage account?",
+			Description: "Does the Function App use Managed Identity to access the Storage Account?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -136,7 +136,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"storage_key_vault_secret_id": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the Storage Account for this Function App.",
 		},
 
 		"app_settings": {
@@ -253,7 +253,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"outbound_ip_address_list": {
-			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{
@@ -277,7 +277,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for this Linux Function App.",
+			Description: "Is Public Network Access enabled for this Linux Function App?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -291,13 +291,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled.",
+			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -305,13 +305,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
 		"virtual_network_backup_restore_enabled": {
-			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"virtual_network_subnet_id": {
-			Description: "The subnet id which the Linux Function App is vNet Integrated with.",
+			Description: "The subnet ID which the Linux Function App is VNet Integrated with.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

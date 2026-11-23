@@ -17,7 +17,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name which should be used for this Arc Kubernetes Flux Configuration.",
+			Description: "The name which should be used for this Arc Kubernetes Flux Configuration.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -28,7 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_id": {
-			Description:  "Specifies the Cluster ID.",
+			Description:  "The Cluster ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,7 +42,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Description: "Specifies the name of the kustomization.",
+						Description: "The name of the kustomization.",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ValidateFunc: validation.StringMatch(
@@ -52,7 +52,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"path": {
-						Description:  "Specifies the path in the source reference to reconcile on the cluster.",
+						Description:  "The path in the source reference to reconcile on the cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -109,7 +109,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"namespace": {
-			Description: "Specifies the namespace to which this configuration is installed to.",
+			Description: "The namespace to which this configuration is installed to.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -127,14 +127,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_id": {
-						Description:  "Specifies the Azure Blob container ID.",
+						Description:  "The Azure Blob container ID.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 					},
 
 					"account_key": {
-						Description:  "Specifies the account key (shared key) to access the storage account.",
+						Description:  "The account key (shared key) to access the Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -143,7 +143,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"local_auth_reference": {
-						Description:  "Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets.",
+						Description:  "The name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.LocalAuthReference,
@@ -151,7 +151,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sas_token": {
-						Description:  "Specifies the shared access token to access the storage container.",
+						Description:  "The shared access token to access the Storage Container.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -167,21 +167,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
-									Description:  "Specifies the client ID for authenticating a Service Principal.",
+									Description:  "The client ID for authenticating a Service Principal.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"tenant_id": {
-									Description:  "Specifies the tenant ID for authenticating a Service Principal.",
+									Description:  "The tenant ID for authenticating a Service Principal.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"client_certificate_base64": {
-									Description:  "Base64-encoded certificate used to authenticate a Service Principal .",
+									Description:  "Base64-encoded certificate used to authenticate a Service Principal.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -190,7 +190,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"client_certificate_password": {
-									Description:  "Specifies the password for the certificate used to authenticate a Service Principal .",
+									Description:  "The password for the certificate used to authenticate a Service Principal.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -199,14 +199,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"client_certificate_send_chain": {
-									Description: "Specifies whether to include x5c header in client claims when acquiring a token to enable subject name / issuer based authentication for the client certificate.",
+									Description: "Whether to include x5c header in client claims when acquiring a token to enable subject name / issuer based authentication for the client certificate.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
 								},
 
 								"client_secret": {
-									Description:  "Specifies the client secret for authenticating a Service Principal.",
+									Description:  "The client secret for authenticating a Service Principal.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -218,7 +218,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sync_interval_in_seconds": {
-						Description:  "Specifies the interval at which to re-reconcile the cluster Azure Blob source with the remote.",
+						Description:  "The interval at which to re-reconcile the cluster Azure Blob source with the remote.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      600,
@@ -226,7 +226,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"timeout_in_seconds": {
-						Description:  "Specifies the maximum time to attempt to reconcile the cluster Azure Blob source with the remote.",
+						Description:  "The maximum time to attempt to reconcile the cluster Azure Blob source with the remote.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      600,
@@ -244,7 +244,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"bucket_name": {
-						Description: "Specifies the bucket name to sync from the url endpoint for the flux configuration.",
+						Description: "The bucket name to sync from the URL endpoint for the flux configuration.",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ValidateFunc: validation.StringMatch(
@@ -254,14 +254,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"url": {
-						Description:  "Specifies the URL to sync for the flux configuration S3 bucket. It must start with `http://` or `https://`.",
+						Description:  "The URL to sync for the flux configuration S3 bucket. It must start with `http://` or `https://`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 
 					"access_key": {
-						Description:  "Specifies the plaintext access key used to securely access the S3 bucket.",
+						Description:  "The plaintext access key used to securely access the S3 bucket.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -270,7 +270,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"secret_key_base64": {
-						Description:  "Specifies the Base64-encoded secret key used to authenticate with the bucket source.",
+						Description:  "The Base64-encoded secret key used to authenticate with the bucket source.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsBase64,
@@ -279,7 +279,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"local_auth_reference": {
-						Description:  "Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets.",
+						Description:  "The name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.LocalAuthReference,
@@ -287,14 +287,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tls_enabled": {
-						Description: "Specify whether to communicate with a bucket using TLS is enabled.",
+						Description: "Whether to communicate with a bucket using TLS is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"sync_interval_in_seconds": {
-						Description:  "Specifies the interval at which to re-reconcile the cluster git repository source with the remote.",
+						Description:  "The interval at which to re-reconcile the cluster git repository source with the remote.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      600,
@@ -302,7 +302,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"timeout_in_seconds": {
-						Description:  "Specifies the maximum time to attempt to reconcile the cluster git repository source with the remote.",
+						Description:  "The maximum time to attempt to reconcile the cluster git repository source with the remote.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      600,
@@ -320,14 +320,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"url": {
-						Description:  "Specifies the URL to sync for the flux configuration git repository. It must start with `http://`, `https://`, `git@` or `ssh://`.",
+						Description:  "The URL to sync for the flux configuration git repository. It must start with `http://`, `https://`, `git@` or `ssh://`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.KubernetesGitRepositoryUrl(),
 					},
 
 					"reference_type": {
-						Description: "Specifies the source reference type for the GitRepository object.",
+						Description: "The source reference type for the GitRepository object.",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
@@ -339,14 +339,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"reference_value": {
-						Description:  "Specifies the source reference value for the GitRepository object.",
+						Description:  "The source reference value for the GitRepository object.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"https_ca_cert_base64": {
-						Description:  "Specifies the Base64-encoded HTTPS certificate authority contents used to access git private git repositories over HTTPS.",
+						Description:  "The Base64-encoded HTTPS certificate authority contents used to access git private git repositories over HTTPS.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsBase64,
@@ -355,7 +355,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"https_user": {
-						Description:   "Specifies the plaintext HTTPS username used to access private git repositories over HTTPS.",
+						Description:   "The plaintext HTTPS username used to access private git repositories over HTTPS.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validation.StringIsNotEmpty,
@@ -364,7 +364,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"https_key_base64": {
-						Description:  "Specifies the Base64-encoded HTTPS personal access token or password that will be used to access the repository.",
+						Description:  "The Base64-encoded HTTPS personal access token or password that will be used to access the repository.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsBase64,
@@ -373,7 +373,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"local_auth_reference": {
-						Description:   "Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
+						Description:   "The name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validate.LocalAuthReference,
@@ -381,7 +381,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"ssh_private_key_base64": {
-						Description:   "Specifies the Base64-encoded SSH private key in PEM format.",
+						Description:   "The Base64-encoded SSH private key in PEM format.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validation.StringIsBase64,
@@ -390,7 +390,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"ssh_known_hosts_base64": {
-						Description:   "Specifies the Base64-encoded known_hosts value containing public SSH keys required to access private git repositories over SSH.",
+						Description:   "The Base64-encoded known_hosts value containing public SSH keys required to access private git repositories over SSH.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validation.StringIsBase64,
@@ -398,14 +398,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sync_interval_in_seconds": {
-						Description: "Specifies the interval at which to re-reconcile the cluster git repository source with the remote.",
+						Description: "The interval at which to re-reconcile the cluster git repository source with the remote.",
 						Type:        pluginsdk.TypeInt,
 						Optional:    true,
 						Default:     600,
 					},
 
 					"timeout_in_seconds": {
-						Description: "Specifies the maximum time to attempt to reconcile the cluster git repository source with the remote.",
+						Description: "The maximum time to attempt to reconcile the cluster git repository source with the remote.",
 						Type:        pluginsdk.TypeInt,
 						Optional:    true,
 						Default:     600,
@@ -415,7 +415,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description:  "Specifies the scope at which the operator will be installed.",
+			Description:  "The scope at which the operator will be installed.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

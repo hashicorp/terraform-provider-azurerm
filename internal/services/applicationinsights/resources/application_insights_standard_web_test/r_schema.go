@@ -108,7 +108,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"http_verb": {
-						Description: "Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', and 'OPTIONS'.",
+						Description: "Which HTTP verb to use for the call.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						Default:     "GET",
@@ -182,7 +182,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"ssl_cert_remaining_lifetime": {
-						Description:  "The number of days of SSL certificate validity remaining for the checked endpoint. If the certificate has a shorter remaining lifetime left, the test will fail. This number should be between 1 and 365.",
+						Description:  "The number of days of SSL certificate validity remaining for the checked endpoint. If the certificate has a shorter remaining lifetime left, the test will fail.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 365),
@@ -227,7 +227,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_locations": {
-			Description: "Specifies a list of where to physically run the tests from to give global coverage for accessibility of your application.",
+			Description: "A list of where to physically run the tests from to give global coverage for accessibility of your application.",
 			Type:        pluginsdk.TypeList,
 			Required:    true,
 			MinItems:    1,

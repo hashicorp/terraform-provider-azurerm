@@ -12,7 +12,7 @@ import (
 func applicationInsightsSmartDetectionRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name of the Application Insights Smart Detection Rule.",
+			Description: "The name of the Application Insights Smart Detection Rule.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -55,7 +55,7 @@ func applicationInsightsSmartDetectionRuleSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"additional_email_recipients": {
-			Description: "Specifies a list of additional recipients that will be sent emails on this Application Insights Smart Detection Rule.",
+			Description: "A list of additional recipients that will be sent emails on this Application Insights Smart Detection Rule.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},

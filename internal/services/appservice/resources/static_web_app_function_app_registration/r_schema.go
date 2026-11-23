@@ -12,7 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"static_web_app_id": {
-			Description:  "- The ID of the Static Web App to register the Function App to as a backend.",
+			Description:  "The ID of the Static Web App to register the Function App to as a backend.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,7 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"function_app_id": {
-			Description:  "- The ID of a Linux or Windows Function App to connect to the Static Web App as a Backend.",
+			Description:  "The ID of a Linux or Windows Function App to connect to the Static Web App as a Backend.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

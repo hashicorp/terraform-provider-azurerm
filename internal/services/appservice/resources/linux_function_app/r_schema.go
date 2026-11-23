@@ -28,7 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "The name which should be used for this Linux Function App. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)",
+			Description:  "The name which should be used for this Linux Function App. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions).",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -46,7 +46,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
-			Description:  "The backend storage account name which will be used by this Function App.",
+			Description:  "The backend Storage Account name which will be used by this Function App.",
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
@@ -62,7 +62,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_uses_managed_identity",
 				"storage_key_vault_secret_id",
 			},
-			Description: "The access key which will be used to access the backend storage account for the Function App.",
+			Description: "The access key which will be used to access the backend Storage Account for the Function App.",
 		},
 
 		"storage_uses_managed_identity": {
@@ -73,7 +73,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
 			},
-			Description: "Should the Function App use Managed Identity to access the storage account.",
+			Description: "Should the Function App use Managed Identity to access the Storage Account?",
 		},
 
 		"storage_key_vault_secret_id": {
@@ -84,7 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_account_name",
 				"storage_key_vault_secret_id",
 			},
-			Description: "The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.",
+			Description: "The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the Storage Account for this Function App.",
 		},
 
 		"app_settings": {
@@ -106,14 +106,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
+			Description: "Should built in logging be enabled? Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the function app use Client Certificates.",
+			Description: "Should the Function App use Client Certificates?",
 		},
 
 		"client_certificate_mode": {
@@ -137,7 +137,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      0,
 			ValidateFunc: validation.IntAtLeast(0),
-			Description:  "The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan.",
+			Description:  "The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects Function Apps under the consumption plan.",
 		},
 
 		"enabled": {
@@ -151,7 +151,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the settings for linking the Function App to storage be suppressed.",
+			Description: "Should the settings for linking the Function App to storage be suppressed?",
 		},
 
 		"functions_extension_version": {
@@ -175,25 +175,25 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Description:  "The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)",
+			Description:  "The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).",
 		},
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Function App.",
+			Description: "Should public network access be enabled for the Function App?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Should the default FTP Basic Authentication publishing profile be enabled.",
+			Description: "Should the default FTP Basic Authentication publishing profile be enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -208,14 +208,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
-			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"virtual_network_subnet_id": {
-			Description:  "The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
+			Description:  "The subnet ID which will be used by this Function App for [regional Virtual Network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -225,7 +225,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the traffic for the image pull be routed over virtual network enabled.",
+			Description: "Should the traffic for the image pull be routed over Virtual Network enabled?",
 		},
 
 		"end_to_end_tls_encryption_enabled": {
@@ -278,7 +278,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"outbound_ip_address_list": {
-			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{

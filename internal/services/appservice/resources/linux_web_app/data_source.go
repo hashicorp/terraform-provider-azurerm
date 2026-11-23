@@ -177,7 +177,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
-			Description: "Should the Linux Web App require HTTPS connections.",
+			Description: "Should the Linux Web App require HTTPS connections?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -232,7 +232,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for this Linux Web App.",
+			Description: "Is Public Network Access enabled for this Linux Web App?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -240,13 +240,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled.",
+			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -266,19 +266,19 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"virtual_network_backup_restore_enabled": {
-			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"virtual_network_subnet_id": {
-			Description: "The subnet id which the Linux Web App is vNet Integrated with.",
+			Description: "The subnet ID which the Linux Web App is VNet Integrated with.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"virtual_network_image_pull_enabled": {
-			Description: "Whether image pull traffic is routed through the virtual network integration.",
+			Description: "Whether image pull traffic is routed through the Virtual Network integration.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

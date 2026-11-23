@@ -111,19 +111,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_name": {
-			Description: "The backend storage account name which is used by this Function App.",
+			Description: "The backend Storage Account name which is used by this Function App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"storage_account_access_key": {
-			Description: "The access key which is used to access the backend storage account for the Function App.",
+			Description: "The access key which is used to access the backend Storage Account for the Function App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"storage_uses_managed_identity": {
-			Description: "Is the Function App using a Managed Identity to access the storage account?",
+			Description: "Is the Function App using a Managed Identity to access the Storage Account?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -236,7 +236,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"outbound_ip_address_list": {
-			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{
@@ -260,7 +260,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for the Windows Function App.",
+			Description: "Is Public Network Access enabled for the Windows Function App?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -268,13 +268,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled.",
+			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -288,13 +288,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"virtual_network_backup_restore_enabled": {
-			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"virtual_network_subnet_id": {
-			Description: "The subnet id which the Windows Function App is vNet Integrated with.",
+			Description: "The subnet ID which the Windows Function App is VNet Integrated with.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

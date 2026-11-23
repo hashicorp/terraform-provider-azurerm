@@ -95,21 +95,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
-			Description: "Should the Linux Web App require HTTPS connections.",
+			Description: "Should the Linux Web App require HTTPS connections?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"virtual_network_backup_restore_enabled": {
-			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"virtual_network_subnet_id": {
-			Description:  "The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
+			Description:  "The subnet ID which will be used by this Web App for [regional Virtual Network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -123,7 +123,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"vnet_image_pull_enabled": {
-			Description: "Should the traffic for the image pull be routed over virtual network enabled.",
+			Description: "Should the traffic for the image pull be routed over Virtual Network enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -142,21 +142,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"logs": helpers.LogsConfigSchema(),
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Web App.",
+			Description: "Should public network access be enabled for the Web App?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Should the default FTP Basic Authentication publishing profile be enabled.",
+			Description: "Should the default FTP Basic Authentication publishing profile be enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -213,7 +213,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"outbound_ip_address_list": {
-			Description: "A list of outbound IP addresses - such as `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Description: "A list of outbound IP addresses - such as `[\"52.23.25.3\", \"52.143.43.12\"]`.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{
@@ -228,7 +228,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"possible_outbound_ip_address_list": {
-			Description: "A list of possible outbound ip address.",
+			Description: "A list of possible outbound IP address.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{

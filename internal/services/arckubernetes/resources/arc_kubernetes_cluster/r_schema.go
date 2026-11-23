@@ -14,7 +14,7 @@ import (
 func arcKubernetesClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "Specifies the name which should be used for this Arc Kubernetes Cluster.",
+			Description: "The name which should be used for this Arc Kubernetes Cluster.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -27,7 +27,7 @@ func arcKubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"agent_public_key_certificate": {
-			Description:  "Specifies the base64-encoded public certificate used by the agent to do the initial handshake to the backend services in Azure.",
+			Description:  "The base64-encoded public certificate used by the agent to do the initial handshake to the backend services in Azure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
