@@ -7,39 +7,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/resources/chaos_studio_capability"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/resources/chaos_studio_experiment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/resources/chaos_studio_target"
 )
 
-type Registration struct {
-	autoRegistration
-}
+type Registration struct{}
 
 var _ sdk.FrameworkServiceRegistration = Registration{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return r.autoRegistration.Name()
+	return "ChaosStudio"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
-	return r.autoRegistration.WebsiteCategories()
+	return []string{
+		"Chaos Studio",
+	}
 }
 
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	dataSources := []sdk.DataSource{}
-	dataSources = append(dataSources, r.autoRegistration.DataSources()...)
-	return dataSources
+	return []sdk.DataSource{}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{
-		ChaosStudioCapabilityResource{},
-		ChaosStudioExperimentResource{},
+	return []sdk.Resource{
+		chaos_studio_capability.Resource{},
+		chaos_studio_experiment.Resource{},
+		chaos_studio_target.Resource{},
 	}
-	resources = append(resources, r.autoRegistration.Resources()...)
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {

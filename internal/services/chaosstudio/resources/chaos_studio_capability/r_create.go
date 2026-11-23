@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package chaosstudio
+package chaos_studio_capability
 
 import (
 	"context"
@@ -15,57 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilities"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilitytypes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = ChaosStudioCapabilityResource{}
-
-type ChaosStudioCapabilityResource struct{}
-
-func (r ChaosStudioCapabilityResource) ModelObject() any {
-	return &ChaosStudioTargetResourceSchema{}
-}
-
-type ChaosStudioCapabilityResourceSchema struct {
-	CapabilityType      string `tfschema:"capability_type"`
-	ChaosStudioTargetId string `tfschema:"chaos_studio_target_id"`
-	Urn                 string `tfschema:"urn"`
-}
-
-func (r ChaosStudioCapabilityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return commonids.ValidateChaosStudioCapabilityID
-}
-
-func (r ChaosStudioCapabilityResource) ResourceType() string {
-	return "azurerm_chaos_studio_capability"
-}
-
-func (r ChaosStudioCapabilityResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"capability_type": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
-		},
-		"chaos_studio_target_id": {
-			ForceNew:     true,
-			Required:     true,
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: commonids.ValidateChaosStudioTargetID,
-		},
-	}
-}
-
-func (r ChaosStudioCapabilityResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"urn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
-}
-
-func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
+func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Capabilities
@@ -141,62 +93,6 @@ func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-		Timeout: 30 * time.Minute,
-	}
-}
-
-func (r ChaosStudioCapabilityResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Capabilities
-			schema := ChaosStudioCapabilityResourceSchema{}
-
-			id, err := commonids.ParseChaosStudioCapabilityID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			targetId := commonids.NewChaosStudioTargetID(id.Scope, id.TargetName)
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(*id)
-				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			schema.ChaosStudioTargetId = targetId.ID()
-			schema.CapabilityType = id.CapabilityName
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					schema.Urn = pointer.From(props.Urn)
-				}
-			}
-
-			return metadata.Encode(&schema)
-		},
-		Timeout: 5 * time.Minute,
-	}
-}
-
-func (r ChaosStudioCapabilityResource) Delete() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ChaosStudio.V20231101.Capabilities
-
-			id, err := commonids.ParseChaosStudioCapabilityID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
 			return nil
 		},
 		Timeout: 30 * time.Minute,

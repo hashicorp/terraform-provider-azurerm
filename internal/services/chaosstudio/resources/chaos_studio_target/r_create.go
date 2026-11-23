@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package chaosstudio
+package chaos_studio_target
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func (r ChaosStudioTargetResource) Create() sdk.ResourceFunc {
+func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Targets
