@@ -461,6 +461,7 @@ func TestAccCognitiveAccount_identity(t *testing.T) {
 }
 
 func TestAccCognitiveAccount_metricsAdvisor(t *testing.T) {
+	t.Skip("skipping as the kind `MetricsAdvisor` was deprecated on 18 May 2026 and there is no available quota")
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 
