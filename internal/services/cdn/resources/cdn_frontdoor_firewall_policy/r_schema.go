@@ -190,7 +190,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								},
 
 								"match_values": {
-									Description: "Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters in length.",
+									Description: "Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments.",
 									Type:        pluginsdk.TypeList,
 									Required:    true,
 									MaxItems:    600,
