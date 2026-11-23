@@ -59,7 +59,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_type": {
-			Description: "The type of billing for the B2C tenant. Possible values include: `MAU` or `Auths`.",
+			Description: "The type of billing for the B2C tenant.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

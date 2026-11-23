@@ -656,7 +656,7 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 			},
 		},
@@ -840,7 +840,7 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -939,7 +939,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -1473,7 +1473,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1510,7 +1510,7 @@ func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1603,7 +1603,7 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1634,7 +1634,7 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1725,7 +1725,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1735,7 +1735,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Login scopes that will be requested as part of Google Sign-In authentication.",
+					Description: "A list of Login scopes that will be requested as part of Google Sign-In authentication.",
 				},
 			},
 		},
@@ -1766,7 +1766,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 
 				"login_scopes": {
@@ -1872,7 +1872,7 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1912,7 +1912,7 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {

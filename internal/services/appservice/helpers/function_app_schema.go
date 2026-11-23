@@ -148,7 +148,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -162,7 +162,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -637,7 +637,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -651,7 +651,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -916,7 +916,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Windows Web App.",
+					Description: "A list of Default Documents for the Windows Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -930,7 +930,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),

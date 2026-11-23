@@ -100,7 +100,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"uses_github_action": {
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
-			Description: "Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.",
+			Description: "Whether the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.",
 		},
 	}
 }

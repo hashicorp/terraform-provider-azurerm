@@ -120,7 +120,7 @@ func GithubActionConfigSchema() *pluginsdk.Schema {
 				"linux_action": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Denotes this action uses a Linux base image.",
+					Description: "Whether this action uses a Linux base image.",
 				},
 			},
 		},

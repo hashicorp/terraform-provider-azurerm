@@ -190,7 +190,7 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Hosts for which matching should be applied.",
+					Description: "A list of Hosts for which matching should be applied.",
 				},
 
 				"x_forwarded_for": {
@@ -201,7 +201,7 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsCIDR,
 					},
-					Description: "Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.",
+					Description: "A list of addresses for which matching should be applied. Omitting this value means allow any.",
 				},
 
 				"x_azure_fdid": { // Front Door ID (UUID)
@@ -212,7 +212,7 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsUUID,
 					},
-					Description: "Specifies a list of Azure Front Door IDs.",
+					Description: "A list of Azure Front Door IDs.",
 				},
 
 				"x_fd_health_probe": { // 1 or absent
@@ -270,7 +270,7 @@ func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies if a Front Door Health Probe is expected.",
+					Description: "Whether a Front Door Health Probe is expected.",
 				},
 			},
 		},
@@ -326,7 +326,7 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of origins that should be allowed to make cross-origin calls.",
+					Description: "A list of origins that should be allowed to make cross-origin calls.",
 				},
 
 				"support_credentials": {
@@ -488,7 +488,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.",
+					Description: "A map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -499,7 +499,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
+					Description: "A list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
 				},
 
 				"default_provider": {
@@ -603,13 +603,13 @@ func AuthSettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
+					Description: "A list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.",
 				},
 
 				"default_provider": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The default authentication provider used when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
+					Description: "The default authentication provider used when multiple providers are configured.",
 				},
 
 				"issuer": {
@@ -706,7 +706,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -801,7 +801,7 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -896,7 +896,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 			},
 		},
@@ -1152,7 +1152,7 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},

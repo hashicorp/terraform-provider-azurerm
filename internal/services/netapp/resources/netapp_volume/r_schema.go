@@ -397,7 +397,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Indicates whether the volume is a large volume.",
+			Description: "Whether the volume is a large volume.",
 		},
 
 		"breakthrough_mode_enabled": {
@@ -405,7 +405,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Indicates whether the large volume runs in Breakthrough Mode, placing it on dedicated capacity that delivers higher throughput and larger capacity.",
+			Description: "Whether the large volume runs in Breakthrough Mode, placing it on dedicated capacity that delivers higher throughput and larger capacity.",
 		},
 
 		"cool_access": {

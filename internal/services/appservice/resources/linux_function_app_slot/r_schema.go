@@ -27,7 +27,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "Specifies the name of the Function App Slot.",
+			Description:  "The name of the Function App Slot.",
 		},
 
 		"function_app_id": {

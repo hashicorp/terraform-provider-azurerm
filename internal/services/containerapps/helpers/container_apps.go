@@ -390,7 +390,7 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 				"transport": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`.",
+					Description: "The transport method for the Ingress.",
 				},
 
 				"client_certificate_mode": {
@@ -520,7 +520,7 @@ func ContainerAppIngressCustomDomainSchemaComputed() *pluginsdk.Schema {
 				"certificate_binding_type": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Binding type. Possible values include `Disabled` and `SniEnabled`.",
+					Description: "The Binding type.",
 				},
 
 				"certificate_id": {
@@ -897,7 +897,7 @@ func ContainerDaprSchemaComputed() *pluginsdk.Schema {
 				"app_protocol": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The protocol for the app. Possible values include `http` and `grpc`.",
+					Description: "The protocol for the app.",
 				},
 			},
 		},
@@ -2112,13 +2112,13 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"transport": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+					Description: "Type of probe.",
 				},
 
 				"port": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The port number on which to connect. Possible values are between `1` and `65535`.",
+					Description: "The port number on which to connect.",
 				},
 
 				"host": {
@@ -2156,31 +2156,31 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "How often, in seconds, the probe should run. Possible values are between `1` and `240`.",
+					Description: "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "Time in seconds after which the probe times out. Possible values are between `1` an `240`.",
+					Description: "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`.",
+					Description: "The number of consecutive failures required to consider this probe as failed.",
 				},
 
 				"success_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`.",
+					Description: "The number of consecutive successful responses required to consider this probe as successful.",
 				},
 			},
 		},
@@ -2385,13 +2385,13 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"transport": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+					Description: "Type of probe.",
 				},
 
 				"port": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The port number on which to connect. Possible values are between `1` and `65535`.",
+					Description: "The port number on which to connect.",
 				},
 
 				"host": {
@@ -2429,25 +2429,25 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "How often, in seconds, the probe should run. Possible values are between `1` and `240`.",
+					Description: "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "Time in seconds after which the probe times out. Possible values are between `1` an `240`.",
+					Description: "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`.",
+					Description: "The number of consecutive failures required to consider this probe as failed.",
 				},
 			},
 		},
@@ -2689,25 +2689,25 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "How often, in seconds, the probe should run. Possible values are between `1` and `240`.",
+					Description: "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "Time in seconds after which the probe times out. Possible values are between `1` an `240`.",
+					Description: "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`.",
+					Description: "The number of consecutive failures required to consider this probe as failed.",
 				},
 			},
 		},
