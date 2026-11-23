@@ -70,7 +70,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.3.0/24"]
 
-  private_endpoint_network_policies_enabled = false
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_subnet_network_security_group_association" "private" {
@@ -138,21 +138,22 @@ resource "azurerm_private_endpoint" "databricks" {
     private_connection_resource_id = azurerm_databricks_workspace.example.id
     subresource_names              = ["databricks_ui_api"]
   }
+
+  private_dns_zone_group {
+    name                 = "private-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.example.id]
+  }
 }
 
 resource "azurerm_private_dns_zone" "example" {
-  depends_on = [azurerm_private_endpoint.databricks]
-
   name                = "privatelink.azuredatabricks.net"
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_private_dns_cname_record" "example" {
-  name                = azurerm_databricks_workspace.example.workspace_url
-  zone_name           = azurerm_private_dns_zone.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  ttl                 = 300
-  record              = "eastus2-c2.azuredatabricks.net"
+resource "azurerm_private_dns_zone_virtual_network_link" "example" {
+  name                = "${var.prefix}-dns-vnet-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.example.id
 }
 
 resource "azurerm_key_vault" "example" {
