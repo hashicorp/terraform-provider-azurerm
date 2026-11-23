@@ -6,13 +6,13 @@ package validate
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 const (
-	Free             = "(Free)"
 	Basic            = "(Basic)"
 	Elastic          = "(ElasticPool)"
 	Standard         = "(S(0|1|2|3|4|6|7|9|12))"
@@ -32,10 +32,23 @@ const (
 )
 
 func DatabaseSkuName() pluginsdk.SchemaValidateFunc {
-	pattern := "(?i)(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)"
+	pattern := "(?i)(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)"
 	return validation.StringMatch(
-		regexp.MustCompile(fmt.Sprintf(pattern, Free, Basic, Elastic, Standard, Premium, DataWarehouse, Stretch, BusinessCritical, Gen4, Gen5, ServerlessGen5, Fsv2, Dc, EightIM, Serverless8IM, Premium8IM, Premium8IH)),
+		regexp.MustCompile(fmt.Sprintf(pattern, Basic, Elastic, Standard, Premium, DataWarehouse, Stretch, BusinessCritical, Gen4, Gen5, ServerlessGen5, Fsv2, Dc, EightIM, Serverless8IM, Premium8IM, Premium8IH)),
 
 		`This is not a valid sku name. For example, a valid sku name is 'GP_S_Gen5_1','HS_Gen4_1','BC_Gen5_2', 'ElasticPool', 'Basic', 'S0', 'P1'.`,
 	)
+}
+
+// DatabaseSkuNameWithFree accepts the retired `Free` SKU with a deprecation warning for v5.x compatibility.
+// TODO 6.0: remove once `features.SixPointOh()` is removed.
+func DatabaseSkuNameWithFree() pluginsdk.SchemaValidateFunc {
+	baseValidate := DatabaseSkuName()
+	return func(i any, k string) ([]string, []error) {
+		if v, ok := i.(string); ok && strings.EqualFold(v, "Free") {
+			return []string{"the `Free` SKU has been retired by Azure and will be removed in v6.0 of the AzureRM Provider - use a serverless General Purpose SKU (for example `GP_S_Gen5_2`) with `free_limit_enabled = true` instead"}, nil
+		}
+
+		return baseValidate(i, k)
+	}
 }

@@ -78,9 +78,48 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 			Config: r.freeTier(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("AutoPause"),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.freeTierBillOverUsage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeTier(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeTierDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_freeLimitValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.freeLimitExhaustionBehaviorWithoutEnabled(data),
+			ExpectError: regexp.MustCompile("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`"),
+		},
+		{
+			Config:      r.freeLimitEnabledNonLocalStorage(data),
+			ExpectError: regexp.MustCompile("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`"),
+		},
 	})
 }
 
@@ -1381,9 +1420,75 @@ func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[2]d"
-  server_id = azurerm_mssql_server.test.id
-  sku_name  = "Free"
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes    = 60
+  min_capacity                   = 0.5
+  sku_name                       = "GP_S_Gen5_2"
+  free_limit_enabled             = true
+  free_limit_exhaustion_behavior = "AutoPause"
+  storage_account_type           = "Local"
+  geo_backup_enabled             = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeTierBillOverUsage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes    = 60
+  min_capacity                   = 0.5
+  sku_name                       = "GP_S_Gen5_2"
+  free_limit_enabled             = true
+  free_limit_exhaustion_behavior = "BillOverUsage"
+  storage_account_type           = "Local"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeTierDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                        = "acctest-db-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes = 60
+  min_capacity                = 0.5
+  sku_name                    = "GP_S_Gen5_2"
+  free_limit_enabled          = false
+  storage_account_type        = "Local"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitExhaustionBehaviorWithoutEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  free_limit_enabled             = false
+  free_limit_exhaustion_behavior = "AutoPause"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitEnabledNonLocalStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                 = "acctest-db-%[2]d"
+  server_id            = azurerm_mssql_server.test.id
+  sku_name             = "GP_S_Gen5_2"
+  free_limit_enabled   = true
+  storage_account_type = "Geo"
 }
 `, r.template(data), data.RandomInteger)
 }

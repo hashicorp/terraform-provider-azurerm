@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -287,6 +288,16 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		input.Properties.RestorePointInTime = pointer.To(v.(string))
+	}
+
+	useFreeLimit := d.Get("free_limit_enabled").(bool)
+	input.Properties.UseFreeLimit = pointer.To(useFreeLimit)
+	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+		input.Properties.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
+	}
+
+	if !features.SixPointOh() && pluginsdk.IsExplicitlyNullInConfig(d, "free_limit_enabled") {
+		input.Properties.UseFreeLimit = nil
 	}
 
 	if skuName != "" {
