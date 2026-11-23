@@ -2035,7 +2035,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Computed:    true,
-					Description: "The URI to use for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "The URI to use for HTTP type probes. Not valid for `TCP` type probes.",
 				},
 
 				"header": {
@@ -2316,7 +2316,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Computed:    true,
-					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes.",
 				},
 
 				"header": {
@@ -2580,7 +2580,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Computed:    true,
-					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes. Defaults to `/`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes.",
 				},
 
 				"header": {

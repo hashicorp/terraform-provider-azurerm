@@ -76,7 +76,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "If this Linux Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -858,7 +858,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "If this Windows Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -1654,7 +1654,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime? Defaults to `false`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "Should the DotNet process use an isolated runtime?",
 				},
 
 				"node_version": {

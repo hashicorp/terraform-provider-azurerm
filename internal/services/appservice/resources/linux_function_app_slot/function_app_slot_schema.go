@@ -72,7 +72,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.", // azignore:AZS014 - Optional and Computed, so the schema cannot set a Default
+					Description: "If this Linux Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
