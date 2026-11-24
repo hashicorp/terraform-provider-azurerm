@@ -507,7 +507,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 			// `ExpandSiteConfigLinuxFunctionApp` does, otherwise an update of an unrelated attribute (e.g. `app_settings`)
 			// rewrites `linuxFxVersion` as `DOCKER|https://myregistry.azurecr.io/image:tag` and the container can no longer start.
 			dockerUrl := dockerConfig.RegistryURL
-			for _, prefix := range urlSchemes {
+			for _, prefix := range helpers.UrlSchemes {
 				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
 					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
 					continue
