@@ -97,7 +97,7 @@ The following arguments are supported:
 
 ---
 
-* `filtering_criteria` - (Optional) An expression specifying which traffic to record in the flow log, for example `Protocol=TCP && DstPort=443`. The maximum length is 1000 characters. If omitted or set to an empty string, traffic is not filtered. Removing this argument clears existing filtering.
+* `filtering_criteria` - (Optional) An expression specifying which traffic to record in the flow log, for example `Protocol=TCP && DstPort=443`. The maximum length is 1000 characters. If omitted or set to an empty string, traffic is not filtered.
 
 ~> **Note:** Filtering expressions support `Direction`, `SrcIP`, `DstIP`, `SrcPort`, `DstPort`, `Protocol` and `Encryption`, with `=` and `!=` comparisons and `&&` and `||` logical operators. Parentheses are not supported. See the [Azure filtering documentation](https://learn.microsoft.com/azure/network-watcher/vnet-flow-logs-filtering) for supported values and syntax.
 
