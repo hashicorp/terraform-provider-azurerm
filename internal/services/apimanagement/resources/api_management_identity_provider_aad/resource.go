@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderAADCreateUpdate,
-		Read:   resourceApiManagementIdentityProviderAADRead,
-		Update: resourceApiManagementIdentityProviderAADCreateUpdate,
-		Delete: resourceApiManagementIdentityProviderAADDelete,
+		Description: "Manages an API Management AAD Identity Provider.",
+		Create:      resourceApiManagementIdentityProviderAADCreateUpdate,
+		Read:        resourceApiManagementIdentityProviderAADRead,
+		Update:      resourceApiManagementIdentityProviderAADCreateUpdate,
+		Delete:      resourceApiManagementIdentityProviderAADDelete,
 
 		Importer: helpers.IdentityProviderImportFunc(identityprovider.IdentityProviderTypeAad),
 

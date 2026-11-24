@@ -28,7 +28,7 @@ func dataFactoryLinkedServiceKeyVaultSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: factories.ValidateFactoryID,
 		},
 
-		"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"description": {
 			Type:         pluginsdk.TypeString,

@@ -16,7 +16,7 @@ import (
 
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"stack_hci_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&deploymentsettings.ClusterId{}),
+		"stack_hci_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&deploymentsettings.ClusterId{}, "Azure Stack HCI Cluster"),
 
 		"arc_resource_ids": {
 			Type:     pluginsdk.TypeList,

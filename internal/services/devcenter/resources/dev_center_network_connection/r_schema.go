@@ -32,7 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(networkconnections.PossibleValuesForDomainJoinType(), false),
 		},
 
-		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}, "Subnet"),
 
 		"domain_name": {
 			Type:         pluginsdk.TypeString,

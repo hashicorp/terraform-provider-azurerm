@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGroupUserCreate,
-		Read:   resourceApiManagementGroupUserRead,
-		Delete: resourceApiManagementGroupUserDelete,
+		Description: "Manages an API Management User Assignment to a Group.",
+		Create:      resourceApiManagementGroupUserCreate,
+		Read:        resourceApiManagementGroupUserRead,
+		Delete:      resourceApiManagementGroupUserDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := groupuser.ParseGroupUserID(id)
 			return err

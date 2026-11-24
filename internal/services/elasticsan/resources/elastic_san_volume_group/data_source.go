@@ -48,7 +48,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ElasticSanVolumeGroupName,
 		},
 
-		"elastic_san_id": commonschema.ResourceIDReferenceRequired(&volumegroups.ElasticSanId{}),
+		"elastic_san_id": commonschema.ResourceIDReferenceRequired(&volumegroups.ElasticSanId{}, "Elastic SAN"),
 	}
 }
 

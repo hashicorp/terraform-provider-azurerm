@@ -31,7 +31,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
-		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
+		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}, "source (primary) Autonomous Database"),
 
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,

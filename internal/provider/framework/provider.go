@@ -87,7 +87,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 			"environment": schema.StringAttribute{
 				Optional:    true,
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.", // azignore:AZS014 - the provider cannot set a Default in its schema
 			},
 
 			"metadata_host": schema.StringAttribute{
@@ -98,7 +98,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			// Client Certificate specific fields
 			"client_certificate": schema.StringAttribute{
 				Optional:    true,
-				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
+				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			"client_certificate_path": schema.StringAttribute{
@@ -108,7 +108,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 			"client_certificate_password": schema.StringAttribute{
 				Optional:    true,
-				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
+				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			// Client Secret specific fields
@@ -150,7 +150,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 			"use_oidc": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Allow OpenID Connect to be used for authentication",
+				Description: "Allow OpenID Connect to be used for authentication.",
 			},
 
 			// Managed Service Identity specific fields
@@ -240,11 +240,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 					Attributes: map[string]schema.Attribute{
 						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
 							Optional:    true,
-							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion.",
 						},
 						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
 							Optional:    true,
-							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present.",
 						},
 					},
 					Blocks: map[string]schema.Block{
@@ -297,7 +297,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								Attributes: map[string]schema.Attribute{
 									"force_delete": schema.BoolAttribute{
 										Optional:    true,
-										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+										Description: "When enabled, the managed Resource Group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
 									},
 								},
 							},
@@ -324,11 +324,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									},
 									"resource_providers": schema.BoolAttribute{
 										Optional:    true,
-										Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+										Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
 									},
 									"preflight_enabled": schema.BoolAttribute{
 										Optional:    true,
-										Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+										Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid? Note: requires valid credentials and external Azure API access at plan-time.",
 									},
 									"preflight_location_fallback": schema.StringAttribute{
 										Optional:    true,
@@ -341,57 +341,57 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"purge_soft_delete_on_destroy": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+										Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g. purged), when destroyed.",
 										Optional:    true,
 									},
 
 									"purge_soft_deleted_certificates_on_destroy": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed",
+										Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g. purged), when destroyed.",
 										Optional:    true,
 									},
 
 									"purge_soft_deleted_keys_on_destroy": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed",
+										Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g. purged), when destroyed.",
 										Optional:    true,
 									},
 
 									"purge_soft_deleted_secrets_on_destroy": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed",
+										Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g. purged), when destroyed.",
 										Optional:    true,
 									},
 
 									"purge_soft_deleted_hardware_security_modules_on_destroy": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g purged), when destroyed",
+										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g. purged), when destroyed.",
 										Optional:    true,
 									},
 
 									"purge_soft_deleted_hardware_security_module_keys_on_destroy": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g. purged), when destroyed.",
 										Optional:    true,
 									},
 
 									"recover_soft_deleted_certificates": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
+										Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones.",
 										Optional:    true,
 									},
 
 									"recover_soft_deleted_key_vaults": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones",
+										Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones.",
 										Optional:    true,
 									},
 
 									"recover_soft_deleted_keys": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones",
+										Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.",
 										Optional:    true,
 									},
 
 									"recover_soft_deleted_secrets": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+										Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones.",
 										Optional:    true,
 									},
 
 									"recover_soft_deleted_hardware_security_module_keys": schema.BoolAttribute{
-										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
+										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones.",
 										Optional:    true,
 									},
 								},
@@ -429,10 +429,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								Attributes: map[string]schema.Attribute{
 									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
 										Optional:    true,
-										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed.",
 									},
 									"prevent_volume_destruction": schema.BoolAttribute{
-										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss.",
 										Optional:    true,
 									},
 								},

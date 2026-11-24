@@ -68,7 +68,7 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}),
+					"storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}, "Storage Account"),
 				},
 			},
 		},

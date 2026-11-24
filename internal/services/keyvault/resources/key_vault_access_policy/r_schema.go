@@ -13,7 +13,7 @@ import (
 
 func keyVaultAccessPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,

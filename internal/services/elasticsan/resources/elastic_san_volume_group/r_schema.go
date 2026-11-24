@@ -27,7 +27,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ElasticSanVolumeGroupName,
 		},
 
-		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumegroups.ElasticSanId{}),
+		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumegroups.ElasticSanId{}, "Elastic SAN"),
 
 		"encryption_type": {
 			Type:         pluginsdk.TypeString,

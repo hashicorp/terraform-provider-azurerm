@@ -17,6 +17,7 @@ func apiManagementIdentityProviderTwitterSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"api_key": {
+			Description:  "App Consumer API key for Twitter.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -24,6 +25,7 @@ func apiManagementIdentityProviderTwitterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"api_secret_key": {
+			Description:  "App Consumer API secret key for Twitter.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,

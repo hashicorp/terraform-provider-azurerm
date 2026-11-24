@@ -21,7 +21,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: keyvault.ValidateNestedItemName,
 		},
 
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"certificate": {
 			Type:     pluginsdk.TypeList,

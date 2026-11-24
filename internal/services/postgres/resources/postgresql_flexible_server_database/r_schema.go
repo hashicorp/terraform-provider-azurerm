@@ -4,7 +4,7 @@
 package postgresql_flexible_server_database
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"

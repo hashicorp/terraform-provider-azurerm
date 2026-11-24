@@ -301,7 +301,7 @@ func LinuxSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
 				// closer to the Windows VMSS resource, which will also take a `store` param
@@ -986,7 +986,7 @@ func WindowsSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 				"certificate": {
 					Type:     pluginsdk.TypeSet,
@@ -1018,7 +1018,7 @@ func WindowsSecretSchemaVM() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 				"certificate": {
 					Type:     pluginsdk.TypeSet,

@@ -19,7 +19,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringLenBetween(1, 253),
 		},
 
-		"email_service_domain_id": commonschema.ResourceIDReferenceRequiredForceNew(&senderusernames.DomainId{}),
+		"email_service_domain_id": commonschema.ResourceIDReferenceRequiredForceNew(&senderusernames.DomainId{}, "Email Communication Service Domain"),
 
 		"display_name": {
 			Type:         pluginsdk.TypeString,

@@ -40,7 +40,7 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
-			Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`.",
+			Description:  "The Binding type.",
 		},
 	}
 }

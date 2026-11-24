@@ -25,7 +25,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementRead,
+		Description: "Use this data source to access information about an existing API Management Service.",
+		Read:        dataSourceApiManagementRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -39,76 +40,89 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"public_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The Public IP addresses of the API Management Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"public_ip_address_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "ID of the standard SKU IPv4 Public IP. Available only for Premium and Developer SKU deployed in a Virtual Network.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The Private IP addresses of the API Management Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"publisher_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Publisher/Company of the API Management Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"publisher_email": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The email of Publisher/Company of the API Management Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the API Management Service consisting of the name and capacity, separated by an underscore.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"notification_sender_email": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The email address from which the notification will be sent.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"gateway_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL for the API Management Service's Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"gateway_regional_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL for the Gateway in the Default Region.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"portal_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL of the Publisher Portal.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"developer_portal_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL for the Developer Portal associated with this API Management service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"management_api_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL for the Management API.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"scm_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SCM (Source Code Management) endpoint.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"additional_location": {
@@ -119,33 +133,38 @@ func RegisterDataSource() *pluginsdk.Resource {
 						"location": commonschema.LocationComputed(),
 
 						"capacity": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of compute units in this region.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"zones": commonschema.ZonesMultipleComputed(),
 
 						"gateway_regional_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Gateway URL of the API Management service in the Region.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"public_ip_addresses": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "ID of the standard SKU IPv4 Public IP. Available only for Premium SKU deployed in a Virtual Network.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_addresses": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "Private IP addresses of the API Management service in the additional location, for instances using Virtual Network mode.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -204,22 +223,26 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Is access to the Management API enabled (presumably \"for this Tenant\")?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Tenant which has access to this API Management instance.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"primary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "Primary access key for the tenant access information contract.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"secondary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "Secondary access key for the tenant access information contract.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
@@ -390,18 +413,21 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The hostname.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"key_vault_certificate_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Key Vault Secret which contains the SSL Certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"negotiate_client_certificate": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is Client Certificate Negotiation enabled?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

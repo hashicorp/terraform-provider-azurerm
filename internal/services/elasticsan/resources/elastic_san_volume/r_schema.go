@@ -29,7 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ElasticSanVolumeName,
 		},
 
-		"volume_group_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumes.VolumeGroupId{}),
+		"volume_group_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumes.VolumeGroupId{}, "Volume Group"),
 
 		"size_in_gib": {
 			Type:         pluginsdk.TypeInt,

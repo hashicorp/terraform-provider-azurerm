@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementRedisCacheCreateUpdate,
-		Read:   resourceApiManagementRedisCacheRead,
-		Update: resourceApiManagementRedisCacheCreateUpdate,
-		Delete: resourceApiManagementRedisCacheDelete,
+		Description: "Manages an API Management Redis Cache.",
+		Create:      resourceApiManagementRedisCacheCreateUpdate,
+		Read:        resourceApiManagementRedisCacheRead,
+		Update:      resourceApiManagementRedisCacheCreateUpdate,
+		Delete:      resourceApiManagementRedisCacheDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

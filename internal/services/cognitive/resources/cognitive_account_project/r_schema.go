@@ -48,7 +48,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validate.AccountProjectName(),
 		},
 
-		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}),
+		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}, "Cognitive Account"),
 
 		"location": commonschema.Location(),
 

@@ -14,23 +14,26 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("Specifies the name of the API Management Workspace Policy Fragment."),
 
-		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&policyfragment.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&policyfragment.WorkspaceId{}, "API Management Workspace'"),
 
 		"xml_content": {
+			Description:      "The XML content of the API Management Workspace Policy Fragment.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: helpers.XmlWhitespaceDiffSuppress,
 		},
 
 		"description": {
+			Description:  "The description for the API Management Workspace Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"xml_format": {
+			Description:  "The XML format of the API Management Workspace Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(policyfragment.PolicyFragmentContentFormatXml),
