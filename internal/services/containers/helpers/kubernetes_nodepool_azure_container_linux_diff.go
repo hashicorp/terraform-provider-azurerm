@@ -25,46 +25,36 @@ func NodePoolAzureContainerLinuxCustomizeDiff(nodePoolPath string) pluginsdk.Cus
 			return nil
 		}
 
-		rawConfig := d.GetRawConfig()
-		if !rawConfig.IsKnown() || rawConfig.IsNull() {
-			return nil
-		}
-		if nodePoolPath != "" {
-			nodePools := rawConfig.GetAttr(nodePoolPath)
-			if !nodePools.IsKnown() || nodePools.IsNull() || nodePools.LengthInt() == 0 {
+		// The SDK reports no count for both an omitted block and an unknown block.
+		if _, ok := d.GetOkExists(prefix + "security.#"); !ok {
+			config := d.GetRawConfig()
+			if !config.IsKnown() || config.IsNull() {
 				return nil
 			}
-			rawConfig = nodePools.AsValueSlice()[0]
-			if !rawConfig.IsKnown() || rawConfig.IsNull() {
-				return nil
+			if nodePoolPath != "" {
+				nodePools := config.GetAttr(nodePoolPath)
+				if !nodePools.IsKnown() || nodePools.IsNull() || nodePools.LengthInt() == 0 {
+					return nil
+				}
+				config = nodePools.AsValueSlice()[0]
+				if !config.IsKnown() || config.IsNull() {
+					return nil
+				}
 			}
-		}
 
-		security := rawConfig.GetAttr("security")
-		if !security.IsKnown() {
+			security := config.GetAttr("security")
+			if security.IsKnown() && (security.IsNull() || security.LengthInt() == 0) {
+				return fmt.Errorf("`%ssecure_boot_enabled` must be set to `true` when `%s` is `AzureContainerLinux`", securityPath, osSKUPath)
+			}
 			return nil
-		}
-		if security.IsNull() || security.LengthInt() == 0 {
-			return fmt.Errorf("`%ssecure_boot_enabled` must be set to `true` when `%s` is `AzureContainerLinux`", securityPath, osSKUPath)
-		}
-		security = security.AsValueSlice()[0]
-		if !security.IsKnown() {
-			return nil
-		}
-		if security.IsNull() {
-			return fmt.Errorf("`%ssecure_boot_enabled` must be set to `true` when `%s` is `AzureContainerLinux`", securityPath, osSKUPath)
 		}
 
 		for _, flag := range []string{"secure_boot_enabled", "vtpm_enabled"} {
 			path := securityPath + flag
 			value, ok := d.GetOkExists(path)
-			if ok && value.(bool) {
-				continue
+			if ok && !value.(bool) {
+				return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
 			}
-			if !ok && !security.GetAttr(flag).IsNull() {
-				continue
-			}
-			return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
 		}
 		return nil
 	}
