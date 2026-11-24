@@ -327,12 +327,12 @@ func FlattenStorageConnectionStrings(input webapps.StringDictionary) (backendSaC
 
 	properties := *input.Properties
 	deploymentSaConStr = properties[DeploymentStorageConnStr]
+	backendSaConStr = properties[BackendStorageConnStr]
 
 	if backendStorageName, ok := properties[BackendStorageName]; ok {
 		return backendStorageName, true, deploymentSaConStr
 	}
 
-	backendSaConStr = properties[BackendStorageConnStr]
 	if strings.Contains(backendSaConStr, "AccountKey=;") {
 		backendSaConStr, _ = helpers.ParseWebJobsStorageString(backendSaConStr)
 		backendSaUseMsi = true
