@@ -40,57 +40,66 @@ type ApiManagementSubscriptionDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_management_id": {
+			Description:  "The ID of the API Management Service in which this Subscription exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
 
-		"subscription_id": schemaz.SchemaApiManagementChildDataSourceName(),
+		"subscription_id": schemaz.SchemaApiManagementChildDataSourceName("The Identifier for the API Management Subscription."),
 	}
 }
 
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"allow_tracing": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether tracing is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"api_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the API assigned to this Subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of this Subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary key for this subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"product_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Product assigned to this Subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary key for this subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The state of this Subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"user_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the User assigned to this Subscription.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -101,6 +110,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_api_management_subscription"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing API Management Subscription."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderGoogleCreateUpdate,
-		Read:   resourceApiManagementIdentityProviderGoogleRead,
-		Update: resourceApiManagementIdentityProviderGoogleCreateUpdate,
-		Delete: resourceApiManagementIdentityProviderGoogleDelete,
+		Description: "Manages an API Management Google Identity Provider.",
+		Create:      resourceApiManagementIdentityProviderGoogleCreateUpdate,
+		Read:        resourceApiManagementIdentityProviderGoogleRead,
+		Update:      resourceApiManagementIdentityProviderGoogleCreateUpdate,
+		Delete:      resourceApiManagementIdentityProviderGoogleDelete,
 
 		Importer: helpers.IdentityProviderImportFunc(identityprovider.IdentityProviderTypeGoogle),
 

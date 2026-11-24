@@ -42,7 +42,7 @@ func logicAppIntegrationAccountCertificateSchema() map[string]*pluginsdk.Schema 
 						ValidateFunc: keyvault.ValidateNestedItemName,
 					},
 
-					"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+					"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 					"key_version": {
 						Type:         pluginsdk.TypeString,

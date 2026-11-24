@@ -29,7 +29,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name":     commonschema.ResourceGroupName(),
 		"location":                commonschema.Location(),
-		"partner_registration_id": commonschema.ResourceIDReferenceRequiredForceNew(&partnerregistrations.PartnerRegistrationId{}),
+		"partner_registration_id": commonschema.ResourceIDReferenceRequiredForceNew(&partnerregistrations.PartnerRegistrationId{}, "Event Grid Partner Registration"),
 		"inbound_ip_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

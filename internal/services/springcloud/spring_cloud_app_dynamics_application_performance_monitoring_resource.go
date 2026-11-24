@@ -67,7 +67,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Argument
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}, "Spring Cloud Service"),
 
 		"agent_account_access_key": {
 			Type:         pluginsdk.TypeString,

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementOpenIDConnectProviderCreateUpdate,
-		Read:   resourceApiManagementOpenIDConnectProviderRead,
-		Update: resourceApiManagementOpenIDConnectProviderCreateUpdate,
-		Delete: resourceApiManagementOpenIDConnectProviderDelete,
+		Description: "Manages an OpenID Connect Provider within an API Management Service.",
+		Create:      resourceApiManagementOpenIDConnectProviderCreateUpdate,
+		Read:        resourceApiManagementOpenIDConnectProviderRead,
+		Update:      resourceApiManagementOpenIDConnectProviderCreateUpdate,
+		Delete:      resourceApiManagementOpenIDConnectProviderDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := openidconnectprovider.ParseOpenidConnectProviderID(id)
 			return err

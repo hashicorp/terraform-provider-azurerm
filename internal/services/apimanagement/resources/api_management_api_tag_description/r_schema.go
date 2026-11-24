@@ -12,6 +12,7 @@ import (
 func apiManagementApiTagDescriptionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_tag_id": {
+			Description:  "The ID of the API Management API Tag.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,19 +20,22 @@ func apiManagementApiTagDescriptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of the Tag.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"external_documentation_url": {
+			Description:  "The URL of external documentation resources describing the tag.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"external_documentation_description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of the external documentation resources describing the tag.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

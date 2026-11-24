@@ -83,7 +83,7 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Default:  false,
 		},
 
-		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}),
+		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}, "Event Grid Topic"),
 	}
 }
 

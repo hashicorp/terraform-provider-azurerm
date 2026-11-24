@@ -56,8 +56,8 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 
 			"protect_action": schema.StringAttribute{
 				Required:            true,
-				Description:         "The protect state action to take on this backup instance. Possible values include `stop_protection`,`resume_protection`, `suspend_backups`, and `resume_backups`.",
-				MarkdownDescription: "The protect state action to take on this backup instance. Possible values include `stop_protection`,`resume_protection`, `suspend_backups`, and `resume_backups`.",
+				Description:         "The protect state action to take on this backup instance.",
+				MarkdownDescription: "The protect state action to take on this backup instance.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						StopProtection,

@@ -62,8 +62,8 @@ func (a *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the bucket credentials generation to complete. Defaults to `1h`.",
-				MarkdownDescription: "Timeout duration for the bucket credentials generation to complete. Defaults to `1h`.",
+				Description:         "Timeout duration for the bucket credentials generation to complete. Defaults to `1h`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the bucket credentials generation to complete. Defaults to `1h`.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 	}

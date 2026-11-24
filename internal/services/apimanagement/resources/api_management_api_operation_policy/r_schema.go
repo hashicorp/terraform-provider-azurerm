@@ -16,13 +16,14 @@ func apiManagementApiOperationPolicySchema() map[string]*pluginsdk.Schema {
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The name of the API within the API Management Service where the Operation exists."),
 
-		"operation_id": schemaz.SchemaApiManagementChildName(),
+		"operation_id": schemaz.SchemaApiManagementChildName("The operation identifier within an API. Must be unique in the current API Management service instance."),
 
 		"xml_content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The XML Content for this Policy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 			Computed:         true,
 			ConflictsWith:    []string{"xml_link"},
@@ -30,6 +31,7 @@ func apiManagementApiOperationPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"xml_link": {
+			Description:   "A link to a Policy XML Document, which must be publicly available.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{"xml_content"},

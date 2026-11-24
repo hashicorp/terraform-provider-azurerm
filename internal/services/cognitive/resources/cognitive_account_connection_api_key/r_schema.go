@@ -25,7 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AccountConnectionName(),
 		},
 
-		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
+		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}, "Cognitive Account"),
 
 		"api_key": {
 			Type:         pluginsdk.TypeString,

@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAdvisorRecommendationsRead,
+		Description: "Use this data source to access information about an existing Advisor Recommendations.",
+		Read:        dataSourceAdvisorRecommendationsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(10 * time.Minute),
@@ -29,19 +30,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"filter_by_category": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Description: "A list of categories in which the Advisor Recommendations will be listed.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(getrecommendations.PossibleValuesForCategory(), false),
 				},
 			},
 
-			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional(),
+			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional("Specifies a set of resource groups about which the Advisor Recommendations will be listed."),
 
 			"filter_by_resource_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Description: "A list of resource about which the Advisor Recommendations will be listed.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
@@ -49,8 +52,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"filter_by_recommendation_type_guids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Description: "A list of recommendation types about which the Advisor Recommendations will be listed.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -62,56 +66,66 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The category of the recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description of the issue or the opportunity identified by the recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Advisor Recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"impact": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The business impact of the recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"recommendation_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Advisor Recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"recommendation_type_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The recommendation type ID of the Advisor Recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"resource_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the identified resource of the Advisor Recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"resource_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the identified resource of the Advisor Recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"suppression_names": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of Advisor Suppression names of the Advisor Recommendation.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"updated_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The most recent time that Advisor checked the validity of the recommendation.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

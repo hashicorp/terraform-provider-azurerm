@@ -29,7 +29,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
@@ -38,7 +38,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(&logicalnetworks.LogicalNetworkId{}),
+					// TODO: Does this want to be changed to `stack_hci_logical_network_id`?
+					"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(&logicalnetworks.LogicalNetworkId{}, "Stack HCI Logical Network"),
 
 					"private_ip_address": {
 						Type:         pluginsdk.TypeString,
