@@ -15,6 +15,7 @@ import (
 func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Log Analytics Workspace. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,25 +27,29 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"allow_resource_only_permissions": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Log Analytics Workspace allows users accessing to data associated with the resources they have permission to view, without permission to workspace.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Log Analytics Workspace should allow local authentication methods in addition to Microsoft Entra (Azure AD).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"cmk_for_query_forced": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Is Customer Managed Storage mandatory for query management?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"internet_ingestion_access_type": {
+			Description:  "Controls public network access for ingestion into the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
@@ -52,6 +57,7 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"internet_query_access_type": {
+			Description:  "Controls public network access for querying the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
@@ -59,9 +65,10 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The SKU of the Log Analytics Workspace.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				// creation with `Premium` and `Standard` is not allowed on API side, keep these values for existing resources.
 				string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight),
@@ -76,8 +83,9 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"reservation_capacity_in_gb_per_day": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The Capacity Reservation level in GB for this workspace.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			ValidateFunc: validation.IntInSlice([]int{
 				50,
 				100,
@@ -95,14 +103,16 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The workspace data retention in days.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// Note: O+C because Azure assigns a default retention period when not specified
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(30, 730),
 		},
 
 		"daily_quota_gb": {
+			Description:  "The workspace daily quota for ingestion in GB.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      -1.0,
@@ -110,31 +120,36 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_collection_rule_id": {
+			Description:  "The ID of the Data Collection Rule to use for this workspace.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
 		},
 
 		"immediate_data_purge_on_30_days_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to remove the data in the Log Analytics Workspace immediately after 30 days.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"workspace_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Workspace (or Customer) ID for the Log Analytics Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_shared_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary shared key for the Log Analytics Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_shared_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary shared key for the Log Analytics Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.Tags(),

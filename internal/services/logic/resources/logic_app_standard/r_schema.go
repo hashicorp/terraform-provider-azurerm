@@ -24,6 +24,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Logic App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,39 +36,45 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"app_service_plan_id": {
+			Description:  "The ID of the App Service Plan within which to create this Logic App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"use_extension_bundle": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the Logic App use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"bundle_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "[1.*, 2.0.0)",
+			Description: "If `use_extension_bundle` is set to `true` this controls the allowed range for bundle versions.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "[1.*, 2.0.0)",
 		},
 
 		"client_affinity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"client_certificate_mode": {
+			Description:  "The mode of the Logic App's client certificates requirement for incoming requests.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      webapps.ClientCertModeRequired,
@@ -75,29 +82,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Is the Logic App enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the FTP basic authentication publishing profile is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"https_only": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Can the Logic App only be accessed via HTTPS?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"scm_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the default SCM basic authentication publishing profile is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"site_config": helpers.SchemaLogicAppStandardSiteConfig(),
@@ -109,26 +120,30 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the Connection String.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 
 					"type": {
+						Description:  "The type of the Connection String.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
 					},
 
 					"value": {
-						Type:      pluginsdk.TypeString,
-						Required:  true,
-						Sensitive: true,
+						Description: "The value for the Connection String.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"storage_account_name": {
+			Description:  "The backend Storage Account name which will be used by this Logic App (e.g. for Stateful workflows data).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
@@ -142,6 +157,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_access_key": {
+			Description:  "The access key which will be used to access the backend Storage Account for the Logic App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -155,6 +171,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_key_vault_secret_id": {
+			Description:  "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend Storage Account for the Logic App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
@@ -167,15 +184,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		// Once this property is set, it can not be removed while identity is UserAssigned.
 		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
 		"key_vault_reference_identity_id": {
+			Description:  "The User Assigned Identity ID used for accessing KeyVault secrets.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"public_network_access": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  helpers.PublicNetworkAccessEnabled,
+			Description: "Whether Public Network Access should be enabled or not.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     helpers.PublicNetworkAccessEnabled,
 			ValidateFunc: validation.StringInSlice([]string{
 				helpers.PublicNetworkAccessEnabled,
 				helpers.PublicNetworkAccessDisabled,
@@ -183,23 +202,27 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_share_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The name of the share used by the Logic App, if you want to use a custom name. This corresponds to the WEBSITE_CONTENTSHARE appsetting, which this resource will create for you. If you don't specify a name, then this resource will generate a dynamic name. This setting is useful if you want to provision a Storage Account and create a share using `azurerm_storage_share`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "~4",
+			Description: "The runtime version associated with the Logic App.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "~4",
 		},
 
 		"vnet_content_share_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether allow routing traffic between the Logic App and Storage Account content share through a Virtual Network.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"virtual_network_subnet_id": {
+			Description:  "The subnet ID which will be used by this resource for [regional Virtual Network integration](https://learn.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -212,8 +235,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "An identifier used by App Service to perform domain ownership verification via DNS TXT record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"default_hostname": {
@@ -222,18 +246,21 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Logic App kind.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"site_credential": {
@@ -242,13 +269,15 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"username": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The username which can be used to publish to this App Service.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The password associated with the username, which can be used to publish to this App Service.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},

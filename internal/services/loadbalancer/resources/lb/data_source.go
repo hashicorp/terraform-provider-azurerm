@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmLoadBalancerRead,
+		Description: "Use this data source to access information about an existing Load Balancer.",
+		Read:        dataSourceArmLoadBalancerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Load Balancer.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
@@ -40,8 +42,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Load Balancer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"frontend_ip_configuration": {
@@ -50,53 +53,62 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Frontend IP Configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Subnet which is associated with the IP Configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Private IP Address to assign to the Load Balancer.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_address_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Private IP Address Version, either `IPv4` or `IPv6`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of a Public IP Address which is associated with this Load Balancer.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The allocation method for the Private IP Address used by this Load Balancer.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"zones": commonschema.ZonesMultipleComputed(),
 
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Frontend IP Configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

@@ -15,6 +15,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_logic_app_standard"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Logic App (Standard / Single Tenant)."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateLogicAppId
 }

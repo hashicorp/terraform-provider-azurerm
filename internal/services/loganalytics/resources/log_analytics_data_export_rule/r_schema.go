@@ -16,6 +16,7 @@ import (
 func logAnalyticsDataExportRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:      "The name of the Log Analytics Data Export Rule.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -26,6 +27,7 @@ func logAnalyticsDataExportRuleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"workspace_resource_id": {
+			Description:  "The resource ID of the workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,21 +35,24 @@ func logAnalyticsDataExportRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"destination_resource_id": {
+			Description:  "The destination resource ID. If the destination is an Event Hub namespace, an Event Hub would be created for each table automatically.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Is this Log Analytics Data Export Rule enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"table_names": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of table names to export to the destination resource, for example: `[\"Heartbeat\", \"SecurityEvent\"]`.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.NoZeroValues,
@@ -55,8 +60,9 @@ func logAnalyticsDataExportRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"export_rule_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the created Data Export Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -20,6 +20,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_playwright_workspace"
 }
 
+func (Resource) Description() string {
+	return "Manages a Playwright Workspace."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return playwrightworkspaces.ValidatePlaywrightWorkspaceID
 }
