@@ -25,10 +25,11 @@ import (
 
 func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbMongoCollectionCreate,
-		Read:   resourceCosmosDbMongoCollectionRead,
-		Update: resourceCosmosDbMongoCollectionUpdate,
-		Delete: resourceCosmosDbMongoCollectionDelete,
+		Description: "Manages a Mongo Collection within a Cosmos DB Account.",
+		Create:      resourceCosmosDbMongoCollectionCreate,
+		Read:        resourceCosmosDbMongoCollectionRead,
+		Update:      resourceCosmosDbMongoCollectionUpdate,
+		Delete:      resourceCosmosDbMongoCollectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseMongodbDatabaseCollectionID(id)
@@ -49,6 +50,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Mongo Collection.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -58,6 +60,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account in which the Cosmos DB Mongo Collection is created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -65,6 +68,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			},
 
 			"database_name": {
+				Description:  "The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -73,6 +77,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			// SDK/api accepts an array.. but only one is allowed
 			"shard_key": {
+				Description:  "The name of the key to partition on for sharding. There must not be any other unique index keys.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -81,8 +86,9 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
 			"default_ttl_seconds": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Description: "If the value is `-1`, items are not automatically expired.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
 				ValidateFunc: validation.All(
 					validation.IntAtLeast(-1),
 					validation.IntNotInSlice([]int{0}),
@@ -90,12 +96,14 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			},
 
 			"analytical_storage_ttl": {
+				Description:  "If present and the value is set to `-1`, it is equal to infinity, and items don't expire by default. If present and the value is set to some number `n` - items will expire `n` seconds after their last modified time.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"throughput": {
+				Description:  "The throughput of the MongoDB collection (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -110,15 +118,17 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"keys": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "The list of user settable keys for each Cosmos DB Mongo Collection.",
+							Type:        pluginsdk.TypeList,
+							Required:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"unique": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
+							Description: "Is the index unique or not?",
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
 						},
 					},
 				},
@@ -130,14 +140,16 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"keys": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "The list of system keys which are not settable for each Cosmos DB Mongo Collection.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"unique": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Identifies whether the table contains no duplicate values.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
