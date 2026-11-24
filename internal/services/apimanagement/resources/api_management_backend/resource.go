@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementBackendCreateUpdate,
-		Read:   resourceApiManagementBackendRead,
-		Update: resourceApiManagementBackendCreateUpdate,
-		Delete: resourceApiManagementBackendDelete,
+		Description: "Manages a backend within an API Management Service.",
+		Create:      resourceApiManagementBackendCreateUpdate,
+		Read:        resourceApiManagementBackendRead,
+		Update:      resourceApiManagementBackendCreateUpdate,
+		Delete:      resourceApiManagementBackendDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := backend.ParseBackendID(id)
 			return err

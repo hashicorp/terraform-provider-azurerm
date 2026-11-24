@@ -1,3 +1,33 @@
+## 5.15.0 (November 23, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_cdn_frontdoor_edge_action` ([#33825](https://github.com/hashicorp/terraform-provider-azurerm/issues/33825))
+* **New List Resource**: `azurerm_data_protection_backup_vault_resource_guard_association` ([#32416](https://github.com/hashicorp/terraform-provider-azurerm/issues/32416))
+* **New List Resource**: `azurerm_horizondb_cluster` ([#33865](https://github.com/hashicorp/terraform-provider-azurerm/issues/33865))
+* **New List Resource**: `azurerm_horizondb_firewall_rule` ([#33865](https://github.com/hashicorp/terraform-provider-azurerm/issues/33865))
+* **New Resource**: `azurerm_cdn_frontdoor_edge_action` ([#33825](https://github.com/hashicorp/terraform-provider-azurerm/issues/33825))
+* **New Resource**: `azurerm_data_protection_backup_vault_resource_guard_association` ([#32416](https://github.com/hashicorp/terraform-provider-azurerm/issues/32416))
+* **New Resource**: `azurerm_horizondb_cluster` ([#33865](https://github.com/hashicorp/terraform-provider-azurerm/issues/33865))
+* **New Resource**: `azurerm_horizondb_firewall_rule` ([#33865](https://github.com/hashicorp/terraform-provider-azurerm/issues/33865))
+* **New Resource**: `azurerm_search_service_datasource_blob` ([#32083](https://github.com/hashicorp/terraform-provider-azurerm/issues/32083))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20261116.1144656` ([#33864](https://github.com/hashicorp/terraform-provider-azurerm/issues/33864))
+* dependencies: `postgresql` - update API version to `2026-10-01` ([#33869](https://github.com/hashicorp/terraform-provider-azurerm/issues/33869))
+* `azurerm_web_application_firewall_policy` - add support for the `managed_rules.exception` property ([#33581](https://github.com/hashicorp/terraform-provider-azurerm/issues/33581))
+* `azurerm_fabric_capacity` - support `F0`, `F4096` and `F8192` for the `sku.name` property ([#33930](https://github.com/hashicorp/terraform-provider-azurerm/issues/33930))
+* `azurerm_linux_function_app_slot` - support `11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_linux_function_app` - support `11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_linux_web_app_slot` - support `11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_linux_web_app` - support `11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_postgresql_flexible_server` - support the Burstable v2 SKUs (`B2ats_v2`, `B2afs_v2`, `B2als_v2`, `B2as_v2`, `B4as_v2`, `B8as_v2`, `B16as_v2` and `B32as_v2`) for the `sku_name` property ([#33889](https://github.com/hashicorp/terraform-provider-azurerm/issues/33889))
+* `azurerm_windows_function_app_slot` - support `v11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_windows_function_app` - support `v11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_windows_web_app_slot` - support `v11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+* `azurerm_windows_web_app` - support `v11.0` for the `site_config.application_stack.dotnet_version` property ([#33870](https://github.com/hashicorp/terraform-provider-azurerm/issues/33870))
+
 ## 5.14.0 (November 13, 2026)
 
 FEATURES:

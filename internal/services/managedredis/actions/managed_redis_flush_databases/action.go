@@ -61,8 +61,8 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.",
-				MarkdownDescription: "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.",
+				Description:         "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the Managed Redis Databases Flush action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 	}

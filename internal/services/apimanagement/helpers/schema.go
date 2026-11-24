@@ -13,6 +13,7 @@ import (
 func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"host_name": {
+			Description:      "The host name to use.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: suppress.CaseDifference,
@@ -20,12 +21,14 @@ func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_certificate_id": {
+			Description:  "The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 
 		"certificate": {
+			Description:  "The Base64-encoded certificate.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -33,6 +36,7 @@ func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"certificate_password": {
+			Description:  "The password associated with the certificate provided above.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -40,25 +44,29 @@ func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"negotiate_client_certificate": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should Client Certificate Negotiation be enabled for this Hostname?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"ssl_keyvault_identity_client_id": {
+			Description:  "The Managed Service Identity Client ID, which has `GET` access to the Key Vault containing the SSL certificate.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"certificate_source": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The source of the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"certificate_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The status of the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"expiry": {

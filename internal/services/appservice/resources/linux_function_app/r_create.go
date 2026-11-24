@@ -143,7 +143,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 			// for function premium app with WEBSITE_CONTENTOVERVNET sets to 1, the user has to specify a predefined fire share.
-			// https://docs.microsoft.com/azure/azure-functions/functions-app-settings#website_contentovervnet
+			// https://learn.microsoft.com/azure/azure-functions/functions-app-settings#website_contentovervnet
 			if sendContentSettings {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)

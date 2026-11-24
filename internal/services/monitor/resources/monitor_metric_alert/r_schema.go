@@ -40,7 +40,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
-			Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
+			Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, Resource Group scope or multiple scopes.`,
 		},
 
 		"target_resource_location": {
@@ -49,7 +49,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Computed:         true, // azignore:AZS007 - pre-existing violation
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			Description:      `The location of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
+			Description:      `The location of the target pluginsdk. Required when using subscription, Resource Group scope or multiple scopes.`,
 		},
 
 		// static criteria

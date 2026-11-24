@@ -11,12 +11,12 @@ import (
 
 func apiManagementProductTagSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"api_management_product_id": schemaz.SchemaApiManagementChildName(),
+		"api_management_product_id": schemaz.SchemaApiManagementChildName("The name of the API Management product."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name which should be used for this API Management Tag."),
 	}
 }

@@ -277,7 +277,7 @@ func ExpandVirtualMachineOSDisk(input []any, osType virtualmachines.OperatingSys
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 {
 		if caching != string(virtualmachines.CachingTypesReadOnly) {
-			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			// Restriction per https://learn.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
 			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
