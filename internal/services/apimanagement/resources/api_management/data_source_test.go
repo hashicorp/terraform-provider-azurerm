@@ -44,7 +44,7 @@ func TestAccDataSourceApiManagement_basic(t *testing.T) {
 
 func TestAccDataSourceApiManagement_tenantAccess(t *testing.T) {
 	if features.SixPointOh() {
-		t.Skip("This test is no longer valid in 6.0")
+		t.Skip("Skipping since `tenant_access` is deprecated and will be removed in 6.0")
 	}
 
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")

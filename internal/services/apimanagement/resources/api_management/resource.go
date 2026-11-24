@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func RegisterResource() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Description: "Manages an API Management Service.",
 		Create:      resourceApiManagementServiceCreate,
 		Read:        resourceApiManagementServiceRead,
@@ -53,42 +52,4 @@ func RegisterResource() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.SixPointOh() {
-		resource.Schema["tenant_access"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true, // azignore:AZS007 - pre-existing violation
-			MaxItems:   1,
-			Deprecated: "`tenant_access` has been deprecated and will be removed in v6.0 of the AzureRM provider as the direct management API of API Management has been retired.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Description: "Whether the access to the management API should be enabled.",
-						Type:        pluginsdk.TypeBool,
-						Required:    true,
-					},
-					"tenant_id": {
-						Description: "The identifier for the tenant access information contract.",
-						Type:        pluginsdk.TypeString,
-						Computed:    true,
-					},
-					"primary_key": {
-						Description: "Primary access key for the tenant access information contract.",
-						Type:        pluginsdk.TypeString,
-						Computed:    true,
-						Sensitive:   true,
-					},
-					"secondary_key": {
-						Description: "Secondary access key for the tenant access information contract.",
-						Type:        pluginsdk.TypeString,
-						Computed:    true,
-						Sensitive:   true,
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
