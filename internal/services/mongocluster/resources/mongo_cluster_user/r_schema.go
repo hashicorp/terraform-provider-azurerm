@@ -14,6 +14,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// `object_id` is actually resource name
 		"object_id": {
+			Description:  "The Object ID of the Entra ID User or Service Principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,9 +24,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"mongo_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&users.MongoClusterId{}, "Mongo Cluster"),
 
 		"identity_provider_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The identity provider type for the Mongo Cluster User.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice(
 				users.PossibleValuesForIdentityProviderType(),
 				false,
@@ -33,9 +35,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The principal type for the Mongo Cluster User.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice(
 				users.PossibleValuesForEntraPrincipalType(),
 				false,
@@ -49,6 +52,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"database": {
+						Description:  "The name of the database to which the role will be applied.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -56,9 +60,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The role name.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.StringInSlice(
 							users.PossibleValuesForUserRole(),
 							false,

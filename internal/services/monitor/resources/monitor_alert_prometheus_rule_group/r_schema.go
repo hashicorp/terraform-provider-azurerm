@@ -51,6 +51,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Alert Management Prometheus Rule Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -73,14 +74,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"action_group_id": {
+									Description:  "The resource ID of the monitor action group.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"action_properties": {
-									Type:     pluginsdk.TypeMap,
-									Optional: true,
+									Description: "The properties of an action group object.",
+									Type:        pluginsdk.TypeMap,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -90,45 +93,52 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"alert": {
+						Description:  "The Alert rule name.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"annotations": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "A set of informational labels that can be used to store longer additional information such as alert descriptions or runbook links.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Is this rule enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"expression": {
+						Description:  "The Prometheus Query Language expression to evaluate. For more details see [this doc](https://prometheus.io/docs/prometheus/latest/querying/basics). Evaluate at the period given by `interval` and record the result as a new set of time series with the metric name given by `record`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"for": {
+						Description:  "The amount of time alert must be active before firing, represented in ISO 8601 duration format.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"labels": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "The labels to add or overwrite before storing the result.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: schema.TypeString,
 						},
 					},
 
 					"record": {
+						Description:  "The recorded metrics name.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -141,11 +151,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"auto_resolved": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
+									Description: "Is the alert auto-resolution?",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
 								},
 
 								"time_to_resolve": {
+									Description:  "The alert auto-resolution interval, represented in ISO 8601 duration format.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -155,6 +167,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"severity": {
+						Description:  "The severity of the alerts fired by the rule.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 4),
@@ -164,34 +177,39 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scopes": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "The resource ID of the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"cluster_name": {
+			Description:  "The name of the Managed Kubernetes Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
+			Description:  "The description of the Alert Management Prometheus Rule Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"interval": {
+			Description:  "The interval in which to run the Alert Management Prometheus Rule Group represented in ISO 8601 duration format.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"rule_group_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Is this Alert Management Prometheus Rule Group enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),

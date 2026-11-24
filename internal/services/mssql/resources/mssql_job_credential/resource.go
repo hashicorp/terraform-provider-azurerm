@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlJobCredentialCreate,
-		Read:   resourceMsSqlJobCredentialRead,
-		Update: resourceMsSqlJobCredentialUpdate,
-		Delete: resourceMsSqlJobCredentialDelete,
+		Description: "Manages an Elastic Job Credential.",
+		Create:      resourceMsSqlJobCredentialCreate,
+		Read:        resourceMsSqlJobCredentialRead,
+		Update:      resourceMsSqlJobCredentialUpdate,
+		Delete:      resourceMsSqlJobCredentialDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := jobcredentials.ParseCredentialID(id)

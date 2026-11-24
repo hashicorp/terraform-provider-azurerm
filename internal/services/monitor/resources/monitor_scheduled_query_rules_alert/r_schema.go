@@ -14,6 +14,7 @@ import (
 func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the scheduled query rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,9 +26,10 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"authorized_resource_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MaxItems: 100,
+			Description: "List of Resource IDs referred into query.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			MaxItems:    100,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -40,19 +42,22 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"action_group": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
+						Description: "List of action group reference resource IDs.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 					"custom_webhook_payload": {
+						Description:  "Custom payload to be sent for all webhook payloads in alerting action.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsJSON,
 					},
 					"email_subject": {
+						Description:  "Custom subject override for all email IDs in Azure action group.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -61,58 +66,68 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 		"data_source_id": {
+			Description:  "The resource URI over which log search query is to be run.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
 		"auto_mitigation_enabled": {
+			Description:   "Should the alerts in this Metric Alert be auto resolved?",
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Default:       false,
 			ConflictsWith: []string{"throttling"},
 		},
 		"description": {
+			Description:  "The description of the scheduled query rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 4096),
 		},
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this scheduled query rule is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 		"frequency": {
+			Description:  "Frequency (in minutes) at which rule condition should be evaluated.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(5, 1440),
 		},
 		"query": {
+			Description:  "Log search query.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"query_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "ResultCount",
+			Description: "The type of query results. If set to `ResultCount`, `query` must include an `AggregatedValue` column of a numeric type, for example, `Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "ResultCount",
 			ValidateFunc: validation.StringInSlice([]string{
 				"ResultCount",
 				"Number",
 			}, false),
 		},
 		"severity": {
+			Description:  "Severity of the alert.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(0, 4),
 		},
 		"throttling": {
+			Description:   "Time (in minutes) for which Alerts should be throttled or suppressed.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ValidateFunc:  validation.IntBetween(0, 10000),
 			ConflictsWith: []string{"auto_mitigation_enabled"},
 		},
 		"time_window": {
+			Description:  "Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`).",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(5, 2880),
@@ -124,22 +139,25 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"metric_trigger": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Description: "Trigger condition for metric query rule.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"metric_trigger_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Metric Trigger Type.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Consecutive",
 										"Total",
 									}, false),
 								},
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Evaluation operation for rule.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"GreaterThan",
 										"GreaterThanOrEqual",
@@ -149,11 +167,13 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 								"threshold": {
+									Description:  "The threshold of the metric trigger.",
 									Type:         pluginsdk.TypeFloat,
 									Required:     true,
 									ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 								},
 								"metric_column": {
+									Description:  "Evaluation of metric on a particular column.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -162,8 +182,9 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"operator": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Evaluation operation for rule.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"GreaterThan",
 							"GreaterThanOrEqual",
@@ -173,6 +194,7 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"threshold": {
+						Description:  "Result or count threshold based on which rule should be triggered.",
 						Type:         pluginsdk.TypeFloat,
 						Required:     true,
 						ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
