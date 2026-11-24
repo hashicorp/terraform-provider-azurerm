@@ -18,7 +18,7 @@ func unknownBlock(block, name string) string {
 	return fmt.Sprintf("\nError: Unsupported block type\n\n  on terraform_plugin_test.tf line 48, in %s:\n  48:   %s {\n\nBlocks of type %q are not expected here.\n", block, name, name)
 }
 
-func TestOnlyNewProperties(t *testing.T) {
+func TestOnlyNewProperties(t *testing.T) { // azignore:AZT004 - a unit test, it only reads the local schema and never runs Terraform
 	const plan = "Error running pre-apply plan: exit status 1\n"
 	const vnet = `resource "azurerm_virtual_network" "test"`
 

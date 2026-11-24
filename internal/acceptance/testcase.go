@@ -406,7 +406,7 @@ var unknownPropertyErrors = []struct {
 	beforeName string
 	isBlock    bool
 }{
-	{title: "Unsupported argument", beforeName: "An argument named", isBlock: false},
+	{title: "Unsupported argument", beforeName: "An argument named"},
 	{title: "Unsupported block type", beforeName: "Blocks of type", isBlock: true},
 }
 
