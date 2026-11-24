@@ -24,6 +24,8 @@ type CosmosDbPostgreSQLRoleResourceModel struct {
 
 type CosmosDbPostgreSQLRoleResource struct{}
 
+var _ sdk.Resource = CosmosDbPostgreSQLRoleResource{}
+
 var _ sdk.Resource = CosmosDbPostgreSQLClusterResource{}
 
 func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {

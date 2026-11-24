@@ -92,7 +92,7 @@ func virtualDesktopHostPoolSchema() map[string]*pluginsdk.Schema {
 		"preferred_app_group_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Description:  "Preferred App Group type to display",
+			Description:  "Preferred App Group type to display.",
 			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPreferredAppGroupType(), false),
 			Default:      string(hostpool.PreferredAppGroupTypeDesktop),
 		},

@@ -70,11 +70,16 @@ func expandAuthorizedPartnersList(partnerAuthorization []PartnerAuthorization) *
 	partners := []partnerconfigurations.Partner{}
 
 	for _, partnerAuth := range partnerAuthorization {
-		partners = append(partners, partnerconfigurations.Partner{
-			PartnerName:                      pointer.To(partnerAuth.PartnerName),
-			PartnerRegistrationImmutableId:   pointer.To(partnerAuth.PartnerRegistrationId),
+		partner := partnerconfigurations.Partner{
 			AuthorizationExpirationTimeInUtc: pointer.To(partnerAuth.AuthorizationExpirationTimeInUtc),
-		})
+		}
+		if partnerAuth.PartnerRegistrationId != "" {
+			partner.PartnerRegistrationImmutableId = pointer.To(partnerAuth.PartnerRegistrationId)
+		}
+		if partnerAuth.PartnerName != "" {
+			partner.PartnerName = pointer.To(partnerAuth.PartnerName)
+		}
+		partners = append(partners, partner)
 	}
 
 	return &partners
