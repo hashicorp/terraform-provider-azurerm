@@ -1667,8 +1667,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// Therefore we only include a valid domain guid in the request.
 	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/33900
 	if props.AzureFilesIdentityBasedAuthentication != nil && props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties != nil && props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid != nil {
-		domainGuid := *props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid
-		if _, err := uuid.Parse(domainGuid); err != nil {
+		if _, err := uuid.Parse(*props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid); err != nil {
 			props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid = nil
 		}
 	}
