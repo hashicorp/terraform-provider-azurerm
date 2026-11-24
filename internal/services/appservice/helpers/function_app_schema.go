@@ -1953,7 +1953,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		}
 
 		if linuxAppStack.GoVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "golang", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "golang", false)
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
 		}
 
