@@ -15,6 +15,7 @@ import (
 func diskEncryptionSetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Disk Encryption Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,18 +27,21 @@ func diskEncryptionSetSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"key_vault_key_id": {
+			Description:  "The URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 
 		"auto_key_rotation_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Boolean flag to specify whether Azure Disk Encryption Set automatically rotates the encryption Key to latest version or not.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"encryption_type": {
+			Description:  "The type of key used to encrypt the data of the disk.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -46,6 +50,7 @@ func diskEncryptionSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"federated_client_id": {
+			Description:  "Multi-tenant application client ID to access Key Vault in a different tenant.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
@@ -56,8 +61,9 @@ func diskEncryptionSetSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"key_vault_key_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL for the Key Vault Key or Key Vault Secret that is currently being used by the service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

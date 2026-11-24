@@ -20,6 +20,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The version name of the Gallery Application Version, such as `1.0.0`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"gallery_application_id": {
+			Description:  "The ID of the Gallery Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"config_file": {
+			Description:  "The name of the config file on the VM.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -43,12 +46,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enable_health_check": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should the Gallery Application reports health?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"end_of_life_date": {
+			Description:      "The end of life date in RFC3339 format of the Gallery Application Version.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: suppress.RFC3339Time,
@@ -56,9 +61,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"exclude_from_latest": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should the Gallery Application Version be excluded from the `latest` filter? If set to `true` this Gallery Application Version won't be returned for the `latest` version.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"manage_action": {
@@ -68,6 +74,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"install": {
+						Description:  "The command to install the Gallery Application.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -75,6 +82,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"remove": {
+						Description:  "The command to remove the Gallery Application.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -82,6 +90,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"update": {
+						Description:  "The command to update the Gallery Application.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -92,6 +101,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"package_file": {
+			Description:  "The name of the package file on the VM.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -105,6 +115,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"media_link": {
+						Description:  "The Storage Blob URI of the source application package.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -112,6 +123,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"default_configuration_link": {
+						Description:  "The Storage Blob URI of the default configuration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -131,18 +143,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"name": commonschema.LocationWithoutForceNew(),
 
 					"regional_replica_count": {
+						Description:  "The number of replicas of the Gallery Application Version to be created per region.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 10),
 					},
 
 					"exclude_from_latest": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether this Gallery Application Version should be excluded from the `latest` filter. If set to `true`, this Gallery Application Version won't be returned for the `latest` version.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"storage_account_type": {
+						Description:  "The Storage Account type for the Gallery Application Version.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(galleryapplicationversions.PossibleValuesForStorageAccountType(), false),
