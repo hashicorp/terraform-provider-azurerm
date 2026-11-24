@@ -20,9 +20,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the API Management Workspace Named Value.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z](?:[a-zA-Z0-9-]{0,254}[a-zA-Z0-9])?$`),
 				"`name` must be 1-256 characters, starting with a letter, and using only letters, numbers, or hyphens",
@@ -32,8 +33,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The display name of this API Management Workspace Named Value.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[A-Za-z0-9-._]{1,256}$`),
 				"`display_name` must be 1-256 characters and can only contain letters, numbers, hyphens, periods, and underscores",
@@ -41,21 +43,24 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"secret": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the API Management Workspace Named Value is secret.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// NOTE: this is not the common `tags` attribute used by most Azure resources, this field accepts a list of strings rather than a map of key-value pairs
 		"tags": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of tags to be applied to the API Management Workspace Named Value.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"value": {
+			Description:  "The value of this API Management Workspace Named Value.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -71,11 +76,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"secret_id": {
+						Description:  "The resource ID of the Key Vault Secret.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					},
 					"identity_client_id": {
+						Description:  "The client ID of the User Assigned Identity, for the API Management Service, which will be used to access the Key Vault Secret. The System Assigned Identity will be used if not specified.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,

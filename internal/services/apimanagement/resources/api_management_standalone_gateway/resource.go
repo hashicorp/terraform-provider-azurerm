@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_api_management_standalone_gateway"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure API Management Standalone Gateway."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return apigateway.ValidateGatewayID
 }

@@ -31,10 +31,12 @@ var _ sdk.DataSource = DataSource{}
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this API Management Workspace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 		"api_management_id": {
+			Description:  "The ID of the API Management Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: apimanagementservice.ValidateServiceID,
@@ -50,8 +52,9 @@ func (d DataSource) Attributes() map[string]*schema.Schema {
 			Description: "The display name of the API Management Workspace.",
 		},
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the API Management Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -62,6 +65,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_api_management_workspace"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing API Management Workspace."
 }
 
 func (d DataSource) Read() sdk.ResourceFunc {

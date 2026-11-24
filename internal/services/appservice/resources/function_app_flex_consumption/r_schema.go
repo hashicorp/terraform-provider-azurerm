@@ -24,7 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "Specifies the name of the Function App.",
+			Description:  "The name of the Function App.",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -36,7 +36,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
-			Description:  "The ID of the App Service Plan within which to create this Function App",
+			Description:  "The ID of the App Service Plan within which to create this Function App.",
 		},
 
 		"backend_storage": {
@@ -141,7 +141,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -152,7 +152,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the function app use Client Certificates",
+			Description: "Should the Function App use Client Certificates?",
 		},
 
 		"client_certificate_mode": {
@@ -160,13 +160,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
-			Description:  "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests.",
 		},
 
 		"client_certificate_exclusion_paths": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Paths to exclude when using client certificates, separated by ;",
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -175,7 +175,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Function App enabled.",
+			Description: "Is the Function App enabled?",
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
