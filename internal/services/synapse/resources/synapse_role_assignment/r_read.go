@@ -9,7 +9,7 @@ import (
 	"log"
 	"strings"
 
-	frsUUID "github.com/gofrs/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
+	"github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
 )
 
 func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
@@ -89,7 +89,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) erro
 	return nil
 }
 
-func getRoleIdByName(ctx context.Context, client *accesscontrol.RoleDefinitionsClient, scope, roleName string) (*frsUUID.UUID, error) {
+func getRoleIdByName(ctx context.Context, client *synapse.RoleDefinitionsClient, scope, roleName string) (*uuid.UUID, error) {
 	resp, err := client.ListRoleDefinitions(ctx, nil, scope)
 	if err != nil {
 		return nil, fmt.Errorf("listing synapse role definitions %+v", err)

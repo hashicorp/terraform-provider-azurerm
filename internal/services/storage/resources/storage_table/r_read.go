@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	legacyTables "github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTableRead(d *pluginsdk.ResourceData, meta any) error {
@@ -73,7 +73,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta any) error {
 	return nil
 }
 
-func flattenStorageTableACLs(input *[]legacyTables.SignedIdentifier) []any {
+func flattenStorageTableACLs(input *[]tables.SignedIdentifier) []any {
 	result := make([]any, 0)
 	if input == nil {
 		return result

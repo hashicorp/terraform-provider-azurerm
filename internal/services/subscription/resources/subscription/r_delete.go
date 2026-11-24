@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +30,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := subscriptionAlias.ParseAliasID(d.Id())
+	id, err := subscriptions.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
 		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
 
-		opts := subscriptionAlias.DefaultSubscriptionCancelOperationOptions()
+		opts := subscriptions.DefaultSubscriptionCancelOperationOptions()
 		// TODO: support a Provider `features` flag to enable deleting a Subscription containing Resources
 		// This is a dangerous operation, and likely wants a similar default value as to that for Resource Groups
 		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId, opts); err != nil {

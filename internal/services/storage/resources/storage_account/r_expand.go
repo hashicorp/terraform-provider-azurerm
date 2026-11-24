@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -32,7 +32,7 @@ func expandAccountCustomDomain(input []any) *storageaccounts.CustomDomain {
 	}
 }
 
-func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType, billingModel string) (*storageaccounts.Encryption, error) {
+func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *client.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType, billingModel string) (*storageaccounts.Encryption, error) {
 	if !features.SixPointOh() {
 		if accountKind == storageaccounts.KindStorage {
 			if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
+	"github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error {
@@ -90,7 +90,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error
 	}
 	d.Set("annotations", annotations)
 
-	parameters := make(map[string]*artifacts.ParameterSpecification)
+	parameters := make(map[string]*synapse.ParameterSpecification)
 	if v, ok := m["parameters"]; ok && v != nil {
 		if err := json.Unmarshal(*v, &parameters); err != nil {
 			return err
@@ -101,9 +101,9 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	var integrationRuntime *artifacts.IntegrationRuntimeReference
+	var integrationRuntime *synapse.IntegrationRuntimeReference
 	if v, ok := m["connectVia"]; ok && v != nil {
-		integrationRuntime = &artifacts.IntegrationRuntimeReference{}
+		integrationRuntime = &synapse.IntegrationRuntimeReference{}
 		if err := json.Unmarshal(*v, &integrationRuntime); err != nil {
 			return err
 		}
@@ -129,7 +129,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error
 	return nil
 }
 
-func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification) map[string]any {
+func flattenSynapseParameters(input map[string]*synapse.ParameterSpecification) map[string]any {
 	output := make(map[string]any)
 
 	for k, v := range input {
@@ -147,7 +147,7 @@ func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification
 	return output
 }
 
-func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.IntegrationRuntimeReference) []any {
+func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *synapse.IntegrationRuntimeReference) []any {
 	if input == nil {
 		return []any{}
 	}

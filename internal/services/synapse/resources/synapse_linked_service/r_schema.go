@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
+	"github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 func synapseLinkedServiceSchema() map[string]*pluginsdk.Schema {
@@ -29,7 +29,7 @@ func synapseLinkedServiceSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInEnumSlice(artifacts.PossibleTypeBasicLinkedServiceValues(), false),
+			ValidateFunc: validation.StringInEnumSlice(synapse.PossibleTypeBasicLinkedServiceValues(), false),
 		},
 
 		"type_properties_json": {

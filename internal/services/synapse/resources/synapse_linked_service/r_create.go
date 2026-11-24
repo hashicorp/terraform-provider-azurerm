@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
+	"github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
@@ -88,7 +88,7 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta an
 		return err
 	}
 
-	linkedService := &artifacts.LinkedServiceResource{}
+	linkedService := &synapse.LinkedServiceResource{}
 	if err := linkedService.UnmarshalJSON(jsonData); err != nil {
 		return err
 	}
@@ -115,12 +115,12 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta an
 	return resourceSynapseLinkedServiceRead(d, meta)
 }
 
-func expandSynapseParameters(input map[string]any) map[string]*artifacts.ParameterSpecification {
-	output := make(map[string]*artifacts.ParameterSpecification)
+func expandSynapseParameters(input map[string]any) map[string]*synapse.ParameterSpecification {
+	output := make(map[string]*synapse.ParameterSpecification)
 
 	for k, v := range input {
-		output[k] = &artifacts.ParameterSpecification{
-			Type:         artifacts.ParameterTypeString,
+		output[k] = &synapse.ParameterSpecification{
+			Type:         synapse.ParameterTypeString,
 			DefaultValue: v.(string),
 		}
 	}
@@ -128,13 +128,13 @@ func expandSynapseParameters(input map[string]any) map[string]*artifacts.Paramet
 	return output
 }
 
-func expandSynapseLinkedServiceIntegrationRuntimeV2(input []any) *artifacts.IntegrationRuntimeReference {
+func expandSynapseLinkedServiceIntegrationRuntimeV2(input []any) *synapse.IntegrationRuntimeReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]any)
-	return &artifacts.IntegrationRuntimeReference{
+	return &synapse.IntegrationRuntimeReference{
 		ReferenceName: pointer.To(v["name"].(string)),
 		Type:          pointer.To("IntegrationRuntimeReference"),
 		Parameters:    v["parameters"].(map[string]any),

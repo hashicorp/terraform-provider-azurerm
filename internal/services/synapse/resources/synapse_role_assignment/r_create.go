@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/resources/synapse_role_assignment/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
+	"github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
 )
 
 func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
@@ -86,7 +86,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	// create
-	roleAssignment := accesscontrol.RoleAssignmentRequest{
+	roleAssignment := synapse.RoleAssignmentRequest{
 		RoleID:      roleId,
 		PrincipalID: &principalID,
 		Scope:       pointer.To(scope),

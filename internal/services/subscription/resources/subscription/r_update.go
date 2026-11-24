@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	tagsSdk "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
-	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +22,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := subscriptionAlias.ParseAliasID(d.Id())
+	id, err := subscriptions.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta any) error {
 		locks.ByID(subscriptionId.ID())
 		defer locks.UnlockByID(subscriptionId.ID())
 
-		displayName := subscriptionAlias.SubscriptionName{
+		displayName := subscriptions.SubscriptionName{
 			SubscriptionName: pointer.To(d.Get("subscription_name").(string)),
 		}
 		if _, err := aliasClient.SubscriptionRename(ctx, subscriptionId, displayName); err != nil {

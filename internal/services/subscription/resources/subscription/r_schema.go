@@ -5,7 +5,7 @@ package subscription
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,9 +49,9 @@ func subscriptionSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
+			Description: "The workload type for the Subscription.",
 			// Other RP's have updated Constants with contextual prefixes so these are likely to change
-			ValidateFunc: validation.StringInSlice(subscriptionAlias.PossibleValuesForWorkload(), false),
+			ValidateFunc: validation.StringInSlice(subscriptions.PossibleValuesForWorkload(), false),
 			// Workload is not exposed in any way, so must be ignored if the resource is imported.
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				return new == ""
@@ -74,7 +74,7 @@ func subscriptionSchema() map[string]*pluginsdk.Schema {
 
 		"tenant_id": {
 			Type:        pluginsdk.TypeString,
-			Description: "The Tenant ID to which the subscription belongs",
+			Description: "The Tenant ID to which the subscription belongs.",
 			Computed:    true,
 		},
 

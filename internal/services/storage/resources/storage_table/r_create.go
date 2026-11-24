@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	legacyTables "github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta any) error {
@@ -74,8 +74,8 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	return resourceStorageTableRead(d, meta)
 }
 
-func expandStorageTableACLs(input []any) []legacyTables.SignedIdentifier {
-	results := make([]legacyTables.SignedIdentifier, 0)
+func expandStorageTableACLs(input []any) []tables.SignedIdentifier {
+	results := make([]tables.SignedIdentifier, 0)
 
 	for _, v := range input {
 		vals := v.(map[string]any)
@@ -83,9 +83,9 @@ func expandStorageTableACLs(input []any) []legacyTables.SignedIdentifier {
 		policies := vals["access_policy"].([]any)
 		policy := policies[0].(map[string]any)
 
-		identifier := legacyTables.SignedIdentifier{
+		identifier := tables.SignedIdentifier{
 			Id: vals["id"].(string),
-			AccessPolicy: legacyTables.AccessPolicy{
+			AccessPolicy: tables.AccessPolicy{
 				Start:      policy["start"].(string),
 				Expiry:     policy["expiry"].(string),
 				Permission: policy["permissions"].(string),
