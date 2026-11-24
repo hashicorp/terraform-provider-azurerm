@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceEventGridDomainRead,
+		Description: "Use this data source to access information about an existing EventGrid Domain.",
+		Read:        dataSourceEventGridDomainRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the EventGrid Domain resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -39,8 +41,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"input_schema": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The schema in which incoming events will be published to this domain.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			// lintignore:XS003
@@ -50,28 +53,34 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"topic": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The topic of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"event_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The event time of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"event_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The event type of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"subject": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The subject of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"data_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The data version of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -84,24 +93,28 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"event_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The default event type of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"subject": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The default subject of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"data_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The default data version of the EventGrid Event associated with the domain.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether or not public network access is allowed for this server.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"inbound_ip_rule": {
@@ -110,32 +123,37 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_mask": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The IP mask (CIDR) to match on.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The action to take when the rule is matched.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Endpoint associated with the EventGrid Domain.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key associated with the EventGrid Domain.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key associated with the EventGrid Domain.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

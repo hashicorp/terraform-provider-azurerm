@@ -13,6 +13,7 @@ import (
 func routeFilterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The Name which should be used for this Route Filter.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -31,31 +32,35 @@ func routeFilterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the Route Filter rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"access": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The access type of the rule.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(routefilters.AccessAllow),
 						}, false),
 					},
 
 					"rule_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The rule type of the rule.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Community",
 						}, false),
 					},
 
 					"communities": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Description: "The collection for BGP community values to filter on. e.g. ['12076:5010','12076:5020'].",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,

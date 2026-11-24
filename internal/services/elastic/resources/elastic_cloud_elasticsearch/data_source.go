@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceElasticsearchRead,
+		Description: "Use this data source to access information about an existing Elasticsearch resource.",
+		Read:        dataSourceElasticsearchRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,6 +32,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			// Required
 			"name": {
+				Description:  "The name of the Elasticsearch resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ElasticsearchName,
@@ -42,18 +44,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the SKU used for this Elasticsearch.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"elastic_cloud_email_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Email Address which is associated with this Elasticsearch account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"monitoring_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether monitoring is enabled on this Elasticsearch or not.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"logs": {
@@ -68,34 +73,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The name (key) of the Tag which should be filtered.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"value": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The value of the Tag which should be filtered.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The type of action which is taken when the Tag matches the `name` and `value`.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
 						},
 
 						"send_azuread_logs": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Should the AzureAD Logs be sent to the Elasticsearch cluster?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"send_activity_logs": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Should the Azure Activity Logs should be sent to the Elasticsearch cluster?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"send_subscription_logs": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Should the Azure Subscription Logs should be sent to the Elasticsearch cluster?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -104,28 +115,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"elastic_cloud_deployment_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Deployment within Elastic Cloud.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"elastic_cloud_sso_default_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"elastic_cloud_user_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the User Account within Elastic Cloud.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"elasticsearch_service_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL to the Elasticsearch Service associated with this Elasticsearch.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"kibana_service_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL to the Kibana Dashboard associated with this Elasticsearch.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"kibana_sso_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URI used for SSO to the Kibana Dashboard associated with this Elasticsearch.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

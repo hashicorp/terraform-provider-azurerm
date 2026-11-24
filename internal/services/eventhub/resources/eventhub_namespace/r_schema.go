@@ -18,6 +18,7 @@ import (
 func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the EventHub Namespace resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,24 +30,28 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
+			Description:  "Which tier to use. Please note that setting this field to `Premium` will force the creation of a new resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 		},
 
 		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
+			Description: "The Capacity / Throughput Units for a `Standard` SKU namespace.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     1,
 		},
 
 		"auto_inflate_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Is Auto Inflate enabled for the EventHub Namespace?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"dedicated_cluster_id": {
+			Description:  "The ID of the EventHub Dedicated Cluster where this Namespace should be created.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -56,6 +61,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"maximum_throughput_units": {
+			Description:  "The maximum number of throughput units when Auto Inflate is Enabled.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(0, 40),
@@ -76,14 +82,16 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"public_network_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Is public network access enabled for the EventHub Namespace?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"trusted_service_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Trusted Microsoft Services are allowed to bypass firewall.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					// Returned value of the `virtual_network_rule` array does not honour the input order,
@@ -98,6 +106,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 								// the API returns the subnet ID's resource group name in lowercase
 								// https://github.com/Azure/azure-sdk-for-go/issues/5855
 								"subnet_id": {
+									Description:      "The ID of the subnet to match on.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									ValidateFunc:     commonids.ValidateSubnetID,
@@ -105,8 +114,9 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"ignore_missing_virtual_network_service_endpoint": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
+									Description: "Are missing Virtual Network service endpoints ignored?",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
 								},
 							},
 						},
@@ -119,11 +129,13 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"ip_mask": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The IP mask to match on.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 
 								"action": {
+									Description:  "The action to take when the rule is matched.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      string(networkrulesets.NetworkRuleIPActionAllow),
@@ -137,60 +149,69 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Is SAS authentication enabled for the EventHub Namespace?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"minimum_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(namespaces.TlsVersionOnePointTwo),
+			Description: "The minimum supported TLS version for this EventHub Namespace.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(namespaces.TlsVersionOnePointTwo),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(namespaces.TlsVersionOnePointTwo),
 			}, false),
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Is public network access enabled for the EventHub Namespace?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"default_primary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The alias of the primary connection string for the authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_secondary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The alias of the secondary connection string for the authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary connection string for the authorization rule `RootManageSharedAccessKey`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary access key for the authorization rule `RootManageSharedAccessKey`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary connection string for the authorization rule `RootManageSharedAccessKey`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary access key for the authorization rule `RootManageSharedAccessKey`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.Tags(),

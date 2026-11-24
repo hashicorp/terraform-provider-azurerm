@@ -36,6 +36,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_elastic_san_volume_group"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Elastic SAN Volume Group."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ElasticSANVolumeGroupDataSourceModel{}
 }
@@ -43,6 +47,7 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Elastic SAN Volume Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ElasticSanVolumeGroupName,
@@ -55,8 +60,9 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"encryption_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of the key used to encrypt the data of the disk.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"encryption": {
@@ -65,24 +71,29 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The Key Vault Key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"user_assigned_identity_id": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The ID of the User Assigned Identity used by this Elastic SAN Volume Group.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"current_versioned_key_expiration_timestamp": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The timestamp of the expiration time for the current version of the Customer Managed Key.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"current_versioned_key_id": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The ID of the current versioned Key Vault Key in use.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"last_key_rotation_timestamp": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The timestamp of the last rotation of the Key Vault Key.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 				},
 			},
@@ -94,20 +105,23 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The ID of the Subnet from which access to this Elastic SAN Volume Group is allowed.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"action": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The action to take when an access attempt to this Elastic SAN Volume Group from this Subnet is made.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 				},
 			},
 		},
 
 		"protocol_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of the storage target.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),

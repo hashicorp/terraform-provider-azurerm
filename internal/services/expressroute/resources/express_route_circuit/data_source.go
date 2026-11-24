@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceExpressRouteCircuitRead,
+		Description: "Use this data source to access information about an existing ExpressRoute circuit.",
+		Read:        dataSourceExpressRouteCircuitRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the ExpressRoute circuit.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -43,40 +45,48 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"peering_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"primary_peer_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "A `/30` subnet for the primary link.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"secondary_peer_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "A `/30` subnet for the secondary link.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"azure_asn": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Either a 16-bit or a 32-bit ASN for Azure.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"peer_asn": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Either a 16-bit or a 32-bit ASN. Can either be public or private.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"vlan_id": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "A valid VLAN ID to establish this peering on.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"shared_key": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The shared key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"service_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The string needed by the service provider to provision the ExpressRoute circuit.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"service_provider_properties": {
@@ -85,24 +95,28 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service_provider_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the ExpressRoute Service Provider.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"peering_location": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the peering location and **not** the Azure resource location.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"bandwidth_in_mbps": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The bandwidth in Mbps of the ExpressRoute circuit.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"service_provider_provisioning_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ExpressRoute circuit provisioning state from your chosen service provider.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku": {
@@ -111,13 +125,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tier": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The service tier.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"family": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The billing mode for bandwidth.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
