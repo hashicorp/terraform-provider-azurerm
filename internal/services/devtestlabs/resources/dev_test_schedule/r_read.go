@@ -62,7 +62,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta any) error 
 			return fmt.Errorf("setting `dailyRecurrence`: %#v", err)
 		}
 
-		if err := d.Set("notification_settings", flattenAzureRmDevTestLabScheduleNotificationSettings(props.NotificationSettings)); err != nil {
+		if err := d.Set("notification_settings", flattenAzureRmDevTestLabScheduleNotificationSettings(props.NotificationSettings, d.Get("notification_settings.0.webhook_url").(string))); err != nil {
 			return fmt.Errorf("setting `notificationSettings`: %#v", err)
 		}
 		if err = tags.FlattenAndSet(d, helpers.FlattenTags(model.Tags)); err != nil {

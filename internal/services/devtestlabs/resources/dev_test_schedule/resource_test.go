@@ -34,7 +34,7 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 				check.That(data.ResourceName).Key("daily_recurrence.0.time").HasValue("0100"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("notification_settings.0.webhook_url"),
 		{
 			Config: r.autoShutdownBasicUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
