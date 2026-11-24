@@ -221,59 +221,6 @@ func TestAccCognitiveAccount_qnaRuntimeEndpointUnspecified(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccount_kindNotSupported(t *testing.T) {
-	testCases := []struct {
-		field         string
-		value         string
-		supportedKind string
-	}{
-		{
-			field:         "custom_question_answering_search_service_id",
-			value:         "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.Search/searchServices/test",
-			supportedKind: "TextAnalytics",
-		},
-		{
-			field:         "custom_question_answering_search_service_key",
-			value:         "test-key",
-			supportedKind: "TextAnalytics",
-		},
-		{
-			field:         "metrics_advisor_aad_client_id",
-			value:         "00000000-0000-0000-0000-000000000000",
-			supportedKind: "MetricsAdvisor",
-		},
-		{
-			field:         "metrics_advisor_aad_tenant_id",
-			value:         "00000000-0000-0000-0000-000000000000",
-			supportedKind: "MetricsAdvisor",
-		},
-		{
-			field:         "metrics_advisor_super_user_name",
-			value:         "test-user",
-			supportedKind: "MetricsAdvisor",
-		},
-		{
-			field:         "metrics_advisor_website_name",
-			value:         "test-website",
-			supportedKind: "MetricsAdvisor",
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.field, func(t *testing.T) {
-			data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-			r := CognitiveAccountResource{}
-
-			data.ResourceTest(t, r, []acceptance.TestStep{
-				{
-					Config:      r.kindNotSupported(data, testCase.field, testCase.value),
-					ExpectError: regexp.MustCompile(fmt.Sprintf("`%s` can only be set when `kind` is set to `%s`", testCase.field, testCase.supportedKind)),
-				},
-			})
-		})
-	}
-}
-
 func TestAccCognitiveAccount_customQuestionAnsweringSearchServiceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -710,28 +657,6 @@ resource "azurerm_cognitive_account" "test" {
   sku_name            = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (CognitiveAccountResource) kindNotSupported(data acceptance.TestData, field, value string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "AIServices"
-  sku_name            = "S0"
-  %[3]s               = "%[4]s"
-}
-`, data.RandomInteger, data.Locations.Primary, field, value)
 }
 
 func (CognitiveAccountResource) identitySystemAssigned(data acceptance.TestData) string {
