@@ -53,7 +53,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
-						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. This requires valid credentials and external Azure API access at plan-time.",
+						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 					},
 					"preflight_location_fallback": {
 						Type:        pluginsdk.TypeString,

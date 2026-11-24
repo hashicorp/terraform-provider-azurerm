@@ -308,7 +308,7 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 				"allow_insecure_connections": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Whether this ingress should allow insecure connections.",
+					Description: "Whether this ingress allows insecure connections.",
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
@@ -1902,7 +1902,7 @@ func ContainerEnvVarSchema() *pluginsdk.Schema {
 				"value": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The value for this environment variable. This value is ignored if `secret_name` is used.",
+					Description: "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used.",
 				},
 
 				"secret_name": {

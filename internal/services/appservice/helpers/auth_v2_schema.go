@@ -99,7 +99,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The path to the App Auth settings. Relative Paths are evaluated from the Site Root directory.",
+					Description:  "The path to the App Auth settings. **Note:** Relative Paths are evaluated from the Site Root directory.",
 				},
 
 				"require_authentication": {
@@ -373,7 +373,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. URLs within the current domain are always implicitly allowed.",
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
 				},
 
 				"cookie_expiration_convention": {
@@ -459,7 +459,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. URLs within the current domain are always implicitly allowed.",
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
 				},
 
 				"cookie_expiration_convention": {

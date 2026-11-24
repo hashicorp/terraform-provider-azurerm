@@ -328,7 +328,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									},
 									"preflight_enabled": schema.BoolAttribute{
 										Optional:    true,
-										Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. This requires valid credentials and external Azure API access at plan-time.",
+										Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 									},
 									"preflight_location_fallback": schema.StringAttribute{
 										Optional:    true,
