@@ -71,7 +71,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_version": {
-							Description: "The Private IP Address Version, either `IPv4` or `IPv6`.",
+							Description: "The Private IP Address Version.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},

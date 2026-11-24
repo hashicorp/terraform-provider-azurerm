@@ -20,7 +20,7 @@ func frontdoorCustomHttpsConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"custom_https_provisioning_enabled": {
-			Description: "Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?",
+			Description: "Whether the HTTPS protocol should be enabled for this custom domain associated with the Front Door.",
 			Type:        pluginsdk.TypeBool,
 			Required:    true,
 		},

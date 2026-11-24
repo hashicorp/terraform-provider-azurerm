@@ -125,7 +125,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 						},
 
 						"unique": {
-							Description: "Is the index unique or not?",
+							Description: "Whether the index is unique.",
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,

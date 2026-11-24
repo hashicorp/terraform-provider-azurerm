@@ -41,7 +41,7 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		},
 
 		"email_account_admins_enabled": {
-			Description: "Boolean flag which specifies if the alert is sent to the account administrators or not.",
+			Description: "Boolean flag which specifies if the alert is sent to the account administrators.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

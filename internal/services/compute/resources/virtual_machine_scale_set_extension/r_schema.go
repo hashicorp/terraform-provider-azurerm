@@ -55,20 +55,20 @@ func virtualMachineScaleSetExtensionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_upgrade_minor_version": {
-			Description: "Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation.",
+			Description: "Whether the latest version of the Extension should be used at Deployment Time, if one is available. This won't auto-update the extension on existing installation.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"automatic_upgrade_enabled": {
-			Description: "Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension?",
+			Description: "Whether the Extension should be automatically updated whenever the Publisher releases a new version of this VM Extension.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"failure_suppression_enabled": {
-			Description: "Should failures from the extension be suppressed?",
+			Description: "Whether failures from the extension should be suppressed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

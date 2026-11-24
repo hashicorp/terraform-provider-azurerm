@@ -56,7 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the Dapr sidecar to continue initialisation if the component fails to load?",
+			Description: "Whether the Dapr sidecar should continue initialisation if the component fails to load.",
 		},
 
 		"secret": helpers.SecretsSchema(),

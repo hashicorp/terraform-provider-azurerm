@@ -140,7 +140,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"buffered": {
-			Description: "Whether records should be buffered in the Logger prior to publishing.",
+			Description: "Whether records should be buffered in the Logger before publishing.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

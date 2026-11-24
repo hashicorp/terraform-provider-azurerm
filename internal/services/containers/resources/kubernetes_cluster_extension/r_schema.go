@@ -34,7 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension_type": {
-			Description:  "The type of extension. For more information, please refer to [Available Extensions for AKS](https://learn.microsoft.com/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions).",
+			Description:  "The type of extension. For more information, refer to [Available Extensions for AKS](https://learn.microsoft.com/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -85,7 +85,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"linux_os_config": helpers.SchemaNodePoolLinuxOSConfig(),
 
 		"fips_enabled": {
-			Description: "Should the nodes in this Node Pool have Federal Information Processing Standard enabled?",
+			Description: "Whether the nodes in this Node Pool should have Federal Information Processing Standard enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -135,7 +135,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
-			Description: "Should this Node Pool be used for System or User resources?",
+			Description: "Whether this Node Pool should be used for System or User resources.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     string(agentpools.AgentPoolModeUser),
@@ -323,7 +323,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"outbound_nat_enabled": {
-						Description: "Should the Windows nodes in this Node Pool have outbound NAT enabled?",
+						Description: "Whether the Windows nodes in this Node Pool should have outbound NAT enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						ForceNew:    true,
@@ -349,13 +349,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"node_public_ip_enabled": {
-			Description: "Should each node have a Public IP Address?",
+			Description: "Whether each node should have a Public IP Address.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"host_encryption_enabled": {
-			Description: "Should the nodes in this Node Pool have host encryption enabled?",
+			Description: "Whether the nodes in this Node Pool should have host encryption enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

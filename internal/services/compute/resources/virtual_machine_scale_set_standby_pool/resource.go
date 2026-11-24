@@ -29,7 +29,7 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) Description() string {
-	return "Manages a Standby Pool for Virtual Machine Scale Sets. ~> **Note:** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource."
+	return "Manages a Standby Pool for Virtual Machine Scale Sets. Follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

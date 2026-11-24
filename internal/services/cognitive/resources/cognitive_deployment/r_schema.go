@@ -118,7 +118,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"capacity": {
-						Description:  "Tokens-per-Minute (TPM). The unit of measure for this field is in the thousands of Tokens-per-Minute. If the resources SKU supports scale in/out then the capacity field should be included in the resources' configuration. If the scale in/out is not supported by the resources SKU then this field can be safely omitted. For more information about TPM please see the [product documentation](https://learn.microsoft.com/azure/ai-services/openai/how-to/quota?tabs=rest).",
+						Description:  "Tokens-per-Minute (TPM). The unit of measure for this field is in the thousands of Tokens-per-Minute. If the resources SKU supports scale in/out then the capacity field should be included in the resources' configuration. If the scale in/out is not supported by the resources SKU then this field can be safely omitted. For more information about TPM see the [product documentation](https://learn.microsoft.com/azure/ai-services/openai/how-to/quota?tabs=rest).",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,

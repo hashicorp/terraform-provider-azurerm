@@ -101,7 +101,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"zone_redundant": {
-				Description: "Whether or not this elastic pool is zone redundant.",
+				Description: "Whether this elastic pool is zone redundant.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

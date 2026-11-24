@@ -111,7 +111,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"local_authentication_enabled": {
-			Description: "Is local authentication enabled?",
+			Description: "Whether local authentication is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -143,7 +143,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"streaming_endpoint_enabled": {
-			Description: "Is the streaming endpoint enabled for this Azure Bot Service?",
+			Description: "Whether the streaming endpoint is enabled for this Azure Bot Service.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

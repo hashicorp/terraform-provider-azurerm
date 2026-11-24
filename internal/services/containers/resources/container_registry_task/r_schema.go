@@ -95,13 +95,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"push_enabled": {
-						Description: "Should the image built be pushed to the registry or not?",
+						Description: "Whether the image built should be pushed to the registry.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 					"cache_enabled": {
-						Description: "Should the image cache be enabled?",
+						Description: "Whether the image cache should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -258,7 +258,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForBaseImageTriggerType(), false),
 					},
 					"enabled": {
-						Description: "Should the trigger be enabled?",
+						Description: "Whether the trigger should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -357,7 +357,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"enabled": {
-						Description: "Should the trigger be enabled?",
+						Description: "Whether the trigger should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -383,7 +383,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"enabled": {
-						Description: "Should the trigger be enabled?",
+						Description: "Whether the trigger should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -480,7 +480,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{"agent_setting"},
 		},
 		"enabled": {
-			Description: "Should this Container Registry Task be enabled?",
+			Description: "Whether this Container Registry Task should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -55,7 +55,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						"location": commonschema.LocationComputed(),
 
 						"zone_resilient": {
-							Description: "Is zone resiliency enabled?",
+							Description: "Whether zone resiliency is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

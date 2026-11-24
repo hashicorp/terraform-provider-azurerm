@@ -32,19 +32,19 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"aad_log_enabled": {
-						Description: "Whether AAD logs should be sent for the Monitor resource?",
+						Description: "Whether AAD logs should be sent for the Monitor resource.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"subscription_log_enabled": {
-						Description: "Whether Azure subscription logs should be sent for the Monitor resource?",
+						Description: "Whether Azure subscription logs should be sent for the Monitor resource.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"resource_log_enabled": {
-						Description: "Whether Azure resource logs should be sent for the Monitor resource?",
+						Description: "Whether Azure resource logs should be sent for the Monitor resource.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},

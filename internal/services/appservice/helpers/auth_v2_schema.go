@@ -84,7 +84,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the AuthV2 Settings be enabled?",
+					Description: "Whether the AuthV2 Settings should be enabled.",
 				},
 
 				"runtime_version": {
@@ -99,13 +99,13 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The path to the App Auth settings. **Note:** Relative Paths are evaluated from the Site Root directory.",
+					Description:  "The path to the App Auth settings. Relative Paths are evaluated from the Site Root directory.",
 				},
 
 				"require_authentication": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the authentication flow be used for all requests?",
+					Description: "Whether the authentication flow should be used for all requests.",
 				},
 
 				"unauthenticated_action": {
@@ -156,7 +156,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should HTTPS be required on connections?",
+					Description: "Whether HTTPS should be required on connections.",
 				},
 
 				"http_route_api_prefix": {
@@ -202,7 +202,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"auth_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the AuthV2 Settings be enabled?",
+					Description: "Whether the AuthV2 Settings are enabled.",
 				},
 
 				"runtime_version": {
@@ -220,7 +220,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"require_authentication": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the authentication flow used for all requests?",
+					Description: "Whether the authentication flow is used for all requests.",
 				},
 
 				"unauthenticated_action": {
@@ -266,7 +266,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"require_https": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is HTTPS required on connections?",
+					Description: "Whether HTTPS is required on connections.",
 				},
 
 				"http_route_api_prefix": {
@@ -328,7 +328,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Token Store configuration Enabled?",
+					Description: "Whether the Token Store configuration should be enabled.",
 				},
 
 				"token_refresh_extension_time": {
@@ -363,7 +363,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the fragments from the request be preserved after the login request is made?",
+					Description: "Whether the fragments from the request should be preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -373,7 +373,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. URLs within the current domain are always implicitly allowed.",
 				},
 
 				"cookie_expiration_convention": {
@@ -396,7 +396,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the nonce be validated while completing the login flow?",
+					Description: "Whether the nonce should be validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
@@ -426,7 +426,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				"token_store_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the Token Store configuration Enabled?",
+					Description: "Whether the Token Store configuration is enabled.",
 				},
 
 				"token_refresh_extension_time": {
@@ -450,7 +450,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				"preserve_url_fragments_for_logins": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Are the fragments from the request be preserved after the login request is made?",
+					Description: "Whether the fragments from the request are preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -459,7 +459,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. URLs within the current domain are always implicitly allowed.",
 				},
 
 				"cookie_expiration_convention": {
@@ -476,7 +476,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				"validate_nonce": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the nonce be validated while completing the login flow?",
+					Description: "Whether the nonce is validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
@@ -656,7 +656,7 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},
@@ -792,7 +792,7 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the www-authenticate provider should be omitted from the request?",
+					Description: "Whether the www-authenticate provider should be omitted from the request.",
 				},
 
 				"allowed_groups": {
@@ -898,7 +898,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the www-authenticate provider omitted from the request?",
+					Description: "Whether the www-authenticate provider is omitted from the request.",
 				},
 
 				"allowed_groups": {
@@ -1228,7 +1228,7 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
+					Description: "The Client Credential Method used.",
 				},
 
 				"client_secret_setting_name": {
@@ -1307,7 +1307,7 @@ func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
+					Description: "The Client Credential Method used.",
 				},
 
 				"client_secret_setting_name": {
@@ -1766,7 +1766,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 
 				"login_scopes": {
@@ -1775,7 +1775,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},

@@ -358,7 +358,7 @@ func BackupSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should this backup job be enabled?",
+					Description: "Whether this backup job should be enabled.",
 				},
 
 				"schedule": {
@@ -388,7 +388,7 @@ func BackupSchema() *pluginsdk.Schema {
 								Type:        pluginsdk.TypeBool,
 								Optional:    true,
 								Default:     false,
-								Description: "Should the service keep at least one backup, regardless of age of backup?",
+								Description: "Whether the service should keep at least one backup, regardless of age of backup.",
 							},
 
 							"retention_period_days": {
@@ -442,7 +442,7 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 				"enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is this backup job enabled?",
+					Description: "Whether this backup job is enabled.",
 				},
 
 				"schedule": {
@@ -465,7 +465,7 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 							"keep_at_least_one_backup": {
 								Type:        pluginsdk.TypeBool,
 								Computed:    true,
-								Description: "Does the service keep at least one backup, regardless of age of backup?",
+								Description: "Whether the service keeps at least one backup, regardless of age of backup.",
 							},
 
 							"retention_period_days": {

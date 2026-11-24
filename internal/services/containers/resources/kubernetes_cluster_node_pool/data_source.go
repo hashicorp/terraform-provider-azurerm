@@ -49,7 +49,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_scaling_enabled": {
-				Description: "Does this Node Pool have Auto-Scaling enabled?",
+				Description: "Whether this Node Pool has Auto-Scaling enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -105,7 +105,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"node_public_ip_enabled": {
-				Description: "Do nodes in this Node Pool have a Public IP Address?",
+				Description: "Whether nodes in this Node Pool have a Public IP Address.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

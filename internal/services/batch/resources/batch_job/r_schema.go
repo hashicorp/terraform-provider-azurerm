@@ -43,7 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"priority": {
-			Description:  "The priority of this Batch Job, possible values can range from -1000 (lowest) to 1000 (highest).",
+			Description:  "The priority of this Batch Job.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,

@@ -89,7 +89,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"internal_load_balancer_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
-			Description: "Does the Container App Environment operate in Internal Load Balancing Mode?",
+			Description: "Whether the Container App Environment operates in Internal Load Balancing Mode.",
 		},
 
 		"tags": commonschema.TagsDataSource(),

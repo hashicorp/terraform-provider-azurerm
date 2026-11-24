@@ -54,7 +54,7 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"server": {
-						Description:  "The address to use to connect to the registry without protocol (\"https\"/\"http\"). For example: \"myacr.acr.io\".",
+						Description:  "The address to use to connect to the registry without protocol (`https`/`http`). For example: `myacr.acr.io`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -526,7 +526,7 @@ func containerVolumeSchema() *pluginsdk.Schema {
 				},
 
 				"read_only": {
-					Description: "Whether the volume is to be mounted as read only or not.",
+					Description: "Whether the volume is to be mounted as read only.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					ForceNew:    true,
@@ -620,7 +620,7 @@ func containerSecurityContextSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"privilege_enabled": {
-					Description: "Whether the container's permission is elevated to privileged?",
+					Description: "Whether the container's permission is elevated to privileged.",
 					Type:        pluginsdk.TypeBool,
 					ForceNew:    true,
 					Required:    true,

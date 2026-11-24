@@ -151,7 +151,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
 		},
 
 		"end_to_end_tls_encryption_enabled": {

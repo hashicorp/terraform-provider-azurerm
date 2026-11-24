@@ -48,7 +48,7 @@ func containerRegistryWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"status": {
-			Description:  "Whether this Webhook triggers notifications or not.",
+			Description:  "Whether this Webhook triggers notifications.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      webhooks.WebhookStatusEnabled,
@@ -56,7 +56,7 @@ func containerRegistryWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description: "The scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for 'foo:bar' only. `foo` is equivalent to `foo:latest`. Empty means all events.",
+			Description: "The scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for `foo:bar` only. `foo` is equivalent to `foo:latest`. Empty means all events.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     "",

@@ -164,7 +164,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Windows Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -211,7 +211,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -227,7 +227,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled?",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -240,14 +240,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Function App use a 32-bit worker?",
+					Description: "Whether the Windows Function App should use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"ftps_state": {
@@ -309,13 +309,13 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled?",
+					Description: "Whether detailed error logging is enabled.",
 				},
 
 				"windows_fx_version": {

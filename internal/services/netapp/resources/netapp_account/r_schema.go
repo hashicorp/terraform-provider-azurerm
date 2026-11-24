@@ -108,7 +108,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						Default:      false,
 						RequiredWith: []string{"active_directory.0.server_root_ca_certificate"},
-						Description:  "Whether or not the LDAP traffic needs to be secured via TLS.",
+						Description:  "Whether the LDAP traffic needs to be secured via TLS.",
 					},
 					"server_root_ca_certificate": {
 						Type:         pluginsdk.TypeString,
@@ -121,7 +121,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
-						Description: "Whether or not the LDAP traffic needs to be signed.",
+						Description: "Whether the LDAP traffic needs to be signed.",
 					},
 					"domain_controller_connection_encryption_enabled": {
 						Type:        pluginsdk.TypeBool,

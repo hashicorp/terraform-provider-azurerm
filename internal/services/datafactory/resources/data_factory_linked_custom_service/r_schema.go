@@ -30,7 +30,7 @@ func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"type": {
-			Description: "The type of data stores that will be connected to Data Factory. For full list of supported data stores, please refer to [Azure Data Factory connector](https://learn.microsoft.com/azure/data-factory/connector-overview). Please refer to [Microsoft.DataFactory factories/linkedservices](https://learn.microsoft.com/azure/templates/microsoft.datafactory/factories/linkedservices?pivots=deployment-language-terraform) for the type values syntax.",
+			Description: "The type of data stores that will be connected to Data Factory. For full list of supported data stores, refer to [Azure Data Factory connector](https://learn.microsoft.com/azure/data-factory/connector-overview). Refer to [Microsoft.DataFactory factories/linkedservices](https://learn.microsoft.com/azure/templates/microsoft.datafactory/factories/linkedservices?pivots=deployment-language-terraform) for the type values syntax.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,

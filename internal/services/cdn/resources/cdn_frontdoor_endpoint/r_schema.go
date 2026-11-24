@@ -29,7 +29,7 @@ func cdnFrontdoorEndpointSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Whether this Front Door Endpoint is enabled?",
+			Description: "Whether this Front Door Endpoint is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

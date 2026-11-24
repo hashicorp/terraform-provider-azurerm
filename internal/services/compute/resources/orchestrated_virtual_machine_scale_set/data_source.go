@@ -130,13 +130,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"accelerated_networking_enabled": {
-						Description: "Is accelerated networking enabled?",
+						Description: "Whether accelerated networking is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"ip_forwarding_enabled": {
-						Description: "Is IP forwarding enabled?",
+						Description: "Whether IP forwarding is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},

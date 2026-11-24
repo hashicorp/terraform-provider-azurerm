@@ -75,7 +75,7 @@ func virtualDesktopScalingPlanSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ramp_up_start_time": {
-						Description:  "The time at which Ramp-Up scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in \"HH:MM\" format.",
+						Description:  "The time at which Ramp-Up scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in `HH:MM` format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validateTime(),
@@ -103,7 +103,7 @@ func virtualDesktopScalingPlanSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"peak_start_time": {
-						Description:  "The time at which Peak scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in \"HH:MM\" format.",
+						Description:  "The time at which Peak scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in `HH:MM` format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validateTime(),
@@ -117,7 +117,7 @@ func virtualDesktopScalingPlanSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ramp_down_start_time": {
-						Description:  "The time at which Ramp-Down scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in \"HH:MM\" format.",
+						Description:  "The time at which Ramp-Down scaling will begin. This is also the end-time for the Ramp-Up period. The time must be specified in `HH:MM` format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validateTime(),
@@ -170,7 +170,7 @@ func virtualDesktopScalingPlanSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"off_peak_start_time": {
-						Description:  "The time at which Off-Peak scaling will begin. This is also the end-time for the Ramp-Down period. The time must be specified in \"HH:MM\" format.",
+						Description:  "The time at which Off-Peak scaling will begin. This is also the end-time for the Ramp-Down period. The time must be specified in `HH:MM` format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validateTime(),

@@ -92,7 +92,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed: true,
 									},
 									"exportable": {
-										Description: "Is this Certificate Exportable?",
+										Description: "Whether this Certificate is exportable.",
 										Type:        pluginsdk.TypeBool,
 										Computed:    true,
 									},
@@ -107,7 +107,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"reuse_key": {
-										Description: "Is the key reusable?",
+										Description: "Whether the key is reusable.",
 										Type:        pluginsdk.TypeBool,
 										Computed:    true,
 									},

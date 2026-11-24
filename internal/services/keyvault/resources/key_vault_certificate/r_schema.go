@@ -90,7 +90,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 								},
 								"exportable": {
-									Description: "Is this certificate exportable?",
+									Description: "Whether this certificate is exportable.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
@@ -121,7 +121,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 								"reuse_key": {
-									Description: "Is the key reusable?",
+									Description: "Whether the key is reusable.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},

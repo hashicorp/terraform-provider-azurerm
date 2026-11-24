@@ -781,7 +781,7 @@ func EventSubscriptionSchemaRetryPolicy() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 				},
 				"event_time_to_live": {
-					Description:  "The time to live (in minutes) for events. Supported range is `1` to `1440`. See [official documentation](https://learn.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.",
+					Description:  "The time to live (in minutes) for events. See [official documentation](https://learn.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 1440),

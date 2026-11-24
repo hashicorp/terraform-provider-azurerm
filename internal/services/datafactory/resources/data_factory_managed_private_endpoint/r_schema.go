@@ -39,7 +39,7 @@ func dataFactoryManagedPrivateEndpointSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subresource_name": {
-			Description:  "The sub resource name which the Data Factory Private Endpoint is able to connect to.",
+			Description:  "The sub resource name which the Data Factory Private Endpoint can connect to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

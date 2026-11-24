@@ -34,7 +34,7 @@ func dnsMxRecordSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"preference": {
-						Description: "String representing the \"preference\" value of the MX records. Records with lower preference value take priority.",
+						Description: "String representing the `preference` value of the MX records. Records with lower preference value take priority.",
 						// TODO: this should become an Int
 						Type:     pluginsdk.TypeString,
 						Required: true,

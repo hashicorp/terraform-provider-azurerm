@@ -41,7 +41,7 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"email_account_admins_enabled": {
-			Description: "Are the alerts sent to the account administrators?",
+			Description: "Whether the alerts are sent to the account administrators.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

@@ -358,13 +358,13 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"send_to_subscription_administrator": {
-									Description: "Should email notifications be sent to the subscription administrator?",
+									Description: "Whether email notifications should be sent to the subscription administrator.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
 								},
 								"send_to_subscription_co_administrator": {
-									Description: "Should email notifications be sent to the subscription co-administrator?",
+									Description: "Whether email notifications should be sent to the subscription co-administrator.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,

@@ -237,7 +237,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_mitigation_enabled": {
-			Description: "The flag that indicates whether the alert should be automatically resolved or not.",
+			Description: "The flag that indicates whether the alert should be automatically resolved.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -314,7 +314,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"skip_query_validation": {
-			Description: "The flag which indicates whether the provided query should be validated or not.",
+			Description: "The flag which indicates whether the provided query should be validated.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

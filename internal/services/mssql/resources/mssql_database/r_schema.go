@@ -252,7 +252,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_redundant": {
-			Description: "Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple Availability Zones. This property is only settable for Premium and Business Critical databases.",
+			Description: "Whether this database is zone redundant, which means the replicas of this database will be spread across multiple Availability Zones. This property is only settable for Premium and Business Critical databases.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -371,14 +371,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"transparent_data_encryption_key_vault_key_id": {
-			Description:  "The fully versioned `Key Vault` `Key` URL (e.g. `'https://<YourVaultName>.vault.azure.net/keys/<YourKeyName>/<YourKeyVersion>`) to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.",
+			Description:  "The fully versioned `Key Vault` `Key` URL (e.g. `'https://<YourVaultName>.vault.azure.net/keys/<YourKeyName>/<YourKeyVersion>`) to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 
 		"transparent_data_encryption_key_automatic_rotation_enabled": {
-			Description:  "Boolean flag to specify whether TDE automatically rotates the encryption Key to latest version or not.",
+			Description:  "Boolean flag to specify whether TDE automatically rotates the encryption Key to latest version.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			Default:      false,
@@ -386,7 +386,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"secondary_type": {
-			Description: "How do you want your replica to be made?",
+			Description: "How the replica of this database is made.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C because it has defaulted to Geo for replicas but not all databases are replicas.

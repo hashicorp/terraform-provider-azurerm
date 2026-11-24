@@ -72,7 +72,7 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"publishing_enabled": {
-						Description: "Is automated publishing enabled?",
+						Description: "Whether automated publishing is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Default:     true,
 						Optional:    true,
@@ -125,7 +125,7 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsUUID,
 					},
 					"publishing_enabled": {
-						Description: "Is automated publishing enabled?",
+						Description: "Whether automated publishing is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Default:     true,
 						Optional:    true,
@@ -164,13 +164,13 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_virtual_network_enabled": {
-			Description: "Is Managed Virtual Network enabled?",
+			Description: "Whether Managed Virtual Network is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"public_network_enabled": {
-			Description: "Is the Data Factory visible to the public network?",
+			Description: "Whether the Data Factory is visible to the public network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

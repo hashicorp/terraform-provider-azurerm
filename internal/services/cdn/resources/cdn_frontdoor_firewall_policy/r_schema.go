@@ -42,7 +42,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Front Door Firewall Policy enabled?",
+			Description: "Whether the Front Door Firewall Policy is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -77,7 +77,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"request_body_check_enabled": {
-			Description: "Should policy managed rules inspect the request body content?",
+			Description: "Whether policy managed rules should inspect the request body content.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -127,7 +127,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"enabled": {
-						Description: "Is the rule is enabled or disabled?",
+						Description: "Whether the rule is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -176,7 +176,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"match_condition": {
-						Description: "Can support up to `10` `match_condition` blocks?",
+						Description: "The conditions a request must match for this custom rule to apply.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						MaxItems:    10,
@@ -215,7 +215,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								},
 
 								"negation_condition": {
-									Description: "Should the result of the condition be negated?",
+									Description: "Whether the result of the condition should be negated.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
@@ -354,7 +354,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 											},
 
 											"enabled": {
-												Description: "Is the managed rule override enabled or disabled?",
+												Description: "Whether the managed rule override is enabled.",
 												Type:        pluginsdk.TypeBool,
 												Optional:    true,
 												Default:     false,
@@ -414,7 +414,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Description: "Is log scrubbing enabled?",
+						Description: "Whether log scrubbing is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -427,7 +427,7 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
-									Description: "Is this `scrubbing_rule` enabled?",
+									Description: "Whether this `scrubbing_rule` is enabled.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     true,

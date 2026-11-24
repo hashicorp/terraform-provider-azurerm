@@ -26,7 +26,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_resilient": {
-			Description:   "Is zone resiliency enabled?",
+			Description:   "Whether zone resiliency is enabled.",
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Default:       false,

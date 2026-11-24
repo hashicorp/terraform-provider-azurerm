@@ -160,7 +160,7 @@ func cdnEndpointSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"optimization_type": {
-			Description:  "What types of optimization should this CDN Endpoint optimize for?",
+			Description:  "The type of optimization this CDN Endpoint should optimize for.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInEnumSlice(cdn.PossibleOptimizationTypeValues(), false),

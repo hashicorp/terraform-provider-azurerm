@@ -155,7 +155,7 @@ func sharedImageVersionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"exclude_from_latest": {
-			Description: "Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version.",
+			Description: "Whether this Image Version should be excluded from the `latest` filter. If set to `true` this Image Version won't be returned for the `latest` version.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

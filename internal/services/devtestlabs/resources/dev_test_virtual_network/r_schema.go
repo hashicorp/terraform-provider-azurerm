@@ -56,7 +56,7 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"use_in_virtual_machine_creation": {
-						Description:  "Can this subnet be used for creating Virtual Machines?",
+						Description:  "Whether this subnet can be used for creating Virtual Machines.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(virtualnetworks.UsagePermissionTypeAllow),
@@ -64,7 +64,7 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"use_public_ip_address": {
-						Description:  "Can Virtual Machines in this Subnet use Public IP Addresses?",
+						Description:  "Whether Virtual Machines in this Subnet can use Public IP Addresses.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(virtualnetworks.UsagePermissionTypeAllow),

@@ -108,7 +108,7 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Smart Detector Alert Rule enabled?",
+			Description: "Whether the Smart Detector Alert Rule is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

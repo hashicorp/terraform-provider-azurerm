@@ -84,7 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_api_mode_enabled": {
-			Description: "Is the Data API for the MongoDB Cluster enabled?",
+			Description: "Whether the Data API for the MongoDB Cluster is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

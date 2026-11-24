@@ -101,7 +101,7 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"admin_enabled": {
-			Description: "Is the Administrator account enabled for this Container Registry?",
+			Description: "Whether the Administrator account is enabled for this Container Registry.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -120,7 +120,7 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_endpoint_enabled": {
-			Description: "Whether dedicated data endpoints for this Container Registry are enabled?",
+			Description: "Whether dedicated data endpoints for this Container Registry are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

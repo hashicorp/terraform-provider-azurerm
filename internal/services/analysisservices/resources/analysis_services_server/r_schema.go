@@ -54,7 +54,7 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"power_bi_service_enabled": {
-			Description: "Whether the Power BI service is allowed to access or not.",
+			Description: "Whether the Power BI service is allowed to access.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

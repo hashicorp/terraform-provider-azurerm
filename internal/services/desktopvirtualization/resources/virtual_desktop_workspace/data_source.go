@@ -74,7 +74,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is public network access enabled?",
+			Description: "Whether public network access is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

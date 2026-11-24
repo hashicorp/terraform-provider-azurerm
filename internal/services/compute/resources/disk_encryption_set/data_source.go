@@ -43,7 +43,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_key_rotation_enabled": {
-				Description: "Is the Azure Disk Encryption Set Key automatically rotated to latest version?",
+				Description: "Whether the Azure Disk Encryption Set Key is automatically rotated to latest version.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

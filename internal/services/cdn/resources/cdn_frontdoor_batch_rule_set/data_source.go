@@ -143,7 +143,7 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 											Computed:    true,
 										},
 										"preserve_unmatched_path_enabled": {
-											Description: "Whether to preserve the unmatched part of the path.",
+											Description: "Whether the unmatched part of the path is preserved.",
 											Type:        pluginsdk.TypeBool,
 											Computed:    true,
 										},

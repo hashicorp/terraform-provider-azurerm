@@ -33,14 +33,14 @@ func VirtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
 				"ultra_ssd_enabled": {
-					Description: "Should the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type be supported on this Virtual Machine?",
+					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 
 				"hibernation_enabled": {
-					Description: "Whether to enable the hibernation capability or not.",
+					Description: "Whether to enable the hibernation capability.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -234,7 +234,7 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"write_accelerator_enabled": {
-					Description: "Should Write Accelerator be Enabled for this OS Disk?",
+					Description: "Whether Write Accelerator should be Enabled for this OS Disk.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -441,7 +441,7 @@ func VirtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Description: "Should the termination notification be enabled on this Virtual Machine?",
+					Description: "Whether the termination notification should be enabled on this Virtual Machine.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 				},

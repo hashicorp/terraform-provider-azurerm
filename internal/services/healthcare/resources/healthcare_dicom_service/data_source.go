@@ -95,7 +95,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"data_partitions_enabled": {
-				Description: "If data partitions are enabled or not.",
+				Description: "If data partitions are enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -139,7 +139,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"allow_credentials": {
-							Description: "Whether to allow credentials in CORS.",
+							Description: "Whether credentials are allowed in CORS.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

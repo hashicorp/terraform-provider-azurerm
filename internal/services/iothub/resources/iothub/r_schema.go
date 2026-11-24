@@ -500,7 +500,7 @@ func iothubSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(1, 100),
 					},
 					"default_ttl": {
-						Description:  "This value must be between 1 minute and 48 hours.",
+						Description:  "The default time to live for cloud-to-device messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT1H",
@@ -512,7 +512,7 @@ func iothubSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"time_to_live": {
-									Description:  "The retention time for service-bound feedback messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours.",
+									Description:  "The retention time for service-bound feedback messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      "PT1H",
@@ -526,7 +526,7 @@ func iothubSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
 								"lock_duration": {
-									Description:  "The lock duration for the feedback queue, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 5 and 300 seconds.",
+									Description:  "The lock duration for the feedback queue, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      "PT60S",
@@ -558,7 +558,7 @@ func iothubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is the IotHub resource accessible from a public network?",
+			Description: "Whether the IotHub resource is accessible from a public network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

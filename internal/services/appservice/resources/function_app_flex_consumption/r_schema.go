@@ -141,7 +141,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the Function App use Client Certificates?",
+			Description: "Whether the Function App should use Client Certificates.",
 		},
 
 		"client_certificate_mode": {
@@ -164,7 +164,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Function App enabled?",
+			Description: "Whether the Function App is enabled.",
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -179,7 +179,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Can the Function App only be accessed via HTTPS?",
+			Description: "Whether the Function App can only be accessed via HTTPS.",
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
@@ -199,7 +199,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
 		"tags": commonschema.Tags(),

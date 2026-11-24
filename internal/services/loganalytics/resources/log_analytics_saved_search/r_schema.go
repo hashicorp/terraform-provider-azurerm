@@ -62,7 +62,7 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"function_parameters": {
-			Description: "The function parameters if the query serves as a function. For more examples and proper syntax please refer to [this document](https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions).",
+			Description: "The function parameters if the query serves as a function. For more examples and proper syntax refer to [this document](https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions).",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			ForceNew:    true,

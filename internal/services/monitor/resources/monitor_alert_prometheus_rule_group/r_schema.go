@@ -109,7 +109,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"enabled": {
-						Description: "Is this rule enabled?",
+						Description: "Whether this rule is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -151,7 +151,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"auto_resolved": {
-									Description: "Is the alert auto-resolution?",
+									Description: "Whether the alert is automatically resolved.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 								},
@@ -207,7 +207,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"rule_group_enabled": {
-			Description: "Is this Alert Management Prometheus Rule Group enabled?",
+			Description: "Whether this Alert Management Prometheus Rule Group is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

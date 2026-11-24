@@ -108,7 +108,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"exclude_from_latest": {
-				Description: "Is this Image Version excluded from the `latest` filter?",
+				Description: "Whether this Image Version is excluded from the `latest` filter.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

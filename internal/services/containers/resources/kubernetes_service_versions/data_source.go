@@ -58,7 +58,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"include_preview": {
-				Description: "Should Preview versions of Kubernetes in AKS be included?",
+				Description: "Whether Preview versions of Kubernetes in AKS should be included.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Default:     true,

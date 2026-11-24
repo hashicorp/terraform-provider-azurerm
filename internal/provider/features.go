@@ -41,19 +41,19 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
-						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						Description: "Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
 					},
 					"resource_providers": {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
-						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
+						Description: "Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
 					},
 					"preflight_enabled": {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
-						Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid? Note: requires valid credentials and external Azure API access at plan-time.",
+						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. This requires valid credentials and external Azure API access at plan-time.",
 					},
 					"preflight_location_fallback": {
 						Type:        pluginsdk.TypeString,

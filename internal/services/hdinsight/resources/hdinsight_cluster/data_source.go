@@ -82,7 +82,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Description: "Is the Ambari Portal enabled?",
+							Description: "Whether the Ambari Portal is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

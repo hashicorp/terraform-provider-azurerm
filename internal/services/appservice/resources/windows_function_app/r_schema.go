@@ -73,7 +73,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
 			},
-			Description: "Should the Function App use its Managed Identity to access storage?",
+			Description: "Whether the Function App should use its Managed Identity to access storage.",
 		},
 
 		"storage_key_vault_secret_id": {
@@ -106,14 +106,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled? Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
+			Description: "Whether built in logging should be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the Function App use Client Certificates?",
+			Description: "Whether the Function App should use Client Certificates.",
 		},
 
 		"client_certificate_mode": {
@@ -144,7 +144,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Windows Function App enabled?",
+			Description: "Whether the Windows Function App is enabled.",
 		},
 
 		"content_share_force_disabled": {
@@ -165,7 +165,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
-			Description: "Can the Function App only be accessed via HTTPS?",
+			Description: "Whether the Function App can only be accessed via HTTPS.",
 		},
 
 		"end_to_end_tls_encryption_enabled": {
@@ -226,7 +226,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Is container image pull over Virtual Network enabled?",
+			Description: "Whether container image pull over Virtual Network is enabled.",
 		},
 
 		"zip_deploy_file": {
@@ -234,7 +234,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
 	}
 }

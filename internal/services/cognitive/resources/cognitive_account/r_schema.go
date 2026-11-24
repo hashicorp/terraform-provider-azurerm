@@ -218,7 +218,7 @@ func cognitiveAccountSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"ignore_missing_vnet_service_endpoint": {
-									Description: "Whether ignore missing VNet service endpoint or not.",
+									Description: "Whether ignore missing VNet service endpoint.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,

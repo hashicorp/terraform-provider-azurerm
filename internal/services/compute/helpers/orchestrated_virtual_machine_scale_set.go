@@ -81,14 +81,14 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				},
 
 				"hotpatching_enabled": {
-					Description: "Should the VM be patched without requiring a reboot? For more information about hot patching please see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
+					Description: "Whether the VM should be patched without requiring a reboot. For more information about hot patching see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 
 				"provision_vm_agent": {
-					Description: "Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set?",
+					Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
@@ -104,7 +104,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				},
 
 				"patch_mode": {
-					Description:  "The mode of in-guest patching of this Windows Virtual Machine. For more information on patch modes please see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
+					Description:  "The mode of in-guest patching of this Windows Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
@@ -162,7 +162,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				},
 
 				"provision_vm_agent": {
-					Description: "Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set?",
+					Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
@@ -178,7 +178,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				},
 
 				"patch_mode": {
-					Description:  "The mode of in-guest patching of this Linux Virtual Machine. For more information on patch modes please see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
+					Description:  "The mode of in-guest patching of this Linux Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
@@ -227,7 +227,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				},
 
 				"auto_upgrade_minor_version_enabled": {
-					Description: "Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation.",
+					Description: "Whether the latest version of the Extension should be used at Deployment Time, if one is available. This won't auto-update the extension on existing installation.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
@@ -235,7 +235,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 
 				// Only supported in Orchestrated mode
 				"failure_suppression_enabled": {
-					Description: "Should failures from the extension be suppressed?",
+					Description: "Whether failures from the extension should be suppressed.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -350,7 +350,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 				},
 
 				"primary": {
-					Description: "Is this the Primary IP Configuration?",
+					Description: "Whether this is the Primary IP Configuration.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -405,7 +405,7 @@ func OrchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 				},
 
 				"primary": {
-					Description: "Is this the Primary IP Configuration for this Network Interface?",
+					Description: "Whether this is the Primary IP Configuration for this Network Interface.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -632,7 +632,7 @@ func OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ultra_ssd_enabled": {
-					Description: "Should the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type be supported on this Virtual Machine Scale Set?",
+					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -739,7 +739,7 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Description: "Should the termination notification be enabled on this Virtual Machine Scale Set?",
+					Description: "Whether the termination notification should be enabled on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 				},

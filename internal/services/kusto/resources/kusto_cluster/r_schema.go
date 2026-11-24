@@ -151,7 +151,7 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is the public network access enabled?",
+			Description: "Whether the public network access is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -165,7 +165,7 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"double_encryption_enabled": {
-			Description: "Is the cluster's double encryption enabled?",
+			Description: "Whether the cluster's double encryption is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

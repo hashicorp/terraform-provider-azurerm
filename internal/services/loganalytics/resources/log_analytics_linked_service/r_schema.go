@@ -38,7 +38,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 		},
 		// Exported properties
 		"name": {
-			Description: "The generated name of the Linked Service. The format for this attribute is always `<workspace name>/<linked service type>`(e.g. `workspace1/Automation` or `workspace1/Cluster`).",
+			Description: "The generated name of the Linked Service. The format for this attribute is always `<workspace name>/<linked service type>` (e.g. `workspace1/Automation` or `workspace1/Cluster`).",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

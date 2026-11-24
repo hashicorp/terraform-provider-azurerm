@@ -114,7 +114,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"data_disk": helpers.VirtualMachineScaleSetDataDiskSchema(),
 
 		"do_not_run_extensions_on_overprovisioned_machines": {
-			Description: "Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set?",
+			Description: "Whether Virtual Machine Extensions should be run on Overprovisioned Virtual Machines in the Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -130,7 +130,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"encryption_at_host_enabled": {
-			Description: "Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?",
+			Description: "Whether all of the disks (including the temp disk) attached to this Virtual Machine should be encrypted by enabling Encryption at Host.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -145,7 +145,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"extension_operations_enabled": {
-			Description: "Should extension operations be allowed on the Virtual Machine Scale Set?",
+			Description: "Whether extension operations should be allowed on the Virtual Machine Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -211,7 +211,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"overprovision": {
-			Description: "Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota.",
+			Description: "Whether Azure should over-provision Virtual Machines in this Scale Set. This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -240,7 +240,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"provision_vm_agent": {
-			Description: "Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set?",
+			Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -272,7 +272,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"single_placement_group": {
-			Description: "Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines?",
+			Description: "Whether this Virtual Machine Scale Set should be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -334,7 +334,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"winrm_listener": helpers.WinRmListenerSchema(),
 
 		"zone_balance": {
-			Description: "Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones?",
+			Description: "Whether the Virtual Machines in this Scale Set should be strictly evenly distributed across Availability Zones.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

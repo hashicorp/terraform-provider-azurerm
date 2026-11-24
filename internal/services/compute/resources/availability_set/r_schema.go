@@ -48,7 +48,7 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"managed": {
-			Description: "Whether the Availability Set is managed or not.",
+			Description: "Whether the Availability Set is managed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -38,20 +38,20 @@ func botChannelWebChatSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"user_upload_enabled": {
-						Description: "Is the user upload enabled for this site?",
+						Description: "Whether the user upload is enabled for this site.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"endpoint_parameters_enabled": {
-						Description: "Is the endpoint parameters enabled for this site?",
+						Description: "Whether the endpoint parameters are enabled for this site.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"storage_enabled": {
-						Description: "Is the storage site enabled for detailed logging?",
+						Description: "Whether the storage site is enabled for detailed logging.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,

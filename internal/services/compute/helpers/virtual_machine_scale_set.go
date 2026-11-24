@@ -34,7 +34,7 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
 				"ultra_ssd_enabled": {
-					Description: "Should the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type be supported on this Virtual Machine Scale Set?",
+					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -118,13 +118,13 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 					},
 				},
 				"accelerated_networking_enabled": {
-					Description: "Does this Network Interface support Accelerated Networking?",
+					Description: "Whether this Network Interface supports Accelerated Networking.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 				"ip_forwarding_enabled": {
-					Description: "Does this Network Interface support IP Forwarding?",
+					Description: "Whether this Network Interface supports IP Forwarding.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -136,7 +136,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 					ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 				},
 				"primary": {
-					Description: "Is this the Primary IP Configuration?",
+					Description: "Whether this is the Primary IP Configuration.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -262,7 +262,7 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"rule": {
-					Description:  "The scale-in policy rule that decides which Virtual Machines are chosen for removal when a Virtual Machine Scale Set is scaled in. For more information about scale in policy, please [refer to this doc](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).",
+					Description:  "The scale-in policy rule that decides which Virtual Machines are chosen for removal when a Virtual Machine Scale Set is scaled in. For more information about scale in policy, [refer to this doc](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
@@ -270,7 +270,7 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 				},
 
 				"force_deletion_enabled": {
-					Description: "Should the Virtual Machines chosen for removal be force deleted when the Virtual Machine Scale Set is being scaled-in?",
+					Description: "Whether the Virtual Machines chosen for removal should be force deleted when the Virtual Machine Scale Set is being scaled-in.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -326,7 +326,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Description: "Should the Spot-Try-Restore feature be enabled? The Spot-Try-Restore feature will attempt to automatically restore the evicted Spot Virtual Machine Scale Set VM instances opportunistically based on capacity availability and pricing constraints.",
+					Description: "Whether the Spot-Try-Restore feature should be enabled. The Spot-Try-Restore feature will attempt to automatically restore the evicted Spot Virtual Machine Scale Set VM instances opportunistically based on capacity availability and pricing constraints.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -569,7 +569,7 @@ func VirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				},
 
 				"primary": {
-					Description: "Is this the Primary IP Configuration for this Network Interface?",
+					Description: "Whether this is the Primary IP Configuration for this Network Interface.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -1272,7 +1272,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"write_accelerator_enabled": {
-					Description: "Should Write Accelerator be enabled for this Data Disk?",
+					Description: "Whether Write Accelerator should be enabled for this Data Disk.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -1509,7 +1509,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"write_accelerator_enabled": {
-					Description: "Should Write Accelerator be Enabled for this OS Disk?",
+					Description: "Whether Write Accelerator should be Enabled for this OS Disk.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -1709,7 +1709,7 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cross_zone_upgrades_enabled": {
-					Description: "Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches?",
+					Description: "Whether the Virtual Machine Scale Set should ignore the Azure Zone boundaries when constructing upgrade batches.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 				},
@@ -1719,7 +1719,7 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Required:    true,
 				},
 				"max_unhealthy_instance_percent": {
-					Description: "The maximum percentage of the total Virtual Machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the Virtual Machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch.",
+					Description: "The maximum percentage of the total Virtual Machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the Virtual Machine health checks before the rolling upgrade aborts. This constraint will be checked before starting any batch.",
 					Type:        pluginsdk.TypeInt,
 					Required:    true,
 				},
@@ -1832,7 +1832,7 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Description: "Should the termination notification be enabled on this Virtual Machine Scale Set?",
+					Description: "Whether the termination notification should be enabled on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 				},
@@ -1895,7 +1895,7 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Description: "Should the automatic instance repair be enabled on this Virtual Machine Scale Set?",
+					Description: "Whether the automatic instance repair should be enabled on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 				},
@@ -1989,14 +1989,14 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				},
 
 				"auto_upgrade_minor_version": {
-					Description: "Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation.",
+					Description: "Whether the latest version of the Extension should be used at Deployment Time, if one is available. This won't auto-update the extension on existing installation.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
 				},
 
 				"automatic_upgrade_enabled": {
-					Description: "Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension?",
+					Description: "Whether the Extension should be automatically updated whenever the Publisher releases a new version of this VM Extension.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,

@@ -389,7 +389,7 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should this Activity Log Alert be enabled?",
+			Description: "Whether this Activity Log Alert should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
