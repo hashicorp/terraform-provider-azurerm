@@ -26,7 +26,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceLogicAppStandardRead,
+		Description: "Use this data source to access information about an existing Logic App Standard instance.",
+		Read:        dataSourceLogicAppStandardRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -34,6 +35,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Logic App.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.LogicAppStandardName,
@@ -44,58 +46,68 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"app_service_plan_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the App Service Plan.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"app_settings": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"use_extension_bundle": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Logic App should use the bundled extension package.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"bundle_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Controls the allowed range for bundle versions.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"client_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"client_certificate_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The mode of the Logic App's client certificates requirement for incoming requests.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Logic App is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"ftp_publish_basic_authentication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the default FTP basic authentication publishing profile is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"https_only": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Logic App can only be accessed via HTTPS.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"scm_publish_basic_authentication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the default SCM basic authentication publishing profile is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"site_config": schemaLogicAppStandardSiteConfigDataSource(),
@@ -125,14 +137,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The backend Storage Account name which will be used by this Logic App (e.g. for Stateful workflows data).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage_account_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The access key which will be used to access the backend Storage Account for the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"storage_key_vault_secret_id": {
@@ -142,20 +156,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"storage_account_share_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the share used by the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The runtime version associated with the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),
 
 			"custom_domain_verification_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The custom domain verification of the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_hostname": {
@@ -164,28 +181,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The kind of the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"outbound_ip_addresses": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The outbound IP addresses of the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"possible_outbound_ip_addresses": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The possible outbound IP addresses of the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_network_access": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Whether Public Network Access should be enabled or not.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"virtual_network_subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The subnet ID for the Logic App.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"site_credential": {
@@ -497,37 +519,43 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Should the Logic App be loaded at all times?",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"cors": schemaLogicAppCorsSettingsDataSource(),
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The state of FTP / FTPS service for this Logic App.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"http2_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Whether the HTTP2 protocol should be enabled.",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
 
 				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Linux App Framework and version for the Logic App.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"min_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The minimum supported TLS version for the Logic App.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"pre_warmed_instance_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The number of pre-warmed instances for this Logic App. Only affects apps on the Premium plan.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 
 				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
@@ -538,63 +566,75 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Should the Logic App `ip_restriction` configuration be used for the SCM too?",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"scm_min_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The minimum version of TLS required for SSL requests to the SCM site.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"scm_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The type of Source Control used by the Logic App in use by the Windows Function App.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"use_32_bit_worker_process": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Should the Logic App run in 32 bit mode, rather than 64 bit mode?",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"websockets_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Should WebSockets be enabled?",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Path which will be checked for this Logic App health.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"elastic_instance_minimum": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The number of minimum instances for this Logic App. Only affects apps on the Premium plan.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 
 				"app_scale_limit": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The number of workers this Logic App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 
 				"runtime_scale_monitoring_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Should Runtime Scale Monitoring be enabled? Only applicable to apps on the Premium plan.",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"dotnet_framework_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The version of the .NET framework's CLR used in this Logic App.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Auto-swap slot name.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"ip_restriction_default_action": {
@@ -613,13 +653,15 @@ func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
-					Type:     pluginsdk.TypeSet,
-					Computed: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Description: "A list of origins which should be able to make cross-origin calls.",
+					Type:        pluginsdk.TypeSet,
+					Computed:    true,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 				"support_credentials": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Are credentials supported?",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 			},
 		},
@@ -633,33 +675,39 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The IP Address used for this IP Restriction in CIDR notation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"service_tag": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Service Tag used for this IP Restriction.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"virtual_network_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Virtual Network Subnet ID used for this IP Restriction.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name for this IP Restriction.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"priority": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The priority for this IP Restriction. Restrictions are enforced in priority order.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 
 				"action": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Does this restriction `Allow` or `Deny` access for this IP range?",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				// lintignore:XS003
@@ -670,8 +718,9 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 						Schema: map[string]*pluginsdk.Schema{
 							// lintignore:S018
 							"x_forwarded_host": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
+								Description: "A list of allowed 'X-Forwarded-Host' domains.",
+								Type:        pluginsdk.TypeSet,
+								Computed:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -679,8 +728,9 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 
 							// lintignore:S018
 							"x_forwarded_for": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
+								Description: "A list of allowed 'X-Forwarded-For' IPs in CIDR notation.",
+								Type:        pluginsdk.TypeSet,
+								Computed:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -688,8 +738,9 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 
 							// lintignore:S018
 							"x_azure_fdid": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
+								Description: "A list of allowed Azure FrontDoor IDs in UUID notation.",
+								Type:        pluginsdk.TypeSet,
+								Computed:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -697,8 +748,9 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 
 							// lintignore:S018
 							"x_fd_health_probe": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
+								Description: "A list to allow the Azure FrontDoor health probe header.",
+								Type:        pluginsdk.TypeSet,
+								Computed:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
