@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -1655,6 +1656,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if existing.Model.Properties.LargeFileSharesState != nil && *existing.Model.Properties.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled {
 		// We can only set this if it's Enabled, else the API complains during Update that we're sending Disabled, even if it's always been off
 		props.LargeFileSharesState = existing.Model.Properties.LargeFileSharesState
+	}
+
+	// domain_guid is not a required attribute in Azure, hence SA with only domain_name specified
+	// can be successfully created, in which case the API returns domain_guid with value `" "`.
+	// For these SAs, the update PUT will send the `domain_guid: " "` (read from GET), results into:
+	//
+	//   InvalidValuesForRequestParameters: Values for request parameters are invalid: domainGuid.
+	//
+	// Therefore we only include a valid domain guid in the request.
+	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/33900
+	if props.AzureFilesIdentityBasedAuthentication != nil && props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties != nil && props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid != nil {
+		domainGuid := *props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid
+		if _, err := uuid.Parse(domainGuid); err != nil {
+			props.AzureFilesIdentityBasedAuthentication.ActiveDirectoryProperties.DomainGuid = nil
+		}
 	}
 
 	expandedIdentity := existing.Model.Identity
