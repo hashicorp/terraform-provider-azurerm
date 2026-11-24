@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDataShareRead,
+		Description: "Use this data source to access information about an existing Data Share.",
+		Read:        dataSourceDataShareRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,25 +29,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Data Share.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ShareName(),
 			},
 
 			"account_id": {
+				Description:  "The ID of the Data Share Account in which the Data Share is created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: account.ValidateAccountID,
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The kind of the Data Share.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of the Data Share.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"snapshot_schedule": {
@@ -55,26 +60,30 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the snapshot schedule.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"recurrence": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The interval of the synchronization with the source data.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"start_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The synchronization with the source data's start time.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"terms": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The terms of the Data Share.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

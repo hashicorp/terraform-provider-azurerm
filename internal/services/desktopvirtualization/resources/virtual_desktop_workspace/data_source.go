@@ -40,9 +40,14 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_virtual_desktop_workspace"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Virtual Desktop Workspace."
+}
+
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Virtual Desktop Workspace to retrieve.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.WorkspaceName,
@@ -57,18 +62,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"friendly_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The friendly name for the Virtual Desktop Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description for the Virtual Desktop Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is public network access enabled?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

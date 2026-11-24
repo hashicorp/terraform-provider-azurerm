@@ -39,6 +39,7 @@ type CatalogPropertiesDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Catalog.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -62,6 +63,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_catalog"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Catalog."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {
@@ -135,23 +140,27 @@ func CatalogPropertiesSchemaForDataSource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"uri": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Git URI of the Dev Center Catalog.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"branch": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Git branch of the Dev Center Catalog.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"key_vault_key_url": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "A reference to the Key Vault Secret containing a security token to authenticate to a Git repository.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"path": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The folder where the catalog items can be found inside the repository.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},
