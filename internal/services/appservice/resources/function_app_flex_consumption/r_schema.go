@@ -89,7 +89,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-						Description:  "The endpoint of the Storage Container where the function app's code is hosted.",
+						Description:  "The endpoint of the Storage Container where the Function App's code is hosted.",
 					},
 
 					"access_key": {
@@ -278,7 +278,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
 			ExactlyOneOf: []string{"storage_container_type", "deployment_storage"},
 			Deprecated:   "`storage_container_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
-			Description:  "The type of the Storage Container where the function app's code is hosted.",
+			Description:  "The type of the Storage Container where the Function App's code is hosted.",
 		}
 
 		schema["storage_container_endpoint"] = &pluginsdk.Schema{
@@ -290,7 +290,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_container_type",
 			},
 			Deprecated:  "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
-			Description: "The endpoint of the Storage Container where the function app's code is hosted.",
+			Description: "The endpoint of the Storage Container where the Function App's code is hosted.",
 		}
 
 		schema["storage_authentication_type"] = &pluginsdk.Schema{
