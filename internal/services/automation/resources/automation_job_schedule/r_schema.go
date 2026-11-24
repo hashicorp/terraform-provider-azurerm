@@ -15,6 +15,7 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
+			Description:  "The name of the Automation Account in which the Job Schedule is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"runbook_name": {
+			Description:  "The name of a Runbook to link to a Schedule. It needs to be in the same Automation Account as the Schedule and Job Schedule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"schedule_name": {
+			Description:  "The name of the Schedule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,9 +39,10 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			ForceNew: true,
+			Description: "A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -46,14 +50,16 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"run_on": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "Name of a Hybrid Worker Group the Runbook will be executed on.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"job_schedule_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The UUID identifying the Automation Job Schedule.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C this can remain as this can change if the runbook is updated but cannot be updated by the user
 			Computed:     true,
 			ForceNew:     true,
@@ -61,8 +67,9 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_manager_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Resource Manager ID of the Automation Job Schedule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
