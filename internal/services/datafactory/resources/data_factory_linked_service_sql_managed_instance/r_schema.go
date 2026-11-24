@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.LinkedServiceDatasetName,
 		},
 
-		"data_factory_id": commonschema.ResourceIDReferenceRequiredForceNew(&factories.FactoryId{}),
+		"data_factory_id": commonschema.ResourceIDReferenceRequiredForceNew(&factories.FactoryId{}, "Data Factory"),
 
 		"annotations": {
 			Type:     pluginsdk.TypeList,

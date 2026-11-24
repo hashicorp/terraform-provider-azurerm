@@ -17,7 +17,7 @@ func apiManagementPolicyFragmentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementChildName("The name which should be used for this Api Management Policy Fragment."),
 
-		"api_management_id": commonschema.ResourceIDReferenceRequiredForceNew(&apimanagementservice.ServiceId{}),
+		"api_management_id": commonschema.ResourceIDReferenceRequiredForceNew(&apimanagementservice.ServiceId{}, "API Management Service"),
 
 		"format": {
 			Description:  "The format of the Policy Fragment.",

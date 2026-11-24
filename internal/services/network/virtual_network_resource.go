@@ -297,7 +297,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Default:  true,
 					},
 
-					"route_table_id": commonschema.ResourceIDReferenceOptional(&routetables.RouteTableId{}),
+					"route_table_id": commonschema.ResourceIDReferenceOptional(&routetables.RouteTableId{}, "Route Table"),
 
 					"security_group": {
 						Type:     pluginsdk.TypeString,

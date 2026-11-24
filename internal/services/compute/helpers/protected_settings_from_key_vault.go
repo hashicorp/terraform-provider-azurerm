@@ -33,7 +33,7 @@ func ProtectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 
-				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 			},
 		},
 	}

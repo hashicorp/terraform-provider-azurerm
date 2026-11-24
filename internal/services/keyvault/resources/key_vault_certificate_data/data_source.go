@@ -42,7 +42,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"version": {
 				Type:     pluginsdk.TypeString,

@@ -32,7 +32,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Clone from database specific required fields
 
-		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
+		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}, "source (primary) Autonomous Database"),
 
 		"clone_type": {
 			Type:         pluginsdk.TypeString,
