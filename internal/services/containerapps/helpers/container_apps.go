@@ -182,14 +182,14 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should this ingress allow insecure connections?",
+					Description: "Whether this ingress should allow insecure connections.",
 				},
 
 				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Are connections to this Ingress from outside the Container App Environment enabled?",
+					Description: "Whether connections to this Ingress from outside the Container App Environment are enabled.",
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
@@ -261,7 +261,7 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Is session affinity enabled?",
+					Description: "Whether session affinity is enabled.",
 				},
 
 				"target_port": {
@@ -308,7 +308,7 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 				"allow_insecure_connections": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Should this ingress allow insecure connections?",
+					Description: "Whether this ingress allows insecure connections.",
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
@@ -368,7 +368,7 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is this an external Ingress?",
+					Description: "Whether this is an external Ingress.",
 				},
 
 				"fqdn": {
@@ -382,7 +382,7 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 				"session_affinity_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is session affinity enabled?",
+					Description: "Whether session affinity is enabled.",
 				},
 
 				"target_port": {

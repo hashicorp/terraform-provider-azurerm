@@ -64,7 +64,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"link_to_default_domain": {
-			Description: "Should this Front Door Route be linked to the default endpoint?",
+			Description: "Whether this Front Door Route should be linked to the default endpoint.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -95,7 +95,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"compression_enabled": {
-						Description: "Is content compression enabled?",
+						Description: "Whether content compression is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -115,7 +115,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is this Front Door Route enabled?",
+			Description: "Whether this Front Door Route is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -130,7 +130,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"https_redirect_enabled": {
-			Description: "Automatically redirect HTTP traffic to HTTPS traffic?",
+			Description: "Whether to automatically redirect HTTP traffic to HTTPS traffic.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

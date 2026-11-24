@@ -56,7 +56,7 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"local_authentication_enabled": {
-			Description: "Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication.",
+			Description: "Whether local authentication is enabled for this Azure Maps Account. When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

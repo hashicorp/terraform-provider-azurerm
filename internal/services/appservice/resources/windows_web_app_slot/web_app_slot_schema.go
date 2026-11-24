@@ -260,7 +260,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {

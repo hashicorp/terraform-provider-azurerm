@@ -43,13 +43,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"listen": {
-				Description: "Does this Authorization Rule have permissions to Listen to the Event Hub?",
+				Description: "Whether this Authorization Rule has permissions to Listen to the Event Hub.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"manage": {
-				Description: "Does this Authorization Rule have permissions to Manage to the Event Hub?",
+				Description: "Whether this Authorization Rule has permissions to Manage to the Event Hub.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -97,7 +97,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"send": {
-				Description: "Does this Authorization Rule have permissions to Send to the Event Hub?",
+				Description: "Whether this Authorization Rule has permissions to Send to the Event Hub.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

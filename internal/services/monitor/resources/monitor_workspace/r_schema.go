@@ -22,7 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"public_network_access_enabled": {
-			Description: "Is public network access enabled?",
+			Description: "Whether public network access is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -142,7 +142,7 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Description: "Whether to enable secure LDAP for the managed domain. For more information, please see [official documentation on enabling LDAPS](https://learn.microsoft.com/azure/active-directory-domain-services/tutorial-configure-ldaps), paying particular attention to the section on network security to avoid unnecessarily exposing your service to Internet-borne bruteforce attacks.",
+						Description: "Whether to enable secure LDAP for the managed domain. For more information, see [official documentation on enabling LDAPS](https://learn.microsoft.com/azure/active-directory-domain-services/tutorial-configure-ldaps), paying particular attention to the section on network security to avoid unnecessarily exposing your service to Internet-borne bruteforce attacks.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
 					},

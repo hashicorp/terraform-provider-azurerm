@@ -58,7 +58,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"use_mercurial",
 				"rollback_enabled",
 			},
-			Description: "Should the Slot use local Git configuration?",
+			Description: "Whether the Slot should use local Git configuration.",
 		},
 
 		"use_manual_integration": {
@@ -66,7 +66,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Should code be deployed manually? Set to `true` to disable continuous integration, such as webhooks into online repos such as GitHub.",
+			Description: "Whether code should be deployed manually. Set to `true` to disable continuous integration, such as webhooks into online repos such as GitHub.",
 		},
 
 		"github_action_configuration": helpers.GithubActionConfigSchema(),
@@ -84,7 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Should the Deployment Rollback be enabled?",
+			Description: "Whether the Deployment Rollback should be enabled.",
 		},
 	}
 }

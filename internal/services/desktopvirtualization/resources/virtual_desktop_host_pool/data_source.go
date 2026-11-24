@@ -105,7 +105,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Description: "Are scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) enabled on session hosts?",
+							Description: "Whether scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) are enabled on session hosts.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -117,7 +117,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"use_session_host_timezone": {
-							Description: "Whether scheduled agent updates should be applied based on the timezone of the affected session host.",
+							Description: "Whether scheduled agent updates are applied based on the timezone of the affected session host.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

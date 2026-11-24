@@ -120,7 +120,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Description: "Set of authorized IP ranges to allow access to API server, e.g. [\"198.51.100.0/24\"].",
+						Description: "Set of authorized IP ranges to allow access to API server, e.g. `[\"198.51.100.0/24\"]`.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						AtLeastOneOf: []string{

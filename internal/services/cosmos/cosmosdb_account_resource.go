@@ -405,7 +405,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"zone_redundant": {
-							Description: "Should zone redundancy be enabled for this region?",
+							Description: "Whether zone redundancy should be enabled for this region.",
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
@@ -483,7 +483,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"access_key_metadata_writes_enabled": {
-				Description: "Are write operations on metadata resources (databases, containers, throughput) via account keys enabled?",
+				Description: "Whether write operations on metadata resources (databases, containers, throughput) via account keys are enabled.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Default:     true,
@@ -528,7 +528,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"partition_merge_enabled": {
-				Description: "Is partition merge on the Cosmos DB account enabled?",
+				Description: "Whether partition merge on the Cosmos DB account is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Default:     false,

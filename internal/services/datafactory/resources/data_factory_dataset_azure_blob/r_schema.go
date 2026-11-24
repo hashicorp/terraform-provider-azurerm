@@ -52,14 +52,14 @@ func dataFactoryDatasetAzureBlobSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dynamic_path_enabled": {
-			Description: "Is the `path` using dynamic expression, function or system variables?",
+			Description: "Whether the `path` is using dynamic expression, function or system variables.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"dynamic_filename_enabled": {
-			Description: "Is the `filename` using dynamic expression, function or system variables?",
+			Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -118,7 +118,7 @@ func dataFactoryDatasetAzureBlobSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Description: "Type of the column. Please note these values are case sensitive.",
+						Description: "Type of the column. These values are case sensitive.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{

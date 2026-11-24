@@ -60,7 +60,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"read_secrets": {
-			Description: "Should the data source read the secrets from the Container App?",
+			Description: "Whether the data source should read the secrets from the Container App.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -221,7 +221,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_required": {
-			Description: "Should this API require a subscription key?",
+			Description: "Whether this API should require a subscription key.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -292,13 +292,13 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"is_current": {
-			Description: "Is this the current API Revision?",
+			Description: "Whether this is the current API Revision.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"is_online": {
-			Description: "Is this API Revision online/accessible via the Gateway?",
+			Description: "Whether this API Revision is online/accessible via the Gateway.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

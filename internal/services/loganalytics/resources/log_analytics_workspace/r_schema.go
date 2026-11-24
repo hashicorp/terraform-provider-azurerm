@@ -15,7 +15,7 @@ import (
 func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "The name of the Log Analytics Workspace. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol.",
+			Description:  "The name of the Log Analytics Workspace. Workspace name should include 4-63 letters, digits or `-`. The `-` shouldn't be the first or the last symbol.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,7 +41,7 @@ func logAnalyticsWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cmk_for_query_forced": {
-			Description: "Is Customer Managed Storage mandatory for query management?",
+			Description: "Whether Customer Managed Storage is mandatory for query management.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

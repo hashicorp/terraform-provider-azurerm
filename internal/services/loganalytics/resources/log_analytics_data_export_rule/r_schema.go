@@ -42,7 +42,7 @@ func logAnalyticsDataExportRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is this Log Analytics Data Export Rule enabled?",
+			Description: "Whether this Log Analytics Data Export Rule is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

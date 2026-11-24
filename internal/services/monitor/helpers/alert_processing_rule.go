@@ -94,7 +94,7 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should the Alert Processing Rule be enabled?",
+			Description: "Whether the Alert Processing Rule should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

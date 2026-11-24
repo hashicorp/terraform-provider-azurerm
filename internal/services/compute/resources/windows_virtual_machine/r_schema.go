@@ -107,7 +107,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"additional_unattend_content": helpers.AdditionalUnattendContentSchemaVM(),
 
 		"allow_extension_operations": {
-			Description: "Should Extension Operations be allowed on this Virtual Machine?",
+			Description: "Whether Extension Operations should be allowed on this Virtual Machine.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -229,7 +229,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"encryption_at_host_enabled": {
-			Description: "Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?",
+			Description: "Whether all of the disks (including the temp disk) attached to this Virtual Machine should be encrypted by enabling Encryption at Host.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -282,7 +282,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"patch_mode": {
-			Description:  "The mode of in-guest patching to this Windows Virtual Machine. For more information on patch modes please see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
+			Description:  "The mode of in-guest patching to this Windows Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -304,7 +304,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"hotpatching_enabled": {
-			Description: "Should the VM be patched without requiring a reboot? For more information about hot patching please see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
+			Description: "Whether the VM should be patched without requiring a reboot. For more information about hot patching see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -328,7 +328,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"provision_vm_agent": {
-			Description: "Should the Azure VM Agent be provisioned on this Virtual Machine?",
+			Description: "Whether the Azure VM Agent should be provisioned on this Virtual Machine.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -482,7 +482,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Computed:    true,
 		},
 		"vm_agent_platform_updates_enabled": {
-			Description: "Are Virtual Machine Agent Platform Updates `enabled` on this Virtual Machine?",
+			Description: "Whether Virtual Machine Agent Platform Updates are `enabled` on this Virtual Machine.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

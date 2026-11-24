@@ -48,7 +48,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_opts": {
-			Description: "A list of JSON web key operations. Please note these values are case-sensitive.",
+			Description: "A list of JSON web key operations. These values are case-sensitive.",
 			Type:        pluginsdk.TypeList,
 			Required:    true,
 			Elem: &pluginsdk.Schema{

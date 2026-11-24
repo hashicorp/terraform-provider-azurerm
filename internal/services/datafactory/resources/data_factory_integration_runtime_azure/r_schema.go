@@ -93,7 +93,7 @@ func dataFactoryIntegrationRuntimeAzureSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_enabled": {
-			Description: "Is Integration Runtime compute provisioned within Managed Virtual Network?",
+			Description: "Whether Integration Runtime compute is provisioned within Managed Virtual Network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

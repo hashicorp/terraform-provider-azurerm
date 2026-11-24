@@ -81,7 +81,7 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"skip_first_record": {
-			Description: "Is the first record of every file ignored?",
+			Description: "Whether the first record of every file is ignored.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

@@ -158,7 +158,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"no_public_ip": {
-							Description: "Are public IP Addresses not allowed?",
+							Description: "Whether public IP Addresses are not allowed.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

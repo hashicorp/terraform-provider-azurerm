@@ -194,7 +194,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_activity_trace_level": {
-			Description:  "The activity-level tracing options of the runbook, available only for Graphical runbooks. Must turn on Verbose logging in order to see the tracing.",
+			Description:  "The activity-level tracing options of the runbook, available only for Graphical runbooks. Must turn on Verbose logging to see the tracing.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(0),

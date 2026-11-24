@@ -311,7 +311,7 @@ func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"default_recipients": {
-			Description: "Should the default recipients receive these notifications?",
+			Description: "Whether the default recipients should receive these notifications.",
 			Type:        pluginsdk.TypeBool,
 			Required:    true,
 		},

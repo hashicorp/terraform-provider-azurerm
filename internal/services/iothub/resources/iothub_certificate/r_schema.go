@@ -39,7 +39,7 @@ func iothubCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"is_verified": {
-			Description: "Is the certificate verified?",
+			Description: "Whether the certificate is verified.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

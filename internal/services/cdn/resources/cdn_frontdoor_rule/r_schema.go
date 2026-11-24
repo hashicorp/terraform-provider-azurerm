@@ -38,7 +38,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"order": {
-			Description:  "The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.",
+			Description:  "The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1` (e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(0),

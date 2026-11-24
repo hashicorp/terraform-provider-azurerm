@@ -537,7 +537,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"counter_specifiers": {
-									Description: "A list of specifier names of the performance counters you want to collect. To get a list of performance counters on Windows, run the command `typeperf`. Please see [this document](https://learn.microsoft.com/azure/azure-monitor/agents/data-sources-performance-counters#configure-performance-counters) for more information.",
+									Description: "A list of specifier names of the performance counters you want to collect. To get a list of performance counters on Windows, run the command `typeperf`. See [this document](https://learn.microsoft.com/azure/azure-monitor/agents/data-sources-performance-counters#configure-performance-counters) for more information.",
 									Type:        pluginsdk.TypeList,
 									Required:    true,
 									MinItems:    1,
@@ -691,7 +691,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"x_path_queries": {
-									Description: "A list of Windows Event Log queries in XPath expression. Please see [this document](https://learn.microsoft.com/azure/azure-monitor/agents/data-collection-rule-azure-monitor-agent?tabs=cli#filter-events-using-xpath-queries) for more information.",
+									Description: "A list of Windows Event Log queries in XPath expression. See [this document](https://learn.microsoft.com/azure/azure-monitor/agents/data-collection-rule-azure-monitor-agent?tabs=cli#filter-events-using-xpath-queries) for more information.",
 									Type:        pluginsdk.TypeList,
 									Required:    true,
 									MinItems:    1,

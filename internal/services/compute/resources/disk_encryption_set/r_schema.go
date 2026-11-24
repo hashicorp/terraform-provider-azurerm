@@ -34,7 +34,7 @@ func diskEncryptionSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_key_rotation_enabled": {
-			Description: "Boolean flag to specify whether Azure Disk Encryption Set automatically rotates the encryption Key to latest version or not.",
+			Description: "Boolean flag to specify whether Azure Disk Encryption Set automatically rotates the encryption Key to latest version.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

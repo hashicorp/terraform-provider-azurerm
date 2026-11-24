@@ -131,7 +131,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						Required:    true,
 					},
 					"skip_metric_validation": {
-						Description: "Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted?",
+						Description: "Whether to skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -243,7 +243,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 					"skip_metric_validation": {
-						Description: "Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted?",
+						Description: "Whether to skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -306,7 +306,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_mitigate": {
-			Description: "Should the alerts in this Metric Alert be auto resolved?",
+			Description: "Whether the alerts in this Metric Alert should be auto resolved.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -319,7 +319,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should this Metric Alert be enabled?",
+			Description: "Whether this Metric Alert should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

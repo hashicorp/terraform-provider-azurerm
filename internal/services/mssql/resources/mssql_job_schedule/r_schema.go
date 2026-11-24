@@ -31,7 +31,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(jobs.PossibleValuesForJobScheduleType(), false),
 		},
 		"enabled": {
-			Description: "Should the Elastic Job Schedule be enabled?",
+			Description: "Whether the Elastic Job Schedule should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			// Note: O+C the API sets this field to `false` if the schedule type is `Once` and the job has finished

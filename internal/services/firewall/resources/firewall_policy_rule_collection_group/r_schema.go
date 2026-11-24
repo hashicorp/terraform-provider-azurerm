@@ -30,7 +30,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"priority": {
-			Description:  "The priority of the Firewall Policy Rule Collection Group. The range is 100-65000.",
+			Description:  "The priority of the Firewall Policy Rule Collection Group.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(100, 65000),
@@ -49,7 +49,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"priority": {
-						Description:  "The priority of the application rule collection. The range is `100` - `65000`.",
+						Description:  "The priority of the application rule collection.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(100, 65000),
@@ -92,7 +92,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 												}, false),
 											},
 											"port": {
-												Description:  "Port number of the protocol. Range is 0-64000.",
+												Description:  "Port number of the protocol.",
 												Type:         pluginsdk.TypeInt,
 												Required:     true,
 												ValidateFunc: validation.IntBetween(0, 64000),
@@ -210,7 +210,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"priority": {
-						Description:  "The priority of the network rule collection. The range is `100` - `65000`.",
+						Description:  "The priority of the network rule collection.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(100, 65000),
@@ -322,7 +322,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"priority": {
-						Description:  "The priority of the NAT rule collection. The range is `100` - `65000`.",
+						Description:  "The priority of the NAT rule collection.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(100, 65000),

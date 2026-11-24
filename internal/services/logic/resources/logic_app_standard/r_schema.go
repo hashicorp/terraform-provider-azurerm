@@ -53,7 +53,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"use_extension_bundle": {
-			Description: "Should the Logic App use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created.",
+			Description: "Whether the Logic App should use the bundled extension package. If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -67,7 +67,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"client_affinity_enabled": {
-			Description: "Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?",
+			Description: "Whether the Logic App should send session affinity cookies, which route client requests in the same session to the same instance.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -82,7 +82,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Logic App enabled?",
+			Description: "Whether the Logic App is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -96,7 +96,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
-			Description: "Can the Logic App only be accessed via HTTPS?",
+			Description: "Whether the Logic App can only be accessed via HTTPS.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -191,7 +191,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access": {
-			Description: "Whether Public Network Access should be enabled or not.",
+			Description: "Whether Public Network Access should be enabled.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     helpers.PublicNetworkAccessEnabled,

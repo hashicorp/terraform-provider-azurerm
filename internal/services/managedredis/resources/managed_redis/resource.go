@@ -28,7 +28,7 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) Description() string {
-	return "Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes the removed `azurerm_redis_enterprise_cluster` and `azurerm_redis_enterprise_database` resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview)."
+	return "Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes the removed `azurerm_redis_enterprise_cluster` and `azurerm_redis_enterprise_database` resources. Refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview)." // azignore:AZS020 - names the removed resources this one replaces
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

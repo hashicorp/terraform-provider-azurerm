@@ -152,7 +152,7 @@ func mssqlElasticpoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_redundant": {
-			Description: "Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.",
+			Description: "Whether this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

@@ -118,6 +118,7 @@ linters:
             - AZP002 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZP003 # data sources missing properties that exist on the resource - 185 findings, todo later
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
+            - AZS018 # descriptions with a note in them - the fix drops what the note says, to decide later
             - AZS010 # resources, properties and blocks with no description - most have none until the docs are generated from the schema
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
@@ -135,6 +136,9 @@ linters:
             allow-extra-values: true
           AZS007:
             exclude-packages: "migration"
+          AZS020:
+            allow:
+              - 'azuread_.*' # the azuread provider's resources, which a description may point at
           AZT010:
             ignore: # notes and scripts on how test data was made: no test names them and they are kept on purpose
               - '(^|/)HOWTO\.md$'

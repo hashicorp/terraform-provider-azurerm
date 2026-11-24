@@ -87,7 +87,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"linux_os_config": SchemaNodePoolLinuxOSConfig(),
 
 					"fips_enabled": {
-						Description: "Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block.",
+						Description: "Whether the nodes in this Node Pool should have Federal Information Processing Standard enabled. `temporary_name_for_rotation` must be specified when changing this block.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -285,19 +285,19 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"zones": commonschema.ZonesMultipleOptional(),
 
 					"auto_scaling_enabled": {
-						Description: "Should [the Kubernetes Auto Scaler](https://learn.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?",
+						Description: "Whether [the Kubernetes Auto Scaler](https://learn.microsoft.com/azure/aks/cluster-autoscaler) should be enabled for this Node Pool.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"node_public_ip_enabled": {
-						Description: "Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.",
+						Description: "Whether nodes in this Node Pool should have a Public IP Address. `temporary_name_for_rotation` must be specified when changing this property.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"host_encryption_enabled": {
-						Description: "Should the nodes in the Default Node Pool have host encryption enabled? `temporary_name_for_rotation` must be specified when changing this property.",
+						Description: "Whether the nodes in the Default Node Pool should have host encryption enabled. `temporary_name_for_rotation` must be specified when changing this property.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -372,7 +372,7 @@ func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				},
 
 				"cpu_cfs_quota_enabled": {
-					Description: "Is CPU CFS quota enforcement for containers enabled?",
+					Description: "Whether CPU CFS quota enforcement for containers is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Default:     true,
 					Optional:    true,
@@ -655,7 +655,7 @@ func SchemaNodePoolSysctlConfig() *pluginsdk.Schema {
 				},
 
 				"net_ipv4_tcp_tw_reuse": {
-					Description: "Is sysctl setting net.ipv4.tcp_tw_reuse enabled?",
+					Description: "Whether sysctl setting net.ipv4.tcp_tw_reuse is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 				},

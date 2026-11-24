@@ -132,7 +132,7 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 												ValidateFunc: azure.ValidateResourceID,
 											},
 											"time_grain": {
-												Description:  "The granularity of metrics that the rule monitors, which must be one of the pre-defined values returned from the metric definitions for the metric. This value must be between 1 minute and 12 hours and be formatted as an ISO 8601 string.",
+												Description:  "The granularity of metrics that the rule monitors, which must be one of the pre-defined values returned from the metric definitions for the metric. This value must be between 1 minute and 12 hours and be formatted as an ISO 8601 string.", // azignore:AZS014 - TODO 6.0 move the range from the documentation to validation
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.ISO8601Duration,
@@ -149,7 +149,7 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 												}, false),
 											},
 											"time_window": {
-												Description:  "The time range for which data is collected, which must be greater than the delay in metric collection (which varies from resource to resource). This value must be between 5 minutes and 12 hours and be formatted as an ISO 8601 string.",
+												Description:  "The time range for which data is collected, which must be greater than the delay in metric collection (which varies from resource to resource). This value must be between 5 minutes and 12 hours and be formatted as an ISO 8601 string.", // azignore:AZS014 - TODO 6.0 move the range from the documentation to validation
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.ISO8601Duration,
@@ -358,13 +358,13 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"send_to_subscription_administrator": {
-									Description: "Should email notifications be sent to the subscription administrator?",
+									Description: "Whether email notifications should be sent to the subscription administrator.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
 								},
 								"send_to_subscription_co_administrator": {
-									Description: "Should email notifications be sent to the subscription co-administrator?",
+									Description: "Whether email notifications should be sent to the subscription co-administrator.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,

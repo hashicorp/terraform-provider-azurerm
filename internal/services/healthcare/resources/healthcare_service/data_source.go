@@ -80,7 +80,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"smart_proxy_enabled": {
-							Description: "Is the 'SMART on FHIR' option for mobile and web implementations enabled?",
+							Description: "Whether the 'SMART on FHIR' option for mobile and web implementations is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -123,7 +123,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"allow_credentials": {
-							Description: "Are credentials allowed via CORS?",
+							Description: "Whether credentials are allowed via CORS.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

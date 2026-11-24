@@ -113,7 +113,7 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"active": {
-															Description: "Is the Front Door Custom Domain or Front Door Endpoint active?",
+															Description: "Whether the Front Door Custom Domain or Front Door Endpoint is active.",
 															Type:        pluginsdk.TypeBool,
 															Computed:    true,
 														},

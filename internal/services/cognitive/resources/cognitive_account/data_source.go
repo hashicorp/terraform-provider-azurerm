@@ -143,7 +143,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"ip_rules": {
-							Description: "One or more IP Addresses, or CIDR Blocks that are able to access the Cognitive Services Account.",
+							Description: "One or more IP Addresses, or CIDR Blocks that can access the Cognitive Services Account.",
 							Type:        pluginsdk.TypeList,
 							Computed:    true,
 							Elem: &pluginsdk.Schema{
@@ -157,13 +157,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"subnet_id": {
-										Description: "The ID of the subnet which is able to access this Cognitive Services Account.",
+										Description: "The ID of the subnet which can access this Cognitive Services Account.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
 
 									"ignore_missing_vnet_service_endpoint": {
-										Description: "Whether missing VNet service endpoint is ignored or not.",
+										Description: "Whether missing VNet service endpoint is ignored.",
 										Type:        pluginsdk.TypeBool,
 										Computed:    true,
 									},

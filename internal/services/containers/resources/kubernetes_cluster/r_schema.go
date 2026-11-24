@@ -43,7 +43,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Description: "Set of authorized IP ranges to allow access to API server, e.g. [\"198.51.100.0/24\"].",
+						Description: "Set of authorized IP ranges to allow access to API server, e.g. [`198.51.100.0/24`].",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{
@@ -259,7 +259,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"azure_rbac_enabled": {
-						Description: "Is Role Based Access Control based on Azure AD enabled?",
+						Description: "Whether Role Based Access Control based on Azure AD is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -282,7 +282,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cost_analysis_enabled": {
-			Description: "Should cost analysis be enabled for this Kubernetes Cluster? The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.",
+			Description: "Whether cost analysis should be enabled for this Kubernetes Cluster. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -968,14 +968,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_management_service": {
-			Description: "For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/azure/aks/use-kms-etcd-encryption).",
+			Description: "For more details, visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/azure/aks/use-kms-etcd-encryption).",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Description: "Identifier of Azure Key Vault Key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. A versioned key ID uses the legacy KMS experience, while a versionless key ID uses the new KMS experience with automatic key rotation. For more details, please visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).",
+						Description: "Identifier of Azure Key Vault Key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. A versioned key ID uses the legacy KMS experience, while a versionless key ID uses the new KMS experience with automatic key rotation. For more details, visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ValidateFunc: validation.Any(
@@ -1274,14 +1274,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"observability_enabled": {
-									Description:  "Is observability enabled?",
+									Description:  "Whether observability is enabled.",
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
 									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
 								},
 								"security_enabled": {
-									Description:  "Is security enabled? This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.",
+									Description:  "Whether security is enabled. This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.",
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
@@ -1350,7 +1350,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_cluster_enabled": {
-			Description: "Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located.",
+			Description: "Whether this Kubernetes Cluster should have its API server only exposed on internal IP addresses. This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
@@ -1389,7 +1389,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"run_command_enabled": {
-			Description: "Whether to enable run command for the cluster or not.",
+			Description: "Whether to enable run command for the cluster.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -1410,12 +1410,12 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"internal_ingress_gateway_enabled": {
-						Description: "Is Istio Internal Ingress Gateway enabled?",
+						Description: "Whether Istio Internal Ingress Gateway is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"external_ingress_gateway_enabled": {
-						Description: "Is Istio External Ingress Gateway enabled?",
+						Description: "Whether Istio External Ingress Gateway is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -1510,25 +1510,25 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"blob_driver_enabled": {
-						Description: "Is the Blob CSI driver enabled?",
+						Description: "Whether the Blob CSI driver is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"disk_driver_enabled": {
-						Description: "Is the Disk CSI driver enabled?",
+						Description: "Whether the Disk CSI driver is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 					"file_driver_enabled": {
-						Description: "Is the File CSI driver enabled?",
+						Description: "Whether the File CSI driver is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 					"snapshot_controller_enabled": {
-						Description: "Is the Snapshot Controller enabled?",
+						Description: "Whether the Snapshot Controller is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,

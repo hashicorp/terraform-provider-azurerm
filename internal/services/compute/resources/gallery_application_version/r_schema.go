@@ -46,7 +46,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enable_health_check": {
-			Description: "Should the Gallery Application reports health?",
+			Description: "Whether the Gallery Application should report health.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -61,7 +61,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"exclude_from_latest": {
-			Description: "Should the Gallery Application Version be excluded from the `latest` filter? If set to `true` this Gallery Application Version won't be returned for the `latest` version.",
+			Description: "Whether the Gallery Application Version should be excluded from the `latest` filter. If set to `true` this Gallery Application Version won't be returned for the `latest` version.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

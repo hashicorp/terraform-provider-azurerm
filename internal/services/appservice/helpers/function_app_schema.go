@@ -131,7 +131,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity?",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -178,7 +178,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -225,7 +225,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -241,7 +241,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled?",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -254,14 +254,14 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker?",
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"ftps_state": {
@@ -324,13 +324,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled?",
+					Description: "Whether detailed error logging is enabled.",
 				},
 
 				"linux_fx_version": {
@@ -620,7 +620,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity?",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -667,7 +667,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -706,7 +706,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -724,7 +724,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled?",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -737,21 +737,21 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App use a 32-bit worker?",
+					Description: "Whether the Linux Function App should use a 32-bit worker.",
 				},
 
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App route all traffic through the Virtual Network?",
+					Description: "Whether the Linux Function App should route all traffic through the Virtual Network.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"health_check_path": {
@@ -799,7 +799,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled?",
+					Description: "Whether detailed error logging is enabled.",
 				},
 			},
 		},
@@ -946,7 +946,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Windows Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -993,7 +993,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -1009,7 +1009,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled?",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -1022,14 +1022,14 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker?",
+					Description: "Whether the Windows Web App should use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"ftps_state": {
@@ -1092,13 +1092,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled?",
+					Description: "Whether detailed error logging is enabled.",
 				},
 
 				"windows_fx_version": {
@@ -1367,7 +1367,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime?",
+					Description: "Whether the DotNet process should use an isolated runtime.",
 				},
 
 				"python_version": {
@@ -1654,7 +1654,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime?",
+					Description: "Whether the DotNet process should use an isolated runtime.",
 				},
 
 				"node_version": {
@@ -1729,7 +1729,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Does the Function App use a custom Application Stack?",
+					Description: "Whether the Function App uses a custom Application Stack.",
 				},
 			},
 		},

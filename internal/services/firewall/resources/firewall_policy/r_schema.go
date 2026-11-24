@@ -61,7 +61,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"proxy_enabled": {
-						Description: "Whether to enable DNS proxy on Firewalls attached to this Firewall Policy?",
+						Description: "Whether to enable DNS proxy on Firewalls attached to this Firewall Policy.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,

@@ -70,13 +70,13 @@ func lbNatPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"floating_ip_enabled": {
-			Description: "Are the floating IPs enabled for this Load Balancer Rule? A floating IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group.",
+			Description: "Whether the floating IPs are enabled for this Load Balancer Rule. A floating IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"tcp_reset_enabled": {
-			Description: "Is TCP Reset enabled for this Load Balancer Rule?",
+			Description: "Whether TCP Reset is enabled for this Load Balancer Rule.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

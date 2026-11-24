@@ -149,7 +149,7 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"purge_protection_enabled": {
-			Description: "Is Purge Protection enabled for this Key Vault?",
+			Description: "Whether Purge Protection is enabled for this Key Vault.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

@@ -56,7 +56,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"monitoring_enabled": {
-				Description: "Whether monitoring is enabled on this Elasticsearch or not.",
+				Description: "Whether monitoring is enabled on this Elasticsearch.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -92,19 +92,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"send_azuread_logs": {
-							Description: "Should the AzureAD Logs be sent to the Elasticsearch cluster?",
+							Description: "Whether the AzureAD Logs are sent to the Elasticsearch cluster.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
 
 						"send_activity_logs": {
-							Description: "Should the Azure Activity Logs should be sent to the Elasticsearch cluster?",
+							Description: "Whether the Azure Activity Logs are sent to the Elasticsearch cluster.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
 
 						"send_subscription_logs": {
-							Description: "Should the Azure Subscription Logs should be sent to the Elasticsearch cluster?",
+							Description: "Whether the Azure Subscription Logs are sent to the Elasticsearch cluster.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

@@ -127,14 +127,14 @@ func botChannelsRegistrationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"streaming_endpoint_enabled": {
-			Description: "Is the streaming endpoint enabled for the Bot Channels Registration?",
+			Description: "Whether the streaming endpoint is enabled for the Bot Channels Registration.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is the Bot Channels Registration in an isolated network?",
+			Description: "Whether the Bot Channels Registration is in an isolated network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

@@ -30,7 +30,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
-			Description:  "Which tier to use. Please note that setting this field to `Premium` will force the creation of a new resource.",
+			Description:  "Which tier to use. Setting this field to `Premium` will force the creation of a new resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
@@ -44,7 +44,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_inflate_enabled": {
-			Description: "Is Auto Inflate enabled for the EventHub Namespace?",
+			Description: "Whether Auto Inflate is enabled for the EventHub Namespace.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -82,7 +82,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"public_network_access_enabled": {
-						Description: "Is public network access enabled for the EventHub Namespace?",
+						Description: "Whether public network access is enabled for the EventHub Namespace.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -114,7 +114,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"ignore_missing_virtual_network_service_endpoint": {
-									Description: "Are missing Virtual Network service endpoints ignored?",
+									Description: "Whether missing Virtual Network service endpoints are ignored.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 								},
@@ -149,7 +149,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"local_authentication_enabled": {
-			Description: "Is SAS authentication enabled for the EventHub Namespace?",
+			Description: "Whether SAS authentication is enabled for the EventHub Namespace.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -166,7 +166,7 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is public network access enabled for the EventHub Namespace?",
+			Description: "Whether public network access is enabled for the EventHub Namespace.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

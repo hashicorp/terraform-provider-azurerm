@@ -48,7 +48,7 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should the origin be enabled?",
+			Description: "Whether the origin should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

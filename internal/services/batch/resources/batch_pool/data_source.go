@@ -171,7 +171,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"auto_upgrade_minor_version": {
-							Description: "Whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
+							Description: "Whether the extension uses a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -288,7 +288,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"blobfuse_options": {
-										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Description: "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
@@ -306,7 +306,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"azure_file_url": {
-										Description: "The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.",
+										Description: "The Azure Files URL. This is of the form `https://{account}.file.core.windows.net/`.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
@@ -321,7 +321,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"mount_options": {
-										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Description: "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
@@ -349,7 +349,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"mount_options": {
-										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Description: "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
@@ -378,7 +378,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"mount_options": {
-										Description: "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+										Description: "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 										Type:        pluginsdk.TypeString,
 										Computed:    true,
 									},
@@ -589,7 +589,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Sensitive:   true,
 						},
 						"elevation_level": {
-							Description: "The elevation level of the user account. \"NonAdmin\" - The auto user is a standard user without elevated access. \"Admin\" - The auto user is a user with elevated access and operates with full Administrator permissions.",
+							Description: "The elevation level of the user account. `NonAdmin` - The auto user is a standard user without elevated access. `Admin` - The auto user is a user with elevated access and operates with full Administrator permissions.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},

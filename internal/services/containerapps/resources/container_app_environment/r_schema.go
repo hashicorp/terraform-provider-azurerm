@@ -90,7 +90,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
-			Description:  "Should the Container Environment operate in Internal Load Balancing Mode?",
+			Description:  "Whether the Container Environment should operate in Internal Load Balancing Mode.",
 		},
 
 		"public_network_access": {
@@ -105,7 +105,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"workload_profile": WorkloadProfileSchema(),
 
 		"zone_redundancy_enabled": {
-			Description:  "Should the Container App Environment be created with Zone Redundancy enabled?",
+			Description:  "Whether the Container App Environment should be created with Zone Redundancy enabled.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,
@@ -114,7 +114,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"mutual_tls_enabled": {
-			Description: "Should mutual transport layer security (mTLS) be enabled?",
+			Description: "Whether mutual transport layer security (mTLS) should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

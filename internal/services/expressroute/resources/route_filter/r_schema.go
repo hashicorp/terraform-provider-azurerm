@@ -57,7 +57,7 @@ func routeFilterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"communities": {
-						Description: "The collection for BGP community values to filter on. e.g. ['12076:5010','12076:5020'].",
+						Description: "The collection for BGP community values to filter on. e.g. `['12076:5010','12076:5020']`.",
 						Type:        pluginsdk.TypeList,
 						Required:    true,
 						MinItems:    1,

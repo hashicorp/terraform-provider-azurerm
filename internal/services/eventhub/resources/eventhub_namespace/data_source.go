@@ -54,7 +54,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"auto_inflate_enabled": {
-				Description: "Is Auto Inflate enabled for the EventHub Namespace?",
+				Description: "Whether Auto Inflate is enabled for the EventHub Namespace.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

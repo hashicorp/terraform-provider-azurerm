@@ -145,7 +145,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"additional_capabilities": helpers.OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 		"encryption_at_host_enabled": {
-			Description: "Should disks attached to this Virtual Machine Scale Set be encrypted by enabling Encryption at Host?",
+			Description: "Whether disks attached to this Virtual Machine Scale Set should be encrypted by enabling Encryption at Host.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -160,7 +160,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"extension_operations_enabled": {
-			Description: "Should extension operations be allowed on the Virtual Machine Scale Set?",
+			Description: "Whether extension operations should be allowed on the Virtual Machine Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -261,7 +261,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		// Since null is now a valid value for this field there is no default
 		// for this bool
 		"single_placement_group": {
-			Description: "Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines?",
+			Description: "Whether this Virtual Machine Scale Set should be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Optional:    true,
@@ -288,7 +288,7 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"source_image_reference": helpers.SourceImageReferenceSchemaOrchestratedVMSS(),
 
 		"zone_balance": {
-			Description: "Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones?",
+			Description: "Whether the Virtual Machines in this Scale Set should be strictly evenly distributed across Availability Zones.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

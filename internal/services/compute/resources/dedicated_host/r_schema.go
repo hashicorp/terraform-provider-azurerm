@@ -94,7 +94,7 @@ func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_replace_on_failure": {
-			Description: "Should the Dedicated Host automatically be replaced in case of a Hardware Failure?",
+			Description: "Whether the Dedicated Host should automatically be replaced in case of a Hardware Failure.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

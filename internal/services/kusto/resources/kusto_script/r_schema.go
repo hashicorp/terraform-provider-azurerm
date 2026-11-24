@@ -43,7 +43,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"url": {
-			Description:  "The URL to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://learn.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.",
+			Description:  "The URL to the KQL script blob file. Must not be used together with scriptContent property. Reference [this documentation](https://learn.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"url", "script_content"},
@@ -81,7 +81,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_permissions_action": {
-			Description:  "Whether the script caller's permissions remain in effect after the script has finished running?",
+			Description:  "Whether the script caller's permissions remain in effect after the script has finished running.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(scripts.PrincipalPermissionsActionRetainPermissionOnScriptCompletion),

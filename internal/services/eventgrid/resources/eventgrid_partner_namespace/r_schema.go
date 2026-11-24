@@ -68,7 +68,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      string(partnernamespaces.PartnerTopicRoutingModeChannelNameHeader),
 		},
 		"public_network_access": {
-			Description:  "Whether or not public network access is allowed for this server.",
+			Description:  "Whether public network access is allowed for this server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPublicNetworkAccess(), false),

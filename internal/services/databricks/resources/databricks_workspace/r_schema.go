@@ -53,7 +53,7 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"customer_managed_key_enabled": {
-			Description: "Is the workspace enabled for customer managed key encryption? If `true` this enables the Managed Identity for the managed Storage Account. This field is only valid if the Databricks Workspace `sku` is set to `premium`.",
+			Description: "Whether the workspace is enabled for customer managed key encryption. If `true` this enables the Managed Identity for the managed Storage Account. This field is only valid if the Databricks Workspace `sku` is set to `premium`.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -88,7 +88,7 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"infrastructure_encryption_enabled": {
-			Description: "Is the Databricks File System root file system enabled with a secondary layer of encryption with platform managed keys? This field is only valid if the Databricks Workspace `sku` is set to `premium`.",
+			Description: "Whether the Databricks File System root file system is enabled with a secondary layer of encryption with platform managed keys. This field is only valid if the Databricks Workspace `sku` is set to `premium`.",
 			Type:        pluginsdk.TypeBool,
 			ForceNew:    true,
 			Optional:    true,
@@ -117,7 +117,7 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_security_group_rules_required": {
-			Description:  "Does the data plane (clusters) to control plane communication happen over Private Link endpoint only or publicly?",
+			Description:  "Whether the data plane (clusters) to control plane communication happens over Private Link endpoint only or publicly.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForRequiredNsgRules(), false),
@@ -158,7 +158,7 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"no_public_ip": {
-						Description:  "Are public IP Addresses not allowed?",
+						Description:  "Whether public IP Addresses are not allowed.",
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      true,

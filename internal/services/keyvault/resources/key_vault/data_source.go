@@ -117,25 +117,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"enabled_for_deployment": {
-				Description: "Can Azure Virtual Machines retrieve certificates stored as secrets from the Key Vault?",
+				Description: "Whether Azure Virtual Machines can retrieve certificates stored as secrets from the Key Vault.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"enabled_for_disk_encryption": {
-				Description: "Can Azure Disk Encryption retrieve secrets from the Key Vault?",
+				Description: "Whether Azure Disk Encryption can retrieve secrets from the Key Vault.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"enabled_for_template_deployment": {
-				Description: "Can Azure Resource Manager retrieve secrets from the Key Vault?",
+				Description: "Whether Azure Resource Manager can retrieve secrets from the Key Vault.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"rbac_authorization_enabled": {
-				Description: "Is Role Based Access Control (RBAC) for authorization of data actions enabled on this Key Vault?",
+				Description: "Whether Role Based Access Control (RBAC) for authorization of data actions is enabled on this Key Vault.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -172,13 +172,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"purge_protection_enabled": {
-				Description: "Is purge protection enabled on this Key Vault?",
+				Description: "Whether purge protection is enabled on this Key Vault.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Description: "Is public network access enabled on this Key Vault?",
+				Description: "Whether public network access is enabled on this Key Vault.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

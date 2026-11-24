@@ -61,7 +61,7 @@ func containerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"zone_redundancy_enabled": {
-						Description: "Whether zone redundancy is enabled for this replication location?",
+						Description: "Whether zone redundancy is enabled for this replication location.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -180,21 +180,21 @@ func containerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"export_policy_enabled": {
-			Description: "Boolean value that indicates whether export policy is enabled. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.",
+			Description: "Boolean value that indicates whether export policy is enabled. To set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"azuread_authentication_as_arm_policy_enabled": {
-			Description: "Whether to use Azure Resource Manager audience token for this Container Registry?",
+			Description: "Whether to use Azure Resource Manager audience token for this Container Registry.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"zone_redundancy_enabled": {
-			Description: "Whether zone redundancy is enabled for this Container Registry?",
+			Description: "Whether zone redundancy is enabled for this Container Registry.",
 			Type:        pluginsdk.TypeBool,
 			ForceNew:    true,
 			Optional:    true,
@@ -208,7 +208,7 @@ func containerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_endpoint_enabled": {
-			Description: "Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.",
+			Description: "Whether to enable dedicated data endpoints for this Container Registry. This is only supported on resources with the `Premium` SKU.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -223,7 +223,7 @@ func containerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_rule_bypass_option": {
-			Description:  "Whether to allow trusted Azure services to access a network-restricted Container Registry?",
+			Description:  "Whether to allow trusted Azure services to access a network-restricted Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(registries.PossibleValuesForNetworkRuleBypassOptions(), false),
@@ -231,7 +231,7 @@ func containerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_rule_bypass_for_tasks_enabled": {
-			Description: "Whether to allow Container Registry Tasks to access a network-restricted Container Registry?",
+			Description: "Whether to allow Container Registry Tasks to access a network-restricted Container Registry.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

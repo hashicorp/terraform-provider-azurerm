@@ -127,7 +127,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"repair_enabled": {
-				Description: "Is the automatic repair enabled on the Cassandra Cluster?",
+				Description: "Whether the automatic repair is enabled on the Cassandra Cluster.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Default:     true,

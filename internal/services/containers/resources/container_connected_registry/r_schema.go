@@ -56,7 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sync_message_ttl": {
-			Description:  "The period of time (in form of ISO8601) for which a message is available to sync before it is expired. Allowed range is from `P1D` to `P90D`.",
+			Description:  "The period of time (in form of ISO8601) for which a message is available to sync before it is expired.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "P1D",
@@ -64,7 +64,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sync_window": {
-			Description:  "The time window (in form of ISO8601) during which sync is enabled for each schedule occurrence. Allowed range is from `PT3H` to `P7D`.",
+			Description:  "The time window (in form of ISO8601) during which sync is enabled for each schedule occurrence.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.ISO8601DurationBetween("PT3H", "P7D"),
@@ -141,7 +141,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"audit_log_enabled": {
-			Description: "Should the log auditing be enabled?",
+			Description: "Whether the log auditing should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

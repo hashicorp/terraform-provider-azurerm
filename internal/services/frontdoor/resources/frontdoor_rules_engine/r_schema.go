@@ -31,7 +31,7 @@ func frontdoorRulesEngineSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"enabled": {
-			Description: "Whether this Rules engine configuration is enabled?",
+			Description: "Whether this Rules engine configuration is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

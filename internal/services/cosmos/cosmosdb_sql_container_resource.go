@@ -100,7 +100,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			},
 
 			"partition_key_version": {
-				Description:  "Define a partition key version. This should be set to `2` in order to use large partition keys.",
+				Description:  "Define a partition key version. This should be set to `2` to use large partition keys.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 2),

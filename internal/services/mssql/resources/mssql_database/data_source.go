@@ -95,7 +95,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"zone_redundant": {
-				Description: "Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple Availability Zones.",
+				Description: "Whether this database is zone redundant, which means the replicas of this database will be spread across multiple Availability Zones.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -109,19 +109,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.UserAssignedIdentityComputed(),
 
 			"transparent_data_encryption_enabled": {
-				Description: "Whether or not Transparent Data Encryption is enabled.",
+				Description: "Whether Transparent Data Encryption is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"transparent_data_encryption_key_vault_key_id": {
-				Description: "The Key Vault Key URI to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.",
+				Description: "The Key Vault Key URI to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},
 
 			"transparent_data_encryption_key_automatic_rotation_enabled": {
-				Description: "Whether or not TDE automatically rotates the encryption Key to latest version.",
+				Description: "Whether TDE automatically rotates the encryption Key to latest version.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

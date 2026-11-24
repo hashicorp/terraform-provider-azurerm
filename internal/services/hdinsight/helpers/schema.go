@@ -123,7 +123,7 @@ func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"compute_isolation_enabled": {
-					Description: "This field indicates whether to enable compute isolation or not.",
+					Description: "This field indicates whether to enable compute isolation.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -272,7 +272,7 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 				},
 
 				"private_link_enabled": {
-					Description: "Is the Private Link enabled?",
+					Description: "Whether the Private Link is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					ForceNew:    true,
@@ -850,7 +850,7 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"is_default": {
-					Description: "Is this the Default Storage Account for the HDInsight Hadoop Cluster?",
+					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 					ForceNew:    true,
@@ -890,7 +890,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"is_default": {
-					Description: "Is this the Default Storage Account for the HDInsight Hadoop Cluster?",
+					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 					ForceNew:    true,

@@ -67,7 +67,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 					// Here we treat `node_deallocation_method` the same as a secret value.
 					// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/20948
 					"node_deallocation_method": {
-						Description:  "It determines what to do with a node and its running task(s) if the pool size is decreasing. Values are `Requeue`, `RetainedData`, `TaskCompletion` and `Terminate`.",
+						Description:  "It determines what to do with a node and its running task(s) if the pool size is decreasing.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeDeallocationOption(), false),
@@ -295,7 +295,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 								},
 								"blobfuse_options": {
-									Description:  "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+									Description:  "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -315,7 +315,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"azure_file_url": {
-									Description:  "The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.",
+									Description:  "The Azure Files URL. This is of the form `https://{account}.file.core.windows.net/`.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.IsURLWithHTTPS,
@@ -334,7 +334,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"mount_options": {
-									Description:  "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+									Description:  "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -366,7 +366,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"mount_options": {
-									Description:  "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+									Description:  "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -399,7 +399,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"mount_options": {
-									Description:  "Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.",
+									Description:  "Additional command line options to pass to the mount command. These are `net use` options in Windows and `mount` options in Linux.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -470,7 +470,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"protocol": {
-									Description:  "The protocol of the endpoint. Acceptable values are `TCP` and `UDP`.",
+									Description:  "The protocol of the endpoint.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -508,7 +508,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.IntAtLeast(150),
 											},
 											"access": {
-												Description:  "The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`.",
+												Description:  "The action that should be taken for a specified IP address, subnet range or tag.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -554,7 +554,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(0, 63),
 					},
 					"caching": {
-						Description:  "Values are: \"none\" - The caching mode for the disk is not enabled. \"readOnly\" - The caching mode for the disk is read only. \"readWrite\" - The caching mode for the disk is read and write. For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>.",
+						Description:  "The caching mode of the data disk. `none` - The caching mode for the disk is not enabled. `readOnly` - The caching mode for the disk is read only. `readWrite` - The caching mode for the disk is read and write. For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(pool.CachingTypeReadOnly),
@@ -586,7 +586,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disk_encryption_target": {
-						Description:  "On Linux pool, only \"TemporaryDisk\" is supported; on Windows pool, \"OsDisk\" and \"TemporaryDisk\" must be specified.",
+						Description:  "On Linux pool, only `TemporaryDisk` is supported; on Windows pool, `OsDisk` and `TemporaryDisk` must be specified.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForDiskEncryptionTarget(), false),
@@ -663,7 +663,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"policy": {
-						Description:  "The placement policy for allocating nodes in the pool. Values are: \"Regional\": All nodes in the pool will be allocated in the same region; \"Zonal\": Nodes in the pool will be spread across different zones with the best effort balancing.",
+						Description:  "The placement policy for allocating nodes in the pool. `Regional`: All nodes in the pool will be allocated in the same region; `Zonal`: Nodes in the pool will be spread across different zones with the best effort balancing.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(pool.NodePlacementPolicyTypeRegional),
@@ -673,13 +673,13 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 		"license_type": {
-			Description:  "The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: \"Windows_Server\" - The on-premises license is for Windows Server. \"Windows_Client\" - The on-premises license is for Windows Client.",
+			Description:  "The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: `Windows_Server` - The on-premises license is for Windows Server. `Windows_Client` - The on-premises license is for Windows Client.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"os_disk_placement": {
-			Description: "The ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://learn.microsoft.com/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://learn.microsoft.com/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>.",
+			Description: "The ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, refer to Ephemeral OS disk size requirements for Windows VMs at <https://learn.microsoft.com/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://learn.microsoft.com/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ValidateFunc: validation.StringInSlice(
@@ -746,7 +746,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"node_fill_type": {
-						Description:  "\"Pack\" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. \"Spread\" means that tasks should be assigned evenly across all nodes in the pool.",
+						Description:  "`Pack` means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. `Spread` means that tasks should be assigned evenly across all nodes in the pool.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -774,7 +774,7 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"elevation_level": {
-						Description:  "The elevation level of the user account. \"NonAdmin\" - The auto user is a standard user without elevated access. \"Admin\" - The auto user is a user with elevated access and operates with full Administrator permissions.",
+						Description:  "The elevation level of the user account. `NonAdmin` - The auto user is a standard user without elevated access. `Admin` - The auto user is a user with elevated access and operates with full Administrator permissions.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
@@ -861,7 +861,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"image_name": {
-						Description:  "The image to use to create the container in which the task will run. This is the full image reference, as would be specified to \"docker pull\". If no tag is provided as part of the image name, the tag \":latest\" is used as a default.",
+						Description:  "The image to use to create the container in which the task will run. This is the full image reference, as would be specified to `docker pull`. If no tag is provided as part of the image name, the tag `:latest` is used as a default.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -967,7 +967,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Optional:    true,
 					},
 					"file_path": {
-						Description: "The location on the compute node to which to download the file, relative to the task's working directory. If the `http_url` property is specified, the `file_path` is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the `auto_storage_container_name` or `storage_container_url` property is specified, `file_path` is optional and is the directory to download the files to. In the case where `file_path` is used as a directory, any directory structure already associated with the input data will be retained in full and appended to the specified filePath directory. The specified relative path cannot break out of the task's working directory (for example by using '.').",
+						Description: "The location on the compute node to which to download the file, relative to the task's working directory. If the `http_url` property is specified, the `file_path` is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the `auto_storage_container_name` or `storage_container_url` property is specified, `file_path` is optional and is the directory to download the files to. In the case where `file_path` is used as a directory, any directory structure already associated with the input data will be retained in full and appended to the specified filePath directory. The specified relative path cannot break out of the task's working directory (for example by using `.`).",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 					},

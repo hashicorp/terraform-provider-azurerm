@@ -27,7 +27,7 @@ func virtualDesktopScalingPlanHostPoolAssociationSchema() map[string]*pluginsdk.
 		},
 
 		"enabled": {
-			Description: "Should the Scaling Plan be enabled on this Host Pool?",
+			Description: "Whether the Scaling Plan should be enabled on this Host Pool.",
 			Type:        pluginsdk.TypeBool,
 			Required:    true,
 		},
