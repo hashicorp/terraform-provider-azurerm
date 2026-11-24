@@ -80,7 +80,7 @@ The `auto_backup` block supports the following:
 
 * `encryption_password` - (Optional) Encryption password to use. Setting a password will enable encryption.
 
-* `manual_schedule` - (Optional) A `manual_schedule` block as documented below. When this block is present, the schedule type is set to `Manual`. Without this block, the schedule type is set to `Automated`.
+* `manual_schedule` - (Optional) A `manual_schedule` block as defined below. When this block is present, the schedule type is set to `Manual`. Without this block, the schedule type is set to `Automated`.
 
 * `retention_period_in_days` - (Required) Retention period of backups, in days. Valid values are from `1` to `30`.
 
