@@ -1,0 +1,771 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package helpers
+
+import (
+	"regexp"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+// EventSubscriptionEndpointType enumerates the values for event subscription endpoint types.
+type EventSubscriptionEndpointType string
+
+const (
+	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
+	EventHubID            EventSubscriptionEndpointType = "eventhub_id"
+	HybridConnectionID    EventSubscriptionEndpointType = "hybrid_connection_id"
+	ServiceBusQueueID     EventSubscriptionEndpointType = "service_bus_queue_id"
+	ServiceBusTopicID     EventSubscriptionEndpointType = "service_bus_topic_id"
+	StorageQueueEndpoint  EventSubscriptionEndpointType = "storage_queue_endpoint"
+	WebHookEndpoint       EventSubscriptionEndpointType = "webhook_endpoint"
+)
+
+func EventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Required: true,
+		ForceNew: true,
+		ValidateFunc: validation.All(
+			validation.StringIsNotEmpty,
+			validation.StringMatch(
+				regexp.MustCompile("^[-a-zA-Z0-9]{3,64}$"),
+				"EventGrid subscription name must be 3 - 64 characters long, contain only letters, numbers and hyphens.",
+			),
+		),
+	}
+}
+
+func EventSubscriptionSchemaEventDeliverySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		Optional:     true,
+		ForceNew:     true,
+		Default:      string(eventsubscriptions.EventDeliverySchemaEventGridSchema),
+		ValidateFunc: validation.StringInSlice(eventsubscriptions.PossibleValuesForEventDeliverySchema(), false),
+	}
+}
+
+func EventSubscriptionSchemaDeliveryProperty() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"header_name": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Static",
+						"Dynamic",
+					}, false),
+				},
+
+				"value": {
+					Type:      pluginsdk.TypeString,
+					Optional:  true,
+					Sensitive: true,
+				},
+
+				"source_field": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"secret": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaExpirationTimeUTC() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		Optional:     true,
+		ValidateFunc: validation.StringIsNotEmpty,
+	}
+}
+
+func EventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		MaxItems:      1,
+		Optional:      true,
+		ConflictsWith: conflictsWith,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"function_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: webapps.ValidateFunctionID,
+				},
+				"max_events_per_batch": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+				"preferred_batch_size_in_kilobytes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
+		Optional:      true,
+		Computed:      true, // azignore:AZS007 - pre-existing violation
+		ConflictsWith: conflictsWith,
+		ValidateFunc:  eventhubs.ValidateEventhubID,
+	}
+}
+
+func EventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
+		Optional:      true,
+		Computed:      true, // azignore:AZS007 - pre-existing violation
+		ConflictsWith: conflictsWith,
+		ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
+	}
+}
+
+func EventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
+		Optional:      true,
+		ConflictsWith: conflictsWith,
+		ValidateFunc:  queues.ValidateQueueID,
+	}
+}
+
+func EventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
+		Optional:      true,
+		ConflictsWith: conflictsWith,
+		ValidateFunc:  topics.ValidateTopicID,
+	}
+}
+
+func EventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		MaxItems:      1,
+		Optional:      true,
+		ConflictsWith: conflictsWith,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"storage_account_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: commonids.ValidateStorageAccountID,
+				},
+				"queue_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"queue_message_time_to_live_in_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		MaxItems:      1,
+		Optional:      true,
+		ConflictsWith: conflictsWith,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"url": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsURLWithHTTPS,
+				},
+				"base_url": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"max_events_per_batch": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 5000),
+				},
+				"preferred_batch_size_in_kilobytes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 1024),
+				},
+				"active_directory_tenant_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+				"active_directory_app_id_or_uri": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaIncludedEventTypes() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	}
+}
+
+func EventSubscriptionSchemaEnableAdvancedFilteringOnArrays() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+}
+
+func EventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"subject_begins_with": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
+				},
+				"subject_ends_with": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
+				},
+				"case_sensitive": {
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
+	atLeastOneOf := []string{
+		"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
+		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
+		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
+		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
+	}
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"bool_equals": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"value": {
+								Type:     pluginsdk.TypeBool,
+								Required: true,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_greater_than": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"value": {
+								Type:     pluginsdk.TypeFloat,
+								Required: true,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_greater_than_or_equals": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"value": {
+								Type:     pluginsdk.TypeFloat,
+								Required: true,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_less_than": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"value": {
+								Type:     pluginsdk.TypeFloat,
+								Required: true,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_less_than_or_equals": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"value": {
+								Type:     pluginsdk.TypeFloat,
+								Required: true,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_in": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeFloat,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_not_in": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeFloat,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_begins_with": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_not_begins_with": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_ends_with": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_not_ends_with": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_contains": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_not_contains": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_in": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_not_in": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"is_not_null": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"is_null_or_undefined": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_in_range": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type:     pluginsdk.TypeList,
+									MinItems: 2,
+									MaxItems: 2,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeFloat,
+									},
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_not_in_range": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type:     pluginsdk.TypeList,
+									MinItems: 2,
+									MaxItems: 2,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeFloat,
+									},
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"storage_account_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: commonids.ValidateStorageAccountID,
+				},
+				"storage_blob_container_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaRetryPolicy() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"max_delivery_attempts": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(1, 30),
+				},
+				"event_time_to_live": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(1, 1440),
+				},
+			},
+		},
+	}
+}
+
+func EventSubscriptionSchemaLabels() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
+		},
+	}
+}
+
+func EventSubscriptionSchemaIdentity() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(eventsubscriptions.PossibleValuesForEventSubscriptionIdentityType(), false),
+				},
+				"user_assigned_identity": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}

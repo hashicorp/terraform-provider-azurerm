@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -49,7 +49,7 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example"
 
 resource "azurerm_key_vault" "example" {
   provider = azurerm.keyVaultSubscription
-  
+
   name                       = "${var.prefix}-keyvault"
   location                   = azurerm_resource_group.keyVault.location
   resource_group_name        = azurerm_resource_group.keyVault.name
