@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGatewayCreateUpdate,
-		Read:   resourceApiManagementGatewayRead,
-		Update: resourceApiManagementGatewayCreateUpdate,
-		Delete: resourceApiManagementGatewayDelete,
+		Description: "Manages an API Management Gateway.",
+		Create:      resourceApiManagementGatewayCreateUpdate,
+		Read:        resourceApiManagementGatewayRead,
+		Update:      resourceApiManagementGatewayCreateUpdate,
+		Delete:      resourceApiManagementGatewayDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := gateway.ParseGatewayID(id)

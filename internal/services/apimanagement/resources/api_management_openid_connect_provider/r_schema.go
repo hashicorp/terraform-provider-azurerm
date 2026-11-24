@@ -12,13 +12,14 @@ import (
 
 func apiManagementOpenidConnectProviderSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the OpenID Connect Provider which should be created within the API Management Service."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"client_id": {
+			Description:  "The Client ID used for the Client Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -26,6 +27,7 @@ func apiManagementOpenidConnectProviderSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_secret": {
+			Description:  "The Client Secret used for the Client Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -33,20 +35,23 @@ func apiManagementOpenidConnectProviderSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "A user-friendly name for this OpenID Connect Provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"metadata_endpoint": {
+			Description:  "The URI of the Metadata endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of this OpenID Connect Provider.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGatewayCertificateAuthorityCreateUpdate,
-		Read:   resourceApiManagementGatewayCertificateAuthorityRead,
-		Update: resourceApiManagementGatewayCertificateAuthorityCreateUpdate,
-		Delete: resourceApiManagementGatewayCertificateAuthorityDelete,
+		Description: "Manages an API Management Gateway Certificate Authority.",
+		Create:      resourceApiManagementGatewayCertificateAuthorityCreateUpdate,
+		Read:        resourceApiManagementGatewayCertificateAuthorityRead,
+		Update:      resourceApiManagementGatewayCertificateAuthorityCreateUpdate,
+		Delete:      resourceApiManagementGatewayCertificateAuthorityDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := gatewaycertificateauthority.ParseCertificateAuthorityID(id)
