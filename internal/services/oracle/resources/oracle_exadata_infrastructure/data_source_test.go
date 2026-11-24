@@ -1,0 +1,47 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package oracle_exadata_infrastructure_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_exadata_infrastructure"
+)
+
+type ExadataInfraDataSource struct{}
+
+func TestAccExadataInfraDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_exadata_infrastructure.DataSource{}.ResourceType(), "test")
+	r := ExadataInfraDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("compute_count").Exists(),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("shape").Exists(),
+				check.That(data.ResourceName).Key("storage_count").Exists(),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func (d ExadataInfraDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_oracle_exadata_infrastructure" "test" {
+  name                = azurerm_oracle_exadata_infrastructure.test.name
+  resource_group_name = azurerm_oracle_exadata_infrastructure.test.resource_group_name
+}
+`, ExadataInfraResource{}.basic(data))
+}
