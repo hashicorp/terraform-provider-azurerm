@@ -78,6 +78,42 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"deployment_storage": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"container_endpoint": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						Description:  "The endpoint of the storage container where the function app's code is hosted.",
+					},
+
+					"access_key": {
+						Type:      pluginsdk.TypeString,
+						Optional:  true,
+						Sensitive: true,
+						ConflictsWith: []string{
+							"deployment_storage.0.user_assigned_identity_id",
+						},
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"user_assigned_identity_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"deployment_storage.0.access_key",
+						},
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
+		},
+
 		"runtime_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
