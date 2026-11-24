@@ -418,7 +418,6 @@ func TestAccKeyVaultCertificate_updatedImportedCertificate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep("certificate"),

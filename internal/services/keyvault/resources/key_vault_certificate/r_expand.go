@@ -177,15 +177,6 @@ func expandKeyVaultCertificate(v any) KeyVaultCertificateImportParameters {
 	}
 }
 
-func expandKeyVaultCertificateImportParameters(certificate KeyVaultCertificateImportParameters, policy *keyvault.CertificatePolicy, tagsMap map[string]any) keyvault.CertificateImportParameters {
-	return keyvault.CertificateImportParameters{
-		Base64EncodedCertificate: pointer.To(certificate.CertificateData),
-		Password:                 pointer.To(certificate.CertificatePassword),
-		CertificatePolicy:        policy,
-		Tags:                     tags.Expand(tagsMap),
-	}
-}
-
 func createCertificate(d *pluginsdk.ResourceData, meta any) (keyvault.CertificateBundle, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
