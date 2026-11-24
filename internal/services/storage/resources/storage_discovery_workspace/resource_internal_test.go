@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package storage_discovery_workspace_test
+package storage_discovery_workspace
 
 import (
 	"context"
@@ -166,7 +166,7 @@ func TestStorageDiscoveryWorkspaceScopeDiffRequiresReplacement(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			wrapper := sdk.NewResourceWrapper(StorageDiscoveryWorkspaceResource{})
+			wrapper := sdk.NewResourceWrapper(Resource{})
 			resource, err := wrapper.Resource()
 			if err != nil {
 				t.Fatalf("building resource: %v", err)
@@ -249,7 +249,7 @@ func TestStorageDiscoveryWorkspaceRootsDiff(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			wrapper := sdk.NewResourceWrapper(StorageDiscoveryWorkspaceResource{})
+			wrapper := sdk.NewResourceWrapper(Resource{})
 			resource, err := wrapper.Resource()
 			if err != nil {
 				t.Fatalf("building resource: %v", err)
@@ -272,7 +272,7 @@ func TestStorageDiscoveryWorkspaceRootsDiff(t *testing.T) {
 }
 
 func TestStorageDiscoveryWorkspaceRootValidation(t *testing.T) {
-	validator := StorageDiscoveryWorkspaceResource{}.Arguments()["workspace_roots"].Elem.(*pluginsdk.Schema).ValidateFunc
+	validator := Resource{}.Arguments()["workspace_roots"].Elem.(*pluginsdk.Schema).ValidateFunc
 	testCases := []struct {
 		name  string
 		value string

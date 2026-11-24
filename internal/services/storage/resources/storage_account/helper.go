@@ -12,12 +12,21 @@ import (
 )
 
 func SchemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
+	// CorsRule "PATCH" method is only supported by blob
 	allowedMethods := []string{
-		"DELETE", "GET", "HEAD", "MERGE", "POST", "OPTIONS", "PUT",
+		"DELETE",
+		"GET",
+		"HEAD",
+		"MERGE",
+		"POST",
+		"OPTIONS",
+		"PUT",
 	}
+
 	if patchEnabled {
 		allowedMethods = append(allowedMethods, "PATCH")
 	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,

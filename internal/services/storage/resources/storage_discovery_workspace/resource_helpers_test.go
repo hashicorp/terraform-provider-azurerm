@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package storage_discovery_workspace_test
+package storage_discovery_workspace
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 
 func TestStorageDiscoveryWorkspaceCreateImportCheck(t *testing.T) {
 	id := storagediscoveryworkspaces.NewProviderStorageDiscoveryWorkspaceID("00000000-0000-0000-0000-000000000000", "test", "test")
-	resource := StorageDiscoveryWorkspaceResource{}
+	resource := Resource{}
 
 	testCases := []struct {
 		name           string
@@ -198,7 +198,7 @@ func TestStorageDiscoveryScopeResourceTypesConversion(t *testing.T) {
 }
 
 func TestStorageDiscoveryWorkspaceResourceTypesValidation(t *testing.T) {
-	resource := sdk.WrappedResource(StorageDiscoveryWorkspaceResource{})
+	resource := sdk.WrappedResource(Resource{})
 	testCases := []struct {
 		name  string
 		input []any

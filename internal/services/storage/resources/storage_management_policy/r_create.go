@@ -26,7 +26,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
+	// The name of the Storage Account Management Policy. It should always be 'default' (from https://learn.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {

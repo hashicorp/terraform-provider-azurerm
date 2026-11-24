@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccStorageContainer_list(t *testing.T) {
-	data := acceptance.BuildTestData(t, storage_container.ResourceName, "list")
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "list")
 	r := StorageContainerResource{}
 
 	resource.Test(t, resource.TestCase{
