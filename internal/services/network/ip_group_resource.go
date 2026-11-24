@@ -31,10 +31,11 @@ import (
 
 func resourceIpGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIpGroupCreate,
-		Read:   resourceIpGroupRead,
-		Update: resourceIpGroupUpdate,
-		Delete: resourceIpGroupDelete,
+		Description: "Manages an IP group that contains a list of CIDRs and/or IP addresses.",
+		Create:      resourceIpGroupCreate,
+		Read:        resourceIpGroupRead,
+		Update:      resourceIpGroupUpdate,
+		Delete:      resourceIpGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&ipgroups.IPGroupId{}),
 
@@ -51,9 +52,10 @@ func resourceIpGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the IP group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"location": commonschema.Location(),
@@ -61,24 +63,27 @@ func resourceIpGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"firewall_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Firewall IDs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"firewall_policy_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Firewall Policy IDs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"cidrs": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Description: "A list of CIDRs or IP addresses.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,

@@ -21,6 +21,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_netapp_snapshot_policy"
 }
 
+func (Resource) Description() string {
+	return "Manages a NetApp Snapshot Policy."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return snapshotpolicies.ValidateSnapshotPolicyID
 }

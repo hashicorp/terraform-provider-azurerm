@@ -24,9 +24,10 @@ import (
 
 func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetRouteTableAssociationCreate,
-		Read:   resourceSubnetRouteTableAssociationRead,
-		Delete: resourceSubnetRouteTableAssociationDelete,
+		Description: "Associates a [Route Table](route_table.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).",
+		Create:      resourceSubnetRouteTableAssociationCreate,
+		Read:        resourceSubnetRouteTableAssociationRead,
+		Delete:      resourceSubnetRouteTableAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -41,6 +42,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
+				Description:  "The ID of the Subnet.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -48,6 +50,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 			},
 
 			"route_table_id": {
+				Description:  "The ID of the Route Table which should be associated with the Subnet.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

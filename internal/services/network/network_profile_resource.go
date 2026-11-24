@@ -31,11 +31,12 @@ const azureNetworkProfileResourceName = "azurerm_network_profile"
 
 func resourceNetworkProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceNetworkProfileCreate,
-		Read:     resourceNetworkProfileRead,
-		Update:   resourceNetworkProfileUpdate,
-		Delete:   resourceNetworkProfileDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&networkprofiles.NetworkProfileId{}),
+		Description: "Manages a Network Profile.",
+		Create:      resourceNetworkProfileCreate,
+		Read:        resourceNetworkProfileRead,
+		Update:      resourceNetworkProfileUpdate,
+		Delete:      resourceNetworkProfileDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&networkprofiles.NetworkProfileId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&networkprofiles.NetworkProfileId{}),
@@ -50,6 +51,7 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Network Profile.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -67,6 +69,7 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name of the IP Configuration.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -77,11 +80,13 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
+										Description:  "The name of the IP Configuration.",
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_id": {
+										Description:  "Reference to the subnet associated with the IP Configuration.",
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: commonids.ValidateSubnetID,
@@ -94,8 +99,9 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 			},
 
 			"container_network_interface_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Container Network Interface IDs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

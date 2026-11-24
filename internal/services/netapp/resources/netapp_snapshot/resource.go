@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetAppSnapshotCreate,
-		Read:   resourceNetAppSnapshotRead,
-		Delete: resourceNetAppSnapshotDelete,
+		Description: "Manages a NetApp Snapshot.",
+		Create:      resourceNetAppSnapshotCreate,
+		Read:        resourceNetAppSnapshotRead,
+		Delete:      resourceNetAppSnapshotDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

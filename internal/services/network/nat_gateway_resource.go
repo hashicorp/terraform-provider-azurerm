@@ -33,10 +33,11 @@ var natGatewayResourceName = "azurerm_nat_gateway"
 
 func resourceNatGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNatGatewayCreate,
-		Read:   resourceNatGatewayRead,
-		Update: resourceNatGatewayUpdate,
-		Delete: resourceNatGatewayDelete,
+		Description: "Manages an Azure NAT Gateway.",
+		Create:      resourceNatGatewayCreate,
+		Read:        resourceNatGatewayRead,
+		Update:      resourceNatGatewayUpdate,
+		Delete:      resourceNatGatewayDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -68,6 +69,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NAT Gateway.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -79,6 +81,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"idle_timeout_in_minutes": {
+			Description:  "The idle timeout which should be used in minutes.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      4,
@@ -86,6 +89,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
+			Description:  "The SKU which should be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -94,6 +98,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zones": {
+			Description:           "A list of Availability Zones in which this NAT Gateway should be located.",
 			Type:                  schema.TypeSet,
 			Optional:              true,
 			ForceNew:              true,
@@ -108,8 +113,9 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource GUID property of the NAT Gateway.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

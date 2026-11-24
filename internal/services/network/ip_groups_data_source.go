@@ -18,7 +18,8 @@ import (
 
 func dataSourceIpGroups() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceIpGroupsRead,
+		Description: "Use this data source to access information about existing IP Groups.",
+		Read:        dataSourceIpGroupsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(10 * time.Minute),
@@ -26,8 +27,9 @@ func dataSourceIpGroups() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "A substring to match some number of IP Groups.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -35,15 +37,17 @@ func dataSourceIpGroups() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of IP Group IDs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"names": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of IP Group Names.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": commonschema.TagsDataSource(),

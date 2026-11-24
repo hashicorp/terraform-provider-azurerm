@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Backup Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"account_name": {
+			Description:  "The name of the NetApp account in which the NetApp Policy should be created under.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"daily_backups_to_keep": {
+			Description:  "Provides the number of daily backups to keep.",
 			Type:         pluginsdk.TypeInt,
 			Default:      2,
 			Optional:     true,
@@ -40,7 +43,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"weekly_backups_to_keep": {
-			Type: pluginsdk.TypeInt,
+			Description: "Provides the number of weekly backups to keep. The minimum is `0` and the maximum is `1019`.",
+			Type:        pluginsdk.TypeInt,
 			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
@@ -48,7 +52,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"monthly_backups_to_keep": {
-			Type: pluginsdk.TypeInt,
+			Description: "Provides the number of monthly backups to keep. The minimum is `0` and the maximum is `1019`.",
+			Type:        pluginsdk.TypeInt,
 			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
@@ -56,9 +61,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Default:  true,
-			Optional: true,
+			Description: "Whether the Backup Policy is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Default:     true,
+			Optional:    true,
 		},
 	}
 }

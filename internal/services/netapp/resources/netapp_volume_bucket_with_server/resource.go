@@ -25,6 +25,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_netapp_volume_bucket_with_server"
 }
 
+func (r Resource) Description() string {
+	return "Manages a NetApp Files Volume Bucket including its bucket server configuration. Buckets expose the contents of an Azure NetApp Files volume (or a sub-path within it) as an S3-compatible object endpoint via the Azure NetApp Files Object REST API."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return buckets.ValidateBucketID
 }

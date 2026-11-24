@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mysql_flexible_server_active_directory_administrator"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Active Directory administrator on a MySQL Flexible Server."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.FlexibleServerAzureActiveDirectoryAdministratorID
 }

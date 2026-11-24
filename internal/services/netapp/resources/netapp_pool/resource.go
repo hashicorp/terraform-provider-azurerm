@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetAppPoolCreate,
-		Read:   resourceNetAppPoolRead,
-		Update: resourceNetAppPoolUpdate,
-		Delete: resourceNetAppPoolDelete,
+		Description: "Manages a Pool within a NetApp Account.",
+		Create:      resourceNetAppPoolCreate,
+		Read:        resourceNetAppPoolRead,
+		Update:      resourceNetAppPoolUpdate,
+		Delete:      resourceNetAppPoolDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

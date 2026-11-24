@@ -30,10 +30,11 @@ import (
 
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetServiceEndpointStoragePolicyCreate,
-		Read:   resourceSubnetServiceEndpointStoragePolicyRead,
-		Update: resourceSubnetServiceEndpointStoragePolicyUpdate,
-		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
+		Description: "Manages a Subnet Service Endpoint Storage Policy.",
+		Create:      resourceSubnetServiceEndpointStoragePolicyCreate,
+		Read:        resourceSubnetServiceEndpointStoragePolicyRead,
+		Update:      resourceSubnetServiceEndpointStoragePolicyUpdate,
+		Delete:      resourceSubnetServiceEndpointStoragePolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&serviceendpointpolicies.ServiceEndpointPolicyId{}),
 
@@ -50,6 +51,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name which should be used for this Subnet Service Endpoint Storage Policy.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -68,14 +70,16 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name which should be used for this Subnet Service Endpoint Storage Policy Definition.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.SubnetServiceEndpointStoragePolicyDefinitionName,
 						},
 
 						"service_resources": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Description: "A list of resources or aliases that this Subnet Service Endpoint Storage Policy Definition applies to.",
+							Type:        pluginsdk.TypeSet,
+							Required:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
@@ -95,15 +99,17 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 						},
 
 						"description": {
+							Description:  "The description of this Subnet Service Endpoint Storage Policy Definition.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
 
 						"service": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "Microsoft.Storage",
+							Description: "The type of service resources. When the `service_resources` property contains resource IDs, this property must be `Microsoft.Storage`. When the `service_resources` property contains Aliases, this property must be `Global`.",
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Default:     "Microsoft.Storage",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Microsoft.Storage",
 								"Global",

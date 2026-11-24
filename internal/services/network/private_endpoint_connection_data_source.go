@@ -22,13 +22,15 @@ import (
 
 func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePrivateEndpointConnectionRead,
+		Description: "Use this data source to access the connection status information about an existing Private Endpoint Connection.",
+		Read:        dataSourcePrivateEndpointConnectionRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The Name of the Private Endpoint.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PrivateLinkName,
@@ -44,12 +46,14 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the network interface associated with the Private Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the network interface associated with the Private Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -61,20 +65,24 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Private Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"request_response": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "`Deleted state` | The resource owner has `Rejected` the Private Endpoint connection request and has removed your Private Endpoint request from the remote resource. `request/response message` | If you submitted a manual Private Endpoint connection request, while in the `Pending` status the `request_response` will display the same text from your `request_message` in the `private_service_connection` block above. If the Private Endpoint connection request was `Rejected` by the owner of the remote resource, the text for the rejection will be displayed as the `request_response` text, if the Private Endpoint connection request was `Approved` by the owner of the remote resource, the text for the approval will be displayed as the `request_response` text.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"status": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The current status of the Private Endpoint request, possible values will be `Pending`, `Approved`, `Rejected`, or `Disconnected`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The private IP address associated with the Private Endpoint, note that you will have a private IP address assigned to the Private Endpoint even if the connection request was `Rejected`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

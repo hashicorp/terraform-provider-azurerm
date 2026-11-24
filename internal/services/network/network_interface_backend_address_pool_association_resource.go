@@ -24,9 +24,10 @@ import (
 
 func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
-		Read:   resourceNetworkInterfaceBackendAddressPoolAssociationRead,
-		Delete: resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
+		Description: "Manages the association between a Network Interface and a Load Balancer's Backend Address Pool.",
+		Create:      resourceNetworkInterfaceBackendAddressPoolAssociationCreate,
+		Read:        resourceNetworkInterfaceBackendAddressPoolAssociationRead,
+		Delete:      resourceNetworkInterfaceBackendAddressPoolAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.BackendAddressPoolId{})
 			return err
@@ -40,6 +41,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 
 		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
+				Description:  "The ID of the Network Interface.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -47,6 +49,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 			},
 
 			"ip_configuration_name": {
+				Description:  "The Name of the IP Configuration within the Network Interface which should be connected to the Backend Address Pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -54,6 +57,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 			},
 
 			"backend_address_pool_id": {
+				Description:  "The ID of the Load Balancer Backend Address Pool which this Network Interface should be connected to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

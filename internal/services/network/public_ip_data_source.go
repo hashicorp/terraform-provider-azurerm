@@ -23,7 +23,8 @@ import (
 
 func dataSourcePublicIP() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePublicIPRead,
+		Description: "Use this data source to access information about an existing Public IP Address.",
+		Read:        dataSourcePublicIPRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,6 +32,7 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the public IP address.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -41,75 +43,89 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"domain_name_label_scope": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Scope for the domain name label.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"edge_zone": commonschema.EdgeZoneComputed(),
 
 			"public_ip_prefix_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "If specified then public IP address allocated will be provided from the public IP prefix resource.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Public IP.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU Tier that is used for the Public IP.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The allocation method for this IP address.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ddos_protection_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The DDoS protection mode of the public IP.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ddos_protection_plan_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of DDoS protection plan associated with the public IP.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The IP version being used, for example `IPv4` or `IPv6`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"domain_name_label": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The label for the Domain Name.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The timeout for the TCP idle connection.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"reverse_fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The fully qualified domain name that resolves to this public IP address.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The IP address value that was allocated.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_tags": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "A mapping of tags to assigned to the resource.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

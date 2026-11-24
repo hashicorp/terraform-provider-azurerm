@@ -115,11 +115,12 @@ var subnetDelegationServiceNames = []string{
 
 func resourceSubnet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceSubnetCreate,
-		Read:     resourceSubnetRead,
-		Update:   resourceSubnetUpdate,
-		Delete:   resourceSubnetDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
+		Description: "Manages a subnet. Subnets represent network segments within the IP space defined by the Virtual Network.",
+		Create:      resourceSubnetCreate,
+		Read:        resourceSubnetRead,
+		Update:      resourceSubnetUpdate,
+		Delete:      resourceSubnetDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
@@ -144,20 +145,23 @@ func resourceSubnet() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the subnet.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"virtual_network_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the Virtual Network to which to attach the subnet.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"address_prefixes": {
+				Description:  "The address prefixes to use for the subnet.",
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				MinItems:     1,
@@ -185,11 +189,13 @@ func resourceSubnet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {
+							Description:  "The name of the Service endpoint to associate with the subnet.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.SubnetServiceEndpointName(),
 						},
 						"network_identifier": {
+							Description:  "The ARM resource ID of the network identifier to associate with the service endpoint.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
@@ -201,8 +207,9 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"service_endpoint_policy_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Description: "The list of IDs of Service Endpoint Policies to associate with the subnet.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
@@ -210,8 +217,9 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"sharing_scope": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The sharing scope of the subnet.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 				// todo "Tenant" is only supported until https://github.com/Azure/azure-rest-api-specs/issues/36446 is addressed
 				ValidateFunc: validation.StringInSlice([]string{string(subnets.SharingScopeTenant)}, false),
 			},
@@ -222,8 +230,9 @@ func resourceSubnet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Description: "A name for this delegation.",
+							Type:        pluginsdk.TypeString,
+							Required:    true,
 						},
 						"service_delegation": {
 							Type:     pluginsdk.TypeList,
@@ -232,14 +241,16 @@ func resourceSubnet() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
+										Description:  "The name of service to delegate to.",
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
 									},
 
 									"actions": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Description: "A list of Actions which should be delegated. This list is specific to the service to delegate to.",
+										Type:        pluginsdk.TypeSet,
+										Optional:    true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -269,14 +280,16 @@ func resourceSubnet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
+							Description:  "The ID of the Network Manager IP Address Management (IPAM) Pool.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: ipampools.ValidateIPamPoolID,
 						},
 
 						"number_of_ip_addresses": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Description: "The number of IP addresses to allocated to the subnet.",
+							Type:        pluginsdk.TypeString,
+							Required:    true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile(`^[1-9]\d*$`),
 								"`number_of_ip_addresses` must be a string that represents a positive number",
@@ -284,8 +297,9 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 
 						"allocated_ip_address_prefixes": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The list of IP address prefixes allocated to the subnet.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -295,12 +309,14 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"default_outbound_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Default:  true,
-				Optional: true,
+				Description: "Enable default outbound access to the internet for the subnet.",
+				Type:        pluginsdk.TypeBool,
+				Default:     true,
+				Optional:    true,
 			},
 
 			"private_endpoint_network_policies": {
+				Description:  "Enable or Disable network policies for the Private Endpoint on the subnet.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled),
@@ -308,12 +324,14 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"private_link_service_network_policies_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Enable or Disable network policies for the Private Link Service on the subnet.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 
 			"network_security_group_id_wo": {
+				Description:  "The ID of the Network Security Group to associate with the subnet.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				WriteOnly:    true,
@@ -322,6 +340,7 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"network_security_group_id_wo_version": {
+				Description:  "An integer that must be incremented whenever `network_security_group_id_wo` is updated.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				RequiredWith: []string{"network_security_group_id_wo"},
@@ -334,6 +353,7 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"route_table_id_wo": {
+				Description:  "The ID of the Route Table to associate with the subnet.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				WriteOnly:    true,
@@ -342,6 +362,7 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"route_table_id_wo_version": {
+				Description:  "An integer that must be incremented whenever `route_table_id_wo` is updated.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				RequiredWith: []string{"route_table_id_wo"},

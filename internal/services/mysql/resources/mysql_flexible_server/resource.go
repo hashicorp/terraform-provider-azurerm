@@ -18,10 +18,11 @@ var mysqlFlexibleServerResourceName = "azurerm_mysql_flexible_server"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMysqlFlexibleServerCreate,
-		Read:   resourceMysqlFlexibleServerRead,
-		Update: resourceMysqlFlexibleServerUpdate,
-		Delete: resourceMysqlFlexibleServerDelete,
+		Description: "Manages a MySQL Flexible Server.",
+		Create:      resourceMysqlFlexibleServerCreate,
+		Read:        resourceMysqlFlexibleServerRead,
+		Update:      resourceMysqlFlexibleServerUpdate,
+		Delete:      resourceMysqlFlexibleServerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(2 * time.Hour),

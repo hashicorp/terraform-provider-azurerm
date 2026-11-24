@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_netapp_backup_vault"
 }
 
+func (r Resource) Description() string {
+	return "Manages a NetApp Backup Vault."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backupvaults.ValidateBackupVaultID
 }

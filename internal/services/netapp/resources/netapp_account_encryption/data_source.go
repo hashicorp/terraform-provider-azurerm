@@ -30,6 +30,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_netapp_account_encryption"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing NetApp Account Encryption Resource."
+}
+
 func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return netappaccounts.ValidateNetAppAccountID
 }
@@ -39,7 +43,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"netapp_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Description:  "The ID of the NetApp Account where encryption will be set.",
+			Description:  "The ID of the NetApp account where customer managed keys-based encryption is enabled.",
 			ValidateFunc: validate.ValidateNetAppAccountID,
 		},
 	}
@@ -48,28 +52,33 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"user_assigned_identity_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the User Assigned Managed Identity.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"system_assigned_identity_principal_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the System Assigned Managed Identity.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"encryption_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Key Vault encryption key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"federated_client_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Client ID of the multi-tenant Entra ID application used to access cross-tenant Key Vaults.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"cross_tenant_key_vault_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The full resource ID of the cross-tenant Key Vault.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

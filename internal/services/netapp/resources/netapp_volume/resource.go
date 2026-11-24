@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetAppVolumeCreate,
-		Read:   resourceNetAppVolumeRead,
-		Update: resourceNetAppVolumeUpdate,
-		Delete: resourceNetAppVolumeDelete,
+		Description: "Manages a NetApp Volume.",
+		Create:      resourceNetAppVolumeCreate,
+		Read:        resourceNetAppVolumeRead,
+		Update:      resourceNetAppVolumeUpdate,
+		Delete:      resourceNetAppVolumeDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

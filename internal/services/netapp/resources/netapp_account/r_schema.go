@@ -15,6 +15,7 @@ import (
 func netappAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,35 +35,40 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_servers": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "A list of DNS server IP addresses for the Active Directory domain. Only allows `IPv4` addresses.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 					"domain": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the Active Directory domain.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[(\da-zA-Z-).]{1,255}$`),
 							`The domain name must end with a letter or number before dot and start with a letter or number after dot and can not be longer than 255 characters in length.`,
 						),
 					},
 					"smb_server_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[\da-zA-Z\-]{1,10}$`),
 							`smb_server_name can contain a mix of numbers, upper/lowercase letters, dashes, and be no longer than 10 characters.`,
 						),
 					},
 					"username": {
+						Description:  "The Username of Active Directory Domain Administrator.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"password": {
+						Description:  "The password associated with the `username`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -72,7 +78,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						Default:     "CN=Computers",
-						Description: "The Organizational Unit (OU) within the Windows Active Directory where machines will be created.",
+						Description: "The Organizational Unit (OU) within Active Directory where machines will be created.",
 					},
 					"site_name": {
 						Type:        pluginsdk.TypeString,
@@ -83,13 +89,13 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 					"kerberos_ad_name": {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
-						Description: "Name of the Active Directory machine. This optional parameter is used only while creating kerberos volume.",
+						Description: "Name of the Active Directory machine.",
 					},
 					"kerberos_kdc_ip": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsIPv4Address,
-						Description:  "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating kerberos volume.",
+						Description:  "Kdc server IP addresses for the Active Directory machine.",
 					},
 					"aes_encryption_enabled": {
 						Type:        pluginsdk.TypeBool,
@@ -115,7 +121,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Sensitive:    true,
 						Optional:     true,
 						RequiredWith: []string{"active_directory.0.ldap_over_tls_enabled"},
-						Description:  "When LDAP over SSL/TLS is enabled, the LDAP client is required to have base64 encoded Active Directory Certificate Service's self-signed root CA certificate, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
+						Description:  "When LDAP over SSL/TLS is enabled, the LDAP client is required to have a *base64 encoded Active Directory Certificate Service's self-signed root CA certificate*, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
 					},
 					"ldap_signing_enabled": {
 						Type:        pluginsdk.TypeBool,
@@ -127,7 +133,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
-						Description: "Whether traffic between the Domain Controller and SMB server is encrypted.",
+						Description: "If enabled, the connection between Active Directory and SMB server will be encrypted.",
 					},
 					"ldap_client_preferred_servers": {
 						Type:     pluginsdk.TypeList,
@@ -137,7 +143,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsIPv4Address,
 						},
-						Description: "The preferred LDAP server IPs for the LDAP client.",
+						Description: "The preferred LDAP server IPs for the LDAP client. Maximum of 2 `IPv4` addresses are allowed.",
 					},
 					"ldap_search_scope": {
 						Type:        pluginsdk.TypeList,
@@ -177,7 +183,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ActiveDirectoryUserName,
 						},
-						Description: "Domain users to be added to the built-in Administrators Active Directory group.",
+						Description: "A list of Active Directory users to be added to the built-in Administrators Active Directory group. Usernames cannot contain the characters `@` or `\\` and can be up to `255` characters long.",
 					},
 					"backup_users": {
 						Type:     pluginsdk.TypeSet,
@@ -186,7 +192,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ActiveDirectoryUserName,
 						},
-						Description: "Domain users to be added to the built-in Backup Operators Active Directory group.",
+						Description: "A list of Active Directory users to be added to the built-in Backup Operators Active Directory group. Usernames cannot contain the characters `@` or `\\` and can be up to `255` characters long.",
 					},
 					"security_users": {
 						Type:     pluginsdk.TypeSet,
@@ -195,7 +201,7 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ActiveDirectoryUserName,
 						},
-						Description: "Domain users to be given SeSecurityPrivilege privilege.",
+						Description: "A list of Active Directory users to be given SeSecurityPrivilege privilege. Usernames cannot contain the characters `@` or `\\` and can be up to `255` characters long.",
 					},
 				},
 			},

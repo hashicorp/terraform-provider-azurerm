@@ -29,10 +29,11 @@ import (
 
 func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkDDoSProtectionPlanCreate,
-		Read:   resourceNetworkDDoSProtectionPlanRead,
-		Update: resourceNetworkDDoSProtectionPlanUpdate,
-		Delete: resourceNetworkDDoSProtectionPlanDelete,
+		Description: "Manages an AzureNetwork DDoS Protection Plan.",
+		Create:      resourceNetworkDDoSProtectionPlanCreate,
+		Read:        resourceNetworkDDoSProtectionPlanRead,
+		Update:      resourceNetworkDDoSProtectionPlanUpdate,
+		Delete:      resourceNetworkDDoSProtectionPlanDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&ddosprotectionplans.DdosProtectionPlanId{}),
 
@@ -49,9 +50,10 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the Network DDoS Protection Plan.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"location": commonschema.Location(),
@@ -59,8 +61,9 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"virtual_network_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Virtual Network IDs associated with the DDoS Protection Plan.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

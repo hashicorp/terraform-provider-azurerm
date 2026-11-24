@@ -30,12 +30,14 @@ type PrivateEndpointApplicationSecurityGroupAssociationModel struct {
 func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"private_endpoint_id": {
+			Description:  "The ID of Private Endpoint to associate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 		},
 		"application_security_group_id": {
+			Description:  "The ID of Application Security Group to associate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -54,6 +56,10 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) ModelObject(
 
 func (p PrivateEndpointApplicationSecurityGroupAssociationResource) ResourceType() string {
 	return "azurerm_private_endpoint_application_security_group_association"
+}
+
+func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Description() string {
+	return "Manages an association between Private Endpoint and Application Security Group."
 }
 
 func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk.ResourceFunc {

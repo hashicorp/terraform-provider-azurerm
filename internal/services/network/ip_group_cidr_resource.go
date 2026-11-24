@@ -23,9 +23,10 @@ import (
 
 func resourceIpGroupCidr() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIpGroupCidrCreate,
-		Read:   resourceIpGroupCidrRead,
-		Delete: resourceIpGroupCidrDelete,
+		Description: "Manages IP Group CIDR records.",
+		Create:      resourceIpGroupCidrCreate,
+		Read:        resourceIpGroupCidrRead,
+		Delete:      resourceIpGroupCidrDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IpGroupCidrID(id)
@@ -40,12 +41,14 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"ip_group_id": {
+				Description:  "The ID of the destination IP Group.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: ipgroups.ValidateIPGroupID,
 			},
 			"cidr": {
+				Description:  "The `CIDR` that should be added to the IP Group.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

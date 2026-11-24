@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"server_id": {
+			Description:  "The resource ID of the MySQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,24 +21,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity_id": {
+			Description:  "The resource ID of the identity used for AAD Authentication.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"login": {
+			Description:  "The login name of the principal to set as the server administrator.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"object_id": {
+			Description:  "The ID of the principal to set as the server administrator. For a Managed Identity this should be the Client ID of the identity.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"tenant_id": {
+			Description:  "The Azure Tenant ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,

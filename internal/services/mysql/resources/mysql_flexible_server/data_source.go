@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMysqlFlexibleServerRead,
+		Description: "Use this data source to access information about an existing MySQL Flexible Server.",
+		Read:        dataSourceMysqlFlexibleServerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the MySQL Flexible Server.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FlexibleServerName,
@@ -40,23 +42,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"administrator_login": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Administrator login of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"backup_retention_days": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The backup retention days of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"delegated_subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Virtual Network subnet the MySQL Flexible Server is created in.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is geo redundant backup enabled?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"high_availability": {
@@ -65,13 +71,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The high availability mode of the MySQL Flexible Server.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"standby_availability_zone": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Availability Zone of the standby Flexible Server.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -83,18 +91,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day_of_week": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The day of week of the maintenance window.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"start_hour": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The start hour of the maintenance window.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"start_minute": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The start minute of the maintenance window.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
@@ -106,18 +117,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"private_dns_zone_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Private DNS zone of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"replication_role": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The replication role of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU Name of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage": {
@@ -126,47 +140,55 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"auto_grow_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Is Storage Auto Grow enabled?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"iops": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The storage IOPS of the MySQL Flexible Server.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"size_gb": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The max storage allowed for the MySQL Flexible Server.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"io_scaling_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Should IOPS be scaled automatically?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The version of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"zone": commonschema.ZoneSingleComputed(),
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The fully qualified domain name of the MySQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is the public network access enabled?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"replica_capacity": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of replicas that a primary MySQL Flexible Server can have.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

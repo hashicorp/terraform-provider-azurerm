@@ -31,11 +31,12 @@ import (
 
 func resourcePublicIpPrefix() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourcePublicIpPrefixCreate,
-		Read:     resourcePublicIpPrefixRead,
-		Update:   resourcePublicIpPrefixUpdate,
-		Delete:   resourcePublicIpPrefixDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
+		Description: "Manages a Public IP Prefix.",
+		Create:      resourcePublicIpPrefixCreate,
+		Read:        resourcePublicIpPrefixRead,
+		Update:      resourcePublicIpPrefixUpdate,
+		Delete:      resourcePublicIpPrefixDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&publicipprefixes.PublicIPPrefixId{}),
@@ -50,6 +51,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Public IP Prefix resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -61,6 +63,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"custom_ip_prefix_id": {
+				Description:  "The Custom IP Prefix ID associated with the Public IP Prefix.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -68,6 +71,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"sku": {
+				Description:  "The SKU of the Public IP Prefix.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(publicipprefixes.PublicIPPrefixSkuNameStandard),
@@ -75,6 +79,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
+				Description:  "The SKU Tier that should be used for the Public IP Prefix.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(publicipprefixes.PublicIPPrefixSkuTierRegional),
@@ -83,6 +88,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"prefix_length": {
+				Description:  "The number of bits of the prefix.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      28,
@@ -91,6 +97,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"ip_version": {
+				Description:  "The IP Version to use, `IPv6` or `IPv4`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(publicipprefixes.IPVersionIPvFour),
@@ -101,8 +108,9 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"ip_prefix": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The IP address prefix value that was allocated.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.Tags(),

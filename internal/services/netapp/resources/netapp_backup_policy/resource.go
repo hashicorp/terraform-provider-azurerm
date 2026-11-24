@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_netapp_backup_policy"
 }
 
+func (r Resource) Description() string {
+	return "Manages a NetApp Backup Policy."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backuppolicies.ValidateBackupPolicyID
 }

@@ -13,14 +13,16 @@ import (
 func mysqlFlexibleServerFirewallRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the MySQL Firewall Rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_name": {
+			Description:  "The name of the MySQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,12 +30,14 @@ func mysqlFlexibleServerFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"start_ip_address": {
+			Description:  "The Start IP Address associated with this Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
 
 		"end_ip_address": {
+			Description:  "The End IP Address associated with this Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,

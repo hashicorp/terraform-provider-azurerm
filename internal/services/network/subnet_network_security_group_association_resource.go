@@ -24,9 +24,10 @@ import (
 
 func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetNetworkSecurityGroupAssociationCreate,
-		Read:   resourceSubnetNetworkSecurityGroupAssociationRead,
-		Delete: resourceSubnetNetworkSecurityGroupAssociationDelete,
+		Description: "Associates a [Network Security Group](network_security_group.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).",
+		Create:      resourceSubnetNetworkSecurityGroupAssociationCreate,
+		Read:        resourceSubnetNetworkSecurityGroupAssociationRead,
+		Delete:      resourceSubnetNetworkSecurityGroupAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -41,6 +42,7 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
+				Description:  "The ID of the Subnet.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -48,6 +50,7 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 			},
 
 			"network_security_group_id": {
+				Description:  "The ID of the Network Security Group which should be associated with the Subnet.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

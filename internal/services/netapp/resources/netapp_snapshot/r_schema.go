@@ -12,6 +12,7 @@ import (
 func netappSnapshotSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Snapshot.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func netappSnapshotSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"account_name": {
+			Description:  "The name of the NetApp account in which the NetApp Pool should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func netappSnapshotSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"pool_name": {
+			Description:  "The name of the NetApp pool in which the NetApp Volume should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,6 +40,7 @@ func netappSnapshotSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"volume_name": {
+			Description:  "The name of the NetApp volume in which the NetApp Snapshot should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

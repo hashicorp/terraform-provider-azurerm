@@ -19,7 +19,8 @@ import (
 
 func dataSourceApplicationSecurityGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApplicationSecurityGroupRead,
+		Description: "Use this data source to access information about an existing Application Security Group.",
+		Read:        dataSourceApplicationSecurityGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,8 +28,9 @@ func dataSourceApplicationSecurityGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Application Security Group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"location": commonschema.LocationComputed(),

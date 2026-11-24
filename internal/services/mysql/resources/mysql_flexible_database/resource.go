@@ -17,10 +17,11 @@ var mysqlFlexibleDatabaseResourceName = "azurerm_mysql_flexible_database"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceMySqlFlexibleDatabaseCreate,
-		Read:     resourceMySqlFlexibleDatabaseRead,
-		Delete:   resourceMySqlFlexibleDatabaseDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&databases.DatabaseId{}),
+		Description: "Manages a MySQL Database within a MySQL Flexible Server.",
+		Create:      resourceMySqlFlexibleDatabaseCreate,
+		Read:        resourceMySqlFlexibleDatabaseRead,
+		Delete:      resourceMySqlFlexibleDatabaseDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&databases.DatabaseId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

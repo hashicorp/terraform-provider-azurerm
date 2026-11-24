@@ -21,7 +21,8 @@ import (
 
 func dataSourceIpGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceIpGroupRead,
+		Description: "Use this data source to access information about an existing IP Group.",
+		Read:        dataSourceIpGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,8 +30,9 @@ func dataSourceIpGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Name of the IP Group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -38,23 +40,26 @@ func dataSourceIpGroup() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"cidrs": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
+				Description: "A list of CIDRs or IP addresses.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:         pluginsdk.HashString,
 			},
 
 			"firewall_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Firewall IDs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"firewall_policy_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Firewall Policy IDs.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

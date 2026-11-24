@@ -36,10 +36,11 @@ var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceCreate,
-		Read:   resourceNetworkInterfaceRead,
-		Update: resourceNetworkInterfaceUpdate,
-		Delete: resourceNetworkInterfaceDelete,
+		Description: "Manages a Network Interface.",
+		Create:      resourceNetworkInterfaceCreate,
+		Read:        resourceNetworkInterfaceRead,
+		Update:      resourceNetworkInterfaceUpdate,
+		Delete:      resourceNetworkInterfaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.NetworkInterfaceId{}),
 
@@ -56,9 +57,10 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"location": commonschema.Location(),
@@ -71,12 +73,14 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "A name used for this IP Configuration.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"subnet_id": {
+							Description:      "The ID of the Subnet where this Network Interface should be located in.",
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -84,13 +88,15 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						},
 
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Description: "The Static IP Address which should be used.",
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
 							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
 						"private_ip_address_version": {
+							Description:  "The IP Version to use.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(networkinterfaces.IPVersionIPvFour),
@@ -98,24 +104,28 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_allocation": {
+							Description:  "The allocation method used for the Private IP Address.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForIPAllocationMethod(), false),
 						},
 
 						"public_ip_address_id": {
+							Description:  "Reference to a Public IP Address to associate with this NIC.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 
 						"primary": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Computed: true, // azignore:AZS007 - pre-existing violation
+							Description: "Is this the Primary IP Configuration?",
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Computed:    true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"gateway_load_balancer_frontend_ip_configuration_id": {
+							Description:  "The Frontend IP Configuration ID of a Gateway SKU Load Balancer.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -127,8 +137,9 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 			// Optional
 			"auxiliary_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
 					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
@@ -138,8 +149,9 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 
 			"auxiliary_sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The SKU used for the network high-performance feature on Network Virtual Appliances (NVAs).",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
 					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
@@ -150,8 +162,9 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 
 			"dns_servers": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -161,60 +174,69 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"accelerated_networking_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Description: "Whether accelerated networking is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
 			},
 
 			"ip_forwarding_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Description: "Whether IP Forwarding is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
 			},
 
 			"internal_dns_name_label": {
+				Description:  "The (relative) DNS Name used for internal communications between Virtual Machines in the same Virtual Network.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"internal_domain_name_suffix": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Even if `internal_dns_name_label` is not specified, a DNS entry is created for the primary NIC of the VM. This DNS name can be constructed by concatenating the VM name with the value of `internal_domain_name_suffix`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.Tags(),
 
 			// Computed
 			"applied_dns_servers": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "If the Virtual Machine using this Network Interface is part of an Availability Set, then this list will have the union of all DNS servers from all Network Interfaces that are part of the Availability Set.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"mac_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Media Access Control (MAC) Address of the Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The first private IP address of the network interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The private IP addresses of the network interface.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"virtual_machine_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Virtual Machine which this Network Interface is connected to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

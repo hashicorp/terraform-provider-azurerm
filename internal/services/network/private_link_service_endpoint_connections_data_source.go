@@ -19,21 +19,24 @@ import (
 
 func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePrivateLinkServiceEndpointConnectionsRead,
+		Description: "Use this data source to access endpoint connection information about an existing Private Link Service.",
+		Read:        dataSourcePrivateLinkServiceEndpointConnectionsRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"service_id": {
+				Description:  "The resource ID of the Private Link Service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: privatelinkservices.ValidatePrivateLinkServiceID,
 			},
 
 			"service_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Private Link Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -46,32 +49,39 @@ func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"connection_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The resource ID of the Private Link Service connection between the Private Link Service and the Private Link endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"connection_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the connection between the Private Link Service and the Private Link endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_endpoint_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The resource ID of the Private Link endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_endpoint_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Private Link endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"action_required": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "A message indicating if changes on the service provider require any updates or not.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The request for approval message or the reason for rejection message.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"status": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The state of the connection between the Private Link Service and the Private Link endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

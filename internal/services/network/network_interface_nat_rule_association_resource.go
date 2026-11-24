@@ -25,9 +25,10 @@ import (
 
 func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceNatRuleAssociationCreate,
-		Read:   resourceNetworkInterfaceNatRuleAssociationRead,
-		Delete: resourceNetworkInterfaceNatRuleAssociationDelete,
+		Description: "Manages the association between a Network Interface and a Load Balancer's NAT Rule.",
+		Create:      resourceNetworkInterfaceNatRuleAssociationCreate,
+		Read:        resourceNetworkInterfaceNatRuleAssociationRead,
+		Delete:      resourceNetworkInterfaceNatRuleAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.InboundNatRuleId{})
 			return err
@@ -41,6 +42,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
+				Description:  "The ID of the Network Interface.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -48,6 +50,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 			},
 
 			"ip_configuration_name": {
+				Description:  "The Name of the IP Configuration within the Network Interface which should be connected to the NAT Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -55,6 +58,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 			},
 
 			"nat_rule_id": {
+				Description:  "The ID of the Load Balancer NAT Rule which should be connected to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

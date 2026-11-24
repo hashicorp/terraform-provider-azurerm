@@ -36,12 +36,14 @@ type VirtualNetworkPeeringDataSourceModel struct {
 func (VirtualNetworkPeeringDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Virtual Network peering.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"virtual_network_id": {
+			Description:  "The resource ID of the Virtual Network.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
@@ -52,38 +54,45 @@ func (VirtualNetworkPeeringDataSource) Arguments() map[string]*pluginsdk.Schema 
 func (VirtualNetworkPeeringDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"remote_virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The full Azure resource ID of the remote Virtual Network.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"allow_virtual_network_access": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Controls if the traffic from the local Virtual Network can reach the remote Virtual Network.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"allow_forwarded_traffic": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Controls if forwarded traffic from VMs in the remote Virtual Network is allowed.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"allow_gateway_transit": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Controls gatewayLinks can be used in the remote Virtual Network's link to the local Virtual Network.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"only_ipv6_peering_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether only IPv6 address space is peered for Subnet peering.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"peer_complete_virtual_networks_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether complete Virtual Network address space is peered.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"use_remote_gateways": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Controls if remote gateways can be used on the local Virtual Network.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }
@@ -94,6 +103,10 @@ func (VirtualNetworkPeeringDataSource) ModelObject() any {
 
 func (VirtualNetworkPeeringDataSource) ResourceType() string {
 	return "azurerm_virtual_network_peering"
+}
+
+func (VirtualNetworkPeeringDataSource) Description() string {
+	return "Use this data source to access information about an existing Virtual Network peering."
 }
 
 func (VirtualNetworkPeeringDataSource) Read() sdk.ResourceFunc {

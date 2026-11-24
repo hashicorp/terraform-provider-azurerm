@@ -24,9 +24,10 @@ import (
 
 func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualMachinePacketCaptureCreate,
-		Read:   resourceVirtualMachinePacketCaptureRead,
-		Delete: resourceVirtualMachinePacketCaptureDelete,
+		Description: "Configures Network Packet Capturing against a Virtual Machine using a Network Watcher.",
+		Create:      resourceVirtualMachinePacketCaptureCreate,
+		Read:        resourceVirtualMachinePacketCaptureRead,
+		Delete:      resourceVirtualMachinePacketCaptureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := packetcaptures.ParsePacketCaptureID(id)
@@ -41,6 +42,7 @@ func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name to use for this Network Packet Capture.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -48,6 +50,7 @@ func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 			},
 
 			"network_watcher_id": {
+				Description:  "The resource ID of the Network Watcher.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -55,29 +58,33 @@ func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 			},
 
 			"virtual_machine_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The resource ID of the target Virtual Machine to capture packets from.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 				ValidateFunc: validation.Any(
 					commonids.ValidateVirtualMachineID,
 				),
 			},
 
 			"maximum_bytes_per_packet": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Default:  0,
+				Description: "The number of bytes captured per packet. The remaining bytes are truncated.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     0,
 			},
 
 			"maximum_bytes_per_session": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Default:  1073741824,
+				Description: "Maximum size of the capture in Bytes.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     1073741824,
 			},
 
 			"maximum_capture_duration_in_seconds": {
+				Description:  "The maximum duration of the capture session in seconds.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,

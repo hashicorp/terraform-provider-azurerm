@@ -44,11 +44,12 @@ var VirtualNetworkResourceName = "azurerm_virtual_network"
 
 func resourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceVirtualNetworkCreate,
-		Read:     resourceVirtualNetworkRead,
-		Update:   resourceVirtualNetworkUpdate,
-		Delete:   resourceVirtualNetworkDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
+		Description: "Manages a Virtual Network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.",
+		Create:      resourceVirtualNetworkCreate,
+		Read:        resourceVirtualNetworkRead,
+		Update:      resourceVirtualNetworkUpdate,
+		Delete:      resourceVirtualNetworkDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -68,6 +69,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Virtual Network.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -79,6 +81,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
+			Description:  "The address space that is used by the Virtual Network. You can supply more than one address space.",
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
 			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
@@ -101,9 +104,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"advertised_gateway_prefixes": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MinItems: 1,
+			Description: "A set of CIDR prefixes that Azure gateways advertise to on-premises networks.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
@@ -111,6 +115,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"bgp_community": {
+			Description:  "The BGP community attribute in format `<as-number>:<community-value>`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.VirtualNetworkBgpCommunity,
@@ -123,14 +128,16 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The ID of DDoS Protection Plan.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: ddosprotectionplans.ValidateDdosProtectionPlanID,
 					},
 
 					"enable": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Enable/disable DDoS Protection Plan on Virtual Network.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 				},
 			},
@@ -143,6 +150,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enforcement": {
+						Description:  "Whether the encrypted Virtual Network allows VM that does not support encryption.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForVirtualNetworkEncryptionEnforcement(), false),
@@ -152,9 +160,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_servers": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "List of IP addresses of DNS servers.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -164,12 +173,14 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"flow_timeout_in_minutes": {
+			Description:  "The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(4, 30),
 		},
 
 		"ip_address_pool": {
+			Description:  "Only one association of each IP type(IPv4 or IPv6) is allowed.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     2,
@@ -177,14 +188,16 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The ID of the Network Manager IP Address Management (IPAM) Pool.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: ipampools.ValidateIPamPoolID,
 					},
 
 					"number_of_ip_addresses": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The number of IP addresses to allocated to the Virtual Network.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[1-9]\d*$`),
 							"`number_of_ip_addresses` must be a string that represents a positive number",
@@ -192,8 +205,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"allocated_ip_address_prefixes": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The list of IP address prefixes allocated to the Virtual Network.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -203,27 +217,31 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The GUID of the Virtual Network.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"subnet": {
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true, // azignore:AZS007 - pre-existing violation
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Description: "Can be specified multiple times to define multiple subnets.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ConfigMode:  pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the subnet.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"address_prefixes": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Description: "The address prefixes to use for the subnet.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -231,9 +249,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"default_outbound_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Default:  true,
-						Optional: true,
+						Description: "Enable default outbound access to the internet for the subnet.",
+						Type:        pluginsdk.TypeBool,
+						Default:     true,
+						Optional:    true,
 					},
 
 					"delegation": {
@@ -244,8 +263,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "A name for this delegation.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"service_delegation": {
 									Type:       pluginsdk.TypeList,
@@ -255,14 +275,16 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"name": {
+												Description:  "The name of service to delegate to.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
 											},
 
 											"actions": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description: "A list of Actions which should be delegated. This list is specific to the service to delegate to.",
+												Type:        pluginsdk.TypeSet,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice([]string{
@@ -285,6 +307,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"private_endpoint_network_policies": {
+						Description:  "Enable or Disable network policies for the Private Endpoint on the subnet.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled),
@@ -292,16 +315,18 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"private_link_service_network_policies_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Enable or Disable network policies for the Private Link Service on the subnet.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"route_table_id": commonschema.ResourceIDReferenceOptional(&routetables.RouteTableId{}, "Route Table"),
 
 					"security_group": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The Network Security Group to associate with the subnet. (Referenced by `id`, i.e. `azurerm_network_security_group.example.id`).",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"service_endpoint": {
@@ -311,11 +336,13 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"service": {
+									Description:  "The name of the Service endpoint to associate with the subnet.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validate.SubnetServiceEndpointName(),
 								},
 								"network_identifier": {
+									Description:  "The ARM resource ID of the network identifier to associate with the service endpoint.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: azure.ValidateResourceID,
@@ -325,8 +352,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"service_endpoint_policy_ids": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "The list of IDs of Service Endpoint Policies to associate with the subnet.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
@@ -334,14 +362,16 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of this subnet.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"private_endpoint_vnet_policies": {
+			Description:  "The Private Endpoint VNet Policies for the Virtual Network.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(virtualnetworks.PrivateEndpointVNetPoliciesDisabled),

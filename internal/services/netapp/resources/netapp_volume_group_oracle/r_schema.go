@@ -23,6 +23,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Application Volume Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"account_name": {
+			Description:  "Name of the account where the application volume group belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,6 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"group_description": {
+			Description:  "Volume group description.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,9 +51,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"application_identifier": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Oracle System ID.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z][\w-]{2,11}$`),
 				"`application_identifier` must be between 3 and 12 characters, may contain alphanumerics, hyphens, and underscores, and must begin with a letter.",
@@ -70,6 +74,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"name": {
+						Description:  "The name which should be used for this volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -77,6 +82,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"capacity_pool_id": {
+						Description:  "The ID of the Capacity Pool.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -84,14 +90,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"proximity_placement_group_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "The ID of the Proximity Placement Group (PPG).",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 
 					"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 					"volume_spec_name": {
+						Description:  "Volume specification name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -99,6 +107,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"volume_path": {
+						Description:  "A unique file path for the volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -106,9 +115,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"service_level": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "Volume security style.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(volumegroups.ServiceLevelPremium),
 							string(volumegroups.ServiceLevelStandard),
@@ -118,6 +128,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -125,10 +136,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"protocols": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
-						MaxItems: 1,
+						Description: "The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume group, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules).",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
+						MaxItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(validate.PossibleValuesForProtocolTypeVolumeGroupOracle(), false),
@@ -136,6 +148,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"security_style": {
+						Description:  "Volume security style.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -143,12 +156,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_quota_in_gb": {
+						Description:  "The maximum Storage Quota allowed for a file system in Gigabytes.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(50, 102400),
 					},
 
 					"throughput_in_mibps": {
+						Description:  "Throughput of this volume in Mibps.",
 						Type:         pluginsdk.TypeFloat,
 						Required:     true,
 						ValidateFunc: validation.FloatAtLeast(0.1),
@@ -162,43 +177,50 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"rule_index": {
+									Description:  "The index number of the rule, must start at 1 and maximum 5.",
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(1, 5),
 								},
 
 								"allowed_clients": {
+									Description:  "A comma-separated list of allowed client IPv4 addresses.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"nfsv3_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
+									Description: "Enables NFSv3. Please note that this cannot be enabled if volume has NFSv4.1 as its protocol.",
+									Type:        pluginsdk.TypeBool,
+									Required:    true,
 								},
 
 								"nfsv41_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
+									Description: "Enables NFSv4.1. Please note that this cannot be enabled if volume has NFSv3 as its protocol.",
+									Type:        pluginsdk.TypeBool,
+									Required:    true,
 								},
 
 								"unix_read_only": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
+									Description: "Is the file system on unix read only?",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     false,
 								},
 
 								"unix_read_write": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
+									Description: "Is the file system on unix read and write?",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     true,
 								},
 
 								"root_access_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
+									Description: "Is root access permitted to this volume?",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     true,
 								},
 							},
 						},
@@ -207,14 +229,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"tags": commonschema.Tags(),
 
 					"snapshot_directory_visible": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-						ForceNew: true,
+						Description: "Whether the .snapshot (NFS clients) path of a volume is visible.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
+						ForceNew:    true,
 					},
 
 					"network_features": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Which network feature to use. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://learn.microsoft.com/azure/azure-netapp-files/configure-network-features).",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
 						Computed:     true,
 						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
@@ -271,6 +295,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"snapshot_policy_id": {
+									Description:  "Resource ID of the snapshot policy to apply to the volume.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: azure.ValidateResourceID,
@@ -280,18 +305,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"encryption_key_source": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						// Note: O+C since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
 						Computed:     true,
 						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 					},
 
 					"key_vault_private_endpoint_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "The Private Endpoint ID for Key Vault, which is required when using customer-managed keys.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						// Note: O+C since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
 						Computed:     true,
 						ValidateFunc: azure.ValidateResourceID,

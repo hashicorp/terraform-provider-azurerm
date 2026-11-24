@@ -21,10 +21,11 @@ import (
 
 func resourceNetworkWatcher() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkWatcherCreate,
-		Read:   resourceNetworkWatcherRead,
-		Update: resourceNetworkWatcherUpdate,
-		Delete: resourceNetworkWatcherDelete,
+		Description: "Manages a Network Watcher.",
+		Create:      resourceNetworkWatcherCreate,
+		Read:        resourceNetworkWatcherRead,
+		Update:      resourceNetworkWatcherUpdate,
+		Delete:      resourceNetworkWatcherDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := networkwatchers.ParseNetworkWatcherID(id)
 			return err
@@ -39,9 +40,10 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the Network Watcher.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),

@@ -22,7 +22,8 @@ import (
 
 func dataSourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceVnetRead,
+		Description: "Use this data source to access information about an existing Virtual Network.",
+		Read:        dataSourceVnetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Virtual Network.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -42,52 +44,59 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"address_space": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of address spaces used by the Virtual Network.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"advertised_gateway_prefixes": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of CIDR prefixes that Azure gateways advertise to on-premises networks.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"dns_servers": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of DNS servers used by the Virtual Network.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"guid": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The GUID of the Virtual Network.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subnets": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of name of the subnets that are attached to this Virtual Network.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"vnet_peerings": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "A mapping of name - Virtual Network ID of the Virtual Network peerings.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 			"vnet_peerings_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Virtual Network peerings IP addresses.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

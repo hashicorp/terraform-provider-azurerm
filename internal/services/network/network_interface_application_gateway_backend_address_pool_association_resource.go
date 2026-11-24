@@ -26,9 +26,10 @@ import (
 
 func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate,
-		Read:   resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead,
-		Delete: resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete,
+		Description: "Manages the association between a Network Interface and an Application Gateway's Backend Address Pool.",
+		Create:      resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate,
+		Read:        resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead,
+		Delete:      resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &parse.ApplicationGatewayBackendAddressPoolId{})
 			return err
@@ -42,6 +43,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 
 		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
+				Description:  "The ID of the Network Interface.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -49,6 +51,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 			},
 
 			"ip_configuration_name": {
+				Description:  "The Name of the IP Configuration within the Network Interface which should be connected to the Backend Address Pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,6 +59,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 			},
 
 			"backend_address_pool_id": {
+				Description:  "The ID of the Application Gateway's Backend Address Pool which should be connected to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

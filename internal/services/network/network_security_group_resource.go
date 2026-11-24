@@ -35,10 +35,11 @@ var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkSecurityGroupCreate,
-		Read:   resourceNetworkSecurityGroupRead,
-		Update: resourceNetworkSecurityGroupUpdate,
-		Delete: resourceNetworkSecurityGroupDelete,
+		Description: "Manages a Network Security Group that contains a list of Network Security Rules. Network Security Groups enable inbound or outbound traffic to be enabled or denied.",
+		Create:      resourceNetworkSecurityGroupCreate,
+		Read:        resourceNetworkSecurityGroupRead,
+		Update:      resourceNetworkSecurityGroupUpdate,
+		Delete:      resourceNetworkSecurityGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&networksecuritygroups.NetworkSecurityGroupId{}),
 
@@ -55,9 +56,10 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the Network Security Group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"location": commonschema.Location(),
@@ -73,73 +75,85 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Description: "The name of the security rule.",
+							Type:        pluginsdk.TypeString,
+							Required:    true,
 						},
 
 						"description": {
+							Description:  "A description for this rule.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
 
 						"protocol": {
+							Description:  "Network protocol this rule applies to.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleProtocol(), false),
 						},
 
 						"source_port_range": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Description: "Source Port or Range. Integer or range between `0` and `65535` or `*` to match any.",
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
 						},
 
 						"source_port_ranges": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Description: "List of source ports or port ranges.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:         pluginsdk.HashString,
 						},
 
 						"destination_port_range": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Description: "Destination Port or Range. Integer or range between `0` and `65535` or `*` to match any.",
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
 						},
 
 						"destination_port_ranges": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Description: "List of destination ports or port ranges.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:         pluginsdk.HashString,
 						},
 
 						"source_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Description: "CIDR or source IP range or * to match any IP. Tags such as `VirtualNetwork`, `AzureLoadBalancer` and `Internet` can also be used.",
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
 						},
 
 						"source_address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Description: "List of source address prefixes. Tags may not be used.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:         pluginsdk.HashString,
 						},
 
 						"destination_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Description: "CIDR or destination IP range or * to match any IP. Tags such as `VirtualNetwork`, `AzureLoadBalancer` and `Internet` can also be used.",
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
 						},
 
 						"destination_address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Description: "List of destination address prefixes. Tags may not be used.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:         pluginsdk.HashString,
 						},
 
 						"destination_application_security_group_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Description: "A list of destination Application Security Group IDs.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
@@ -148,8 +162,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"source_application_security_group_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Description: "A list of source Application Security Group IDs.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
@@ -158,18 +173,21 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"access": {
+							Description:  "Whether network traffic is allowed or denied.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleAccess(), false),
 						},
 
 						"priority": {
+							Description:  "The priority of the rule. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule.",
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(100, 4096),
 						},
 
 						"direction": {
+							Description:  "The direction specifies if rule will be evaluated on incoming or outgoing traffic.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleDirection(), false),

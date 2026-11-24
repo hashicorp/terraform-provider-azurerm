@@ -12,14 +12,16 @@ import (
 func mysqlFlexibleDatabaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the MySQL Database, which needs [to be a valid MySQL identifier](https://dev.mysql.com/doc/refman/8.4/en/identifiers.html).",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_name": {
+			Description:  "The name of the MySQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func mysqlFlexibleDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"charset": {
+			Description:      "The Charset for the MySQL Database, which needs [to be a valid MySQL Charset](https://dev.mysql.com/doc/refman/8.4/en/charset-charsets.html).",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -34,6 +37,7 @@ func mysqlFlexibleDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"collation": {
+			Description:      "The Collation for the MySQL Database, which needs [to be a valid MySQL Collation](https://dev.mysql.com/doc/refman/8.4/en/charset-mysql.html).",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,

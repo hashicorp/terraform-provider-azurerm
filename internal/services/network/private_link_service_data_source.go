@@ -21,7 +21,8 @@ import (
 
 func dataSourcePrivateLinkService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePrivateLinkServiceRead,
+		Description: "Use this data source to access information about an existing Private Link Service.",
+		Read:        dataSourcePrivateLinkServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Private Link Service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PrivateLinkName,
@@ -39,19 +41,22 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_approval_subscription_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of subscription(s) globally unique identifiers that will be auto approved to use the Private Link Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"destination_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The destination IP address of the Private Link Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"fqdns": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List of FQDNs allowed for the Private Link Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -63,9 +68,10 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 			},
 
 			"visibility_subscription_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of subscription(s) globally unique identifiers(GUID) that will be able to see the Private Link Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"nat_ip_configuration": {
@@ -74,38 +80,45 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of Private Link Service NAT IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The private IP address of the NAT IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_ip_address_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The version of the IP Protocol.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the subnet to be used by the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"primary": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Value that indicates if the IP configuration is the primary configuration or not.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"load_balancer_frontend_ip_configuration_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of Standard Load Balancer(SLB) resource IDs. The Private Link Service is tied to the frontend IP address of an SLB. All traffic destined for the Private Link Service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"alias": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The alias is a globally unique name for your Private Link Service which Azure generates for you. Your can use this alias to request a connection to your Private Link Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

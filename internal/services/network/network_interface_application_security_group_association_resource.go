@@ -25,9 +25,10 @@ import (
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
-		Read:   resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
-		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
+		Description: "Manages the association between a Network Interface and an Application Security Group.",
+		Create:      resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
+		Read:        resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
+		Delete:      resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
 			return err
@@ -46,6 +47,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 
 		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
+				Description:  "The ID of the Network Interface.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -53,6 +55,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 			},
 
 			"application_security_group_id": {
+				Description:  "The ID of the Application Security Group which should be connected to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

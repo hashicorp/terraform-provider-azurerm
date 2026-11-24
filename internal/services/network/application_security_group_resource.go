@@ -26,11 +26,12 @@ import (
 
 func resourceApplicationSecurityGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceApplicationSecurityGroupCreate,
-		Read:     resourceApplicationSecurityGroupRead,
-		Update:   resourceApplicationSecurityGroupUpdate,
-		Delete:   resourceApplicationSecurityGroupDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&applicationsecuritygroups.ApplicationSecurityGroupId{}),
+		Description: "Manages an Application Security Group.",
+		Create:      resourceApplicationSecurityGroupCreate,
+		Read:        resourceApplicationSecurityGroupRead,
+		Update:      resourceApplicationSecurityGroupUpdate,
+		Delete:      resourceApplicationSecurityGroupDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&applicationsecuritygroups.ApplicationSecurityGroupId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&applicationsecuritygroups.ApplicationSecurityGroupId{}),
@@ -45,9 +46,10 @@ func resourceApplicationSecurityGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name of the Application Security Group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"location": commonschema.Location(),

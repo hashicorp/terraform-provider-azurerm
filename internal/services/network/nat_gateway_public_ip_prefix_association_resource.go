@@ -24,9 +24,10 @@ import (
 
 func resourceNATGatewayPublicIpPrefixAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNATGatewayPublicIpPrefixAssociationCreate,
-		Read:   resourceNATGatewayPublicIpPrefixAssociationRead,
-		Delete: resourceNATGatewayPublicIpPrefixAssociationDelete,
+		Description: "Manages a NAT Gateway Public IP Prefix association.",
+		Create:      resourceNATGatewayPublicIpPrefixAssociationCreate,
+		Read:        resourceNATGatewayPublicIpPrefixAssociationRead,
+		Delete:      resourceNATGatewayPublicIpPrefixAssociationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &natgateways.NatGatewayId{}, &publicipprefixes.PublicIPPrefixId{})
@@ -41,6 +42,7 @@ func resourceNATGatewayPublicIpPrefixAssociation() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"nat_gateway_id": {
+				Description:  "The ID of the NAT Gateway.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -48,6 +50,7 @@ func resourceNATGatewayPublicIpPrefixAssociation() *pluginsdk.Resource {
 			},
 
 			"public_ip_prefix_id": {
+				Description:  "The ID of the Public IP Prefix which this NAT Gateway should be connected to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
