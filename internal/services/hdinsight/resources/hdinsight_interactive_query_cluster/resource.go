@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHDInsightInteractiveQueryClusterCreate,
-		Read:   resourceHDInsightInteractiveQueryClusterRead,
-		Update: helpers.HdinsightClusterUpdate("Interactive Query", resourceHDInsightInteractiveQueryClusterRead),
-		Delete: helpers.HdinsightClusterDelete("Interactive Query"),
+		Description: "Manages an HDInsight Interactive Query Cluster.",
+		Create:      resourceHDInsightInteractiveQueryClusterCreate,
+		Read:        resourceHDInsightInteractiveQueryClusterRead,
+		Update:      helpers.HdinsightClusterUpdate("Interactive Query", resourceHDInsightInteractiveQueryClusterRead),
+		Delete:      helpers.HdinsightClusterDelete("Interactive Query"),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseHDInsightClusterID(id)
