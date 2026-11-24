@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceHealthcareApisFhirServiceRead,
+		Description: "Use this data source to access information about an existing Healthcare FHIR Service (Fast Healthcare Interoperability Resources).",
+		Read:        dataSourceHealthcareApisFhirServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,12 +32,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Healthcare FHIR Service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FhirServiceName(),
 			},
 
 			"workspace_id": {
+				Description:  "The ID of the Healthcare Workspace in which the Healthcare FHIR Service exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -45,13 +48,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The kind of the Healthcare FHIR Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"access_policy_object_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of the access policies of the service instance.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -63,13 +68,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authority": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure Active Directory (tenant) that serves as the authentication authority to access the service. Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id}.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"audience": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The intended audience to receive authentication tokens for the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"smart_proxy_enabled": {
@@ -83,8 +90,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"container_registry_login_server_url": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of azure container registry settings used for convert data operation of the service instance.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -96,45 +104,51 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The set of origins to be allowed via CORS.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"allowed_headers": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The set of headers to be allowed via CORS.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"allowed_methods": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The methods to be allowed via CORS.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"max_age_in_seconds": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The max age to be allowed via CORS.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"credentials_allowed": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Are credentials allowed via CORS?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"configuration_export_storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Storage Account which the operation configuration information is exported to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.Tags(),

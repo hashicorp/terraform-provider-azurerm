@@ -12,6 +12,7 @@ import (
 func frontdoorCustomHttpsConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"frontend_endpoint_id": {
+			Description:  "The ID of the Front Door Frontend Endpoint which this configuration refers to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,8 +20,9 @@ func frontdoorCustomHttpsConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"custom_https_provisioning_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"custom_https_configuration": {

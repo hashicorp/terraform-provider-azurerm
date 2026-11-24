@@ -14,6 +14,7 @@ import (
 func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Firewall Policy Rule Collection Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"firewall_policy_id": {
+			Description:  "The ID of the Firewall Policy where the Firewall Policy Rule Collection Group should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"priority": {
+			Description:  "The priority of the Firewall Policy Rule Collection Group. The range is 100-65000.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(100, 65000),
@@ -40,16 +43,19 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this application rule collection.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"priority": {
+						Description:  "The priority of the application rule collection. The range is `100` - `65000`.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(100, 65000),
 					},
 					"action": {
+						Description:  "The action to take for the application rules in this collection.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(firewallpolicyrulecollectiongroups.PossibleValuesForFirewallPolicyFilterRuleCollectionActionType(), false),
@@ -76,8 +82,9 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
+												Description: "Protocol type.",
+												Type:        pluginsdk.TypeString,
+												Required:    true,
 												ValidateFunc: validation.StringInSlice([]string{
 													string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolTypeHTTP),
 													string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolTypeHTTPS),
@@ -85,6 +92,7 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 												}, false),
 											},
 											"port": {
+												Description:  "Port number of the protocol. Range is 0-64000.",
 												Type:         pluginsdk.TypeInt,
 												Required:     true,
 												ValidateFunc: validation.IntBetween(0, 64000),
@@ -98,11 +106,13 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"name": {
+												Description:  "The name of the header.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 											"value": {
+												Description:  "The value of the value.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
@@ -194,16 +204,19 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this network rule collection.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"priority": {
+						Description:  "The priority of the network rule collection. The range is `100` - `65000`.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(100, 65000),
 					},
 					"action": {
+						Description:  "The action to take for the network rules in this collection.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(firewallpolicyrulecollectiongroups.PossibleValuesForFirewallPolicyFilterRuleCollectionActionType(), false),
@@ -303,18 +316,21 @@ func firewallPolicyRuleCollectionGroupSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this NAT rule collection.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"priority": {
+						Description:  "The priority of the NAT rule collection. The range is `100` - `65000`.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(100, 65000),
 					},
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The action to take for the NAT rules in this collection.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							// Hardcode to using `Dnat` instead of the one defined in Swagger (i.e. firewallpolicyrulecollectiongroups.DNAT) because of: https://github.com/Azure/azure-rest-api-specs/issues/9986
 							// Setting `StateFunc: state.IgnoreCase` will cause other issues, as tracked by: https://github.com/hashicorp/terraform-plugin-sdk/issues/485

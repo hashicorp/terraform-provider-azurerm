@@ -14,10 +14,11 @@ var AzureFirewallResourceName = "azurerm_firewall"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallApplicationRuleCollectionCreateUpdate,
-		Read:   resourceFirewallApplicationRuleCollectionRead,
-		Update: resourceFirewallApplicationRuleCollectionCreateUpdate,
-		Delete: resourceFirewallApplicationRuleCollectionDelete,
+		Description: "Manages an Application Rule Collection within an Azure Firewall.",
+		Create:      resourceFirewallApplicationRuleCollectionCreateUpdate,
+		Read:        resourceFirewallApplicationRuleCollectionRead,
+		Update:      resourceFirewallApplicationRuleCollectionCreateUpdate,
+		Delete:      resourceFirewallApplicationRuleCollectionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallApplicationRuleCollectionID(id)
 			return err

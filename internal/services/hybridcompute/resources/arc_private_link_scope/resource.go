@@ -18,6 +18,10 @@ func (a Resource) ResourceType() string {
 	return "azurerm_arc_private_link_scope"
 }
 
+func (a Resource) Description() string {
+	return "Manages an Azure Arc Private Link Scope."
+}
+
 func (a Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return privatelinkscopes.ValidateProviderPrivateLinkScopeID
 }

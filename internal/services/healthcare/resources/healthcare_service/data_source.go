@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceHealthcareServiceRead,
+		Description: "Use this data source to access information about an existing Healthcare Service.",
+		Read:        dataSourceHealthcareServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,6 +28,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Healthcare Service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -37,18 +39,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"cosmosdb_throughput": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The provisioned throughput for the backing database.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The versionless Key Vault Key ID for CMK encryption of the backing database.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"access_policy_object_ids": {
@@ -65,16 +70,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authority": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure Active Directory (tenant) that serves as the authentication authority to access the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"audience": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The intended audience to receive authentication tokens for the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"smart_proxy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Is the 'SMART on FHIR' option for mobile and web implementations enabled?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -86,33 +94,38 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "The set of origins to be allowed via CORS.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"allowed_headers": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "The set of headers to be allowed via CORS.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"allowed_methods": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The methods to be allowed via CORS.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"max_age_in_seconds": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The max age to be allowed via CORS.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"allow_credentials": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Are credentials allowed via CORS?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},

@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceHDInsightClusterRead,
+		Description: "Use this data source to access information about an existing HDInsight Cluster.",
+		Read:        dataSourceHDInsightClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,6 +33,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this HDInsight Cluster.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.HDInsightName,
@@ -42,31 +44,36 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"cluster_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The version of HDInsights which is used on this HDInsight Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"component_versions": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "A map of versions of software used on this HDInsights Cluster.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The kind of HDInsight Cluster this is, such as a Spark or Storm cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tier": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU / Tier of this HDInsight Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tls_min_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The minimal supported TLS version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"gateway": {
@@ -75,17 +82,20 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Is the Ambari Portal enabled?",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The username used for the Ambari Portal.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The password used for the Ambari Portal.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
@@ -94,27 +104,32 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"edge_ssh_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SSH Endpoint of the Edge Node for this HDInsight Cluster, if an Edge Node exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"https_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The HTTPS Endpoint for this HDInsight Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"kafka_rest_proxy_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Kafka Rest Proxy Endpoint for this HDInsight Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ssh_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SSH Endpoint for this HDInsight Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"cluster_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The HDInsight Cluster ID.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}
