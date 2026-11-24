@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package batch_pool
@@ -268,7 +268,7 @@ func validateUserIdentity(userIdentity *pool.UserIdentity) error {
 }
 
 func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
-	// Perform validation across multiple fields as per https://docs.microsoft.com/rest/api/batchmanagement/pool/create#resourcefile
+	// Perform validation across multiple fields as per https://learn.microsoft.com/rest/api/batchmanagement/pool/create#resourcefile
 
 	if pool.StartTask != nil {
 		startTask := *pool.StartTask
