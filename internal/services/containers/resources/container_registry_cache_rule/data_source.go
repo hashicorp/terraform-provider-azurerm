@@ -19,6 +19,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 func (DataSource) ResourceType() string {
 	return "azurerm_container_registry_cache_rule"
 }
