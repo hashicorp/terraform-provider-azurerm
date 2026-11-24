@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -87,7 +87,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
+				Description: "The workload type for the Subscription.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
 				ValidateFunc: validation.StringInSlice(subscriptionAlias.PossibleValuesForWorkload(), false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
@@ -112,7 +112,7 @@ func resourceSubscription() *pluginsdk.Resource {
 
 			"tenant_id": {
 				Type:        pluginsdk.TypeString,
-				Description: "The Tenant ID to which the subscription belongs",
+				Description: "The Tenant ID to which the subscription belongs.",
 				Computed:    true,
 			},
 
