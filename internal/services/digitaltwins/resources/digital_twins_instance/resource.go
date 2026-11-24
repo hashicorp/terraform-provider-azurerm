@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDigitalTwinsInstanceCreate,
-		Read:   resourceDigitalTwinsInstanceRead,
-		Update: resourceDigitalTwinsInstanceUpdate,
-		Delete: resourceDigitalTwinsInstanceDelete,
+		Description: "Manages a Digital Twins instance.",
+		Create:      resourceDigitalTwinsInstanceCreate,
+		Read:        resourceDigitalTwinsInstanceRead,
+		Update:      resourceDigitalTwinsInstanceUpdate,
+		Delete:      resourceDigitalTwinsInstanceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
