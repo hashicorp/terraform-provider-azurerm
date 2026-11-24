@@ -11,6 +11,7 @@ import (
 func virtualDesktopScalingPlanHostPoolAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scaling_plan_id": {
+			Description:  "The resource ID for the Virtual Desktop Scaling Plan.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,6 +19,7 @@ func virtualDesktopScalingPlanHostPoolAssociationSchema() map[string]*pluginsdk.
 		},
 
 		"host_pool_id": {
+			Description:  "The resource ID for the Virtual Desktop Host Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +27,9 @@ func virtualDesktopScalingPlanHostPoolAssociationSchema() map[string]*pluginsdk.
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Should the Scaling Plan be enabled on this Host Pool?",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 	}
 }
