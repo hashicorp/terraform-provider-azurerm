@@ -21,6 +21,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Elastic SAN Volume Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumegroups.ElasticSanId{}, "Elastic SAN"),
 
 		"encryption_type": {
+			Description:  "The type of the key used to encrypt the data of the disk.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEncryptionType(), false),
@@ -43,26 +45,31 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Description:  "The Key Vault Key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.",
 						Required:     true,
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 					},
 					"user_assigned_identity_id": {
+						Description:  "The ID of the User Assigned Identity used by this Elastic SAN Volume Group.",
 						Optional:     true,
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 					"current_versioned_key_expiration_timestamp": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The timestamp of the expiration time for the current version of the customer managed key.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"current_versioned_key_id": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The ID of the current versioned Key Vault Key in use.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 					"last_key_rotation_timestamp": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The timestamp of the last rotation of the Key Vault Key.",
+						Computed:    true,
+						Type:        pluginsdk.TypeString,
 					},
 				},
 			},
@@ -75,11 +82,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
+						Description:  "The ID of the Subnet which should be allowed to access this Elastic SAN Volume Group.",
 						Required:     true,
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"action": {
+						Description:  "The action to take when the Subnet attempts to access this Elastic SAN Volume Group.",
 						Optional:     true,
 						Type:         pluginsdk.TypeString,
 						Default:      string(volumegroups.ActionAllow),
@@ -90,8 +99,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The type of the storage target.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// None is not a valid value and service team will consider removing it in future versions.
 				string(volumegroups.StorageTargetTypeIscsi),

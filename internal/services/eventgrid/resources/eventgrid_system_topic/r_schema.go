@@ -17,9 +17,10 @@ import (
 func eventgridSystemTopicSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Event Grid System Topic.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
@@ -36,6 +37,7 @@ func eventgridSystemTopicSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"source_resource_id": {
+			Description:      "The ID of the Event Grid System Topic ARM Source.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -47,6 +49,7 @@ func eventgridSystemTopicSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"topic_type": {
+			Description:  "The Topic Type of the Event Grid System Topic. The topic type is validated by Azure and there may be additional topic types beyond the following: `Microsoft.AppConfiguration.ConfigurationStores`, `Microsoft.Communication.CommunicationServices`, `Microsoft.ContainerRegistry.Registries`, `Microsoft.Devices.IoTHubs`, `Microsoft.EventGrid.Domains`, `Microsoft.EventGrid.Topics`, `Microsoft.Eventhub.Namespaces`, `Microsoft.KeyVault.vaults`, `Microsoft.MachineLearningServices.Workspaces`, `Microsoft.Maps.Accounts`, `Microsoft.Media.MediaServices`, `Microsoft.Resources.ResourceGroups`, `Microsoft.Resources.Subscriptions`, `Microsoft.ServiceBus.Namespaces`, `Microsoft.SignalRService.SignalR`, `Microsoft.Storage.StorageAccounts`, `Microsoft.Web.ServerFarms` and `Microsoft.Web.Sites`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -54,8 +57,9 @@ func eventgridSystemTopicSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"metric_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Metric Resource ID of the Event Grid System Topic.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),
