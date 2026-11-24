@@ -28,7 +28,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Required
 		"admin_password": {
-			Description:  "The password must be between `12` and `30` characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (`\"`) or the username `admin`, regardless of casing.", // azignore:
+			Description:  "The password must be between `12` and `30` characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (`\"`) or the username `admin`, regardless of casing.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
