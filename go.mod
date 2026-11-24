@@ -17,15 +17,16 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.82.0
-	github.com/hashicorp/go-azure-sdk/data-plane v0.20261106.1110203
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20261106.1110203
-	github.com/hashicorp/go-azure-sdk/sdk v0.20261106.1110203
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20261116.1144656
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20261116.1144656
+	github.com/hashicorp/go-azure-sdk/sdk v0.20261116.1144656
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-set/v3 v3.0.1
 	github.com/hashicorp/go-uuid v1.0.4
 	github.com/hashicorp/go-version v1.9.0
+	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/hashicorp/terraform-json v0.29.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0
@@ -75,7 +76,6 @@ require (
 	github.com/hashicorp/go-plugin v1.7.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/hashicorp/hc-install v0.10.0 // indirect
-	github.com/hashicorp/hcl/v2 v2.25.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.26.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.11.0 // indirect
@@ -113,4 +113,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.7.4 // indirect
 )
 
-go 1.26.10
+go 1.26.11
