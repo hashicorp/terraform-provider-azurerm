@@ -20,6 +20,7 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_service_access_key": {
+			Description:  "The access key to access the Cognitive Service. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -36,6 +38,7 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_service_location": {
+			Description:      "The supported Azure location where the Cognitive Service resource exists. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.",
 			Type:             schema.TypeString,
 			Optional:         true,
 			ValidateFunc:     location.EnhancedValidate,
@@ -45,6 +48,7 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_account_id": {
+			Description:  "The ID of the Cognitive Account this Bot Channel should be associated with. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
@@ -52,12 +56,14 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"custom_speech_model_id": {
+			Description:  "The custom speech model ID for the Direct Line Speech Channel.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"custom_voice_deployment_id": {
+			Description:  "The custom voice deployment ID for the Direct Line Speech Channel.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
