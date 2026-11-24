@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoClusterPrincipalAssignmentCreate,
-		Read:   resourceKustoClusterPrincipalAssignmentRead,
-		Delete: resourceKustoClusterPrincipalAssignmentDelete,
+		Description: "Manages a Kusto Cluster Principal Assignment.",
+		Create:      resourceKustoClusterPrincipalAssignmentCreate,
+		Read:        resourceKustoClusterPrincipalAssignmentRead,
+		Delete:      resourceKustoClusterPrincipalAssignmentDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

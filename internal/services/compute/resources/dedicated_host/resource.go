@@ -23,10 +23,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDedicatedHostCreate,
-		Read:   resourceDedicatedHostRead,
-		Update: resourceDedicatedHostUpdate,
-		Delete: resourceDedicatedHostDelete,
+		Description: "Manage a Dedicated Host within a Dedicated Host Group.",
+		Create:      resourceDedicatedHostCreate,
+		Read:        resourceDedicatedHostRead,
+		Update:      resourceDedicatedHostUpdate,
+		Delete:      resourceDedicatedHostDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.DedicatedHostId{}),
 

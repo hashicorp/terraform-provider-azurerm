@@ -34,13 +34,15 @@ type EncryptedValueDataSourceModel struct {
 func (DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"key_vault_key_id": {
+			Description:  "The ID of the Key Vault Key which should be used to Decrypt/Encrypt this Value.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 		"algorithm": {
-			Type:     schema.TypeString,
-			Required: true,
+			Description: "The Algorithm which should be used to Decrypt/Encrypt this Value.",
+			Type:        schema.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(kv.JSONWebKeyEncryptionAlgorithmRSA15),
 				string(kv.JSONWebKeyEncryptionAlgorithmRSAOAEP),
@@ -48,14 +50,16 @@ func (DataSource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 		"encrypted_data": {
-			Type:      schema.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Description: "The Base64 URL Encoded Encrypted Data which should be decrypted into `plain_text_value`.",
+			Type:        schema.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 		},
 		"plain_text_value": {
-			Type:      schema.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Description: "The plain-text value which should be Encrypted into `encrypted_data`.",
+			Type:        schema.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 		},
 	}
 }
@@ -63,9 +67,10 @@ func (DataSource) Arguments() map[string]*schema.Schema {
 func (DataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"decoded_plain_text_value": {
-			Type:      schema.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Base64URL decoded string of `plain_text_value`. Because the API would remove padding characters of `plain_text_value` when encrypting, this attribute is useful to get the original value.",
+			Type:        schema.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }
@@ -76,6 +81,10 @@ func (DataSource) ModelObject() any {
 
 func (e DataSource) ResourceType() string {
 	return "azurerm_key_vault_encrypted_value"
+}
+
+func (e DataSource) Description() string {
+	return "Encrypts or Decrypts a value using a Key Vault Key."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

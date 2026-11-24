@@ -17,6 +17,7 @@ import (
 func snapshotSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Snapshot resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,8 +29,9 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"create_option": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "How the snapshot is to be created.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(snapshots.DiskCreateOptionCopy),
 				string(snapshots.DiskCreateOptionCopyStart),
@@ -38,19 +40,22 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"incremental_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Description: "Whether the Snapshot is incremental.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			ForceNew:    true,
 		},
 
 		"source_uri": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The URI to a Managed or Unmanaged Disk.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"network_access_policy": {
+			Description:  "Policy for accessing the disk via network.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForNetworkAccessPolicy(), false),
@@ -58,6 +63,7 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_access_id": {
+			Description:  "The ID of the Disk Access which should be used for this Snapshot. This is used in conjunction with setting `network_access_policy` to `AllowPrivate`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: diskaccesses.ValidateDiskAccessID,
@@ -68,26 +74,30 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Policy for controlling export on the disk.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"source_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "A reference to an existing snapshot, when `create_option` is `Copy` or `CopyStart`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"storage_account_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The ID of a Storage Account. Used with `source_uri` to allow authorization during import of unmanaged blobs from a different subscription.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"disk_size_gb": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The size of the Snapshotted Disk in GB.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// Note: O+C because Azure computes disk size when not specified
 			Computed: true,
 		},
@@ -95,8 +105,9 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 		"encryption_settings": helpers.EncryptionSettingsSchema(),
 
 		"trusted_launch_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Trusted Launch is enabled for the Snapshot.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

@@ -17,9 +17,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Azure Stack HCI Marketplace Gallery Image.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
 				"name must begin and end with an alphanumeric character, be between 2 and 80 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
@@ -30,9 +31,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"hyperv_generation": {
+			Description:  "The hypervisor generation of the Azure Stack HCI Marketplace Gallery Image.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -47,6 +49,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"publisher": {
+						Description:  "The publisher of the Azure Stack HCI Marketplace Gallery Image.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -54,6 +57,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"offer": {
+						Description:  "The offer of the Azure Stack HCI Marketplace Gallery Image.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -61,6 +65,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sku": {
+						Description:  "The SKU of the Azure Stack HCI Marketplace Gallery Image.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -71,6 +76,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"os_type": {
+			Description:  "The Operating System type of the Azure Stack HCI Marketplace Gallery Image.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -78,6 +84,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"version": {
+			Description:  "The version of the Azure Stack HCI Marketplace Gallery Image.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -85,6 +92,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_path_id": {
+			Description:  "The ID of the Azure Stack HCI Storage Path used for this Marketplace Gallery Image.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

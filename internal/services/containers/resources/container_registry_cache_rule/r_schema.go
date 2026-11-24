@@ -20,10 +20,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "The name of the cache rule.",
+			Description:  "The name of the Container Registry Cache Rule. Only Alphanumeric characters allowed.",
 			ValidateFunc: validate.ContainerRegistryCacheRuleName,
 		},
 		"container_registry_id": {
+			Description:  "The ID of the Container Registry where the Cache Rule should apply.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,21 +33,21 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"credential_set_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Description:  "The ARM resource ID of the credential store which is associated with the cache rule.",
+			Description:  "The ARM resource ID of the Credential Store which is associated with the Cache Rule.",
 			ValidateFunc: credentialsets.ValidateCredentialSetID,
 		},
 		"source_repo": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The full source repository path such as 'docker.io/library/ubuntu'.",
+			Description: "The name of the source repository path.",
 		},
 
 		"target_repo": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The target repository namespace such as 'ubuntu'.",
+			Description: "The name of the new repository path to store artifacts.",
 		},
 	}
 }

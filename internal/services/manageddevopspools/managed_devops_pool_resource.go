@@ -161,7 +161,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}, "Dev Center Project"),
 
 		"maximum_concurrency": {
 			Type:         pluginsdk.TypeInt,

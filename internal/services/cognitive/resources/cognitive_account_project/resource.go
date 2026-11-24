@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Cognitive Account Project."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cognitiveservicesprojects.ValidateProjectID
 }

@@ -14,6 +14,7 @@ import (
 func kustoClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Kusto Cluster to create. Only lowercase Alphanumeric characters allowed, starting with a letter.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,13 +34,15 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the SKU.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForAzureSkuName(),
 							false),
 					},
 
 					"capacity": {
+						Description:  "The node count for the cluster. Boundaries depend on the SKU name.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -50,8 +53,9 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allowed_fqdns": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of allowed FQDNs (Fully Qualified Domain Name) for egress from Cluster.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -59,8 +63,9 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allowed_ip_ranges": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "The list of IPs in the format of CIDR allowed to connect to the cluster.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -68,6 +73,7 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"trusted_external_tenants": {
+			Description: "A list of tenant IDs that are trusted by the cluster. Use `trusted_external_tenants = [\"*\"]` to explicitly allow all other tenants, `trusted_external_tenants = [\"MyTenantOnly\"]` for only your tenant or `trusted_external_tenants = [\"<tenantId1>\", \"<tenantIdx>\"]` to allow specific other tenants.",
 			// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
 			// The Azure Data Explorer API returns tenants in its own order, so compare sorted tenant lists.
 			DiffSuppressFunc: diffSuppressTrustedExternalTenants,
@@ -88,11 +94,13 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"minimum_instances": {
+						Description:  "The minimum number of allowed instances.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					"maximum_instances": {
+						Description:  "The maximum number of allowed instances.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 1000),
@@ -102,13 +110,15 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the Azure Kusto Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"data_ingestion_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Kusto Cluster URI to be used for data ingestion.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"language_extension": {
@@ -117,11 +127,13 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the language extension.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
 					},
 					"image": {
+						Description:  "The language extension image.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
@@ -131,6 +143,7 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_ip_type": {
+			Description:  "What public IP type to create - IPv4 (default), or DualStack (both IPv4 and IPv6).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(clusters.PublicIPTypeIPvFour),
@@ -138,45 +151,52 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the public network access is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"outbound_network_access_restricted": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to restrict outbound network access.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"double_encryption_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether the cluster's double encryption is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"auto_stop_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the cluster could be automatically stopped (due to lack of data or no activity for many days).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"disk_encryption_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the cluster's disks are encrypted.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"streaming_ingestion_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the streaming ingest is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"purge_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the purge operations are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),

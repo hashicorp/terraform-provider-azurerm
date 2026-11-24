@@ -17,12 +17,14 @@ func CacheExpiration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
+				Description:  "The behaviour of the cache.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleCacheBehaviorValues(), false),
 			},
 
 			"duration": {
+				Description:  "Duration of the cache. Only allowed when `behavior` is set to `Override` or `SetIfMissing`. Format: `[d.]hh:mm:ss`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionCacheExpirationDuration(),

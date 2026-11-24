@@ -166,8 +166,8 @@ github.com/govalues/decimal
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.82.0
-## explicit; go 1.26.6
+# github.com/hashicorp/go-azure-helpers v0.83.0
+## explicit; go 1.26.11
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
 github.com/hashicorp/go-azure-helpers/framework/convert
@@ -214,6 +214,14 @@ github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/roledefinitions
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/settings
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/documents
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/indexers
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/indexes
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/service
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/skillsets
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/synonymmaps
 github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints
 # github.com/hashicorp/go-azure-sdk/resource-manager v0.20261116.1144656
 ## explicit; go 1.26.10
@@ -403,6 +411,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes
@@ -691,6 +700,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iot
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/defaultparametergroups
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/passwordauthentications
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/pools
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections
@@ -1019,13 +1033,14 @@ github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/rem
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/virtualendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/administratormicrosoftentras
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/backupautomaticandondemands
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/virtualendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules
@@ -1454,8 +1469,8 @@ github.com/hashicorp/terraform-plugin-log/tfsdklog
 ## explicit; go 1.25.0
 github.com/hashicorp/terraform-plugin-mux/internal/logging
 github.com/hashicorp/terraform-plugin-mux/tf5muxserver
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
-## explicit; go 1.25.8
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.41.1
+## explicit; go 1.26.0
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging

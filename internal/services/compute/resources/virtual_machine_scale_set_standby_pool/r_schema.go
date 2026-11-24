@@ -20,9 +20,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Standby Pool.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9-]{3,24}$"),
 				"name must be between 3 and 24 characters in length and may contain only letters, numbers and hyphens (-).",
@@ -34,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"attached_virtual_machine_scale_set_id": {
+			Description:  "The fully qualified resource ID of a Virtual Machine Scale Set the pool is attached to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: virtualmachinescalesets.ValidateVirtualMachineScaleSetID,
@@ -46,12 +48,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"max_ready_capacity": {
+						Description:  "The maximum number of Virtual Machines in the standby pool.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 2000),
 					},
 
 					"min_ready_capacity": {
+						Description:  "The desired minimum number of Virtual Machines in the standby pool.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 2000),
@@ -61,6 +65,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_state": {
+			Description:  "The desired state of Virtual Machines in the pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(standbyvirtualmachinepools.PossibleValuesForVirtualMachineState(), false),

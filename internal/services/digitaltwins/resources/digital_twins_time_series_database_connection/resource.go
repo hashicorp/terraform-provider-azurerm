@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_digital_twins_time_series_database_connection"
 }
 
+func (m Resource) Description() string {
+	return "Manages a Digital Twins Time Series Database Connection."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return timeseriesdatabaseconnections.ValidateTimeSeriesDatabaseConnectionID
 }

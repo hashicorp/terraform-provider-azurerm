@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationScheduleCreate,
-		Read:   resourceAutomationScheduleRead,
-		Update: resourceAutomationScheduleUpdate,
-		Delete: resourceAutomationScheduleDelete,
+		Description: "Manages an Automation Schedule.",
+		Create:      resourceAutomationScheduleCreate,
+		Read:        resourceAutomationScheduleRead,
+		Update:      resourceAutomationScheduleUpdate,
+		Delete:      resourceAutomationScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schedule.ParseScheduleID(id)

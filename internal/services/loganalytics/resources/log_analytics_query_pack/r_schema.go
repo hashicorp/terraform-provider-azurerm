@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Log Analytics Query Pack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorProfileRead,
+		Description: "Use this data source to access information about an existing Front Door (standard/premium) Profile.",
+		Read:        dataSourceCdnFrontDoorProfileRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Profile.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorName,
@@ -39,13 +41,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"response_timeout_seconds": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum response timeout in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU for this Front Door Profile.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"log_scrubbing_rule": {
@@ -54,8 +58,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"match_variable": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The variable that is scrubbed from the logs.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -64,8 +69,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"resource_guid": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The UUID of the Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteFilterCreate,
-		Read:   resourceRouteFilterRead,
-		Update: resourceRouteFilterUpdate,
-		Delete: resourceRouteFilterDelete,
+		Description: "Manages a Route Filter.",
+		Create:      resourceRouteFilterCreate,
+		Read:        resourceRouteFilterRead,
+		Update:      resourceRouteFilterUpdate,
+		Delete:      resourceRouteFilterDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&routefilters.RouteFilterId{}),
 

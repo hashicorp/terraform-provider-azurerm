@@ -95,7 +95,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}),
+		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}, "Spring Cloud Accelerator"),
 
 		"git_repository": {
 			Type:     pluginsdk.TypeList,

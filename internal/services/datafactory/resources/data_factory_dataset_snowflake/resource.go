@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetSnowflakeCreateUpdate,
-		Read:   resourceDataFactoryDatasetSnowflakeRead,
-		Update: resourceDataFactoryDatasetSnowflakeCreateUpdate,
-		Delete: resourceDataFactoryDatasetSnowflakeDelete,
+		Description: "Manages a Snowflake Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetSnowflakeCreateUpdate,
+		Read:        resourceDataFactoryDatasetSnowflakeRead,
+		Update:      resourceDataFactoryDatasetSnowflakeCreateUpdate,
+		Delete:      resourceDataFactoryDatasetSnowflakeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

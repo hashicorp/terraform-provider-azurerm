@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_key_vault_certificate_contacts"
 }
 
+func (r Resource) Description() string {
+	return "Manages Key Vault Certificate Contacts."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.CertificateContactsID
 }

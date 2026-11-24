@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmDevTestVnetRead,
+		Description: "Use this data source to access information about an existing Dev Test Lab Virtual Network.",
+		Read:        dataSourceArmDevTestVnetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,12 +28,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Virtual Network.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"lab_name": {
+				Description:  "The name of the Dev Test Lab.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DevTestLabName(),
@@ -41,8 +44,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"unique_identifier": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The unique immutable identifier of the Virtual Network.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"allowed_subnets": {
@@ -51,16 +55,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"allow_public_ip": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Whether this subnet allows public IP addresses.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"lab_subnet_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the subnet.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The resource identifier for the subnet.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

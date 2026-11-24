@@ -9,12 +9,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+const (
+	postgresqlVersion11 = "11"
+	postgresqlVersion12 = "12"
+	postgresqlVersion13 = "13"
+	postgresqlVersion14 = "14"
+	postgresqlVersion15 = "15"
+	postgresqlVersion16 = "16"
+	postgresqlVersion17 = "17"
+	postgresqlVersion18 = "18"
 )
 
 func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
@@ -160,8 +171,17 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// Note: O+C because Azure assigns a version when not explicitly set
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice(servers.PossibleValuesForPostgresMajorVersion(), false),
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				postgresqlVersion11,
+				postgresqlVersion12,
+				postgresqlVersion13,
+				postgresqlVersion14,
+				postgresqlVersion15,
+				postgresqlVersion16,
+				postgresqlVersion17,
+				postgresqlVersion18,
+			}, false),
 		},
 
 		"zone": commonschema.ZoneSingleOptional(),

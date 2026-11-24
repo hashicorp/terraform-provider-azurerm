@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDnsTxtRecordRead,
+		Description: "Use this data source to access information about an existing DNS TXT Record within Azure DNS.",
+		Read:        dataSourceDnsTxtRecordRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,38 +27,44 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the DNS TXT Record.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The DNS Zone where the resource exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"record": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "A list of values that make up the txt record.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"value": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The value of the record.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Time To Live (TTL) of the DNS record in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the DNS TXT Record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

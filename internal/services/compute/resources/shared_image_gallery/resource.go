@@ -23,11 +23,12 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceSharedImageGalleryCreate,
-		Read:     resourceSharedImageGalleryRead,
-		Update:   resourceSharedImageGalleryUpdate,
-		Delete:   resourceSharedImageGalleryDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SharedImageGalleryId{}),
+		Description: "Manages a Shared Image Gallery.",
+		Create:      resourceSharedImageGalleryCreate,
+		Read:        resourceSharedImageGalleryRead,
+		Update:      resourceSharedImageGalleryUpdate,
+		Delete:      resourceSharedImageGalleryDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.SharedImageGalleryId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SharedImageGalleryId{}),

@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDnsSrvRecordRead,
+		Description: "Use this data source to access information about an existing DNS SRV Record within Azure DNS.",
+		Read:        dataSourceDnsSrvRecordRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,40 +27,47 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the DNS SRV Record.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The DNS Zone where the resource exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"record": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "A list of values that make up the SRV record.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"priority": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Priority of the SRV record.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"weight": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Weight of the SRV record.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"port": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Port the service is listening on.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"target": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "FQDN of the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -67,13 +75,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Time To Live (TTL) of the DNS record in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the DNS SRV Record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),
