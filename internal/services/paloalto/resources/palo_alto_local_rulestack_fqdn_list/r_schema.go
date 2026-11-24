@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"rulestack_id": {
-			Description:  "The ID of the TODO.",
+			Description:  "The ID of the Palo Alto Local Rulestack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
