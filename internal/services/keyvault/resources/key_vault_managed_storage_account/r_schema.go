@@ -14,6 +14,7 @@ import (
 func keyVaultManagedStorageAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Key Vault Managed Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,8 +24,9 @@ func keyVaultManagedStorageAccountSchema() map[string]*pluginsdk.Schema {
 		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"storage_account_key": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "Which Storage Account access key that is managed by Key Vault.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"key1",
 				"key2",
@@ -32,12 +34,14 @@ func keyVaultManagedStorageAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The ID of the Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"regenerate_key_automatically": {
+			Description:  "Should Storage Account access key be regenerated periodically?",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			Default:      false,
@@ -45,6 +49,7 @@ func keyVaultManagedStorageAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"regeneration_period": {
+			Description:  "How often Storage Account access key should be regenerated. Value needs to be in [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.ISO8601Duration,

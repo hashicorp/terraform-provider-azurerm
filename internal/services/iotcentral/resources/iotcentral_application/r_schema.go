@@ -14,6 +14,7 @@ import (
 func iotcentralApplicationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the IotHub resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,12 +26,14 @@ func iotcentralApplicationSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sub_domain": {
+			Description:  "A `sub_domain` name. Subdomain for the IoT Central URL. Each application must have a unique subdomain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ApplicationSubdomain,
 		},
 
 		"display_name": {
+			Description:  "A `display_name` name. Custom display name for the IoT Central application.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -40,18 +43,21 @@ func iotcentralApplicationSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for the IoT Central Application.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"sku": {
+			Description:  "A `sku` name.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
 			Default:      string(apps.AppSkuSTOne),
 		},
 		"template": {
+			Description:  "A `template` name. IoT Central application template name.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

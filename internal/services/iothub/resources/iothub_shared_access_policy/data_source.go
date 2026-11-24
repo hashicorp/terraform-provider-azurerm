@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceIotHubSharedAccessPolicyRead,
+		Description: "Use this data source to access information about an existing IotHub Shared Access Policy.",
+		Read:        dataSourceIotHubSharedAccessPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,8 +29,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the IotHub Shared Access Policy resource.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9!._-]{1,64}`), ""+
 					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
 			},
@@ -37,33 +39,38 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"iothub_name": {
+				Description:  "The name of the IoTHub to which this Shared Access Policy belongs.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.IoTHubName,
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The primary key used to create the authentication token.",
+				Type:        pluginsdk.TypeString,
+				Sensitive:   true,
+				Computed:    true,
 			},
 
 			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The primary connection string of the Shared Access Policy.",
+				Type:        pluginsdk.TypeString,
+				Sensitive:   true,
+				Computed:    true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The secondary key used to create the authentication token.",
+				Type:        pluginsdk.TypeString,
+				Sensitive:   true,
+				Computed:    true,
 			},
 
 			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The secondary connection string of the Shared Access Policy.",
+				Type:        pluginsdk.TypeString,
+				Sensitive:   true,
+				Computed:    true,
 			},
 		},
 	}

@@ -13,12 +13,14 @@ import (
 func kustoScriptSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Kusto Script.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"database_id": {
+			Description:  "The ID of the Kusto Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,12 +28,14 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"continue_on_errors_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Flag that indicates whether to continue if one of the command fails.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"force_an_update_when_value_changed": {
+			Description:  "A unique string. If changed the script will be applied again.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -39,6 +43,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"url": {
+			Description:  "The URL to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://learn.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"url", "script_content"},
@@ -47,6 +52,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sas_token": {
+			Description:  "The SAS token used to access the script.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -56,6 +62,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"script_content": {
+			Description:  "The script content. This property should be used when the script is provided inline and not through file in an SA. Must not be used together with `url` and `sas_token` properties.",
 			Type:         pluginsdk.TypeString,
 			ExactlyOneOf: []string{"url", "script_content"},
 			Optional:     true,
@@ -65,6 +72,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"script_level": {
+			Description:  "The type of script commands.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -73,6 +81,7 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_permissions_action": {
+			Description:  "Whether the script caller's permissions remain in effect after the script has finished running?",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(scripts.PrincipalPermissionsActionRetainPermissionOnScriptCompletion),

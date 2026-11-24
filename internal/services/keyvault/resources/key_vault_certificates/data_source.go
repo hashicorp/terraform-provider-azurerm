@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultCertificatesRead,
+		Description: "Use this data source to retrieve a list of certificate names from an existing Key Vault.",
+		Read:        dataSourceKeyVaultCertificatesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,17 +32,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"names": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List containing names of certificates that exist in this Key Vault.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"include_pending": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Whether to include certificates which are not completely provisioned.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 
 			"certificates": {
@@ -50,18 +53,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of this certificate.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of certificate.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether this certificate is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"tags": commonschema.TagsDataSource(),

@@ -15,6 +15,7 @@ import (
 func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Key Vault Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,15 +35,17 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"contents": {
+						Description:  "The base64-encoded certificate contents.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Description: "The password associated with the certificate.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Sensitive:   true,
 					},
 				},
 			},
@@ -66,8 +69,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The name of the Certificate Issuer.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
@@ -79,19 +83,22 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"curve": {
+									Description:  "The curve to use when creating an `EC` key. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Computed:     true, // azignore:AZS007 - pre-existing violation
 									ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 								},
 								"exportable": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
+									Description: "Is this certificate exportable?",
+									Type:        pluginsdk.TypeBool,
+									Required:    true,
 								},
 								"key_size": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-									Computed: true, // azignore:AZS007 - pre-existing violation
+									Description: "The size of the key used in the certificate. This property is required when using RSA keys.",
+									Type:        pluginsdk.TypeInt,
+									Optional:    true,
+									Computed:    true, // azignore:AZS007 - pre-existing violation
 									ValidateFunc: validation.IntInSlice([]int{
 										256,
 										384,
@@ -102,8 +109,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									}),
 								},
 								"key_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The type of key.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(kv.JSONWebKeyTypeEC),
 										string(kv.JSONWebKeyTypeECHSM),
@@ -113,8 +121,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 								"reuse_key": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
+									Description: "Is the key reusable?",
+									Type:        pluginsdk.TypeBool,
+									Required:    true,
 								},
 							},
 						},
@@ -131,6 +140,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"action_type": {
+												Description:  "The Type of action to be performed when the lifetime trigger is triggered.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
@@ -146,12 +156,14 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"days_before_expiry": {
-												Type:     pluginsdk.TypeInt,
-												Optional: true,
+												Description: "The number of days before the Certificate expires that the action associated with this Trigger should run.",
+												Type:        pluginsdk.TypeInt,
+												Optional:    true,
 											},
 											"lifetime_percentage": {
-												Type:     pluginsdk.TypeInt,
-												Optional: true,
+												Description: "The percentage at which during the Certificates Lifetime the action associated with this Trigger should run.",
+												Type:        pluginsdk.TypeInt,
+												Optional:    true,
 											},
 										},
 									},
@@ -166,8 +178,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"content_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The Content-Type of the Certificate, such as `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
@@ -181,25 +194,28 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"extended_key_usage": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Computed: true, // azignore:AZS007 - pre-existing violation
+									Description: "A list of Extended/Enhanced Key Usages.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
+									Computed:    true, // azignore:AZS007 - pre-existing violation
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 								"key_usage": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
+									Description: "A list of uses associated with this Key.",
+									Type:        pluginsdk.TypeSet,
+									Required:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
 									},
 								},
 								"subject": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The Certificate's Subject.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"subject_alternative_names": {
 									Type:     pluginsdk.TypeList,
@@ -209,8 +225,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"emails": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description: "A list of email addresses identified by this Certificate.",
+												Type:        pluginsdk.TypeSet,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -222,8 +239,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 												},
 											},
 											"dns_names": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description: "A list of alternative DNS names (FQDNs) identified by the Certificate.",
+												Type:        pluginsdk.TypeSet,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -235,8 +253,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 												},
 											},
 											"upns": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description: "A list of User Principal Names identified by the Certificate.",
+												Type:        pluginsdk.TypeSet,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -251,8 +270,9 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									},
 								},
 								"validity_in_months": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
+									Description: "The Certificates Validity Period in Months.",
+									Type:        pluginsdk.TypeInt,
+									Required:    true,
 								},
 							},
 						},
@@ -268,81 +288,96 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"created": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The create time of the Key Vault Certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the Key Vault Certificate is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"expires": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The expires time of the Key Vault Certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"not_before": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The not before valid time of the Key Vault Certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"recovery_level": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The deletion recovery level of the Key Vault Certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"updated": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The recent update time of the Key Vault Certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"resource_manager_id": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.",
+			Computed:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"resource_manager_versionless_id": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.",
+			Computed:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current version of the Key Vault Certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"secret_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the associated Key Vault Secret.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"versionless_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Base ID of the Key Vault Certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"versionless_secret_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Base ID of the Key Vault Secret.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"certificate_data": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The raw Key Vault Certificate data represented as a hexadecimal string.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"certificate_data_base64": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Base64 encoded Key Vault Certificate data.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"thumbprint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

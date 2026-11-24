@@ -176,8 +176,9 @@ func FlattenStoragePermission(input string) string {
 
 func SchemaCertificatePermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Description: "List of certificate permissions, must be one or more from the following: `Backup`, `Create`, `Delete`, `DeleteIssuers`, `Get`, `GetIssuers`, `Import`, `List`, `ListIssuers`, `ManageContacts`, `ManageIssuers`, `Purge`, `Recover`, `Restore`, `SetIssuers` and `Update`.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice(CertificatePermissions(), false),
@@ -187,8 +188,9 @@ func SchemaCertificatePermissions() *pluginsdk.Schema {
 
 func SchemaKeyPermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Description: "A list of key permissions.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice(KeyPermissions(), false),
@@ -198,8 +200,9 @@ func SchemaKeyPermissions() *pluginsdk.Schema {
 
 func SchemaSecretPermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Description: "List of secret permissions, must be one or more from the following: `Backup`, `Delete`, `Get`, `List`, `Purge`, `Recover`, `Restore` and `Set`.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice(SecretPermissions(), false),
@@ -209,8 +212,9 @@ func SchemaSecretPermissions() *pluginsdk.Schema {
 
 func SchemaStoragePermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Description: "List of storage permissions, must be one or more from the following: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSAS`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS` and `Update`.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice(StoragePermissions(), false),
