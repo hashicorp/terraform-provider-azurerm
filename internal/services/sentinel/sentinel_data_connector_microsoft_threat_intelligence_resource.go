@@ -21,6 +21,8 @@ import (
 
 type DataConnectorMicrosoftThreatIntelligenceResource struct{}
 
+var _ sdk.Resource = DataConnectorMicrosoftThreatIntelligenceResource{}
+
 type DataConnectorMicrosoftThreatIntelligenceModel struct {
 	Name                                    string `tfschema:"name"`
 	WorkspaceId                             string `tfschema:"log_analytics_workspace_id"`
