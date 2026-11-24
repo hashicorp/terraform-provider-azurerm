@@ -21,10 +21,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceDatabricksWorkspaceCreate,
-		Read:   resourceDatabricksWorkspaceRead,
-		Update: resourceDatabricksWorkspaceUpdate,
-		Delete: resourceDatabricksWorkspaceDelete,
+		Description: "Manages a Databricks Workspace.",
+		Create:      resourceDatabricksWorkspaceCreate,
+		Read:        resourceDatabricksWorkspaceRead,
+		Update:      resourceDatabricksWorkspaceUpdate,
+		Delete:      resourceDatabricksWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
