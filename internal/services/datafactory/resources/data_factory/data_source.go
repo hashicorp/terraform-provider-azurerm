@@ -62,6 +62,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"last_commit_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"repository_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -166,6 +170,7 @@ func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfigu
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"git_url":         pointer.From(v.HostName),
+			"last_commit_id":  pointer.From(v.LastCommitId),
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
 		})

@@ -50,6 +50,11 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
+					"last_commit_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 					"repository_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
