@@ -11,4 +11,4 @@
 #   service: compute
 #   version: 2021-06-01-preview
 #   stableVersionTargetDate: 2026-01-01
-#   responsibleIndividual: github.com/gerrytan
+#   responsibleIndividual: github.com/gerrytan, johndoe@microsoft.com

@@ -46,5 +46,10 @@ func databaseMigrationServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+
+		"network_interface_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
