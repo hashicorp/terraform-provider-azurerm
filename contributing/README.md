@@ -6,16 +6,6 @@
 
 This contribution guide assumes you have at least a basic understanding of both Go and Terraform itself (for example you know what a Data Source and a Resource are) - more information on those can be found [in the Terraform documentation](https://www.terraform.io/docs/language/index.html).
 
----
-
-The AzureRM Provider is a Plugin which is invoked by Terraform (Core) and comprised of Data Sources and Resources.
-
-Within the AzureRM Provider, these Data Sources and Resources are grouped into Service Packages - which are logical groupings of Data Sources/Resources based on the Azure Service they're related to.
-
-Each of these Data Sources and Resources has both Acceptance Tests and Documentation associated with each Data Source/Resource - the Acceptance Tests are also located within this Service Package, however the Documentation exists within a dedicated folder.
-
-More granular documentation covers how these fit together - and the most common types of contribution we see:
-
 ## Topics
 
 ### Getting Started
