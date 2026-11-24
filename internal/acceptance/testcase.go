@@ -167,7 +167,8 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 // The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The second step uses the locally built provider code.
-// It is skipped when the previous version does not have a resource, data source or property its config uses yet.
+// With no version given, it is skipped when the release does not have a resource, data source or property its config uses yet. A pinned version
+// is never skipped.
 func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	if len(steps) != 2 {
 		if len(steps) == 1 {
@@ -352,7 +353,8 @@ func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []Test
 // All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The final step uses the locally built provider code.
-// It is skipped when the previous version does not have a resource, data source or property its config uses yet.
+// With no version given, it is skipped when the release does not have a resource, data source or property its config uses yet. A pinned version
+// is never skipped.
 func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	l := len(steps)
 	if l < 3 {
@@ -466,6 +468,11 @@ func parseUnknownProperty(msg string) (unknownProperty, bool) {
 // there is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing one is a
 // real failure.
 func skipWhenNotReleased(t *testing.T, steps []TestStep, previousVersion string) resource.ErrorCheckFunc {
+	// a pinned version never gains anything, so a skip there would hide the failure for good: it needs a config of its own instead
+	if previousVersion != "" {
+		return nil
+	}
+
 	// the testing library does not say which step failed, so the last step, the local build, flags itself as it starts
 	local := false
 	last := len(steps) - 1
