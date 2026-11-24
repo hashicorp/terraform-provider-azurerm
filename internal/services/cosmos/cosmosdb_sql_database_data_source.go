@@ -20,7 +20,8 @@ import (
 
 func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCosmosDbSQLDatabaseRead,
+		Description: "Use this data source to access information about an existing CosmosDB SQL Database.",
+		Read:        dataSourceCosmosDbSQLDatabaseRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB SQL Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CosmosEntityName,
@@ -36,14 +38,16 @@ func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB SQL Database to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"throughput": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The throughput of SQL database (RU/s).",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"autoscale_settings": {
@@ -52,8 +56,9 @@ func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"max_throughput": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The maximum throughput of the SQL database (RU/s).",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerCustomEventCreateUpdate,
-		Read:   resourceDataFactoryTriggerCustomEventRead,
-		Update: resourceDataFactoryTriggerCustomEventCreateUpdate,
-		Delete: resourceDataFactoryTriggerCustomEventDelete,
+		Description: "Manages a Custom Event Trigger inside an Azure Data Factory.",
+		Create:      resourceDataFactoryTriggerCustomEventCreateUpdate,
+		Read:        resourceDataFactoryTriggerCustomEventRead,
+		Update:      resourceDataFactoryTriggerCustomEventCreateUpdate,
+		Delete:      resourceDataFactoryTriggerCustomEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)

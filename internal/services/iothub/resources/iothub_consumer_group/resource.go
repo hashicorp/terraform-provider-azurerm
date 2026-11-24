@@ -17,9 +17,10 @@ var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubConsumerGroupCreate,
-		Read:   resourceIotHubConsumerGroupRead,
-		Delete: resourceIotHubConsumerGroupDelete,
+		Description: "Manages a Consumer Group within an IotHub.",
+		Create:      resourceIotHubConsumerGroupCreate,
+		Read:        resourceIotHubConsumerGroupRead,
+		Delete:      resourceIotHubConsumerGroupDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

@@ -37,6 +37,10 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Azure SQL Azure Managed Database."
+}
+
 func (d DataSource) ModelObject() any {
 	return &MsSqlManagedDatabaseDataSourceModel{}
 }
@@ -48,12 +52,14 @@ func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Azure SQL Managed Database.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ValidateMsSqlManagedInstanceDatabaseName,
 		},
 		"managed_instance_id": {
+			Description:  "The SQL Managed Instance ID.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -65,13 +71,15 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"managed_instance_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Managed Instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Resource Group where the Azure SQL Azure Managed Instance exists.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"long_term_retention_policy": {
@@ -80,31 +88,36 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"weekly_retention": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The weekly retention policy for an LTR backup in an ISO 8601 format.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"monthly_retention": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The monthly retention policy for an LTR backup in an ISO 8601 format.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"yearly_retention": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The yearly retention policy for an LTR backup in an ISO 8601 format.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"week_of_year": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The week of year to take the yearly backup.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"short_term_retention_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The backup retention period in days. This is how many days Point-in-Time Restore will be supported.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"short_term_retention_immutability_locked": {
@@ -118,12 +131,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"restore_point_in_time": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The point in time for the restore from `source_database_id`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"source_database_id": {
-						Type:     schema.TypeString,
-						Computed: true,
+						Description: "The source database ID that is used to restore from.",
+						Type:        schema.TypeString,
+						Computed:    true,
 					},
 				},
 			},

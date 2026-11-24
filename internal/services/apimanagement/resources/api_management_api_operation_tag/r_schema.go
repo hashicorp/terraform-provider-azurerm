@@ -13,6 +13,7 @@ import (
 func apiManagementApiOperationTagSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_operation_id": {
+			Description:  "The ID of the API Management API Operation.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func apiManagementApiOperationTagSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description:  "The name which should be used for this API Management API Operation Tag. The name must be unique in the API Management Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func apiManagementApiOperationTagSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of the API Management API Operation Tag.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

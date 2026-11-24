@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorAADDiagnosticSettingCreate,
-		Read:   resourceMonitorAADDiagnosticSettingRead,
-		Update: resourceMonitorAADDiagnosticSettingUpdate,
-		Delete: resourceMonitorAADDiagnosticSettingDelete,
+		Description: "Manages an Azure Active Directory Diagnostic Setting for Azure Monitor.",
+		Create:      resourceMonitorAADDiagnosticSettingCreate,
+		Read:        resourceMonitorAADDiagnosticSettingRead,
+		Update:      resourceMonitorAADDiagnosticSettingUpdate,
+		Delete:      resourceMonitorAADDiagnosticSettingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := diagnosticsettings.ParseDiagnosticSettingID(id)
 			return err

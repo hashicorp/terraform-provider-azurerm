@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppTriggerRecurrenceCreateUpdate,
-		Read:   resourceLogicAppTriggerRecurrenceRead,
-		Update: resourceLogicAppTriggerRecurrenceCreateUpdate,
-		Delete: resourceLogicAppTriggerRecurrenceDelete,
+		Description: "Manages a Recurrence Trigger within a Logic App Workflow.",
+		Create:      resourceLogicAppTriggerRecurrenceCreateUpdate,
+		Read:        resourceLogicAppTriggerRecurrenceRead,
+		Update:      resourceLogicAppTriggerRecurrenceCreateUpdate,
+		Delete:      resourceLogicAppTriggerRecurrenceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := workflowtriggers.ParseTriggerID(id)

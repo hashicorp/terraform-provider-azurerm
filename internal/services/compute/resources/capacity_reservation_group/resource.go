@@ -17,10 +17,11 @@ const azureCapacityReservationGroupResourceName = "azurerm_capacity_reservation_
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCapacityReservationGroupCreate,
-		Read:   resourceCapacityReservationGroupRead,
-		Update: resourceCapacityReservationGroupUpdate,
-		Delete: resourceCapacityReservationGroupDelete,
+		Description: "Manages a Capacity Reservation Group.",
+		Create:      resourceCapacityReservationGroupCreate,
+		Read:        resourceCapacityReservationGroupRead,
+		Update:      resourceCapacityReservationGroupUpdate,
+		Delete:      resourceCapacityReservationGroupDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

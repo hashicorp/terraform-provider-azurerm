@@ -25,6 +25,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
 				"weekly_retention": {
+					Description:  "The weekly retention policy for an LTR backup in an ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT0S",
@@ -34,6 +35,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 				"monthly_retention": {
+					Description:  "The monthly retention policy for an LTR backup in an ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT0S",
@@ -43,6 +45,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 				"yearly_retention": {
+					Description:  "The yearly retention policy for an LTR backup in an ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT0S",
@@ -52,6 +55,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 				"week_of_year": {
+					Description:  "The week of year to take the yearly backup. Value has to be between `1` and `52`.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -72,11 +76,13 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"retention_days": {
+					Description:  "Point In Time Restore configuration. Value has to be between `1` and `35`.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 35),
 				},
 				"backup_interval_in_hours": {
+					Description:  "The hours between each differential backup. This is only applicable to live databases but not dropped databases. Value has to be `12` or `24`.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation

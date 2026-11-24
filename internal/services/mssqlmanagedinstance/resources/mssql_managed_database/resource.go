@@ -21,6 +21,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure SQL Azure Managed Database for a SQL Managed Instance."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateSqlManagedInstanceDatabaseID
 }

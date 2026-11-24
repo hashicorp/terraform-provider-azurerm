@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiSchemaCreateUpdate,
-		Read:   resourceApiManagementApiSchemaRead,
-		Update: resourceApiManagementApiSchemaCreateUpdate,
-		Delete: resourceApiManagementApiSchemaDelete,
+		Description: "Manages an API Schema within an API Management Service.",
+		Create:      resourceApiManagementApiSchemaCreateUpdate,
+		Read:        resourceApiManagementApiSchemaRead,
+		Update:      resourceApiManagementApiSchemaCreateUpdate,
+		Delete:      resourceApiManagementApiSchemaDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apischema.ParseApiSchemaID(id)
 			return err

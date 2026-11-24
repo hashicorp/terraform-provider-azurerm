@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_trusted_signing_account"
 }
 
+func (m Resource) Description() string {
+	return "Manages a Trusted Signing Account (Artifact Signing Account)."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return codesigningaccounts.ValidateCodeSigningAccountID
 }

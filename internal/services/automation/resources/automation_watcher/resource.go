@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_automation_watcher"
 }
 
+func (m Resource) Description() string {
+	return "Manages an Automation Wacher."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return watcher.ValidateWatcherID
 }

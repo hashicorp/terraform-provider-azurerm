@@ -777,7 +777,7 @@ func (w WindowsWebAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
-						Description: "Should HTTPS be required on connections? Defaults to true.",
+						Description: "Whether HTTPS should be required on connections.",
 					},
 
 					"http_route_api_prefix": {

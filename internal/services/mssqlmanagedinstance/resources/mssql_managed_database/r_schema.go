@@ -25,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Managed Database to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +33,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_instance_id": {
+			Description:  "The ID of the Azure SQL Managed Instance on which to create this Managed Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -47,6 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
 					"weekly_retention": {
+						Description:  "The weekly retention policy for an LTR backup in an ISO 8601 format.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
@@ -56,6 +59,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 					"monthly_retention": {
+						Description:  "The monthly retention policy for an LTR backup in an ISO 8601 format.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
@@ -65,6 +69,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 					"yearly_retention": {
+						Description:  "The yearly retention policy for an LTR backup in an ISO 8601 format.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
@@ -74,6 +79,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 					// WeekOfYear - The week of year to take the yearly backup.
 					"week_of_year": {
+						Description:  "The week of year to take the yearly backup. Value has to be between `1` and `52`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -85,6 +91,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"short_term_retention_days": {
+			Description:  "The backup retention period in days. This is how many days Point-in-Time Restore will be supported.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 35),
@@ -106,6 +113,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"restore_point_in_time": {
+						Description:      "The point in time for the restore from `source_database_id`.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ForceNew:         true,
@@ -113,6 +121,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
 					"source_database_id": {
+						Description:  "The source database ID that will be used to restore from.",
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -123,6 +132,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"recover_database_id": {
+			Description:   "The ID of the Recoverable Managed Database from which to perform a cross-region / recovery restore.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,

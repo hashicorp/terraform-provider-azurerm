@@ -53,6 +53,10 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_mssql_managed_instance"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Microsoft SQL Azure Managed Instance."
+}
+
 func (d DataSource) ModelObject() any {
 	return &MsSqlManagedInstanceDataSourceModel{}
 }
@@ -60,6 +64,7 @@ func (d DataSource) ModelObject() any {
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the SQL Managed Instance.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ValidateMsSqlServerName,
@@ -72,13 +77,15 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"administrator_login": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The administrator login name for the SQL Managed Instance.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"collation": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "How the SQL Managed Instance will be collated.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"customer_managed_key_id": {
@@ -87,79 +94,93 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_zone": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The DNS Zone where the SQL Managed Instance is located.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"dns_zone_partner_id": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The ID of the SQL Managed Instance which shares the DNS zone.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"fqdn": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The fully qualified domain name of the Azure Managed SQL Instance.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"general_purpose_v2_enabled": {
-			Type:     schema.TypeBool,
-			Computed: true,
+			Description: "Whether the SQL Managed Instance is using the Next-gen General Purpose service tier.",
+			Type:        schema.TypeBool,
+			Computed:    true,
 		},
 
 		"license_type": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "What type of license the SQL Managed Instance uses.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"minimum_tls_version": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The Minimum TLS Version.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"proxy_override": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "How the SQL Managed Instance will be accessed.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"public_data_endpoint_enabled": {
-			Type:     schema.TypeBool,
-			Computed: true,
+			Description: "Whether the public data endpoint is enabled.",
+			Type:        schema.TypeBool,
+			Computed:    true,
 		},
 
 		"sku_name": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The SKU Name of the SQL Managed Instance.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"storage_account_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Storage Account type used to store backups for this database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"storage_size_in_gb": {
-			Type:     schema.TypeInt,
-			Computed: true,
+			Description: "Maximum storage space allocated for the SQL Managed Instance.",
+			Type:        schema.TypeInt,
+			Computed:    true,
 		},
 
 		"subnet_id": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The subnet resource ID that the SQL Managed Instance is associated with.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
 
 		"timezone_id": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The TimeZone ID that the SQL Managed Instance is running in.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"vcores": {
-			Type:     schema.TypeInt,
-			Computed: true,
+			Description: "Number of cores that are assigned to the SQL Managed Instance.",
+			Type:        schema.TypeInt,
+			Computed:    true,
 		},
 	}
 }

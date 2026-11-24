@@ -17,12 +17,14 @@ func apiManagementIdentityProviderFacebookSchema() map[string]*pluginsdk.Schema 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"app_id": {
+			Description:  "App ID for Facebook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"app_secret": {
+			Description:  "App Secret for Facebook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,

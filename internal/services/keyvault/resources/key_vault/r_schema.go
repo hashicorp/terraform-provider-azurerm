@@ -16,6 +16,7 @@ import (
 func keyVaultSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Key Vault. The name must be globally unique. If the vault is in a recoverable state then the vault will need to be purged before reusing the name.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,17 +28,20 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"rbac_authorization_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"sku_name": {
+			Description:  "The Name of the SKU used for this Key Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForSkuName(), false),
 		},
 
 		"tenant_id": {
+			Description:  "The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
@@ -52,16 +56,19 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
+						Description:  "The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault. Must match the `tenant_id` used above.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"object_id": {
+						Description:  "The object ID of a user, Service Principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"application_id": {
+						Description:  "The object ID of an Application in Azure Active Directory.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.IsUUIDOrEmpty,
@@ -75,18 +82,21 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled_for_deployment": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Boolean flag to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the Key Vault.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"enabled_for_disk_encryption": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Boolean flag to specify whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"enabled_for_template_deployment": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the Key Vault.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"network_acls": {
@@ -102,13 +112,15 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForNetworkRuleAction(), false),
 					},
 					"bypass": {
+						Description:  "Which traffic can bypass the network rules.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForNetworkRuleBypassOptions(), false),
 					},
 					"ip_rules": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -119,27 +131,31 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 						Set: set.HashIPv4AddressOrCIDR,
 					},
 					"virtual_network_subnet_ids": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-						Set:      set.HashStringIgnoreCase,
+						Description: "One or more Subnet IDs which should be able to access this Key Vault.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:         set.HashStringIgnoreCase,
 					},
 				},
 			},
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for this Key Vault.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"purge_protection_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether Purge Protection is enabled for this Key Vault.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"soft_delete_retention_days": {
+			Description:  "The number of days that items should be retained for once soft-deleted.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      90,
@@ -150,8 +166,9 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"vault_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URI of the Key Vault, used for performing operations on keys and secrets.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

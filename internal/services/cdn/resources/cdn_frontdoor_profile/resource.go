@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorProfileCreate,
-		Read:   resourceCdnFrontDoorProfileRead,
-		Update: resourceCdnFrontDoorProfileUpdate,
-		Delete: resourceCdnFrontDoorProfileDelete,
+		Description: "Manages a Front Door (standard/premium) Profile which contains a collection of endpoints and origin groups.",
+		Create:      resourceCdnFrontDoorProfileCreate,
+		Read:        resourceCdnFrontDoorProfileRead,
+		Update:      resourceCdnFrontDoorProfileUpdate,
+		Delete:      resourceCdnFrontDoorProfileDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

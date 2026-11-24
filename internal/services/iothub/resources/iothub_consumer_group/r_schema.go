@@ -12,6 +12,7 @@ import (
 func iothubConsumerGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Consumer Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func iothubConsumerGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"iothub_name": {
+			Description:  "The name of the IoT Hub.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,9 +28,10 @@ func iothubConsumerGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_endpoint_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Event Hub-compatible endpoint in the IoT hub.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),

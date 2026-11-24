@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_mongo_cluster_user"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Mongo Cluster User."
+}

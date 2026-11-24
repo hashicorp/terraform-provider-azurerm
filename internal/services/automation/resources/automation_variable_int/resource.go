@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableIntCreate,
-		Read:   resourceAutomationVariableIntRead,
-		Update: resourceAutomationVariableIntUpdate,
-		Delete: resourceAutomationVariableIntDelete,
+		Description: "Manages an integer variable in Azure Automation.",
+		Create:      resourceAutomationVariableIntCreate,
+		Read:        resourceAutomationVariableIntRead,
+		Update:      resourceAutomationVariableIntUpdate,
+		Delete:      resourceAutomationVariableIntDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := variable.ParseVariableID(id)

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// (@jackofallops) - Important property missing from the SDK / Swagger that will need to be added later: `upgrade_preference` https://docs.microsoft.com/azure/app-service/environment/using#upgrade-preference
+// (@jackofallops) - Important property missing from the SDK / Swagger that will need to be added later: `upgrade_preference` https://learn.microsoft.com/azure/app-service/environment/using#upgrade-preference
 
 type Resource struct{}
 

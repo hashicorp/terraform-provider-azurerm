@@ -13,7 +13,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBillingMPAAccountRead,
+		Description: "Use this data source to access an ID for your MPA Account billing scope.",
+		Read:        dataSourceBillingMPAAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -21,12 +22,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"billing_account_name": {
+				Description:  "The Billing Account Name of the MPA account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"customer_name": {
+				Description:  "The Customer Name in the above Billing Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,

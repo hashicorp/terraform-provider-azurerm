@@ -23,3 +23,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_load_test"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Load Test Service."
+}
