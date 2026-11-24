@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkGatewayConnectionCreate,
-		Read:   resourceVirtualNetworkGatewayConnectionRead,
-		Update: resourceVirtualNetworkGatewayConnectionUpdate,
-		Delete: resourceVirtualNetworkGatewayConnectionDelete,
+		Description: "Manages a connection in an existing Virtual Network Gateway.",
+		Create:      resourceVirtualNetworkGatewayConnectionCreate,
+		Read:        resourceVirtualNetworkGatewayConnectionRead,
+		Update:      resourceVirtualNetworkGatewayConnectionUpdate,
+		Delete:      resourceVirtualNetworkGatewayConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualnetworkgatewayconnections.ParseConnectionID(id)

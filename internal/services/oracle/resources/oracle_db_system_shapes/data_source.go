@@ -59,7 +59,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"zone": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Filter the versions by zone.",
+			Description: "The Cloud Exadata Infrastructure Azure zone, used to filter out the available DB System Shapes in the specific zone.",
 		},
 	}
 }
@@ -72,96 +72,119 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"are_server_types_supported": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the shape supports database and storage server types.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"available_core_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum number of CPU cores that can be enabled on the DB system for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_core_count_per_node": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum number of CPU cores per database node that can be enabled for this shape. Only applicable to the flex Exadata shape, ExaCC Elastic shapes and VM Flex shapes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_data_storage_in_tbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum data storage that can be enabled for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_data_storage_per_server_in_tbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum data storage available per storage server for this shape. Only applicable to ExaCC Elastic shapes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_db_node_per_node_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum DB Node storage available per database node for this shape. Only applicable to ExaCC Elastic shapes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_db_node_storage_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum DB Node storage that can be enabled for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_memory_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum memory that can be enabled for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"available_memory_per_node_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum memory available per database node for this shape. Only applicable to ExaCC Elastic shapes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"compute_model": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The compute model of the Exadata Infrastructure.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"core_count_increment": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The discrete number by which the CPU core count for this shape can be increased or decreased.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"display_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The display name of the shape used for the DB system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"maximum_storage_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum number of Exadata storage servers available for the Exadata infrastructure.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"maximum_node_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum number of compute servers available for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_core_count_per_node": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum number of CPU cores that can be enabled per node for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_data_storage_in_tbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum data storage that need be allocated for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_db_node_storage_per_node_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum DB Node storage that need be allocated per node for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_memory_per_node_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum memory that need be allocated per node for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_storage_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum number of Exadata storage servers available for the Exadata infrastructure.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_core_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum number of CPU cores that can be enabled on the DB system for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"minimum_node_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum number of compute servers available for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"runtime_minimum_core_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The runtime minimum number of compute servers available for this shape.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"shape_family": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The family of the shape used for the DB system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -175,6 +198,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_db_system_shapes"
+}
+
+func (d DataSource) Description() string {
+	return "This data source provides the list of DB System Shapes in Oracle Cloud Infrastructure Database service."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

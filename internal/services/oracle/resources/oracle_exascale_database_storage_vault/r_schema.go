@@ -15,9 +15,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Exadata Database Storage Vault.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
 				validate.ExascaleDatabaseStorageVaultName,
@@ -27,6 +28,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"additional_flash_cache_percentage": {
+			Description:  "The size of additional Flash Cache in percentage of High Capacity database storage.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -34,17 +36,19 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Exadata Database Storage Vault description.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C API use `display_name` value if omitted
 			Computed: true,
 			ForceNew: true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The user-friendly name for the Exadata Database Storage Vault resource. The name does not need to be unique.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
 				validate.ExascaleDatabaseStorageVaultName,
@@ -60,23 +64,26 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
-						ForceNew: true,
+						Description: "Total capacity in gigabytes.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
+						ForceNew:    true,
 					},
 					"available_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "Available size in gigabytes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"time_zone": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "UTC",
+			Description: "The time zone that you want to use for the Exadata Database Storage Vault. For details, see [Time Zones](https://docs.oracle.com/en/cloud/paas/base-database/time-zone/).",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     "UTC",
 		},
 
 		"tags": commonschema.Tags(),

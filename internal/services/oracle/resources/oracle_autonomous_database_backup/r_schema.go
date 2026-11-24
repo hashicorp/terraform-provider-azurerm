@@ -15,18 +15,21 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"autonomous_database_id": {
+			Description:  "The azureId of the Autonomous Database that this backup is for.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
 		},
 		"name": {
+			Description:  "The display name of the Autonomous Database Backup.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 		"retention_period_in_days": {
+			Description:  "(Updatable) The number of days to retain the backup.",
 			Type:         schema.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(90, 3650),
@@ -34,10 +37,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Optional
 		"type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			Description: "The type of backup to create.",
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			}, false),

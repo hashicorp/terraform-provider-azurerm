@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceVirtualNetworkGatewayConnectionRead,
+		Description: "Use this data source to access information about an existing Virtual Network Gateway Connection.",
+		Read:        dataSourceVirtualNetworkGatewayConnectionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Virtual Network Gateway Connection.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -38,28 +40,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of connection.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"shared_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The shared IPSec key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"authorization_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The authorization key associated with the Express Route Circuit. This field is present only if the type is an ExpressRoute connection.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dpd_timeout_seconds": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The dead peer detection timeout of this connection in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"bgp_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If `true`, BGP (Border Gateway Protocol) is enabled for this connection.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"ingress_bytes_transferred": {
@@ -73,8 +80,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"use_policy_based_traffic_selectors": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If `true`, policy-based traffic selectors are enabled for this connection. Enabling policy-based traffic selectors requires an `ipsec_policy` block.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"connection_protocol": {
@@ -83,43 +91,51 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"routing_weight": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The routing weight.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"virtual_network_gateway_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Virtual Network Gateway in which the connection is created.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"peer_virtual_network_gateway_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the peer Virtual Network Gateway when a VNet-to-VNet connection (i.e. when `type` is `Vnet2Vnet`).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"local_azure_ip_address_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Use private local Azure IP for the connection.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"local_network_gateway_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Local Network Gateway when a Site-to-Site connection (i.e. when `type` is `IPsec`).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"express_route_circuit_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Express Route Circuit (i.e. when `type` is `ExpressRoute`).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"express_route_gateway_bypass": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If `true`, data packets will bypass ExpressRoute Gateway for data forwarding. This is only valid for ExpressRoute connections.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"private_link_fast_path_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If `true`, data packets will bypass the Express Route gateway when accessing private-links. This is only valid for ExpressRoute connections, on the conditions described in [the relevant section in the Azure documentation](https://learn.microsoft.com/azure/expressroute/expressroute-howto-linkvnet-arm#fastpath-virtual-network-peering-user-defined-routes-udrs-and-private-link-support-for-expressroute-direct-connections).",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"resource_guid": {
@@ -133,15 +149,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"local_address_cidrs": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "List of local CIDRs.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"remote_address_cidrs": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "List of remote CIDRs.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -156,36 +174,44 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"sa_lifetime": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The IPSec SA lifetime in seconds.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"sa_datasize": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The IPSec SA payload size in KB.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"ipsec_encryption": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The IPSec encryption algorithm.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"ipsec_integrity": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The IPSec integrity algorithm.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"ike_encryption": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The IKE encryption algorithm.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"ike_integrity": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The IKE integrity algorithm.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"dh_group": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The DH group used in IKE phase 1 for initial SA.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"pfs_group": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The DH group used in IKE phase 2 for new child SA.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

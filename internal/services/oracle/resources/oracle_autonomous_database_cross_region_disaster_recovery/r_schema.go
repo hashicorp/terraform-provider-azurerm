@@ -14,6 +14,7 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name for this Cross Region Disaster Recovery Autonomous Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
@@ -25,6 +26,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"display_name": {
+			Description:  "The user-friendly name for the Autonomous Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +36,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}, "source (primary) Autonomous Database"),
 
 		"subnet_id": {
+			Description:  "The ID of the subnet in the target region.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,10 +44,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"replicate_automatic_backups_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "If true, 7 days of backups are replicated across regions.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"tags": commonschema.TagsForceNew(),
@@ -54,61 +58,75 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"auto_scaling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether auto-scaling is enabled for the Autonomous Database CPU core count.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 		"auto_scaling_for_storage_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether auto-scaling is enabled for the Autonomous Database storage.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 		"backup_retention_period_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The backup retention period in days.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 		"character_set": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The character set for the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"compute_count": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The compute amount available to the database.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 		"compute_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The compute model of the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Description: "A list of customer contact email addresses.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 		"data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum storage that can be allocated for the database in terabytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 		"database_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Oracle Database version for the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"database_workload": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Autonomous Database workload type.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Oracle license model that applies to the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"mtls_connection_required": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Autonomous Database requires mTLS connections.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 		"national_character_set": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The national character set for the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"remote_disaster_recovery_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Type of recovery.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

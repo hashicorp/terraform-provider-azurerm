@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_exadata_infrastructure"
 }
 
+func (Resource) Description() string {
+	return "Manages a Cloud Exadata Infrastructure."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cloudexadatainfrastructures.ValidateCloudExadataInfrastructureID
 }

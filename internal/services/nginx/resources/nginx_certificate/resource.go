@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_nginx_certificate"
 }
 
+func (m Resource) Description() string {
+	return "Manages a Certificate for an NGINX Deployment."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxcertificate.ValidateCertificateID
 }

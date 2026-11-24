@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_new_relic_tag_rule"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Native New Relic Tag Rule."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tagrules.ValidateTagRuleID
 }

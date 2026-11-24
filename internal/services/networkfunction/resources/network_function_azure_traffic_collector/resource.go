@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_function_azure_traffic_collector"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Function Azure Traffic Collector."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return azuretrafficcollectors.ValidateAzureTrafficCollectorID
 }

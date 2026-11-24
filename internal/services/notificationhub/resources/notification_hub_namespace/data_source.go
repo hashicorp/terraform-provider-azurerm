@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: resourceArmDataSourceNotificationHubNamespaceRead,
+		Description: "Use this data source to access information about an existing Notification Hub Namespace.",
+		Read:        resourceArmDataSourceNotificationHubNamespaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,8 +29,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Name of the Notification Hub Namespace.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -42,21 +44,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the SKU to use for this Notification Hub Namespace.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is this Notification Hub Namespace enabled?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"namespace_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Type of Namespace, such as `Messaging` or `NotificationHub`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

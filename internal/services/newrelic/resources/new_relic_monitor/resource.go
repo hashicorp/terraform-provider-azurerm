@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_new_relic_monitor"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Native New Relic Monitor."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return monitors.ValidateMonitorID
 }

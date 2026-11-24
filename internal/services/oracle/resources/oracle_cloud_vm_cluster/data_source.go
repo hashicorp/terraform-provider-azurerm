@@ -109,6 +109,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
+			Description:  "The name of this Cloud VM Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.CloudVMClusterName,
@@ -122,28 +123,33 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		// CloudVMClusterProperties
 		"backup_subnet_cidr": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Client OCI backup subnet CIDR, default is `192.168.252.0/22`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"cloud_exadata_infrastructure_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Cloud Exadata Infrastructure ID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"cluster_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The cluster name for Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"compartment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The OCID of the compartment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"compute_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The compute model of the Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"compute_nodes": {
@@ -155,8 +161,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"cpu_core_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of CPU cores enabled on the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"data_collection_options": {
@@ -165,36 +172,42 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"diagnostics_events_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether diagnostic collection is enabled for the VM Cluster/Cloud VM Cluster/VMBM DBCS. Enabling diagnostic collection allows you to receive Events service notifications for guest VM issues. Diagnostic collection also allows Oracle to provide enhanced service and proactive support for your Exadata system. You can enable diagnostic collection during VM Cluster/Cloud VM Cluster provisioning. You can also disable or enable it at any time using the `UpdateVmCluster` or `updateCloudVmCluster` API.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"health_monitoring_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether health monitoring is enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling health monitoring allows Oracle to collect diagnostic data and share it with its operations and support personnel. You may also receive notifications for some events. Collecting health diagnostics enables Oracle to provide proactive support and enhanced service for your system. Optionally enable health monitoring while provisioning a system. You can also disable or enable health monitoring anytime using the `UpdateVmCluster`, `UpdateCloudVmCluster` or `updateDbsystem` API.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"incident_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether incident logs and trace collection are enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling incident logs collection allows Oracle to receive Events service notifications for guest VM issues, collect incident logs and traces, and use them to diagnose issues and resolve them. Optionally enable incident logs collection while provisioning a system. You can also disable or enable incident logs collection anytime using the `UpdateVmCluster`, `updateCloudVmCluster` or `updateDbsystem` API.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"data_storage_percentage": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The percentage assigned to DATA storage (user data and database files). The remaining percentage is assigned to RECO storage (database redo logs, archive logs, and recovery manager backups). See [Storage Configuration](https://docs.oracle.com/en-us/iaas/exadatacloud/index.html#Exadata) in the Exadata documentation for details on the impact of the configuration settings on storage.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"data_storage_size_in_tbs": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The data disk group size to be allocated in TBs.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"db_node_storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The local node storage to be allocated in GBs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"db_servers": {
@@ -206,18 +219,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_redundancy": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of redundancy configured for the Cloud VM Cluster. `NORMAL` is 2-way redundancy. `HIGH` is 3-way redundancy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The user-friendly name for the Cloud VM Cluster. The name does not need to be unique.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"domain": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The domain name for the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"file_system_configuration": {
@@ -226,31 +242,36 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mount_point": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The mount path of the file system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The size of the Virtual Machine's file system.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"gi_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A valid Oracle Grid Infrastructure (GI) software version.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The hostname for the Cloud VM Cluster without suffix.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"hostname_actual": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The hostname for the Cloud VM Cluster with suffix.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"iorm_config_cache": {
@@ -264,114 +285,135 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"db_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The database name. For the default `DbPlan`, the `dbName` is `default`.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"flash_cache_limit": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The flash cache limit for this database. This value is internally configured based on the share value assigned to the database.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"share": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
+									Description: "The relative priority of this database.",
+									Type:        pluginsdk.TypeInt,
+									Computed:    true,
 								},
 							},
 						},
 					},
 
 					"lifecycle_details": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Additional information about the current `lifecycleState`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"lifecycle_state": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The current state of IORM configuration for the Exadata DB system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"objective": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The current value for the IORM objective.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"local_backup_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If false, database backup on local Exadata storage is not available in the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"sparse_diskgroup_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "If true, sparse disk group is configured for the Cloud VM Cluster. If false, sparse disk group is not created.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"last_update_history_entry_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the last maintenance update history entry. This value is updated when a maintenance update starts.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Oracle license model that applies to the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_details": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Additional information about the current lifecycle state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Cloud VM Cluster lifecycle state enum.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"listener_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The port number configured for the listener on the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"memory_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The memory to be allocated in GBs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"node_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of nodes in the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"nsg_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The list of [OCIDs](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) for the Network Security Groups (NSGs) to which this resource belongs. For more information about NSGs, see [Security Rules](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/securityrules.htm).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"oci_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the resource in the OCI console.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ocpu_count": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The number of OCPU cores to enable on the Cloud VM Cluster. Only 1 decimal place is allowed for the fractional part.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"scan_dns_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS record for the SCAN IP addresses that are associated with the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"scan_dns_record_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DNS record for the SCAN IP addresses that are associated with the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"scan_ip_ids": {
@@ -383,74 +425,87 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"scan_listener_port_tcp": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The TCP Single Client Access Name (SCAN) port.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"scan_listener_port_tcp_ssl": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The TCPS Single Client Access Name (SCAN) port.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"shape": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The model name of the Exadata hardware running the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ssh_public_keys": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The public key portion of one or more key pairs used for SSH access to the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The storage allocation for the disk group, in gigabytes (GB).",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Azure Resource Manager subnet resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"subnet_ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the subnet associated with the Cloud VM Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"system_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Operating system version of the Exadata image.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_created": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date and time that the Cloud VM Cluster was created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_zone": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.oracle.com/en-us/iaas/base-database/doc/manage-time-zone.html).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"vip_ods": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the virtual IP (VIP) addresses associated with the Cloud VM Cluster. The Cluster Ready Services (CRS) creates and maintains one VIP address for each node in the Exadata Cloud Service instance to enable failover. If one node fails, the VIP is reassigned to another active node in the Cluster.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID to an Azure Resource Manager Virtual Network resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"zone_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the zone the Cloud VM Cluster is associated with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -463,6 +518,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_cloud_vm_cluster"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Cloud VM Cluster."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -33,8 +33,9 @@ type ResourceAnchorDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Oracle Resource Anchor.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
@@ -47,8 +48,9 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags":     commonschema.TagsDataSource(),
 
 		"linked_compartment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Oracle Cloud Infrastructure compartment [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) which was created or linked by customer with Resource Anchor.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -59,6 +61,10 @@ func (DataSource) ModelObject() any {
 
 func (s DataSource) ResourceType() string {
 	return "azurerm_oracle_resource_anchor"
+}
+
+func (s DataSource) Description() string {
+	return "Use this data source to access information about an existing Oracle Resource Anchor."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {
