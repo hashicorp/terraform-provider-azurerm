@@ -12,6 +12,7 @@ import (
 func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"datadog_monitor_id": {
+			Description:  "The Datadog Monitor ID which should be used for this Datadog Monitor Tag Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,9 +20,10 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "default",
+			Description: "The name of the Tag Rules configuration.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "default",
 		},
 
 		"log": {
@@ -30,18 +32,21 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"aad_log_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether AAD logs should be sent for the Monitor resource?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"subscription_log_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Azure subscription logs should be sent for the Monitor resource?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"resource_log_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Azure resource logs should be sent for the Monitor resource?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"filter": {
@@ -50,12 +55,14 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Name of the Tag.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Value of the Tag.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"action": {
 									Type:         pluginsdk.TypeString,
@@ -80,12 +87,14 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Name of the Tag.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Value of the Tag.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"action": {
 									Type:         pluginsdk.TypeString,
