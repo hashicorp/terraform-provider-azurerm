@@ -16,9 +16,10 @@ import (
 func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Backup Vault.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[-a-zA-Z0-9]{2,50}$"),
 				"DataProtection BackupVault name must be 2 - 50 characters long, contain only letters, numbers and hyphens.).",
@@ -30,19 +31,22 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"storage_setting": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
+			Description: "The storage settings for this Backup Vault.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			ForceNew:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"datastore_type": {
+						Description:  "The type of the data store.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
 					},
 					"redundancy": {
+						Description:  "The backup storage redundancy.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -53,19 +57,22 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"alerts_for_all_job_failures_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to enable Azure Monitor alerts for all job failures.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 			// Azure Monitor alerts for job failures are enabled by default for Backup vaults.
 			// https://learn.microsoft.com/azure/backup/backup-azure-monitoring-alerts?tabs=backup-vaults#turn-on-azure-monitor-alerts-for-job-failure-scenarios
 			Default: true,
 		},
 
 		"cross_region_restore_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to enable cross-region restore for the Backup Vault.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"retention_duration_in_days": {
+			Description:  "The soft delete retention duration for this Backup Vault.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      14,
@@ -73,6 +80,7 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"soft_delete": {
+			Description:  "The state of soft delete for this Backup Vault.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      backupvaultresources.SoftDeleteStateOn,
@@ -80,6 +88,7 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"immutability": {
+			Description:  "The state of immutability for this Backup Vault.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      backupvaultresources.ImmutabilityStateDisabled,
@@ -94,20 +103,23 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 	if !features.SixPointOh() {
 		delete(schema, "storage_setting")
 		schema["datastore_type"] = &pluginsdk.Schema{
+			Description:  "The type of the data store.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
 		}
 		schema["redundancy"] = &pluginsdk.Schema{
+			Description:  "The backup storage redundancy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
 		}
 		schema["alerts_for_all_job_failures_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to enable Azure Monitor alerts for all job failures.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 			// NOTE: O+C Preserve existing Azure alert settings when omitted in 5.x rather than enabling alerts on upgrade.
 			Computed: true,
 		}

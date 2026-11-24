@@ -23,9 +23,10 @@ type Criteria struct {
 
 func RegisterResource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataProtectionBackupPolicyDiskCreate,
-		Read:   resourceDataProtectionBackupPolicyDiskRead,
-		Delete: resourceDataProtectionBackupPolicyDiskDelete,
+		Description: "Manages a Backup Policy Disk.",
+		Create:      resourceDataProtectionBackupPolicyDiskCreate,
+		Read:        resourceDataProtectionBackupPolicyDiskRead,
+		Delete:      resourceDataProtectionBackupPolicyDiskDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

@@ -43,6 +43,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_container_app_environment_certificate"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Container App Environment Certificate."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -58,7 +62,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: certificates.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Certificate on.",
+			Description:  "The ID of the Container App Environment to configure this Certificate on.",
 		},
 	}
 }

@@ -20,10 +20,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceDataProtectionBackupVaultCreateUpdate,
-		Read:   resourceDataProtectionBackupVaultRead,
-		Update: resourceDataProtectionBackupVaultCreateUpdate,
-		Delete: resourceDataProtectionBackupVaultDelete,
+		Description: "Manages a Backup Vault.",
+		Create:      resourceDataProtectionBackupVaultCreateUpdate,
+		Read:        resourceDataProtectionBackupVaultRead,
+		Update:      resourceDataProtectionBackupVaultCreateUpdate,
+		Delete:      resourceDataProtectionBackupVaultDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Read: dataSourceDataProtectionBackupVaultRead,
+		Description: "Use this data source to access information about an existing Backup Vault.",
+		Read:        dataSourceDataProtectionBackupVaultRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,8 +33,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Backup Vault.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9]{2,50}$"),
 					"DataProtection BackupVault name must be 2 - 50 characters long, contain only letters, numbers and hyphens.).",
@@ -45,17 +47,20 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"storage_settings": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The storage settings for this Backup Vault.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"datastore_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the data store.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"redundancy": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The backup storage redundancy.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -70,12 +75,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 	if !features.SixPointOh() {
 		delete(resource.Schema, "storage_settings")
 		resource.Schema["datastore_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of the data store.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		}
 		resource.Schema["redundancy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The backup storage redundancy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		}
 	}
 

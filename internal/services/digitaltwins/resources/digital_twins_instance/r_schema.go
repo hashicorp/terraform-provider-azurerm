@@ -12,6 +12,7 @@ import (
 func digitalTwinsInstanceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Digital Twins instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,8 +24,9 @@ func digitalTwinsInstanceSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The API endpoint to work with this Digital Twins instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),

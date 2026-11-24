@@ -19,3 +19,7 @@ func (c Resource) IDValidationFunc() func(any, string) ([]string, []error) {
 func (c Resource) ResourceType() string {
 	return "azurerm_cognitive_account_rai_blocklist"
 }
+
+func (c Resource) Description() string {
+	return "Manages a Microsoft Foundry \"Guardrails + Controls\" blocklist. Microsoft Foundry was previously known as \"Cognitive Account\"."
+}

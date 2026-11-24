@@ -36,6 +36,7 @@ type DevCenterDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -48,8 +49,9 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_uri": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The URI of the Dev Center.",
+			Computed:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -66,6 +68,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

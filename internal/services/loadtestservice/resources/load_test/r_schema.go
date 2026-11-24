@@ -21,14 +21,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name of this Load Test.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			Optional: true,
-			Type:     pluginsdk.TypeString,
+			Description: "Description of the resource.",
+			Optional:    true,
+			Type:        pluginsdk.TypeString,
 		},
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"encryption": {
@@ -39,6 +41,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"key_url": {
+						Description:  "The URI specifying the Key Vault and key to be used to encrypt data in this resource. The URI should include the key version.",
 						ForceNew:     true,
 						Required:     true,
 						Type:         pluginsdk.TypeString,
@@ -76,8 +79,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_plane_uri": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "Resource data plane URI.",
+			Computed:    true,
+			Type:        pluginsdk.TypeString,
 		},
 	}
 }

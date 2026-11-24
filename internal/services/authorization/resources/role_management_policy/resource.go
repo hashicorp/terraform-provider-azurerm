@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_role_management_policy"
 }
+
+func (r Resource) Description() string {
+	return "Manage a role policy for an Azure Management Group, Subscription, Resource Group or resource."
+}

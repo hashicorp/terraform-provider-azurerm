@@ -108,6 +108,7 @@ type CertificateAuthorityDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Managed Kubernetes Automatic Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -126,31 +127,36 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "A list of IP ranges authorised to access the API server.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the subnet that the API server is accessible from.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"current_kubernetes_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Contains the current version of Kubernetes running on the Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dns_prefix": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The DNS Prefix of the Managed Kubernetes Automatic Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the Managed Kubernetes Automatic Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"hosted_system": {
@@ -159,12 +165,14 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"node_subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the subnet used for the hosted system nodes.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"system_node_subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the subnet used for the system nodes.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -179,43 +187,50 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Kubernetes cluster server host.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A username used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A password or token used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"kube_config_raw": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Base64 encoded Kubernetes configuration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"kubelet_identity": {
@@ -224,44 +239,52 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Client ID of the user-defined Managed Identity assigned to the Kubelets.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"object_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Object ID of the user-defined Managed Identity assigned to the Kubelets.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"user_assigned_identity_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the User Assigned Identity assigned to the Kubelets.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"kubernetes_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The version of Kubernetes used on the Managed Kubernetes Automatic Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"node_resource_group": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Auto-generated Resource Group containing AKS Cluster resources.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"node_resource_group_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Resource Group containing the resources for this Managed Kubernetes Automatic Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"portal_fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN used by the Azure Portal for this Managed Kubernetes Automatic Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"private_fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of this Managed Kubernetes Automatic Cluster when Private Link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"private_cluster": {
@@ -270,12 +293,14 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"public_fully_qualified_domain_name_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "If the public FQDN for this Managed Kubernetes Automatic Cluster is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"private_dns_zone_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Private DNS Zone used by this Managed Kubernetes Automatic Cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -287,12 +312,14 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"internal_ingress_gateway_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "If the Istio Internal Ingress Gateway is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"external_ingress_gateway_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "If the Istio External Ingress Gateway is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"certificate_authority": {
 						Type:     pluginsdk.TypeList,
@@ -300,36 +327,43 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key_vault_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Key Vault.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"root_certificate_object_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The root certificate object name in Azure Key Vault.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"certificate_chain_object_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The certificate chain object name in Azure Key Vault.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"certificate_object_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The intermediate certificate object name in Azure Key Vault.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"key_object_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The intermediate certificate private key object name in Azure Key Vault.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
 					},
 					"proxy_redirect_mechanism": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The proxy redirect mechanism configured for the Istio service mesh.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"revisions": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When a canary upgrade is in progress, this can hold two consecutive values. [Learn More](https://learn.microsoft.com/azure/aks/istio-upgrade).",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -346,17 +380,19 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_zone_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "A list of DNS Zone IDs associated with the Web App routing ingress.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"default_nginx_controller": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"istio_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "If Istio is enabled for the Web App routing ingress.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"web_app_routing_identity": {
 						Type:     pluginsdk.TypeList,
@@ -364,16 +400,19 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Client ID of the user-defined Managed Identity used by the Web App Routing ingress controller.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Object ID of the user-defined Managed Identity used by the Web App Routing ingress controller.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The ID of the User Assigned Identity used by the Web App Routing ingress controller.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -390,6 +429,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_kubernetes_automatic_cluster"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Managed Kubernetes Automatic Cluster (AKS)."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

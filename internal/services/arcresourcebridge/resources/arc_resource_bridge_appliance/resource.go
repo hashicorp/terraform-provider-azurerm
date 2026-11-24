@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_arc_resource_bridge_appliance"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Arc Resource Bridge Appliance."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return appliances.ValidateApplianceID
 }

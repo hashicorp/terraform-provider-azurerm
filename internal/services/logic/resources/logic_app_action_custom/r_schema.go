@@ -12,12 +12,14 @@ import (
 func logicAppActionCustomSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the HTTP Action to be created within the Logic App Workflow.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"logic_app_id": {
+			Description:  "The ID of the Logic App Workflow.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +27,7 @@ func logicAppActionCustomSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"body": {
+			Description:      "The JSON Blob defining the Body of this Custom Action.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsJSON,
