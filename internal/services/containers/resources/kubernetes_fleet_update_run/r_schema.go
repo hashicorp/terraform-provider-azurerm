@@ -14,9 +14,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name which should be used for this Kubernetes Fleet Update Run.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KubernetesFleetId{}, "Kubernetes Fleet Manager"),
@@ -34,8 +35,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
+									Description: "The type of upgrade to perform.",
+									Required:    true,
+									Type:        pluginsdk.TypeString,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(updateruns.ManagedClusterUpgradeTypeFull),
 										string(updateruns.ManagedClusterUpgradeTypeNodeImageOnly),
@@ -43,6 +45,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"kubernetes_version": {
+									Description:  "The Kubernetes version to upgrade the member clusters to.",
 									Optional:     true,
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -58,8 +61,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
+									Description: "The node image upgrade type.",
+									Required:    true,
+									Type:        pluginsdk.TypeString,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(updateruns.NodeImageSelectionTypeConsistent),
 										string(updateruns.NodeImageSelectionTypeLatest),
@@ -73,6 +77,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"fleet_update_strategy_id": {
+			Description:   "The ID of the Fleet Update Strategy.",
 			Optional:      true,
 			Type:          pluginsdk.TypeString,
 			ConflictsWith: []string{"stage"},
@@ -85,6 +90,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this stage.",
 						Required:     true,
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -97,6 +103,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The name which should be used for this group.",
 									Required:     true,
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -106,8 +113,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"after_stage_wait_in_seconds": {
-						Optional: true,
-						Type:     pluginsdk.TypeInt,
+						Description: "The time in seconds to wait at the end of this stage before starting the next one.",
+						Optional:    true,
+						Type:        pluginsdk.TypeInt,
 					},
 				},
 			},

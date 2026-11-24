@@ -72,25 +72,29 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the workload profile.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"workload_profile_type": {
+					Description:  "Workload profile type for the workloads to run on.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(PossibleValuesForWorkloadProfileSku(), false),
 				},
 
 				"maximum_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The maximum number of instances of workload profile that can be deployed in the Container App Environment.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 
 				"minimum_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The minimum number of instances of workload profile that can be deployed in the Container App Environment.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 			},
 		},

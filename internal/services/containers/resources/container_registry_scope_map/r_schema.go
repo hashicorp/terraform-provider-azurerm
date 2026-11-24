@@ -13,6 +13,7 @@ import (
 func containerRegistryScopeMapSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the scope map.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func containerRegistryScopeMapSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 256),
@@ -28,6 +30,7 @@ func containerRegistryScopeMapSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"container_registry_name": {
+			Description:  "The name of the Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,9 +38,10 @@ func containerRegistryScopeMapSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"actions": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of actions to attach to the scope map (e.g. `repo/content/read`, `repo2/content/delete`).",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

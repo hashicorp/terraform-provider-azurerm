@@ -14,6 +14,7 @@ import (
 func containerRegistryWebhookSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Registry Webhook. Only Alphanumeric characters allowed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func containerRegistryWebhookSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"registry_name": {
+			Description:  "The Name of Container registry this Webhook belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,20 +32,23 @@ func containerRegistryWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_uri": {
+			Description:  "The service URI for the Webhook to post notifications.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ContainerRegistryWebhookServiceUri,
 		},
 
 		"custom_headers": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "Custom headers that will be added to the webhook notifications request.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"status": {
+			Description:  "Whether this Webhook triggers notifications or not.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      webhooks.WebhookStatusEnabled,
@@ -51,15 +56,17 @@ func containerRegistryWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "",
+			Description: "The scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for 'foo:bar' only. `foo` is equivalent to `foo:latest`. Empty means all events.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "",
 		},
 
 		"actions": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of actions that trigger the Webhook to post notifications. At least one action needs to be specified.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookAction(), false),

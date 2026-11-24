@@ -13,9 +13,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name which should be used for this Kubernetes Fleet Update Strategy.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&fleetupdatestrategies.FleetId{}, "Kubernetes Fleet Manager"),
@@ -26,6 +27,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this stage.",
 						Required:     true,
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -38,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The name which should be used for this group.",
 									Required:     true,
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -47,8 +50,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"after_stage_wait_in_seconds": {
-						Optional: true,
-						Type:     pluginsdk.TypeInt,
+						Description: "The time in seconds to wait at the end of this stage before starting the next one.",
+						Optional:    true,
+						Type:        pluginsdk.TypeInt,
 					},
 				},
 			},

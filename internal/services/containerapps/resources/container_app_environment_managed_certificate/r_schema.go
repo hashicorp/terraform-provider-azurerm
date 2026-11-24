@@ -18,7 +18,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.CertificateName,
-			Description:  "The name of the Container Apps Managed Certificate.",
+			Description:  "The name of the Container Apps Environment Managed Certificate.",
 		},
 
 		"container_app_environment_id": {
@@ -34,7 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The Subject Name of the Certificate. Must be a valid domain name.",
+			Description:  "The Subject Name of the Certificate.",
 		},
 
 		"domain_control_validation": {
