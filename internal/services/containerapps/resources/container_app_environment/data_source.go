@@ -53,6 +53,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_container_app_environment"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Container App Environment."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -79,13 +83,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"infrastructure_subnet_id": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The existing Subnet in use by the Container Apps Control Plane.",
+			Description: "The ID of the Subnet in use by the Container Apps Control Plane.",
 		},
 
 		"internal_load_balancer_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
-			Description: "Does the Container Environment operate in Internal Load Balancing Mode?",
+			Description: "Does the Container App Environment operate in Internal Load Balancing Mode?",
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -99,7 +103,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The default publicly resolvable name of this Container App Environment.",
+			Description: "This is generated at creation time to be globally unique.",
 		},
 
 		"docker_bridge_cidr": {
@@ -129,7 +133,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"static_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Static IP Address of the Environment.",
+			Description: "The Static IP address of the Environment.",
 		},
 	}
 }

@@ -13,6 +13,7 @@ import (
 func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the token.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"container_registry_name": {
+			Description:  "The name of the Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,15 +31,17 @@ func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope_map_id": {
+			Description:  "The ID of the Container Registry Scope Map associated with the token.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: scopemaps.ValidateScopeMapID,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the Container Registry token be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

@@ -25,6 +25,7 @@ import (
 func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Managed Kubernetes Cluster to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,19 +43,22 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "Set of authorized IP ranges to allow access to API server, e.g. [\"198.51.100.0/24\"].",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsCIDRIPv4,
 						},
 					},
 					"virtual_network_integration_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to enable Virtual Network integration for the API Server.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"subnet_id": {
+						Description:  "The ID of the Subnet where the API server endpoint is delegated to.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
@@ -64,8 +68,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automatic_upgrade_channel": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The upgrade channel for this Kubernetes Cluster. Omitting this field sets this value to `none`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.UpgradeChannelPatch),
 				string(managedclusters.UpgradeChannelRapid),
@@ -82,24 +87,28 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"balance_similar_node_groups": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Detect similar node groups and balance the number of nodes between them.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"daemonset_eviction_for_empty_nodes_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether DaemonSet pods will be gracefully terminated from empty nodes.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"daemonset_eviction_for_occupied_nodes_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether DaemonSet pods will be gracefully terminated from non-empty nodes.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"expander": {
+						Description:  "Expander to use.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(managedclusters.ExpanderRandom),
@@ -107,18 +116,21 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ignore_daemonsets_utilization_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether DaemonSet pods will be ignored when calculating resource utilization for scale down.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"max_graceful_termination_sec": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"max_node_provisioning_time": {
+						Description:  "Maximum time the autoscaler waits for a node to be provisioned.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "15m",
@@ -126,6 +138,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"max_unready_nodes": {
+						Description:  "Maximum Number of allowed unready nodes.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3,
@@ -133,6 +146,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"max_unready_percentage": {
+						Description:  "Maximum percentage of unready nodes the cluster autoscaler will stop if the percentage is exceeded.",
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
 						Default:      45,
@@ -140,6 +154,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"new_pod_scale_up_delay": {
+						Description:  "For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -147,6 +162,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scan_interval": {
+						Description:  "How often the AKS Cluster should be re-evaluated for scale up/down.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -154,6 +170,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scale_down_delay_after_add": {
+						Description:  "How long after the scale up of AKS nodes the scale down evaluation resumes.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -161,6 +178,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scale_down_delay_after_delete": {
+						Description:  "How long after node deletion that scale down evaluation resumes.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -168,6 +186,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scale_down_delay_after_failure": {
+						Description:  "How long after scale down failure that scale down evaluation resumes.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -175,6 +194,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scale_down_unneeded": {
+						Description:  "How long a node should be unneeded before it is eligible for scale down.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -182,6 +202,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scale_down_unready": {
+						Description:  "How long an unready node should be unneeded before it is eligible for scale down.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -189,26 +210,30 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"scale_down_utilization_threshold": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"empty_bulk_delete_max": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "Maximum number of empty nodes that can be deleted at the same time.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"skip_nodes_with_local_storage": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"skip_nodes_with_system_pods": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods).",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
@@ -221,9 +246,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						// OrEmpty since this can be sourced from the client config if it's not specified
 						ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 						AtLeastOneOf: []string{
@@ -233,13 +259,15 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"azure_rbac_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Is Role Based Access Control based on Azure AD enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"admin_group_object_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsUUID,
@@ -254,14 +282,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cost_analysis_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Should cost analysis be enabled for this Kubernetes Cluster? The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"custom_ca_trust_certificates_base64": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 10,
+			Description: "A list of up to 10 base64 encoded CA certificates that will be added to the trust store on nodes.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    10,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsBase64,
@@ -271,6 +301,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"default_node_pool": helpers.SchemaDefaultNodePool(),
 
 		"disk_encryption_set_id": {
+			Description:  "The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://learn.microsoft.com/azure/aks/azure-disk-customer-managed-keys).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -278,6 +309,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_prefix": {
+			Description:  "DNS prefix specified when creating the managed cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -286,6 +318,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_prefix_private_cluster": {
+			Description:  "The DNS prefix to use with private clusters.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -295,8 +328,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the Azure Kubernetes Managed Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"http_proxy_config": {
@@ -306,24 +340,28 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"http_proxy": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The proxy address to be used when communicating over HTTP.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 					"https_proxy": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The proxy address to be used when communicating over HTTPS.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 					"no_proxy": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "The list of domains that will not use the proxy for communication.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"trusted_ca": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Description: "The base64 encoded alternative CA certificate content in PEM format.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Sensitive:   true,
 					},
 				},
 			},
@@ -332,11 +370,13 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"image_cleaner_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether Image Cleaner is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"image_cleaner_interval_hours": {
+			Description:  "The interval in hours when images should be cleaned up.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(24, 2160),
@@ -349,8 +389,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_zone_ids": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "The list of the DNS Zone IDs in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. If not using Bring-Your-Own DNS zones this property should be set to an empty list.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -362,9 +403,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"default_nginx_controller": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  managedclusters.NginxIngressControllerTypeAnnotationControlled,
+						Description: "The ingress type for the default `NginxIngressController` custom resource.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     managedclusters.NginxIngressControllerTypeAnnotationControlled,
 						ValidateFunc: validation.StringInSlice(
 							managedclusters.PossibleValuesForNginxIngressControllerType(), false,
 						),
@@ -376,16 +418,19 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Client ID of the user-defined Managed Identity used for Web App Routing.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Object ID of the user-defined Managed Identity used for Web App Routing.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The ID of the User Assigned Identity used for Web App Routing.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -395,49 +440,57 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kube_admin_config": {
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
+			Description: "This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
+			Sensitive:   true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Kubernetes cluster server host.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A username used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A password or token used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"kube_admin_config_raw": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"kube_config": {
@@ -447,43 +500,50 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Kubernetes cluster server host.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A username used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A password or token used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"kube_config_raw": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"kubelet_identity": {
@@ -494,10 +554,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						RequiredWith: []string{
 							"kubelet_identity.0.object_id",
 							"kubelet_identity.0.user_assigned_identity_id",
@@ -506,10 +567,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"object_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "The Object ID of the user-defined Managed Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						RequiredWith: []string{
 							"kubelet_identity.0.client_id",
 							"kubelet_identity.0.user_assigned_identity_id",
@@ -518,10 +580,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"user_assigned_identity_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						RequiredWith: []string{
 							"kubelet_identity.0.client_id",
 							"kubelet_identity.0.object_id",
@@ -534,8 +597,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kubernetes_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade). AKS does not require an exact patch version to be specified, minor version aliases such as `1.22` are also supported. - The minor version's latest GA patch is automatically chosen in that case. More details can be found in [the documentation](https://learn.microsoft.com/azure/aks/supported-kubernetes-versions?tabs=azure-cli#alias-minor-version).",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because AKS assigns a Kubernetes version when not specified
 			Computed:         true,
 			ValidateFunc:     validation.StringIsNotEmpty,
@@ -549,6 +613,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"admin_username": {
+						Description:  "The Admin Username for the Cluster.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -562,6 +627,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key_data": {
+									Description:  "The Public SSH Key used to access the cluster.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -583,6 +649,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"artifact_source": {
+						Description:  "The artifact source. The source where the artifacts are downloaded from.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
@@ -590,6 +657,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"container_registry_id": {
+						Description:  "The resource ID of Azure Container Registry.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: registries.ValidateRegistryID,
@@ -599,8 +667,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"local_account_disabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "If `true` local accounts will be disabled. See [the documentation](https://learn.microsoft.com/azure/aks/managed-aad#disable-local-accounts) for more information.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"maintenance_window": {
@@ -616,15 +685,17 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"day": {
+									Description:  "A day in a week.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
 								},
 
 								"hours": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									MinItems: 1,
+									Description: "An array of hour slots in a day. For example, specifying `1` will allow maintenance from 1:00am to 2:00am. Specifying `1`, `2` will allow maintenance from 1:00am to 3:00am.",
+									Type:        pluginsdk.TypeSet,
+									Required:    true,
+									MinItems:    1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeInt,
 										ValidateFunc: validation.IntBetween(0, 23),
@@ -641,6 +712,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"end": {
+									Description:      "The end of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									DiffSuppressFunc: suppress.RFC3339Time,
@@ -648,6 +720,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"start": {
+									Description:      "The start of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									DiffSuppressFunc: suppress.RFC3339Time,
@@ -667,8 +740,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Frequency of maintenance.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Daily",
 							"Weekly",
@@ -678,13 +752,15 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"interval": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The interval for maintenance runs. Depending on the frequency this interval is week or month based.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 					},
 
 					"day_of_week": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The day of the week for the maintenance run. Required in combination with weekly frequency.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice(
 							maintenanceconfigurations.PossibleValuesForWeekDay(),
 							false,
@@ -692,14 +768,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"duration": {
+						Description:  "The duration of the window for maintenance to run in hours.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(4, 24),
 					},
 
 					"week_index": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The instance of the allowed days specified in `day_of_week` on which the maintenance occurs. Required in combination with relative monthly frequency.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice(
 							maintenanceconfigurations.PossibleValuesForType(),
 							false,
@@ -707,25 +785,29 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"day_of_month": {
+						Description:  "The day of the month for the maintenance run. Required in combination with AbsoluteMonthly frequency. Value between 0 and 31 (inclusive).",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 31),
 					},
 
 					"start_date": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "The date on which the maintenance window begins to take effect.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"start_time": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"utc_offset": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Used to determine the timezone for cluster maintenance.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"not_allowed": {
@@ -734,6 +816,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"end": {
+									Description:      "The end of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									DiffSuppressFunc: suppress.RFC3339Time,
@@ -741,6 +824,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"start": {
+									Description:      "The start of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									DiffSuppressFunc: suppress.RFC3339Time,
@@ -760,8 +844,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Frequency of maintenance.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Weekly",
 							"RelativeMonthly",
@@ -771,13 +856,15 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"interval": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The interval for maintenance runs. Depending on the frequency this interval is week or month based.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 					},
 
 					"day_of_week": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The day of the week for the maintenance run. Required in combination with weekly frequency.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice(
 							maintenanceconfigurations.PossibleValuesForWeekDay(),
 							false,
@@ -785,14 +872,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"duration": {
+						Description:  "The duration of the window for maintenance to run in hours.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(4, 24),
 					},
 
 					"week_index": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The week in the month used for the maintenance run.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice(
 							maintenanceconfigurations.PossibleValuesForType(),
 							false,
@@ -800,12 +889,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"day_of_month": {
+						Description:  "The day of the month for the maintenance run. Required in combination with AbsoluteMonthly frequency. Value between 0 and 31 (inclusive).",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 31),
 					},
 
 					"start_date": {
+						Description:      "The date on which the maintenance window begins to take effect.",
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						Computed:         true, // azignore:AZS007 - pre-existing violation
@@ -814,13 +905,15 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"start_time": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"utc_offset": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Used to determine the timezone for cluster maintenance.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"not_allowed": {
@@ -829,6 +922,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"end": {
+									Description:      "The end of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									DiffSuppressFunc: suppress.RFC3339Time,
@@ -836,6 +930,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"start": {
+									Description:      "The start of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
 									DiffSuppressFunc: suppress.RFC3339Time,
@@ -849,18 +944,21 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"monitor_metrics": {
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			Optional: true,
+			Description: "A Prometheus add-on profile for the Kubernetes Cluster.",
+			Type:        pluginsdk.TypeList,
+			MaxItems:    1,
+			Optional:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"annotations_allowed": {
+						Description:  "A comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"labels_allowed": {
+						Description:  "A Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -870,24 +968,28 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_management_service": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/azure/aks/use-kms-etcd-encryption).",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Identifier of Azure Key Vault Key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. A versioned key ID uses the legacy KMS experience, while a versionless key ID uses the new KMS experience with automatic key rotation. For more details, please visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.Any(
 							keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						),
 					},
 					"key_vault_id": {
+						Description:  "The ID of the Key Vault in which the key is located.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateKeyVaultID,
 					},
 					"key_vault_network_access": {
+						Description:  "Network access of the Key Vault. `Public` means the Key Vault allows public access from all networks. `Private` means the Key Vault disables public access and enables Private Link.",
 						Type:         pluginsdk.TypeString,
 						Default:      string(managedclusters.KeyVaultNetworkAccessTypesPublic),
 						Optional:     true,
@@ -904,6 +1006,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"log_analytics_workspace_id": {
+						Description:  "The ID of the Log Analytics Workspace where the audit logs collected by Microsoft Defender should be sent to.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -921,12 +1024,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"network_plugin": {
+						Description:  "Network plugin to use for networking.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNetworkPlugin(), false),
 					},
 
 					"network_mode": {
+						Description:  "Network mode to be used with Azure CNI.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -935,9 +1040,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"network_policy": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://learn.microsoft.com/azure/aks/use-network-policies).",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.NetworkPolicyCalico),
 							string(managedclusters.NetworkPolicyAzure),
@@ -946,6 +1052,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"dns_service_ip": {
+						Description:  "IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -954,9 +1061,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"network_data_plane": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(managedclusters.NetworkDataplaneAzure),
+						Description: "The data plane used for building the Kubernetes network. Disabling this forces a new resource to be created.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     string(managedclusters.NetworkDataplaneAzure),
 						ValidateFunc: validation.StringInSlice(
 							managedclusters.PossibleValuesForNetworkDataplane(),
 							false,
@@ -964,12 +1072,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"network_plugin_mode": {
+						Description:  "The network plugin mode used for building the Kubernetes network.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNetworkPluginMode(), false),
 					},
 
 					"pod_cidr": {
+						Description:  "The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet` or `network_plugin_mode` is set to `overlay`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -977,9 +1087,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"pod_cidrs": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "A list of CIDRs to use for pod IP addresses. For single-stack networking a single IPv4 CIDR is expected. For dual-stack networking an IPv4 and IPv6 CIDR are expected.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -987,6 +1098,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"service_cidr": {
+						Description:  "The Network Range used by the Kubernetes service.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -995,10 +1107,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"service_cidrs": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "A list of CIDRs to use for Kubernetes services. For single-stack networking a single IPv4 CIDR is expected. For dual-stack networking an IPv4 and IPv6 CIDR are expected.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -1006,6 +1119,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"load_balancer_sku": {
+						Description:  "The SKU of the Load Balancer used for this Kubernetes Cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(managedclusters.LoadBalancerSkuStandard),
@@ -1014,6 +1128,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"outbound_type": {
+						Description:  "The outbound (egress) routing method which should be used for this Kubernetes Cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(managedclusters.OutboundTypeLoadBalancer),
@@ -1021,14 +1136,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"load_balancer_profile": {
-						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
-						ForceNew: true,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "This can only be specified when `load_balancer_sku` is set to `standard`.",
+						Type:        pluginsdk.TypeList,
+						MaxItems:    1,
+						ForceNew:    true,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"outbound_ports_allocated": {
+									Description:  "Number of desired SNAT port for each VM in the clusters load balancer.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      0,
@@ -1036,6 +1153,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"idle_timeout_in_minutes": {
+									Description:  "Desired outbound flow idle timeout in minutes for the cluster load balancer.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      30,
@@ -1043,6 +1161,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"managed_outbound_ip_count": {
+									Description:   "Count of desired managed outbound IPs for the cluster load balancer.",
 									Type:          pluginsdk.TypeInt,
 									Optional:      true,
 									Computed:      true, // azignore:AZS007 - pre-existing violation
@@ -1051,6 +1170,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"managed_outbound_ipv6_count": {
+									Description:   "The desired number of IPv6 outbound IPs created and managed by Azure for the cluster load balancer.",
 									Type:          pluginsdk.TypeInt,
 									Optional:      true,
 									Computed:      true, // azignore:AZS007 - pre-existing violation
@@ -1059,6 +1179,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"outbound_ip_prefix_ids": {
+									Description:   "The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.",
 									Type:          pluginsdk.TypeSet,
 									Optional:      true,
 									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
@@ -1069,6 +1190,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"outbound_ip_address_ids": {
+									Description:   "The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.",
 									Type:          pluginsdk.TypeSet,
 									Optional:      true,
 									ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
@@ -1079,14 +1201,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"effective_outbound_ips": {
-									Type:     pluginsdk.TypeSet,
-									Computed: true,
+									Description: "The outcome (resource IDs) of the specified arguments.",
+									Type:        pluginsdk.TypeSet,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"backend_pool_type": {
+									Description:  "The type of the managed inbound Load Balancer Backend Pool. See [the documentation](https://learn.microsoft.com/azure/aks/load-balancer-standard#change-the-inbound-pool-type) for more information.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      string(managedclusters.BackendPoolTypeNodeIPConfiguration),
@@ -1097,28 +1221,32 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"nat_gateway_profile": {
-						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
-						ForceNew: true,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.",
+						Type:        pluginsdk.TypeList,
+						MaxItems:    1,
+						ForceNew:    true,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"idle_timeout_in_minutes": {
+									Description:  "Desired outbound flow idle timeout in minutes for the managed NAT gateway.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      4,
 									ValidateFunc: validation.IntBetween(4, 120),
 								},
 								"managed_outbound_ip_count": {
+									Description:  "Count of desired managed outbound IPs for the managed NAT gateway.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Computed:     true, // azignore:AZS007 - pre-existing violation
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
 								"effective_outbound_ips": {
-									Type:     pluginsdk.TypeSet,
-									Computed: true,
+									Description: "The outcome (resource IDs) of the specified arguments.",
+									Type:        pluginsdk.TypeSet,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -1128,10 +1256,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ip_versions": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "A list of IP versions the Kubernetes Cluster will use to assign IP addresses to its nodes and pods. `IPv4` must always be specified.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForIPFamily(), false),
@@ -1145,12 +1274,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"observability_enabled": {
+									Description:  "Is observability enabled?",
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
 									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
 								},
 								"security_enabled": {
+									Description:  "Is security enabled? This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.",
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
@@ -1164,6 +1295,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"node_os_upgrade_channel": {
+			Description:  "The upgrade channel for this Kubernetes Cluster Nodes' OS Image.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(managedclusters.NodeOSUpgradeChannelNodeImage),
@@ -1171,59 +1303,71 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"node_resource_group": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true,
+			Description: "The name of the Resource Group where the Kubernetes Nodes should exist.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true,
 		},
 
 		"current_kubernetes_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current version running on the Azure Kubernetes Managed Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"node_resource_group_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"oidc_issuer_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable the [OIDC issuer feature](https://learn.microsoft.com/azure/aks/use-oidc-issuer).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"oidc_issuer_url": {
+			Description: "The OIDC issuer URL that is associated with the cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"private_fqdn": {
+			Description: "The FQDN for the Kubernetes Cluster when Private Link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.",
+			// privateFqdn
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"private_fqdn": { // privateFqdn
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"portal_fqdn": { // azurePortalFqdn
+		"portal_fqdn": {
+			Description: "The FQDN for the Azure Portal resources when Private Link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.",
+			// azurePortalFqdn
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"private_cluster_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"private_cluster_public_fqdn_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether a Public FQDN for this Private Cluster should be added.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"private_dns_zone_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise, the cluster will have issues after provisioning.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because a Private Cluster is `System` by default even if unspecified
 			Computed: true,
 			ForceNew: true,
@@ -1237,16 +1381,18 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"role_based_access_control_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether Role Based Access Control for the Kubernetes Cluster should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			ForceNew:    true,
 		},
 
 		"run_command_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable run command for the cluster or not.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"service_mesh_profile": {
@@ -1256,43 +1402,51 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The mode of the service mesh.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.ServiceMeshModeIstio),
 						}, false),
 					},
 					"internal_ingress_gateway_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Is Istio Internal Ingress Gateway enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"external_ingress_gateway_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Is Istio External Ingress Gateway enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"certificate_authority": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Description: "When this property is specified, `key_vault_secrets_provider` is also required to be set. This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 								"root_cert_object_name": {
+									Description:  "The root certificate object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"cert_chain_object_name": {
+									Description:  "The certificate chain object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"cert_object_name": {
+									Description:  "The intermediate certificate object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"key_object_name": {
+									Description:  "The intermediate certificate private key object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -1302,10 +1456,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"revisions": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
-						MaxItems: 2,
+						Description: "One to two Istio control plane revisions for managing minor upgrades using the canary upgrade process. For example, create the resource with `revisions` set to `[\"asm-1-27\"]`. To start the canary upgrade, change `revisions` to `[\"asm-1-27\", \"asm-1-28\"]`. To roll back the canary upgrade, revert to `[\"asm-1-27\"]`. To confirm the upgrade, change to `[\"asm-1-28\"]`.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
+						MaxItems:    2,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -1323,12 +1478,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
+						Description:  "The Client ID for the Service Principal.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ClientID,
 					},
 
 					"client_secret": {
+						Description:  "The Client Secret for the Service Principal.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -1339,6 +1496,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_tier": {
+			Description:  "The SKU Tier that should be used for this Kubernetes Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(managedclusters.ManagedClusterSKUTierFree),
@@ -1352,30 +1510,35 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"blob_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Is the Blob CSI driver enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"disk_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Is the Disk CSI driver enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"file_driver_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Is the File CSI driver enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"snapshot_controller_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Is the Snapshot Controller enabled?",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
 		},
 
 		"support_plan": {
+			Description:  "The support plan which should be used for this Kubernetes Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
@@ -1391,11 +1554,13 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"force_upgrade_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether to force upgrade the cluster.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 
 					"effective_until": {
+						Description:  "The duration, in RFC 3339 format (e.g., `2025-10-01T13:00:00Z`), the `upgrade_override` values are effective. This field must be set for the `upgrade_override` values to take effect. The date-time must be within the next 30 days.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsRFC3339Time,
@@ -1412,19 +1577,22 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"admin_username": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The Admin Username for Windows VMs.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 					},
 					"admin_password": {
+						Description:  "The Admin Password for Windows VMs.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringLenBetween(8, 123),
 					},
 					"license": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The type of on-premise license which should be used for Node Pool Windows Virtual Machine.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.LicenseTypeWindowsServer),
 						}, false),
@@ -1436,12 +1604,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"dns_server": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The DNS server for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"root_domain": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The root domain name for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
@@ -1457,23 +1627,26 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"keda_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether KEDA Autoscaler can be used for workloads.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"vertical_pod_autoscaler_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether Vertical Pod Autoscaler should be enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
 		},
 
 		"ai_toolchain_operator_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the AI Toolchain Operator should be enabled for the Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"node_provisioning_profile": {
@@ -1501,9 +1674,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workload_identity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Azure AD Workload Identity should be enabled for the Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }

@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKubernetesServiceVersionsRead,
+		Description: "Use this data source to retrieve the version of Kubernetes supported by Azure Kubernetes Service.",
+		Read:        dataSourceKubernetesServiceVersionsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,30 +33,35 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"version_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"versions": {
-				Type:     pluginsdk.TypeList,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Computed: true,
+				Description: "The list of all supported versions.",
+				Type:        pluginsdk.TypeList,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Computed:    true,
 			},
 
 			"latest_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The most recent version available. If `include_preview == false`, this is the most recent non-preview version available.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The N-1 minor non-preview version and latest patch.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"include_preview": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Should Preview versions of Kubernetes in AKS be included?",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 		},
 	}

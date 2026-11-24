@@ -57,7 +57,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				LogsDestinationAzureMonitor,
 				LogsDestinationLogAnalytics,
 			}, false),
-			Description: "The destination for the application logs. Omitting this value will result in logs being streamed only.",
+			Description: "Where the application logs will be saved for this Container Apps Managed Environment. Omitting this value will result in logs being streamed only.",
 		},
 
 		"infrastructure_resource_group_name": {
@@ -73,7 +73,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				}
 				return false
 			},
-			Description: "Name of the platform-managed Resource Group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this Resource Group will be created in the same subscription as `infrastructure_subnet_id`.",
+			Description: "Name of the platform-managed Resource Group created for the Managed Environment to host infrastructure resources.",
 		},
 
 		"infrastructure_subnet_id": {
@@ -81,7 +81,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
-			Description:  "The existing Subnet to use for the Container Apps Control Plane. **NOTE:** The Subnet must have a `/21` or larger address space.",
+			Description:  "The existing Subnet to use for the Container Apps Control Plane.",
 		},
 
 		"internal_load_balancer_enabled": {
@@ -90,7 +90,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
-			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+			Description:  "Should the Container Environment operate in Internal Load Balancing Mode?",
 		},
 
 		"public_network_access": {
@@ -105,6 +105,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"workload_profile": WorkloadProfileSchema(),
 
 		"zone_redundancy_enabled": {
+			Description:  "Should the Container App Environment be created with Zone Redundancy enabled?",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,
@@ -113,7 +114,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"mutual_tls_enabled": {
-			Description: "Should mutual transport layer security (mTLS) be enabled? **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+			Description: "Should mutual transport layer security (mTLS) be enabled?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -160,7 +161,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"static_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Static IP Address of the Environment.",
+			Description: "The Static IP address of the Environment.",
 		},
 	}
 }
