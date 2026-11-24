@@ -46,8 +46,8 @@ func (*Action) Schema(ctx context.Context, _ action.SchemaRequest, response *act
 			},
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.",
-				MarkdownDescription: "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.",
+				Description:         "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -82,18 +82,18 @@ func webAppSetSlotDistributionActionRuleSchema(ctx context.Context) schema.Block
 				},
 				"change_interval_minutes": schema.Int64Attribute{
 					Optional:    true,
-					Description: "Specifies interval in minutes to reevaluate ReroutePercentage.",
+					Description: "The interval in minutes to reevaluate ReroutePercentage.",
 					Validators: []validator.Int64{
 						int64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("change_step")),
 					},
 				},
 				"min_reroute_percentage": schema.Float64Attribute{
 					Optional:    true,
-					Description: "Specifies lower boundary above which ReroutePercentage will stay.",
+					Description: "The lower boundary above which ReroutePercentage will stay.",
 				},
 				"max_reroute_percentage": schema.Float64Attribute{
 					Optional:    true,
-					Description: "Specifies upper boundary below which ReroutePercentage will stay.",
+					Description: "The upper boundary below which ReroutePercentage will stay.",
 				},
 				"change_decision_callback_url": schema.StringAttribute{
 					Optional:    true,

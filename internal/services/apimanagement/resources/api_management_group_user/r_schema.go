@@ -11,9 +11,9 @@ import (
 
 func apiManagementGroupUserSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"user_id": schemaz.SchemaApiManagementChildName(),
+		"user_id": schemaz.SchemaApiManagementChildName("The ID of the API Management User which should be assigned to this API Management Group."),
 
-		"group_name": schemaz.SchemaApiManagementChildName(),
+		"group_name": schemaz.SchemaApiManagementChildName("The Name of the API Management Group within the API Management Service."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

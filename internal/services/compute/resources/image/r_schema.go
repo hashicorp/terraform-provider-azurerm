@@ -106,7 +106,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 
 					"storage_type": {
 						Type:         pluginsdk.TypeString,
-						Description:  "The type of storage disk",
+						Description:  "The type of storage disk.",
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
@@ -163,7 +163,7 @@ func imageSchema() map[string]*pluginsdk.Schema {
 
 					"storage_type": {
 						Type:         pluginsdk.TypeString,
-						Description:  "The type of storage disk",
+						Description:  "The type of storage disk.",
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),

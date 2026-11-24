@@ -39,7 +39,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IsPortNumberOrZero,
-			Description:  "The port to use for the endpoint",
+			Description:  "The port to use for the endpoint.",
 		},
 
 		"send_key_name": {
@@ -47,7 +47,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      "RootManageSharedAccessKey",
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The name of the Relay key with `Send` permission to use. Defaults to `RootManageSharedAccessKey`",
+			Description:  "The name of the Relay key with `Send` permission to use.",
 		},
 	}
 }
@@ -82,7 +82,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Sensitive:   true,
 			Computed:    true,
-			Description: "The Primary Access Key for the `send_key_name`",
+			Description: "The Primary Access Key for the `send_key_name`.",
 		},
 	}
 }

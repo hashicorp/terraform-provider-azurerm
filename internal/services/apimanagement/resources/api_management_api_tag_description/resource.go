@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiTagDescriptionCreateUpdate,
-		Read:   resourceApiManagementApiTagDescriptionRead,
-		Update: resourceApiManagementApiTagDescriptionCreateUpdate,
-		Delete: resourceApiManagementApiTagDescriptionDelete,
+		Description: "Manages an API Tag Description within an API Management Service.",
+		Create:      resourceApiManagementApiTagDescriptionCreateUpdate,
+		Read:        resourceApiManagementApiTagDescriptionRead,
+		Update:      resourceApiManagementApiTagDescriptionCreateUpdate,
+		Delete:      resourceApiManagementApiTagDescriptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apitagdescription.ParseTagDescriptionID(id)

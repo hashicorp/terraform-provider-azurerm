@@ -35,7 +35,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/azure/data-factory/naming-rules`,
+					`Invalid name for Data Factory, see https://learn.microsoft.com/azure/data-factory/naming-rules`,
 				),
 			},
 

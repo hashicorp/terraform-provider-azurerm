@@ -1419,7 +1419,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
-	// (https://docs.microsoft.com/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
+	// (https://learn.microsoft.com/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
 	if nfsV3Enabled {
 		if !isHnsEnabled {
 			return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
@@ -1458,7 +1458,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	// By default (by leaving empty), the table and queue encryption key type is set to "Service". While users can change it to "Account" so that
 	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports the Account key type.
 	// Also noted that the blob and file are always using the "Account" key type.
-	// See: https://docs.microsoft.com/azure/storage/common/account-encryption-key-create?tabs=portal
+	// See: https://learn.microsoft.com/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 	encryptionRaw := d.Get("customer_managed_key").([]any)

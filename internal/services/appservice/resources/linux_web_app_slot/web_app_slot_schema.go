@@ -212,7 +212,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -255,7 +255,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {

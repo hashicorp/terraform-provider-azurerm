@@ -19,37 +19,42 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementGroupRead,
+		Description: "Use this data source to access information about an existing API Management Group.",
+		Read:        dataSourceApiManagementGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"name": schemaz.SchemaApiManagementChildDataSourceName(),
+			"name": schemaz.SchemaApiManagementChildDataSourceName("The Name of the API Management Group."),
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The display name of this API Management Group.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of this API Management Group.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"external_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The identifier of the external Group.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of this API Management Group, such as `custom` or `external`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

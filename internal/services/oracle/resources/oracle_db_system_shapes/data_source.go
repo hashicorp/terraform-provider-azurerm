@@ -59,7 +59,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"zone": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Filter the versions by zone",
+			Description: "Filter the versions by zone.",
 		},
 	}
 }

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementNamedValueCreateUpdate,
-		Read:   resourceApiManagementNamedValueRead,
-		Update: resourceApiManagementNamedValueCreateUpdate,
-		Delete: resourceApiManagementNamedValueDelete,
+		Description: "Manages an API Management Named Value.",
+		Create:      resourceApiManagementNamedValueCreateUpdate,
+		Read:        resourceApiManagementNamedValueRead,
+		Update:      resourceApiManagementNamedValueCreateUpdate,
+		Delete:      resourceApiManagementNamedValueDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namedvalue.ParseNamedValueID(id)
 			return err

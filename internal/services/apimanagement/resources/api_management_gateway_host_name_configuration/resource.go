@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
-		Read:   resourceApiManagementGatewayHostNameConfigurationRead,
-		Update: resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
-		Delete: resourceApiManagementGatewayHostNameConfigurationDelete,
+		Description: "Manages an API Management Gateway Host Name Configuration.",
+		Create:      resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
+		Read:        resourceApiManagementGatewayHostNameConfigurationRead,
+		Update:      resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
+		Delete:      resourceApiManagementGatewayHostNameConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := gatewayhostnameconfiguration.ParseHostnameConfigurationID(id)
