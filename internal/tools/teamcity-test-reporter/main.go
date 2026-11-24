@@ -73,8 +73,9 @@ type reporter struct {
 	duplicateOf    map[testKey]string
 	failedTests    map[string]int
 
-	// when `go test` was started, if known
+	// when `go test` was started, if known, and the packages whose tests have since begun to run
 	startedAt time.Time
+	started   map[string]bool
 
 	events int
 	failed bool
@@ -88,6 +89,7 @@ func newReporter(out io.Writer) *reporter {
 		packageForName: make(map[string]string),
 		duplicateOf:    make(map[testKey]string),
 		failedTests:    make(map[string]int),
+		started:        make(map[string]bool),
 	}
 }
 
@@ -139,12 +141,6 @@ func (r *reporter) handleLine(line []byte) {
 
 func (r *reporter) handlePackage(e event) {
 	switch e.Action {
-	case "start":
-		// the package's test binary has been compiled and is starting to run
-		if !r.startedAt.IsZero() && !e.Time.IsZero() {
-			r.print(fmt.Sprintf("Tests in %s started after %s.", e.Package, e.Time.Sub(r.startedAt).Round(time.Second)))
-		}
-
 	case "output":
 		r.print(e.Output)
 
@@ -168,6 +164,13 @@ func (r *reporter) handlePackage(e event) {
 }
 
 func (r *reporter) handleTest(e event) {
+	// the package's first test is starting, so its test binary has been compiled. Go also reports a
+	// package starting when it has no tests, so this isn't done on the package's own start event.
+	if !r.startedAt.IsZero() && !e.Time.IsZero() && !r.started[e.Package] {
+		r.started[e.Package] = true
+		r.print(fmt.Sprintf("Tests in %s started after %s.", e.Package, e.Time.Sub(r.startedAt).Round(time.Second)))
+	}
+
 	// subtests (`TestFoo/bar`) are folded into their top-level test
 	name, _, isSubtest := strings.Cut(e.Test, "/")
 	key := testKey{pkg: e.Package, name: name}

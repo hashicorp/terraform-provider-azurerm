@@ -234,7 +234,7 @@ func TestReporter(t *testing.T) {
 				`{"Time":"2026-01-01T00:04:40Z","Action":"pass","Package":"example.com/b","Elapsed":1}`,
 			},
 			expected: []string{
-				`Tests in example.com/a started after 44s.`,
+				`Tests in example.com/a started after 45s.`,
 				`##teamcity[testStarted name='TestAccThing_basic' captureStandardOutput='false']`,
 				`##teamcity[testFinished name='TestAccThing_basic' duration='5200']`,
 				`##teamcity[testStarted name='TestAccThing_other' captureStandardOutput='false']`,
@@ -246,18 +246,21 @@ func TestReporter(t *testing.T) {
 			passed: true,
 		},
 		{
-			name:      "a package which didn't build is still only a build problem",
+			name:      "a package which didn't build, or has no tests, is not reported as started",
 			startedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
 			input: []string{
 				`{"ImportPath":"example.com/c [example.com/c.test]","Action":"build-output","Output":"c/c_test.go:6:2: undefined: undefinedFunction\n"}`,
 				`{"ImportPath":"example.com/c [example.com/c.test]","Action":"build-fail"}`,
 				`{"Time":"2026-01-01T00:00:20Z","Action":"start","Package":"example.com/c"}`,
 				`{"Time":"2026-01-01T00:00:20Z","Action":"fail","Package":"example.com/c","Elapsed":0,"FailedBuild":"example.com/c [example.com/c.test]"}`,
+				`{"Time":"2026-01-01T00:00:21Z","Action":"start","Package":"example.com/d"}`,
+				`{"Time":"2026-01-01T00:00:21Z","Action":"output","Package":"example.com/d","Output":"?   \texample.com/d\t[no test files]\n"}`,
+				`{"Time":"2026-01-01T00:00:21Z","Action":"skip","Package":"example.com/d","Elapsed":0}`,
 			},
 			expected: []string{
 				`c/c_test.go:6:2: undefined: undefinedFunction`,
-				`Tests in example.com/c started after 20s.`,
 				`##teamcity[buildProblem description='example.com/c failed to build']`,
+				`?   	example.com/d	[no test files]`,
 			},
 			passed: false,
 		},
