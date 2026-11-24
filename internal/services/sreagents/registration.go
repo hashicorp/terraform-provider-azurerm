@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sreagents/resources/sre_agent"
 )
 
 type Registration struct{}
@@ -25,11 +26,15 @@ func (Registration) AssociatedGitHubLabel() string {
 }
 
 func (Registration) WebsiteCategories() []string {
-	return []string{"SRE Agents"}
+	return []string{
+		"SRE Agents",
+	}
 }
 
 func (Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{SREAgentResource{}}
+	return []sdk.Resource{
+		sre_agent.Resource{},
+	}
 }
 
 func (Registration) DataSources() []sdk.DataSource {
@@ -37,7 +42,9 @@ func (Registration) DataSources() []sdk.DataSource {
 }
 
 func (Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{SREAgentListResource{}}
+	return []sdk.FrameworkListWrappedResource{
+		sre_agent.ListResource{},
+	}
 }
 
 func (Registration) Actions() []func() action.Action {
