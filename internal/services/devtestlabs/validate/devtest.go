@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -27,9 +27,5 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 }
 
 func DevTestVirtualNetworkUsagePermissionType() pluginsdk.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		string(virtualnetworks.UsagePermissionTypeAllow),
-		string(virtualnetworks.UsagePermissionTypeDefault),
-		string(virtualnetworks.UsagePermissionTypeDeny),
-	}, false)
+	return validation.StringInSlice(virtualnetworks.PossibleValuesForUsagePermissionType(), false)
 }

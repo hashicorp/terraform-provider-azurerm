@@ -45,8 +45,7 @@ $ go get github.com/agiledragon/gomonkey/v2@v2.11.0
 
 ## Test Method
 ```go
-$ cd test 
-$ go test -gcflags=all=-l
+$ go test . ./test -gcflags=all=-l
 ```
 
 ## Using gomonkey

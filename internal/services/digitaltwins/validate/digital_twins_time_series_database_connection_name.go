@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DigitalTwinsTimeSeriesDatabaseConnectionName(v interface{}, k string) ([]string, []error) {
+func DigitalTwinsTimeSeriesDatabaseConnectionName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(3, 50),
 		validation.StringDoesNotMatch(regexp.MustCompile(`^[0-9]+$`), "should not contain only numbers"),

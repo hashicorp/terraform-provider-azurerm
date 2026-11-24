@@ -90,8 +90,7 @@ provider "azurerm" {
 }
 ```
 
-For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
-
+For more information, see the [Resource Provider Registrations](../index.html#resource-provider-registrations) section in the provider documentation.
 
 #### Enhanced Validation
 
@@ -117,6 +116,7 @@ provider "azurerm" {
 **Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default in 5.0), these errors are caught at `terraform apply` time when Azure rejects the request.
 
 This change was made because:
+
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 
@@ -295,7 +295,7 @@ use computed cross-resource references for key arguments.
 
 ### `azurerm_redis_enterprise_cluster`
 
-* This deprecated resource has been superseded by `azurerm_managed_redis_cluster` and has been removed from the provider.
+* This deprecated resource has been superseded by `azurerm_managed_redis` and has been removed from the provider.
 
 ### `azurerm_redis_enterprise_database`
 
@@ -307,7 +307,7 @@ use computed cross-resource references for key arguments.
 
 ### `azurerm_security_center_auto_provisioning`
 
-* This deprecated resource has been removed from the provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
+* This deprecated resource has been removed from the provider. Please see the [documentation for more details](https://learn.microsoft.com/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
 ### `azurerm_spatial_anchors_account`
 

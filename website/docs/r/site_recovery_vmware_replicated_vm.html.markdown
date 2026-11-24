@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the replicated VM. Changing this forces a new resource to be created.
 
-* `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
+* `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
 
 * `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the replicated VM is created.
 
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 ~> **Note:** `target_network_id` is required when `network_interface` is specified.
 
-* `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
+* `default_log_storage_account_id` - (Optional) The ID of the storage account that should be used for logging during replication. 
 
 ~> **Note:** Only standard types of storage accounts are allowed.
 
