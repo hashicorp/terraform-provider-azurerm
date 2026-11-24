@@ -1080,7 +1080,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []any, gen2storageAccounts 
 	return &results, clusterIdentity, nil
 }
 
-func flattenHDInsightStorageAccounts(input *clusters.StorageProfile, d *pluginsdk.ResourceData) ([]any, []any) {
+func FlattenHDInsightStorageAccounts(input *clusters.StorageProfile, d *pluginsdk.ResourceData) ([]any, []any) {
 	storageAccounts := make([]any, 0)
 	storageAccountsGen2 := make([]any, 0)
 	if input == nil || input.Storageaccounts == nil {

@@ -86,6 +86,14 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta any) erro
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
+			storageAccounts, storageAccountsGen2 := helpers.FlattenHDInsightStorageAccounts(props.StorageProfile, d)
+			if err := d.Set("storage_account", storageAccounts); err != nil {
+				return fmt.Errorf("flattening `storage_account`: %+v", err)
+			}
+			if err := d.Set("storage_account_gen2", storageAccountsGen2); err != nil {
+				return fmt.Errorf("flattening `storage_account_gen2`: %+v", err)
+			}
+
 			helpers.FlattenHDInsightsMetastores(d, configurations)
 
 			sparkRoles := helpers.HdInsightRoleDefinition{
