@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePrivateDnsMxRecordRead,
+		Description: "Use this data source to access information about an existing Private DNS MX Record within Azure DNS.",
+		Read:        dataSourcePrivateDnsMxRecordRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,29 +27,34 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The name of the Private DNS MX Record.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Private DNS Zone where the resource exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"record": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "A list of values that make up the MX record.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"preference": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "String representing the \"preference\" value of the MX records. Records with lower preference value take priority.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"exchange": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The mail server responsible for the domain covered by the MX record.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -56,13 +62,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Time To Live (TTL) of the Private DNS record in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the Private DNS MX Record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

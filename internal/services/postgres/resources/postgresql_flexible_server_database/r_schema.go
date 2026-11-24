@@ -13,6 +13,7 @@ import (
 func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the PostgreSQL Database, which needs [to be a valid PostgreSQL identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"server_id": {
+			Description:  "The ID of the Azure PostgreSQL Flexible Server from which to create this PostgreSQL Flexible Server Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"charset": {
+			Description:      "The Charset for the Azure PostgreSQL Flexible Server Database, which needs [to be a valid PostgreSQL Charset](https://www.postgresql.org/docs/current/static/multibyte.html).",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
@@ -36,6 +39,7 @@ func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"collation": {
+			Description:  "The Collation for the Azure PostgreSQL Flexible Server Database, which needs [to be a valid PostgreSQL Collation](https://www.postgresql.org/docs/current/static/collation.html).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

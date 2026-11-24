@@ -32,6 +32,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_forwarding_rule"
 }
 
+func (r DataSource) Description() string {
+	return "Gets information about an existing Private DNS Resolver Forwarding Rule."
+}
+
 func (r DataSource) ModelObject() any {
 	return &PrivateDNSResolverForwardingRuleModel{}
 }
@@ -43,12 +47,14 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the Private DNS Resolver Forwarding Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"dns_forwarding_ruleset_id": {
+			Description:  "ID of the Private DNS Resolver Forwarding Ruleset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: dnsforwardingrulesets.ValidateDnsForwardingRulesetID,
@@ -59,8 +65,9 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The domain name for the Private DNS Resolver Forwarding Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_dns_servers": {
@@ -69,26 +76,30 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The DNS server IP address.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"port": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The DNS server port.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is the Private DNS Resolver Forwarding Rule enabled?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "The metadata attached to the Private DNS Resolver Forwarding Rule.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

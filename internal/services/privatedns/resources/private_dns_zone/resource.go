@@ -17,11 +17,12 @@ var privateDnsZoneResourceName = "azurerm_private_dns_zone"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourcePrivateDnsZoneCreateUpdate,
-		Read:     resourcePrivateDnsZoneRead,
-		Update:   resourcePrivateDnsZoneCreateUpdate,
-		Delete:   resourcePrivateDnsZoneDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&privatezones.PrivateDnsZoneId{}),
+		Description: "Enables you to manage Private DNS zones within Azure DNS. These zones are hosted on Azure's name servers.",
+		Create:      resourcePrivateDnsZoneCreateUpdate,
+		Read:        resourcePrivateDnsZoneRead,
+		Update:      resourcePrivateDnsZoneCreateUpdate,
+		Delete:      resourcePrivateDnsZoneDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&privatezones.PrivateDnsZoneId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatezones.PrivateDnsZoneId{}),

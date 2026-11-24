@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmPostgresqlFlexibleServerRead,
+		Description: "Use this data source to access information about an existing PostgreSQL Flexible Server.",
+		Read:        dataSourceArmPostgresqlFlexibleServerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,8 +29,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this PostgreSQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -37,48 +39,57 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"administrator_login": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Administrator login for the PostgreSQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"auto_grow_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is the storage auto grow for PostgreSQL Flexible Server enabled?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage_mb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The max storage allowed for the PostgreSQL Flexible Server.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The version of PostgreSQL Flexible Server to use.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"delegated_subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Virtual Network subnet to create the PostgreSQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"backup_retention_days": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The backup retention days for the PostgreSQL Flexible Server.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the PostgreSQL Flexible Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is public network access enabled?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -89,13 +100,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The high availability mode of the PostgreSQL Flexible Server.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"standby_availability_zone": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Availability Zone of the standby Flexible Server.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

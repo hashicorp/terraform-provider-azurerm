@@ -31,6 +31,7 @@ const (
 func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this PostgreSQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +43,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"administrator_login": {
+			Description:  "The Administrator login for the PostgreSQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -49,6 +51,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_password": {
+			Description:   "The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
@@ -57,6 +60,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_password_wo": {
+			Description:   "The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			WriteOnly:     true,
@@ -66,6 +70,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_password_wo_version": {
+			Description:  "An integer value used to trigger an update for `administrator_password_wo`. This property should be incremented when updating `administrator_password_wo`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			RequiredWith: []string{"administrator_password_wo"},
@@ -79,16 +84,19 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_directory_auth_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether Active Directory authentication is allowed to access the PostgreSQL Flexible Server.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"password_auth_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether password authentication is allowed to access the PostgreSQL Flexible Server.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"tenant_id": {
+						Description:  "The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
@@ -101,6 +109,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
+			Description:  "The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `B_Standard_B2ats_v2`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -108,12 +117,14 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_grow_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Is the storage auto grow for PostgreSQL Flexible Server enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"storage_mb": {
+			Description:  "The max storage allowed for the PostgreSQL Flexible Server.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -121,9 +132,10 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_tier": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Please see the `storage_tier` defaults based on `storage_mb` table below.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servers.AzureManagedDiskPerformanceTierPFour),
 				string(servers.AzureManagedDiskPerformanceTierPSix),
@@ -140,10 +152,11 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(servers.StorageTypePremiumLRS),
-			ForceNew: true,
+			Description: "The type of storage used for the PostgreSQL Flexible Server.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(servers.StorageTypePremiumLRS),
+			ForceNew:    true,
 			// NOTE: not using `servers.PossibleValuesForStorageType()` because it includes `UltraSSD_LRS`, which is not GA yet
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servers.StorageTypePremiumLRS),
@@ -152,24 +165,27 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_iops": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The maximum IOPS supported for storage.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// NOTE: O+C Azure computes IOPs for Premium_LRS or from source server
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(3000, 80000),
 		},
 
 		"storage_throughput": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The maximum throughput supported for storage in MB/s.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// NOTE: O+C Azure computes throughput for Premium_LRS or from source server
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(125, 1200),
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The version of PostgreSQL Flexible Server to use.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because Azure assigns a version when not explicitly set
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -187,8 +203,9 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		"zone": commonschema.ZoneSingleOptional(),
 
 		"create_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The creation mode which can be used to restore or replicate existing servers.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servers.CreateModeDefault),
 				string(servers.CreateModePointInTimeRestore),
@@ -200,6 +217,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"delegated_subnet_id": {
+			Description:  "The ID of the Virtual Network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -207,9 +225,10 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_zone_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The ID of the private DNS zone to create the PostgreSQL Flexible Server.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
 			DiffSuppressFunc: suppress.CaseDifference,
 			// This is `computed`, because there is a breaking change to require this field when setting vnet.
@@ -219,6 +238,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"point_in_time_restore_time_in_utc": {
+			Description:  "The point in time to restore from `source_server_id` when `create_mode` is `GeoRestore`, `PointInTimeRestore`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -226,6 +246,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_server_id": {
+			Description:  "The resource ID of the source PostgreSQL Flexible Server to be restored.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -239,6 +260,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"day_of_week": {
+						Description:  "The day of week for maintenance window, where the week starts on a Sunday, i.e. Sunday = `0`, Monday = `1`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      0,
@@ -246,6 +268,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"start_hour": {
+						Description:  "The start hour for maintenance window.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      0,
@@ -253,6 +276,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"start_minute": {
+						Description:  "The start minute for maintenance window.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      0,
@@ -263,6 +287,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"backup_retention_days": {
+			Description:  "The backup retention days for the PostgreSQL Flexible Server.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -270,10 +295,11 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_redundant_backup_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Description: "Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			ForceNew:    true,
 		},
 
 		"high_availability": {
@@ -283,6 +309,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
+						Description:  "The high availability mode for the PostgreSQL Flexible Server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(servers.PossibleValuesForHighAvailabilityMode(), false),
@@ -294,19 +321,22 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the PostgreSQL Flexible Server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this PostgreSQL Flexible Server is publicly accessible.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"replication_role": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The replication role for the PostgreSQL Flexible Server.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servers.ReplicationRoleNone),
 			}, false),
@@ -322,6 +352,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Description:  "The versioned/versionless ID of the Key Vault Key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
@@ -331,11 +362,13 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"primary_user_assigned_identity_id": {
+						Description:  "The primary user Managed Identity ID for a Customer Managed Key.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 					"geo_backup_key_vault_key_id": {
+						Description:  "The versioned/versionless ID of the geo backup Key Vault Key.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
@@ -345,6 +378,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"geo_backup_user_assigned_identity_id": {
+						Description:  "The geo backup user Managed Identity ID for a Customer Managed Key.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -361,6 +395,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"size": {
+						Description:  "The number of nodes in the cluster.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 20),

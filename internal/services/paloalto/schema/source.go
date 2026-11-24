@@ -28,8 +28,9 @@ func SourceSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cidrs": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of CIDRs.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -46,8 +47,9 @@ func SourceSchema() *pluginsdk.Schema {
 				},
 
 				"countries": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of ISO3361-1 Alpha-2 Country codes.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validate.ISO3361CountryCode,
@@ -61,8 +63,9 @@ func SourceSchema() *pluginsdk.Schema {
 				},
 
 				"feeds": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Feeds.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -76,8 +79,9 @@ func SourceSchema() *pluginsdk.Schema {
 				},
 
 				"local_rulestack_prefix_list_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Prefix Lists.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,

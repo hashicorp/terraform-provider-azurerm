@@ -15,12 +15,14 @@ import (
 func privateDnsZoneVirtualNetworkLinkSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Private DNS Zone Virtual Network Link.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"private_dns_zone_id": {
+			Description:  "The ID of the Private DNS Zone where the resource exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func privateDnsZoneVirtualNetworkLinkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_id": {
+			Description:  "The ID of the Virtual Network that should be linked to the DNS Zone.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,14 +38,16 @@ func privateDnsZoneVirtualNetworkLinkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"registration_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Is auto-registration of Virtual Machine records in the Virtual Network in the Private DNS zone enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"resolution_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The resolution policy of the Private DNS Zone Virtual Network Link.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because when the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
 			Computed:     true,
 			ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),

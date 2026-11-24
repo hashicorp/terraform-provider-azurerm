@@ -19,10 +19,11 @@ const azurePostgresqlFlexibleServerConfigurationResourceName = "azurerm_postgres
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFlexibleServerConfigurationCreateUpdate,
-		Read:   resourceFlexibleServerConfigurationRead,
-		Update: resourceFlexibleServerConfigurationCreateUpdate,
-		Delete: resourceFlexibleServerConfigurationDelete,
+		Description: "Sets a PostgreSQL Configuration value on an Azure PostgreSQL Flexible Server.",
+		Create:      resourceFlexibleServerConfigurationCreateUpdate,
+		Read:        resourceFlexibleServerConfigurationRead,
+		Update:      resourceFlexibleServerConfigurationCreateUpdate,
+		Delete:      resourceFlexibleServerConfigurationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

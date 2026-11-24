@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Private DNS Resolver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"virtual_network_id": {
+			Description:  "The ID of the Virtual Network that is linked to the Private DNS Resolver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

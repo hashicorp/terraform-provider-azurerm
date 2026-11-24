@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePurviewAccountCreate,
-		Read:   resourcePurviewAccountRead,
-		Update: resourcePurviewAccountUpdate,
-		Delete: resourcePurviewAccountDelete,
+		Description: "Manages a Purview Account.",
+		Create:      resourcePurviewAccountCreate,
+		Read:        resourcePurviewAccountRead,
+		Update:      resourcePurviewAccountUpdate,
+		Delete:      resourcePurviewAccountDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := account.ParseAccountID(id)

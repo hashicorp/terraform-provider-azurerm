@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePrivateDnsZoneRead,
+		Description: "Use this data source to access information about an existing Private DNS Zone.",
+		Read:        dataSourcePrivateDnsZoneRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,34 +28,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Private DNS Zone.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "The name of the Resource Group where the Private DNS Zone exists. If the name of the Resource Group is not provided, the first Private DNS Zone from the list of Private DNS Zones in your subscription that matches `name` will be returned.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"number_of_record_sets": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of recordsets currently in the zone.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Maximum number of recordsets that can be created in this Private Zone.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"max_number_of_virtual_network_links": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Maximum number of Virtual Networks that can be linked to this Private Zone.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"max_number_of_virtual_network_links_with_registration": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Maximum number of Virtual Networks that can be linked to this Private Zone with registration enabled.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"tags": commonschema.Tags(),

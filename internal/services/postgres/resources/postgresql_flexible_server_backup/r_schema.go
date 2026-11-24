@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this PostgreSQL Flexible Server Backup.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,8 +27,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"completed_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Time (ISO8601 format) at which the backup was completed.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

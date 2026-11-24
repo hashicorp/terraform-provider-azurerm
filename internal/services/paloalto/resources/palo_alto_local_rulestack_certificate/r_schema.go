@@ -14,12 +14,14 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Networks Rulestack Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.LocalRuleStackCertificateName,
 		},
 
 		"rulestack_id": {
+			Description:  "The ID of the TODO.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,16 +29,19 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"audit_comment": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The comment for Audit purposes.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description for the Certificate.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"key_vault_certificate_id": {
+			Description:  "The `versionless_id` of the Key Vault Certificate to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -45,6 +50,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"self_signed": {
+			Description:  "Should a Self Signed Certificate be used?",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,

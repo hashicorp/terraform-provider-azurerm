@@ -17,9 +17,10 @@ import (
 func purviewAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Purview Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
 				"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number.",
@@ -33,12 +34,14 @@ func purviewAccountSchema() map[string]*pluginsdk.Schema {
 		"identity": resourcePurviewAccountIdentitySchema(),
 
 		"managed_event_hub_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Default:  true,
-			Optional: true,
+			Description: "Whether the Purview Account should create a managed Event Hub Namespace.",
+			Type:        pluginsdk.TypeBool,
+			Default:     true,
+			Optional:    true,
 		},
 
 		"managed_resource_group_name": {
+			Description:  "The name which should be used for the new Resource Group where the Purview Account creates the managed resources.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -47,9 +50,10 @@ func purviewAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the Purview Account be visible to the public network?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"managed_resources": {
@@ -58,51 +62,60 @@ func purviewAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"resource_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the managed Resource Group.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the managed Storage Account.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"event_hub_namespace_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the managed Event Hub namespace.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"catalog_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Catalog endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"guardian_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Guardian endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"scan_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Scan endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"atlas_kafka_endpoint_primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Atlas Kafka endpoint primary connection string.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"atlas_kafka_endpoint_secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Atlas Kafka endpoint secondary connection string.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"aws_external_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Configured in AWS to allow use of the role arn used for scanning.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

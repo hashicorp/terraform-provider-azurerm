@@ -14,6 +14,7 @@ import (
 func powerbiEmbeddedSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the PowerBI Embedded.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +26,9 @@ func powerbiEmbeddedSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "Sets the PowerBI Embedded's pricing level's SKU.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"A1",
 				"A2",
@@ -40,8 +42,9 @@ func powerbiEmbeddedSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"administrators": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "A set of administrator user identities, which manages the Power BI Embedded and must be a member user or a Service Principal in your AAD tenant.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.EmbeddedAdministratorName,
@@ -49,6 +52,7 @@ func powerbiEmbeddedSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
+			Description:  "Sets the PowerBI Embedded's mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(capacities.ModeGenTwo),

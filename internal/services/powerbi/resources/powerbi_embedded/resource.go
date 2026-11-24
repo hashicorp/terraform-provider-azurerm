@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePowerBIEmbeddedCreate,
-		Read:   resourcePowerBIEmbeddedRead,
-		Update: resourcePowerBIEmbeddedUpdate,
-		Delete: resourcePowerBIEmbeddedDelete,
+		Description: "Manages a PowerBI Embedded.",
+		Create:      resourcePowerBIEmbeddedCreate,
+		Read:        resourcePowerBIEmbeddedRead,
+		Update:      resourcePowerBIEmbeddedUpdate,
+		Delete:      resourcePowerBIEmbeddedDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -15,6 +15,7 @@ import (
 func privateDnsSrvRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the DNS SRV Record.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func privateDnsSrvRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_zone_id": {
+			Description:  "The ID of the Private DNS Zone where the resource exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,24 +36,28 @@ func privateDnsSrvRecordSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"priority": {
+						Description:  "The priority of the SRV record.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 65535),
 					},
 
 					"weight": {
+						Description:  "The Weight of the SRV record.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 65535),
 					},
 
 					"port": {
+						Description:  "The Port the service is listening on.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 65535),
 					},
 
 					"target": {
+						Description:  "The FQDN of the service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -61,14 +67,16 @@ func privateDnsSrvRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ttl": {
+			Description:  "The Time To Live (TTL) of the DNS record in seconds.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS SRV Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

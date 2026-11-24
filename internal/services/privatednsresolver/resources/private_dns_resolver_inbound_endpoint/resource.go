@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_private_dns_resolver_inbound_endpoint"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Private DNS Resolver Inbound Endpoint."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return inboundendpoints.ValidateInboundEndpointID
 }

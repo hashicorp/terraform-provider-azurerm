@@ -30,6 +30,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_virtual_network_link"
 }
 
+func (r DataSource) Description() string {
+	return "Gets information about an existing Private DNS Resolver Virtual Network Link."
+}
+
 func (r DataSource) ModelObject() any {
 	return &PrivateDNSResolverVirtualNetworkLinDataSourcekModel{}
 }
@@ -41,12 +45,14 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the Private DNS Resolver Virtual Network Link.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"dns_forwarding_ruleset_id": {
+			Description:  "ID of the Private DNS Resolver DNS Forwarding Ruleset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: dnsforwardingrulesets.ValidateDnsForwardingRulesetID,
@@ -57,13 +63,15 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Virtual Network that is linked to the Private DNS Resolver Virtual Network Link.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "The metadata attached to the Private DNS Resolver Virtual Network Link.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

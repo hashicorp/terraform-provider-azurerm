@@ -15,6 +15,7 @@ import (
 func privateDnsTxtRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the DNS TXT Record.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func privateDnsTxtRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_zone_id": {
+			Description:  "The ID of the Private DNS Zone where the resource exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +36,7 @@ func privateDnsTxtRecordSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"value": {
+						Description:  "The value of the TXT record.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 1024),
@@ -43,14 +46,16 @@ func privateDnsTxtRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ttl": {
+			Description:  "The Time To Live (TTL) of the DNS record in seconds.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS TXT Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

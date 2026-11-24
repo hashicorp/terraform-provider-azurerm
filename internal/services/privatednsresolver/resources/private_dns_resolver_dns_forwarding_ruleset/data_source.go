@@ -32,6 +32,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_dns_forwarding_ruleset"
 }
 
+func (r DataSource) Description() string {
+	return "Gets information about an existing Private DNS Resolver DNS Forwarding Ruleset."
+}
+
 func (r DataSource) ModelObject() any {
 	return &PrivateDNSResolverDnsForwardingRulesetDataSourceModel{}
 }
@@ -43,6 +47,7 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the existing Private DNS Resolver DNS Forwarding Ruleset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -57,8 +62,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"private_dns_resolver_outbound_endpoint_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The IDs list of the Private DNS Resolver Outbound Endpoints that are linked to the Private DNS Resolver DNS Forwarding Ruleset.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

@@ -22,3 +22,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_postgresql_flexible_server_backup"
 }
+
+func (r Resource) Description() string {
+	return "Manages a PostgreSQL Flexible Server Backup."
+}

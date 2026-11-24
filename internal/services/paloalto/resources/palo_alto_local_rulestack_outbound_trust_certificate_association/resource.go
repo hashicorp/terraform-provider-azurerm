@@ -20,3 +20,7 @@ func (l Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (l Resource) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association"
 }
+
+func (l Resource) Description() string {
+	return "Manages a Palo Alto Networks Rulestack Outbound Trust Certificate Association."
+}

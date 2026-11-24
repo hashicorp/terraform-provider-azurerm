@@ -38,6 +38,7 @@ func MetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) boo
 
 func MetadataSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:      "A JSON string representing additional metadata to include.",
 		Type:             pluginsdk.TypeString,
 		Optional:         true,
 		Computed:         true, // azignore:AZS007 - pre-existing violation

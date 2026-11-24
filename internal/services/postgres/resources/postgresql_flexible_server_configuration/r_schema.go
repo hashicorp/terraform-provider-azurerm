@@ -12,6 +12,7 @@ import (
 func postgresqlFlexibleServerConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the PostgreSQL Configuration, which needs [to be a valid PostgreSQL configuration name](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIER).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func postgresqlFlexibleServerConfigurationSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"server_id": {
+			Description:  "The ID of the PostgreSQL Flexible Server where we want to change configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func postgresqlFlexibleServerConfigurationSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"value": {
+			Description:  "The value of the PostgreSQL Configuration. See the PostgreSQL documentation for valid values.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateDnsARecordCreateUpdate,
-		Read:   resourcePrivateDnsARecordRead,
-		Update: resourcePrivateDnsARecordCreateUpdate,
-		Delete: resourcePrivateDnsARecordDelete,
+		Description: "Enables you to manage DNS A Records within Azure Private DNS.",
+		Create:      resourcePrivateDnsARecordCreateUpdate,
+		Read:        resourcePrivateDnsARecordRead,
+		Update:      resourcePrivateDnsARecordCreateUpdate,
+		Delete:      resourcePrivateDnsARecordDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentityThen(&privatedns.RecordTypeId{}, resourcePrivateDnsARecordImporter),
 

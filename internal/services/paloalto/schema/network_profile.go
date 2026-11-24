@@ -52,9 +52,10 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MinItems: 1,
+					Description: "A list of Azure Public IP Address IDs.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MinItems:    1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
@@ -62,9 +63,10 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"egress_nat_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
+					Description: "A list of Azure Public IP Address IDs to be used for egress (source) network address translation.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					MinItems:    1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
@@ -72,8 +74,9 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"trusted_address_ranges": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of trusted addresses or address ranges.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -88,16 +91,18 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 				// Computed
 
 				"public_ip_addresses": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of public IPs associated with this Next Generation Firewall.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"egress_nat_ip_addresses": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Egress NAT IP addresses.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -223,6 +228,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_hub_id": {
+					Description:  "The ID of the Virtual Hub to deploy the Next Generation Firewall in.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -230,6 +236,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"network_virtual_appliance_id": {
+					Description:  "The ID of the Palo Alto Network Virtual Appliance in the VHub.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -237,9 +244,10 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"public_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MinItems: 1,
+					Description: "A list of Public IP Address IDs to use for the Next Generation Firewall.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MinItems:    1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
@@ -247,9 +255,10 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"egress_nat_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
+					Description: "A list of Public IP Address IDs to use for egress NAT.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					MinItems:    1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
@@ -257,8 +266,9 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"trusted_address_ranges": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of trusted addresses or address ranges.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -269,31 +279,36 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"trusted_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The ID of trusted subnet.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"untrusted_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The ID of untrusted subnet.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"ip_of_trust_for_user_defined_routes": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The IP of trusted subnet for UDR.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"public_ip_addresses": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of public IPs associated with this Next Generation Firewall.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"egress_nat_ip_addresses": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Egress NAT IP addresses.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},

@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewallresources.ValidateFirewallID
 }

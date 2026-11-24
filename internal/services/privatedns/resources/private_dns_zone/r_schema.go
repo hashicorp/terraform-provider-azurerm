@@ -16,32 +16,37 @@ import (
 func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Private DNS Zone.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		// TODO: this can become case-sensitive with a state migration
 		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 		"number_of_record_sets": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The current number of record sets in this Private DNS zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_number_of_record_sets": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum number of record sets that can be created in this Private DNS zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_number_of_virtual_network_links": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum number of Virtual Networks that can be linked to this Private DNS zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_number_of_virtual_network_links_with_registration": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum number of Virtual Networks that can be linked to this Private DNS zone with registration enabled.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"soa_record": {
@@ -53,12 +58,14 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
+						Description:  "The email contact for the SOA record.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.PrivateDnsZoneSOARecordEmail,
 					},
 
 					"expire_time": {
+						Description:  "The expire time for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      2419200,
@@ -66,6 +73,7 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"minimum_ttl": {
+						Description:  "The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      10,
@@ -73,6 +81,7 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"refresh_time": {
+						Description:  "The refresh time for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3600,
@@ -80,6 +89,7 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"retry_time": {
+						Description:  "The retry time for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      300,
@@ -87,6 +97,7 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ttl": {
+						Description:  "The Time To Live of the SOA Record in seconds.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3600,
@@ -96,24 +107,27 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 					"tags": commonschema.Tags(),
 
 					"fqdn": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The fully qualified domain name of the Record Set.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					// This field should be able to be updated since DNS Record Sets API allows to update it.
 					// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
 					// Once the issue is fixed, the field will be updated to `Required` property.
 					"host_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The domain name of the authoritative name server for the SOA record.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					// This field should be able to be updated since DNS Record Sets API allows to update it.
 					// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
 					// Once the issue is fixed, the field will be updated to `Optional` property with `Default` attribute.
 					"serial_number": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The serial number for the SOA record.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},

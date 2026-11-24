@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePolicyDefinitionCreateUpdate,
-		Update: resourcePolicyDefinitionCreateUpdate,
-		Read:   resourcePolicyDefinitionRead,
-		Delete: resourcePolicyDefinitionDelete,
+		Description: "Manages a policy rule definition on a Management Group or your provider subscription.",
+		Create:      resourcePolicyDefinitionCreateUpdate,
+		Update:      resourcePolicyDefinitionCreateUpdate,
+		Read:        resourcePolicyDefinitionRead,
+		Delete:      resourcePolicyDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PolicyDefinitionID(id)

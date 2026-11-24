@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate,
-		Read:   resourcePolicyVirtualMachineConfigurationAssignmentRead,
-		Update: resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate,
-		Delete: resourcePolicyVirtualMachineConfigurationAssignmentDelete,
+		Description: "Applies a Guest Configuration Policy to a Virtual Machine.",
+		Create:      resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate,
+		Read:        resourcePolicyVirtualMachineConfigurationAssignmentRead,
+		Update:      resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate,
+		Delete:      resourcePolicyVirtualMachineConfigurationAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

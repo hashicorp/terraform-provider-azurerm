@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePrivateDnsZoneVirtualNetworkLinkRead,
+		Description: "Use this data source to access information about an existing Private DNS zone Virtual Network Link. These Links enable DNS resolution and registration inside Azure Virtual Networks using Azure Private DNS.",
+		Read:        dataSourcePrivateDnsZoneVirtualNetworkLinkRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,30 +28,35 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Private DNS Zone Virtual Network Link.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"private_dns_zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Private DNS zone (without a terminating dot).",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"virtual_network_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Virtual Network that is linked to the DNS Zone.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"registration_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the auto-registration of Virtual Machine records in the Virtual Network in the Private DNS zone is enabled or not.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"resolution_policy": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The resolution policy of the Private DNS Zone Virtual Network Link.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

@@ -15,8 +15,9 @@ import (
 func privateDnsMxRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
+			Description: "The name of the DNS MX Record.",
+			Type:        pluginsdk.TypeString,
+			ForceNew:    true,
 			// name is optional and defaults to root zone (@) if not set
 			Optional:     true,
 			Default:      "@",
@@ -24,6 +25,7 @@ func privateDnsMxRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_zone_id": {
+			Description:  "The ID of the Private DNS Zone where the resource exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,12 +38,14 @@ func privateDnsMxRecordSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"preference": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The preference of the MX record.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 						// 16 bit uint (rfc 974)
 						ValidateFunc: validation.IntBetween(0, 65535),
 					},
 					"exchange": {
+						Description:  "The FQDN of the exchange the MX record points to.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -51,14 +55,16 @@ func privateDnsMxRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ttl": {
+			Description:  "The Time To Live (TTL) of the DNS record in seconds.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS MX Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

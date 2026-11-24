@@ -14,9 +14,10 @@ var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePostgresqlFlexibleServerDatabaseCreate,
-		Read:   resourcePostgresqlFlexibleServerDatabaseRead,
-		Delete: resourcePostgresqlFlexibleServerDatabaseDelete,
+		Description: "Manages a PostgreSQL Flexible Server Database.",
+		Create:      resourcePostgresqlFlexibleServerDatabaseCreate,
+		Read:        resourcePostgresqlFlexibleServerDatabaseRead,
+		Delete:      resourcePostgresqlFlexibleServerDatabaseDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := databases.ParseDatabaseID(id)
 			return err

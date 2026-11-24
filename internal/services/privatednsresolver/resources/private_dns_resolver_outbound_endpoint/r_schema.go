@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Private DNS Resolver Outbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_resolver_id": {
+			Description:  "The ID of the Private DNS Resolver Outbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet_id": {
+			Description:  "The ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

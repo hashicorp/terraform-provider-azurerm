@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePolicySetDefinitionRead,
+		Description: "Use this data source to access information about an existing Policy Set Definition.",
+		Read:        dataSourcePolicySetDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"display_name": {
+				Description:  "The display name of the Policy Set Definition.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -36,6 +38,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"name": {
+				Description:  "The name of the Policy Set Definition.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -44,26 +47,32 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"management_group_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "Only retrieve Policy Set Definitions from this Management Group.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Description of the Policy Set Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"metadata": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Any Metadata defined in the Policy Set Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"parameters": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Any Parameters defined in the Policy Set Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
-			"policy_definitions": { // TODO -- remove in the next major version
+			"policy_definitions": {
+				Description: "The policy definitions contained within the Policy Set Definition.",
+				// TODO -- remove in the next major version
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -74,11 +83,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"policy_definition_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the policy definition or Policy Set Definition that is included in this Policy Set Definition.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
-						"parameters": { // TODO -- remove this attribute in the next major version
+						"parameters": {
+							Description: "The mapping of the parameter values for the referenced policy rule. The keys are the parameter names.",
+							// TODO -- remove this attribute in the next major version
 							Type:     pluginsdk.TypeMap,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
@@ -87,18 +99,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"parameter_values": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The parameter values for the referenced policy rule. This field is a JSON object.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"reference_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The unique ID within this Policy Set Definition for this policy definition reference.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"policy_group_names": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The list of names of the policy definition groups that this policy definition reference belongs to.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -108,8 +123,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"policy_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Type of the Policy Set Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"policy_definition_group": {
@@ -118,28 +134,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of this policy definition group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"display_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The display name of this policy definition group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"category": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The category of this policy definition group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description of this policy definition group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"additional_metadata_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of a resource that contains additional metadata about this policy definition group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

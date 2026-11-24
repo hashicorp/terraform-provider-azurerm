@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubscriptionPolicyExemptionCreateUpdate,
-		Read:   resourceSubscriptionPolicyExemptionRead,
-		Update: resourceSubscriptionPolicyExemptionCreateUpdate,
-		Delete: resourceSubscriptionPolicyExemptionDelete,
+		Description: "Manages a Subscription Policy Exemption.",
+		Create:      resourceSubscriptionPolicyExemptionCreateUpdate,
+		Read:        resourceSubscriptionPolicyExemptionRead,
+		Update:      resourceSubscriptionPolicyExemptionCreateUpdate,
+		Delete:      resourceSubscriptionPolicyExemptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionPolicyExemptionID(id)

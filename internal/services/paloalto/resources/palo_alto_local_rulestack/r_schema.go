@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Networks Rulestack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,8 +25,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"vulnerability_profile": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The setting to use for the Vulnerability Profile.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
 				RuleStackSecurityServicesBestPractice,
@@ -33,8 +35,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"anti_spyware_profile": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The setting to use for Anti-Spyware.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
 				RuleStackSecurityServicesBestPractice,
@@ -42,8 +45,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"anti_virus_profile": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The setting to use for Anti-Virus.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
 				RuleStackSecurityServicesBestPractice,
@@ -51,8 +55,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"url_filtering_profile": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The setting to use for the URL Filtering Profile.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
 				RuleStackSecurityServicesBestPractice,
@@ -60,8 +65,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"file_blocking_profile": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The setting to use for the File Blocking Profile.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
 				RuleStackSecurityServicesBestPractice,
@@ -69,8 +75,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_subscription": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The setting to use for DNS Subscription.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
 				RuleStackSecurityServicesBestPractice,
@@ -78,8 +85,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description for this Local Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

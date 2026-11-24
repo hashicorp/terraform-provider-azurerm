@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePortalDashboardCreateUpdate,
-		Read:   resourcePortalDashboardRead,
-		Update: resourcePortalDashboardCreateUpdate,
-		Delete: resourcePortalDashboardDelete,
+		Description: "Manages a shared dashboard in the Azure Portal.",
+		Create:      resourcePortalDashboardCreateUpdate,
+		Read:        resourcePortalDashboardRead,
+		Update:      resourcePortalDashboardCreateUpdate,
+		Delete:      resourcePortalDashboardDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dashboard.ParseDashboardID(id)

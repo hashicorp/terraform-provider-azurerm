@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Private DNS Resolver Inbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_resolver_id": {
+			Description:  "The ID of the Private DNS Resolver Inbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
+						Description:  "The subnet ID of the IP configuration.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -43,14 +46,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"private_ip_address": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "Private IP address of the IP configuration.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						// Note: O+C because Azure assigns a private IP from the subnet when not specified
 						Computed: true,
 					},
 
 					"private_ip_allocation_method": {
+						Description:  "Private IP address allocation method.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
