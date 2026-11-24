@@ -56,10 +56,24 @@ func TestAccOrchestratedVirtualMachineScaleSet_zoneBalanceUpdate(t *testing.T) {
 		{
 			// `zone_balance` is not set, so this also covers the nil value on creation
 			Config: r.zoneBalance(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.zoneBalance(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			// back to the default, to test the round trip
+			Config: r.zoneBalance(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
