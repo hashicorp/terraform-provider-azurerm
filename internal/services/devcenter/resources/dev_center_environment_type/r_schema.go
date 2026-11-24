@@ -19,7 +19,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DevCenterEnvironmentTypeName,
 		},
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&environmenttypes.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&environmenttypes.DevCenterId{}, "Dev Center"),
 
 		"tags": commonschema.Tags(),
 	}

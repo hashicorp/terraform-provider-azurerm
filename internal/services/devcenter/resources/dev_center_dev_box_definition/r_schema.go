@@ -23,7 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}, "Dev Center"),
 
 		"hibernate_support_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -31,7 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}),
+		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}, "Dev Center Gallery Image"),
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,

@@ -41,7 +41,7 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DevCenterDevBoxDefinitionName,
 		},
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequired(&devboxdefinitions.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequired(&devboxdefinitions.DevCenterId{}, "Dev Center"),
 	}
 }
 

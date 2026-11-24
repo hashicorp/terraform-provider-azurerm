@@ -53,7 +53,7 @@ func (ManagerRoutingConfigurationResource) Arguments() map[string]*pluginsdk.Sch
 			),
 		},
 
-		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkmanagerroutingconfigurations.NetworkManagerId{}),
+		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkmanagerroutingconfigurations.NetworkManagerId{}, "Network Manager"),
 
 		"description": {
 			Type:         pluginsdk.TypeString,

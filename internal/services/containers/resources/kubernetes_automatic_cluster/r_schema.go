@@ -230,7 +230,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+								"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 								"root_certificate_object_name": {
 									Type:         pluginsdk.TypeString,

@@ -22,11 +22,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}, "Backup Vault"),
 
-		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
+		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}, "Backup Policy"),
 
-		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}),
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}, "MySQL Flexible Server"),
 	}
 }
 

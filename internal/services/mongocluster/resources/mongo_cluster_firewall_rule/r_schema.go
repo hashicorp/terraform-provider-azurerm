@@ -24,7 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"mongo_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.MongoClusterId{}),
+		"mongo_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.MongoClusterId{}, "Mongo Cluster"),
 
 		"end_ip_address": {
 			Type:         pluginsdk.TypeString,

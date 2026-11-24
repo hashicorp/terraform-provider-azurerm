@@ -20,7 +20,7 @@ func keyVaultManagedStorageAccountSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: keyvault.ValidateNestedItemName,
 		},
 
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"storage_account_key": {
 			Type:     pluginsdk.TypeString,

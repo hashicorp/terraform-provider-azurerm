@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.BackupPolicyMySQLFlexibleServerName,
 		},
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{}), "Data Protection Backup Vault"),
 
 		"backup_repeating_time_intervals": {
 			Type:     pluginsdk.TypeList,
