@@ -16,6 +16,7 @@ import (
 func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Monitor Smart Detector Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +26,9 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"detector_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The Built-In Smart Detector type that this alert rule will use.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"FailureAnomaliesDetector",
 				"RequestPerformanceDegradationDetector",
@@ -38,8 +40,9 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope_resource_ids": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "The scopes of this Smart Detector Alert Rule.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -48,14 +51,16 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"severity": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The severity of this Smart Detector Alert Rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice(
 				smartdetectoralertrules.PossibleValuesForSeverity(), false,
 			),
 		},
 
 		"frequency": {
+			Description:  "The frequency of this Smart Detector Alert Rule in ISO8601 format.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.ISO8601Duration,
@@ -68,8 +73,9 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ids": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
+						Description: "The action group IDs.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.AsGeneratedID(actiongroupsapis.ParseActionGroupIDInsensitively),
@@ -78,11 +84,13 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"email_subject": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "A custom email subject if Email Receiver is specified in Monitor Action Group resource.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"webhook_payload": {
+						Description:      "A JSON String which Specifies the custom webhook payload if Webhook Receiver is specified in Monitor Action Group resource.",
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						ValidateFunc:     validation.StringIsJSON,
@@ -93,18 +101,21 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "A description for the Smart Detector Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Is the Smart Detector Alert Rule enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"throttling_duration": {
+			Description:  "The duration (in ISO8601 format) to wait before notifying on the alert rule again.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.ISO8601Duration,

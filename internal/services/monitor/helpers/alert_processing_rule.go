@@ -67,6 +67,7 @@ type AlertProcessingRuleMonthlyModel struct {
 func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Alert Processing Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -76,9 +77,10 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"scopes": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of resource IDs which will be the target of the alert processing rule.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -86,14 +88,16 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for the Alert Processing Rule.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the Alert Processing Rule be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"condition": {
@@ -269,16 +273,19 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"effective_from": {
+						Description:  "The Alert Processing Rule effective start time (Y-m-d'T'H:M:S).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.AlertProcessingRuleScheduleTime(),
 					},
 					"effective_until": {
+						Description:  "The Alert Processing Rule effective end time (Y-m-d'T'H:M:S).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.AlertProcessingRuleScheduleTime(),
 					},
 					"time_zone": {
+						Description:  "The time zone (e.g. Pacific Standard time, Eastern Standard Time).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "UTC",
@@ -296,11 +303,13 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"start_time": {
+												Description:  "The recurrence start time (H:M:S).",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validate.AlertProcessingRuleScheduleDayTime(),
 											},
 											"end_time": {
+												Description:  "The recurrence end time (H:M:S).",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validate.AlertProcessingRuleScheduleDayTime(),
@@ -314,19 +323,22 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"start_time": {
+												Description:  "The recurrence start time (H:M:S).",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validate.AlertProcessingRuleScheduleDayTime(),
 											},
 											"end_time": {
+												Description:  "The recurrence end time (H:M:S).",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validate.AlertProcessingRuleScheduleDayTime(),
 											},
 											"days_of_week": {
-												Type:     pluginsdk.TypeList,
-												Required: true,
-												MinItems: 1,
+												Description: "A list of dayOfWeek to recurrence.",
+												Type:        pluginsdk.TypeList,
+												Required:    true,
+												MinItems:    1,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.IsDayOfTheWeek(false),
@@ -341,19 +353,22 @@ func SchemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"start_time": {
+												Description:  "The recurrence start time (H:M:S).",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validate.AlertProcessingRuleScheduleDayTime(),
 											},
 											"end_time": {
+												Description:  "The recurrence end time (H:M:S).",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validate.AlertProcessingRuleScheduleDayTime(),
 											},
 											"days_of_month": {
-												Type:     pluginsdk.TypeList,
-												Required: true,
-												MinItems: 1,
+												Description: "A list of dayOfMonth to recurrence.",
+												Type:        pluginsdk.TypeList,
+												Required:    true,
+												MinItems:    1,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeInt,
 													ValidateFunc: validation.IntBetween(1, 31),
@@ -391,14 +406,16 @@ func SchemaAlertProcessingRuleCondition(operatorValidateItems, valuesValidateIte
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"operator": {
+					Description:  "The operator for a given condition.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: operatorValidateFunc,
 				},
 
 				"values": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
+					Description: "A list of values to match for a given condition.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: valuesValidateFunc,

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlServerSecurityAlertPolicyCreate,
-		Read:   resourceMsSqlServerSecurityAlertPolicyRead,
-		Update: resourceMsSqlServerSecurityAlertPolicyUpdate,
-		Delete: resourceMsSqlServerSecurityAlertPolicyDelete,
+		Description: "Manages a Security Alert Policy for an MSSQL Server.",
+		Create:      resourceMsSqlServerSecurityAlertPolicyCreate,
+		Read:        resourceMsSqlServerSecurityAlertPolicyRead,
+		Update:      resourceMsSqlServerSecurityAlertPolicyUpdate,
+		Delete:      resourceMsSqlServerSecurityAlertPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServerSecurityAlertPolicyID(id)
