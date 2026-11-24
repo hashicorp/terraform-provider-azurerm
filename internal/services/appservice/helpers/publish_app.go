@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	zipDeployError    = 3
-	zipDeployComplete = 4
+	ZipDeployError    = 3
+	ZipDeployComplete = 4
 )
 
 func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId, sourceFile string) error {
@@ -118,7 +118,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
 	// poll the deployment service status endpoint until it is available.
-	if err := pollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
+	if err := PollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
 		return fmt.Errorf("checking deployment service status: %+v", err)
 	}
 
@@ -139,7 +139,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
+			return fmt.Errorf("publishing Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
 		}
 		return fmt.Errorf("publishing failed with status code %s", resp.Status)
 	}
@@ -161,7 +161,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 		PollInterval: 10 * time.Second,
 		Delay:        10 * time.Second,
 		Timeout:      time.Until(deadline),
-		Refresh:      checkZipDeploymentStatusRefresh(statusReq),
+		Refresh:      CheckZipDeploymentStatusRefresh(statusReq),
 	}
 
 	if _, err := deployWait.WaitForStateContext(ctx); err != nil {
@@ -171,8 +171,8 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	return nil
 }
 
-func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func CheckZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		resp, err := http.DefaultClient.Do(r)
 		if err != nil {
 			return nil, "", err
@@ -186,7 +186,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
 		}
 
-		body := make(map[string]interface{})
+		body := make(map[string]any)
 		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}
@@ -194,9 +194,9 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		if statusRaw, ok := body["status"]; ok && statusRaw != nil {
 			if status, ok := statusRaw.(float64); ok {
 				switch status {
-				case zipDeployError:
+				case ZipDeployError:
 					return nil, "", fmt.Errorf("zip deployment failed")
-				case zipDeployComplete:
+				case ZipDeployComplete:
 					return status, "complete", nil
 				default:
 					return status, "pending", nil
@@ -208,7 +208,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 	}
 }
 
-func pollDeploymentServiceStatus(ctx context.Context, host string, user string, passwd string) error {
+func PollDeploymentServiceStatus(ctx context.Context, host string, user string, passwd string) error {
 	warmupEndpoint := fmt.Sprintf("%s/deployments?warmup=true", host)
 
 	statusReq, err := http.NewRequestWithContext(ctx, http.MethodGet, warmupEndpoint, http.NoBody)

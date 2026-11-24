@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -248,7 +248,7 @@ func (s AccountTablePropertiesResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (s AccountTablePropertiesResource) ModelObject() interface{} {
+func (s AccountTablePropertiesResource) ModelObject() any {
 	return &AccountTablePropertiesModel{}
 }
 

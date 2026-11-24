@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -38,7 +38,7 @@ func (s StorageDefenderResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 	return commonids.ValidateStorageAccountID
 }
 
-func (s StorageDefenderResource) ModelObject() interface{} {
+func (s StorageDefenderResource) ModelObject() any {
 	return &StorageDefenderModel{}
 }
 

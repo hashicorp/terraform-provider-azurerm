@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -76,7 +76,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
+					Description: "If this Linux Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -103,7 +103,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -123,7 +123,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
 
-				"application_stack": linuxFunctionAppStackSchema(),
+				"application_stack": LinuxFunctionAppStackSchema(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
@@ -131,7 +131,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Should connections for Azure Container Registry use Managed Identity?",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -148,7 +148,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -162,7 +162,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -178,7 +178,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -202,7 +202,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -210,7 +210,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"pre_warmed_instance_count": {
@@ -218,14 +218,14 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Should Remote Debugging be enabled?",
 				},
 
 				"remote_debugging_version": {
@@ -235,13 +235,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Should Functions Runtime Scale Monitoring be enabled?",
 				},
 
 				"scm_type": {
@@ -254,14 +254,14 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker.",
+					Description: "Should the Linux Web App use a 32-bit worker?",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Should Web Sockets be enabled?",
 				},
 
 				"ftps_state": {
@@ -269,13 +269,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Description:  "State of FTP / FTPS service for this Function App.",
 				},
 
 				"health_check_path": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
+					Description:  "The path to be checked for this Function App health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
@@ -284,7 +284,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -300,7 +300,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -308,7 +308,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"minimum_tls_cipher_suite": {
@@ -324,19 +324,19 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Is detailed error logging enabled?",
 				},
 
 				"linux_fx_version": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Linux FX Version",
+					Description: "The Linux FX Version.",
 				},
 			},
 		},
@@ -384,7 +384,7 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"application_stack": linuxFunctionAppStackSchemaComputed(),
+				"application_stack": LinuxFunctionAppStackSchemaComputed(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchemaComputed(),
 
@@ -431,10 +431,8 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_ip_restriction_default_action": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      webapps.DefaultActionAllow,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"load_balancing_mode": {
@@ -622,7 +620,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Should connections for Azure Container Registry use Managed Identity?",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -639,7 +637,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -653,7 +651,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -669,7 +667,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -693,7 +691,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -701,14 +699,14 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Should Remote Debugging be enabled?",
 				},
 
 				"remote_debugging_version": {
@@ -720,13 +718,13 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 						"VS2019",
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022``",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Should Functions Runtime Scale Monitoring be enabled?",
 				},
 
 				"scm_type": {
@@ -739,27 +737,27 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App use a 32-bit worker.",
+					Description: "Should the Linux Function App use a 32-bit worker?",
 				},
 
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App route all traffic through the virtual network.",
+					Description: "Should the Linux Function App route all traffic through the Virtual Network?",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Should Web Sockets be enabled?",
 				},
 
 				"health_check_path": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
+					Description:  "The path to be checked for this Function App health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
@@ -769,7 +767,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
 
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -785,7 +783,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -793,7 +791,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"cors": CorsSettingsSchema(),
@@ -801,7 +799,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Is detailed error logging enabled?",
 				},
 			},
 		},
@@ -860,7 +858,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
+					Description: "If this Windows Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -887,7 +885,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -907,7 +905,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
 				},
 
-				"application_stack": windowsFunctionAppStackSchema(),
+				"application_stack": WindowsFunctionAppStackSchema(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
@@ -918,7 +916,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Windows Web App.",
+					Description: "A list of Default Documents for the Windows Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -932,7 +930,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -948,7 +946,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also?",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -972,7 +970,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -980,7 +978,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"pre_warmed_instance_count": {
@@ -988,14 +986,14 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Should Remote Debugging be enabled?",
 				},
 
 				"remote_debugging_version": {
@@ -1005,13 +1003,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Should Functions Runtime Scale Monitoring be enabled?",
 				},
 
 				"scm_type": {
@@ -1024,14 +1022,14 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker.",
+					Description: "Should the Windows Web App use a 32-bit worker?",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Should Web Sockets be enabled?",
 				},
 
 				"ftps_state": {
@@ -1039,13 +1037,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Description:  "State of FTP / FTPS service for this Function App.",
 				},
 
 				"health_check_path": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
+					Description:  "The path to be checked for this Function App health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
@@ -1054,7 +1052,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -1070,7 +1068,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -1078,7 +1076,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"minimum_tls_cipher_suite": {
@@ -1094,13 +1092,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Is detailed error logging enabled?",
 				},
 
 				"windows_fx_version": {
@@ -1155,7 +1153,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 
-				"application_stack": windowsFunctionAppStackSchemaComputed(),
+				"application_stack": WindowsFunctionAppStackSchemaComputed(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchemaComputed(),
 
@@ -1299,22 +1297,22 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0`, `8.0`, `9.0` and `10.0`
+	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0`, `8.0`, `9.0`, `10.0` and `11.0`
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
-	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
+	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`, `25`
 	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
 	Docker                []ApplicationStackDocker `tfschema:"docker"`                      // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
 }
 
 type ApplicationStackWindowsFunctionApp struct {
-	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0`, `v9.0` and `v10.0`
+	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0`, `v9.0`, `v10.0` and `v11.0`
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`, `24LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`, `25`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
+	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
 	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
 }
 
@@ -1326,7 +1324,7 @@ type ApplicationStackDocker struct {
 	ImageTag         string `tfschema:"image_tag"`
 }
 
-func linuxFunctionAppStackSchema() *pluginsdk.Schema {
+func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1343,6 +1341,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"8.0",
 						"9.0",
 						"10.0",
+						"11.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1353,7 +1352,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0` and `9.0`",
+					Description: "The version of .Net.",
 				},
 
 				"use_dotnet_isolated_runtime": {
@@ -1368,7 +1367,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
+					Description: "Should the DotNet process use an isolated runtime?",
 				},
 
 				"python_version": {
@@ -1393,7 +1392,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Python to use. Possible values include `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, and `3.7`.",
+					Description: "The version of Python to use.",
 				},
 
 				"node_version": {
@@ -1417,7 +1416,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`",
+					Description: "The version of Node to use.",
 				},
 
 				"powershell_core_version": {
@@ -1427,6 +1426,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"7",   // Deprecated / not available in the portal
 						"7.2", // preview LTS Support
 						"7.4", // current LTS Support
+						"7.6",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1437,7 +1437,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of PowerShell Core to use. Possibles values are `7`, `7.2`, and `7.4`",
+					Description: "The version of PowerShell Core to use.",
 				},
 
 				"java_version": {
@@ -1459,7 +1459,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `8`, `11`, `17`, `21` and `25`",
+					Description: "The version of Java to use.",
 				},
 
 				"docker": {
@@ -1513,7 +1513,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "A docker block",
+					Description: "A docker block.",
 				},
 
 				"use_custom_runtime": {
@@ -1534,7 +1534,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 	}
 }
 
-func linuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
+func LinuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -1612,7 +1612,7 @@ func linuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func windowsFunctionAppStackSchema() *pluginsdk.Schema {
+func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1632,6 +1632,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"v8.0",
 						"v9.0",
 						"v10.0",
+						"v11.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1640,7 +1641,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0`, `v9.0` and `v10.0`",
+					Description: "The version of .Net.",
 				},
 
 				"use_dotnet_isolated_runtime": {
@@ -1653,7 +1654,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
+					Description: "Should the DotNet process use an isolated runtime?",
 				},
 
 				"node_version": {
@@ -1675,7 +1676,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`",
+					Description: "The version of Node to use.",
 				},
 
 				"java_version": {
@@ -1695,7 +1696,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `1.8`, `11`, `17`, `21` and `25`",
+					Description: "The version of Java to use.",
 				},
 
 				"powershell_core_version": {
@@ -1714,7 +1715,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The PowerShell Core version to use. Possible values are `7`, `7.2`, `7.4`, and `7.6`",
+					Description: "The PowerShell Core version to use.",
 				},
 
 				"use_custom_runtime": {
@@ -1735,7 +1736,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 	}
 }
 
-func windowsFunctionAppStackSchemaComputed() *pluginsdk.Schema {
+func WindowsFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -1792,13 +1793,13 @@ func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      35,
 					ValidateFunc: validation.IntBetween(25, 100),
-					Description:  "The amount of disk space to use for logs. Valid values are between `25` and `100`.",
+					Description:  "The amount of disk space to use for logs.",
 				},
 				"retention_period_days": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 99999),
-					Description:  "The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).",
+					Description:  "The retention period for logs in days. Defaults to `0` (never delete).", // azignore:AZS014 - the zero value, the schema sets no Default
 				},
 			},
 		},
@@ -1842,21 +1843,21 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		appSettings = *existing.AppSettings
 	}
 
-	appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
+	appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
 
 	if storageUsesMSI {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
 	}
 
 	linuxSiteConfig := siteConfig[0]
 
 	v := strconv.FormatInt(linuxSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || linuxSiteConfig.HealthCheckPath == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 	}
 
 	expanded.AlwaysOn = pointer.To(linuxSiteConfig.AlwaysOn)
@@ -1866,15 +1867,15 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if linuxSiteConfig.AppInsightsConnectionString == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxSiteConfig.AppInsightsConnectionString, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxSiteConfig.AppInsightsConnectionString, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxSiteConfig.AppInsightsConnectionString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxSiteConfig.AppInsightsConnectionString, false)
 	}
 
 	if linuxSiteConfig.AppInsightsInstrumentationKey == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxSiteConfig.AppInsightsInstrumentationKey, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxSiteConfig.AppInsightsInstrumentationKey, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxSiteConfig.AppInsightsInstrumentationKey, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxSiteConfig.AppInsightsInstrumentationKey, false)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -1897,47 +1898,47 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		linuxAppStack := linuxSiteConfig.ApplicationStack[0]
 		if linuxAppStack.DotNetVersion != "" {
 			if linuxAppStack.DotNetIsolated {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
+				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
 				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
 			} else {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
 				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
 			}
 		}
 
 		if linuxAppStack.NodeVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 		}
 
 		if linuxAppStack.JavaVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("JAVA|%s", linuxAppStack.JavaVersion))
 		}
 
 		if linuxAppStack.PowerShellCoreVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("POWERSHELL|%s", linuxAppStack.PowerShellCoreVersion))
 		}
 
 		if linuxAppStack.CustomHandler {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
 			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 
 		if len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
 			dockerUrl := dockerConfig.RegistryURL
-			for _, prefix := range urlSchemes {
+			for _, prefix := range UrlSchemes {
 				if after, ok := strings.CutPrefix(dockerConfig.RegistryURL, prefix); ok {
 					dockerUrl = after
 					continue
@@ -1946,7 +1947,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
 		expanded.LinuxFxVersion = pointer.To("")
 	}
 
@@ -2087,9 +2088,9 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 	}
 
 	if storageStringFlex != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
 		if storageConnStringForFCApp != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageStringFlex, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageStringFlex, false)
 		}
 	}
 
@@ -2097,21 +2098,21 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 
 	v := strconv.FormatInt(FlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || FlexConsumptionSiteConfig.HealthCheckPath == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 	}
 
 	if FlexConsumptionSiteConfig.AppInsightsConnectionString == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", FlexConsumptionSiteConfig.AppInsightsConnectionString, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", FlexConsumptionSiteConfig.AppInsightsConnectionString, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", FlexConsumptionSiteConfig.AppInsightsConnectionString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", FlexConsumptionSiteConfig.AppInsightsConnectionString, false)
 	}
 
 	if FlexConsumptionSiteConfig.AppInsightsInstrumentationKey == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", FlexConsumptionSiteConfig.AppInsightsInstrumentationKey, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", FlexConsumptionSiteConfig.AppInsightsInstrumentationKey, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", FlexConsumptionSiteConfig.AppInsightsInstrumentationKey, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", FlexConsumptionSiteConfig.AppInsightsInstrumentationKey, false)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -2228,7 +2229,7 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 }
 
 // updateOrAppendAppSettings is used to modify a collection of webapps.NameValuePair items.
-func updateOrAppendAppSettings(input []webapps.NameValuePair, name string, value string, remove bool) []webapps.NameValuePair {
+func UpdateOrAppendAppSettings(input []webapps.NameValuePair, name string, value string, remove bool) []webapps.NameValuePair {
 	for k, v := range input {
 		if v.Name != nil && *v.Name == name {
 			if remove {
@@ -2273,21 +2274,21 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		appSettings = *existing.AppSettings
 	}
 
-	appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
+	appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
 
 	if storageUsesMSI {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
 	}
 
 	windowsSiteConfig := siteConfig[0]
 
 	v := strconv.FormatInt(windowsSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || windowsSiteConfig.HealthCheckPath == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 	}
 
 	expanded.AlwaysOn = pointer.To(windowsSiteConfig.AlwaysOn)
@@ -2297,15 +2298,15 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if windowsSiteConfig.AppInsightsConnectionString == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", windowsSiteConfig.AppInsightsConnectionString, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", windowsSiteConfig.AppInsightsConnectionString, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", windowsSiteConfig.AppInsightsConnectionString, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", windowsSiteConfig.AppInsightsConnectionString, false)
 	}
 
 	if windowsSiteConfig.AppInsightsInstrumentationKey == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", windowsSiteConfig.AppInsightsInstrumentationKey, true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", windowsSiteConfig.AppInsightsInstrumentationKey, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", windowsSiteConfig.AppInsightsInstrumentationKey, false)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", windowsSiteConfig.AppInsightsInstrumentationKey, false)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -2328,34 +2329,34 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		windowsAppStack := windowsSiteConfig.ApplicationStack[0]
 		if windowsAppStack.DotNetVersion != "" {
 			if windowsAppStack.DotNetIsolated {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
+				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
 			} else {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
 			}
 			expanded.NetFrameworkVersion = pointer.To(windowsAppStack.DotNetVersion)
 		}
 
 		if windowsAppStack.NodeVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", windowsAppStack.NodeVersion, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", windowsAppStack.NodeVersion, false)
 		}
 
 		if windowsAppStack.JavaVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
 			expanded.JavaVersion = pointer.To(windowsAppStack.JavaVersion)
 		}
 
 		if windowsAppStack.PowerShellCoreVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
 			expanded.PowerShellVersion = pointer.To(strings.TrimPrefix(windowsAppStack.PowerShellCoreVersion, "~"))
 		}
 
 		if windowsAppStack.CustomHandler {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
 			expanded.WindowsFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
 		expanded.WindowsFxVersion = pointer.To("")
 	}
 
@@ -2484,18 +2485,18 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		DetailedErrorLogging:          pointer.From(functionAppSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:               pointer.From(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSiteConfig.HTTP20Enabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 		LinuxFxVersion:                pointer.From(functionAppSiteConfig.LinuxFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSiteConfig.ManagedPipelineMode),
 		WorkerCount:                   pointer.From(functionAppSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSiteConfig.Use32BitWorkerProcess),
@@ -2551,15 +2552,15 @@ func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteC
 		Cors:                          FlattenCorsSettings(functionAppFlexConsumptionSiteConfig.Cors),
 		DetailedErrorLogging:          pointer.From(functionAppFlexConsumptionSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:               pointer.From(functionAppFlexConsumptionSiteConfig.HealthCheckPath),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppFlexConsumptionSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppFlexConsumptionSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
-		LoadBalancing:                 string(pointer.From(functionAppFlexConsumptionSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppFlexConsumptionSiteConfig.ManagedPipelineMode)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppFlexConsumptionSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
+		LoadBalancing:                 pointer.FromEnum(functionAppFlexConsumptionSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ManagedPipelineMode),
 		WorkerCount:                   pointer.From(functionAppFlexConsumptionSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppFlexConsumptionSiteConfig.ScmType)),
+		ScmType:                       pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ScmType),
 		RuntimeScaleMonitoring:        pointer.From(functionAppFlexConsumptionSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppFlexConsumptionSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppFlexConsumptionSiteConfig.ScmMinTlsVersion)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppFlexConsumptionSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ScmMinTlsVersion),
 		WebSockets:                    pointer.From(functionAppFlexConsumptionSiteConfig.WebSocketsEnabled),
 		ScmUseMainIpRestriction:       pointer.From(functionAppFlexConsumptionSiteConfig.ScmIPSecurityRestrictionsUseMain),
 		UseManagedIdentityACR:         pointer.From(functionAppFlexConsumptionSiteConfig.AcrUseManagedIdentityCreds),
@@ -2606,15 +2607,15 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		HealthCheckPath:               pointer.From(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSiteConfig.HTTP20Enabled),
 		WindowsFxVersion:              pointer.From(functionAppSiteConfig.WindowsFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSiteConfig.ManagedPipelineMode),
 		NumberOfWorkers:               pointer.From(functionAppSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSiteConfig.Use32BitWorkerProcess),
@@ -2623,8 +2624,8 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		RemoteDebugging:               pointer.From(functionAppSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSiteConfig.VnetRouteAllEnabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 	}
 
 	if v := functionAppSiteConfig.ApiDefinition; v != nil && v.Url != nil {

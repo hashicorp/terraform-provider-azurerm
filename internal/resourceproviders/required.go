@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceproviders
@@ -18,7 +18,7 @@ import (
 //
 // Note that resource providers are case-sensitive.
 //
-// Official Docs: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-services-resource-providers
+// Official Docs: https://learn.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers
 
 type ResourceProviders map[string]struct{}
 

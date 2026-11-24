@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -31,7 +31,7 @@ const (
 )
 
 const (
-	BlcokNotDefined        = "block is not defined in the documentation"
+	BlockNotDefined        = "block is not defined in the documentation"
 	IncorrectlyBlockMarked = "The document incorrectly implies this field is a block"
 )
 
@@ -371,7 +371,7 @@ func (m *Mark) buildStruct() {
 				if b2, _ := m.blockOfName(f.Name, parent, f.Pos); b2 != nil {
 					f.FormatErr = fmt.Sprintf("misspell of name from `%s` to `%s`", f.Name, f.BlockTypeName)
 				} else {
-					f.FormatErr = fmt.Sprintf("`%s` %s", util.ItalicCode(f.Name), BlcokNotDefined)
+					f.FormatErr = fmt.Sprintf("`%s` %s", util.ItalicCode(f.Name), BlockNotDefined)
 				}
 			}
 		}

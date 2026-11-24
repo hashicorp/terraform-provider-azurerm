@@ -14,8 +14,8 @@ Use this data source to access information about an existing Oracle Resource Anc
 
 ```hcl
 data "azurerm_oracle_resource_anchor" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-resource-anchor"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

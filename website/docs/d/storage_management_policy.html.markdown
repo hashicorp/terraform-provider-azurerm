@@ -32,7 +32,7 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `id` - The ID of the Management Policy.
-* `rule` - A `rule` block as documented below.
+* `rule` - A `rule` block as defined below.
 
 ---
 
@@ -40,8 +40,8 @@ The following arguments are supported:
 
 * `name` - A rule name can contain any combination of alpha numeric characters. Rule name is case-sensitive. It must be unique within a policy.
 * `enabled` -  Boolean to specify whether the rule is enabled.
-* `filters` - A `filter` block as documented below.
-* `actions` - An `actions` block as documented below.
+* `filters` - A `filter` block as defined below.
+* `actions` - An `actions` block as defined below.
 
 ---
 
@@ -55,9 +55,9 @@ The following arguments are supported:
 
 `actions` supports the following:
 
-* `base_blob` - A `base_blob` block as documented below.
-* `snapshot` - A `snapshot` block as documented below.
-* `version` - A `version` block as documented below.
+* `base_blob` - A `base_blob` block as defined below.
+* `snapshot` - A `snapshot` block as defined below.
+* `version` - A `version` block as defined below.
 
 ---
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage.
 * `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage.
 * `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to archive storage.
-* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archived.
 * `tier_to_cold_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cold storage. Supports blob currently at Hot tier.
 * `tier_to_cold_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cold storage. Supports blob currently at Hot tier.
 * `tier_to_cold_after_days_since_creation_greater_than` - Optional The age in days after creation to cold storage. Supports blob currently at Hot tier.

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Bot Channels Registration.
 
-~> **Note:** Bot Channels Registration has been [deprecated by Azure](https://learn.microsoft.com/en-us/azure/bot-service/bot-service-resources-faq-azure?view=azure-bot-service-4.0#why-are-web-app-bot-and-bot-channel-registration-being-deprecated). New implementations should use the [`azurerm_bot_service_azure_bot`](./bot_service_azure_bot.html.markdown) resource.
+~> **Note:** Bot Channels Registration has been [deprecated by Azure](https://learn.microsoft.com/azure/bot-service/bot-service-resources-faq-azure?view=azure-bot-service-4.0#why-are-web-app-bot-and-bot-channel-registration-being-deprecated). New implementations should use the [`azurerm_bot_service_azure_bot`](./bot_service_azure_bot.html.markdown) resource.
 
 ## Example Usage
 
