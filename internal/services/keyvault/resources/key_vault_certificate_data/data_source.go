@@ -29,7 +29,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmKeyVaultCertificateDataRead,
+		Description: "Use this data source to access data stored in an existing Key Vault Certificate.",
+		Read:        dataSourceArmKeyVaultCertificateDataRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -37,6 +38,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Key Vault Secret.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyvault.ValidateNestedItemName,
@@ -45,8 +47,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The version of the certificate to look up.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 				// Note: O+C because Azure returns a version in the ID, which is set into state
 				Computed: true,
 			},
@@ -54,34 +57,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 			// Computed
 
 			"hex": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The raw Key Vault Certificate data represented as a hexadecimal string.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"pem": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Key Vault Certificate in PEM format.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"key": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The Key Vault Certificate Key.",
+				Type:        pluginsdk.TypeString,
+				Sensitive:   true,
+				Computed:    true,
 			},
 
 			"expires": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Expiry date of certificate in RFC3339 format.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"not_before": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Not Before date of certificate in RFC3339 format.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"certificates_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Amount of certificates in the chain in case Key Vault Certificate is a bundle (e.g. has an intermediate certificate).",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

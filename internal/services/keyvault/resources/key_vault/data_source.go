@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultRead,
+		Description: "Use this data source to access information about an existing Key Vault.",
+		Read:        dataSourceKeyVaultRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,6 +32,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Key Vault.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.VaultName,
@@ -41,18 +43,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Name of the SKU used for this Key Vault.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"vault_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URI of the vault for performing operations on keys and secrets.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tenant_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure Active Directory Tenant ID used for authenticating requests to the Key Vault.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"access_policy": {
@@ -61,41 +66,48 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure Active Directory Tenant ID used to authenticate requests for this Key Vault.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"object_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "An Object ID of a User, Service Principal or Security Group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"application_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Object ID of an Azure Active Directory Application.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"certificate_permissions": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of certificate permissions applicable to this Access Policy.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"key_permissions": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of key permissions applicable to this Access Policy.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"secret_permissions": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of secret permissions applicable to this Access Policy.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"storage_permissions": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of storage permissions applicable to this Access Policy.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -105,23 +117,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"enabled_for_deployment": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Can Azure Virtual Machines retrieve certificates stored as secrets from the Key Vault?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"enabled_for_disk_encryption": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Can Azure Disk Encryption retrieve secrets from the Key Vault?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"enabled_for_template_deployment": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Can Azure Resource Manager retrieve secrets from the Key Vault?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"rbac_authorization_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is Role Based Access Control (RBAC) for authorization of data actions enabled on this Key Vault?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"network_acls": {
@@ -156,13 +172,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"purge_protection_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is purge protection enabled on this Key Vault?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is public network access enabled on this Key Vault?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

@@ -18,6 +18,7 @@ import (
 func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Kusto Event Grid Data Connection to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +30,7 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"cluster_name": {
+			Description:  "The name of the Kusto Cluster this data connection will be added to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,6 +38,7 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the Kusto Database this data connection will be added to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -43,6 +46,7 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The resource ID of the Storage Account this data connection will use for ingestion.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -50,6 +54,7 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_id": {
+			Description:  "The resource ID of the Event Hub this data connection will use for ingestion.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -57,9 +62,10 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_consumer_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Event Hub consumer group this data connection will use for ingestion.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				eventhubValidate.ValidateEventHubConsumerName(),
 				validation.StringInSlice([]string{"$Default"}, false),
@@ -67,6 +73,7 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"blob_storage_event_type": {
+			Description:  "The blob storage event type that needs to be processed.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(dataconnections.BlobStorageEventTypeMicrosoftPointStoragePointBlobCreated),
@@ -74,30 +81,35 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"skip_first_record": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Is the first record of every file ignored?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"table_name": {
+			Description:  "The target table name used for the message ingestion. Table must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.EntityName,
 		},
 
 		"mapping_rule_name": {
+			Description:  "The mapping rule used for the message ingestion. Mapping rule must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.EntityName,
 		},
 
 		"data_format": {
+			Description:  "The data format of the EventHub messages.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForEventGridDataFormat(), false),
 		},
 
 		"database_routing_type": {
+			Description:  "Indication for database routing information from the data connection, by default only database routing information is allowed.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -106,14 +118,16 @@ func kustoEventgridDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventgrid_event_subscription_id": {
+			Description:  "The resource ID of the Event Grid that is subscribed to the Storage Account events.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: eventsubscriptions.ValidateScopedEventSubscriptionID,
 		},
 
 		"managed_identity_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Empty for non-managed identity based data connection. For System Assigned Identity, provide cluster resource ID. For User Assigned Identity (UAI) provide the UAI resource ID.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidateKustoClusterID,
 				commonids.ValidateUserAssignedIdentityID,

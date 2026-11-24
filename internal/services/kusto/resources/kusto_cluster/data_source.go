@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKustoClusterRead,
+		Description: "Use this data source to access information about an existing Kusto (also known as Azure Data Explorer) Cluster.",
+		Read:        dataSourceKustoClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Kusto Cluster.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ClusterName,
@@ -41,13 +43,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the Azure Kusto Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"data_ingestion_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Kusto Cluster URI to be used for data ingestion.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

@@ -12,22 +12,26 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"iotcentral_application_id": {
+			Description:  "The application `id`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: apps.ValidateIotAppID,
 		},
 		"organization_id": {
+			Description:  "The ID of the organization.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.OrganizationOrganizationID,
 		},
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "Custom `display_name` for the organization.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 		"parent_organization_id": {
+			Description:  "The `organization_id` of the parent organization.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
