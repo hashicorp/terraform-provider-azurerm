@@ -14,8 +14,8 @@ Use this data source to access information about an existing Azure Data Factory 
 
 ```hcl
 data "azurerm_data_factory" "example" {
-  name                = "existing-adf"
-  resource_group_name = "existing-rg"
+  name                = "example-data-factory"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -384,7 +384,7 @@ func (gen documentationGenerator) attributesBlock() string {
 
 	return fmt.Sprintf(`## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 %s`, fields)
 }

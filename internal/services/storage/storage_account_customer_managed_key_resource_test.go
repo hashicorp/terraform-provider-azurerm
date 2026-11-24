@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -23,7 +23,7 @@ import (
 
 type StorageAccountCustomerManagedKeyResource struct{}
 
-func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) {
+func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) { // azignore:AZT008 - builds test data for the storage account on purpose, to import it and check its settings once the key resource is removed
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountCustomerManagedKeyResource{}
 
