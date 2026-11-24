@@ -1,6 +1,6 @@
 change "resource-fix" {
-  body = "`azurerm_kubernetes_automatic_cluster` - encoding error fix on r_flatten.go to allow azure response to be validated to match schema arguments"
+  body = "`azurerm_kubernetes_automatic_cluster` - fix parsing error when the API returns `private_cluster.private_dns_zone_id` as lowercase `system` or `none`"
 }
-change "other-fix" {
-  body = "`azurerm_kubernetes_automatic_cluster` - encoding error fix to match flatten function in r_flatten.go to allow azure response to be validated to match schema arguments"
+change "resource-fix" {
+  body = "Data Source: `azurerm_kubernetes_automatic_cluster` - fix parsing error when the API returns `private_cluster.private_dns_zone_id` as lowercase `system` or `none`"
 }
