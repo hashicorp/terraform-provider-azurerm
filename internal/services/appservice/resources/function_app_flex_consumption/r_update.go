@@ -102,6 +102,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
 			}
+
 			backendSaConStr, backendStorageUseMsi, deploymentSaConStrVal := FlattenStorageConnectionStrings(*appSettingsResp.Model)
 			_, deploymentStorageKey := helpers.ParseWebJobsStorageString(deploymentSaConStrVal)
 			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage

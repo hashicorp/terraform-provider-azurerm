@@ -172,6 +172,9 @@ func (r Resource) Read() sdk.ResourceFunc {
 				}
 
 				state.BackendStorage = FlattenBackendStorage(backendSaConStr, backendStorageUseMsi)
+				if props.KeyVaultReferenceIdentity != nil && !strings.EqualFold(*props.KeyVaultReferenceIdentity, "SystemAssigned") {
+					state.KeyVaultReferenceIdentityId = pointer.From(props.KeyVaultReferenceIdentity)
+				}
 
 				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
 
