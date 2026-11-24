@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Replication Plan. The name can contain only letters, numbers, and hyphens. It should start with a letter and end with a letter or a number. Can be a maximum of 63 characters.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_vault_id": {
+			Description:  "The ID of the vault that should be updated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"source_recovery_fabric_id": {
+			Description:  "ID of source fabric to be recovered from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_recovery_fabric_id": {
+			Description:  "ID of target fabric to recover.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -97,8 +101,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"replicated_protected_items": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "One or more protected VM IDs.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: azure.ValidateResourceID,

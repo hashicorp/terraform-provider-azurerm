@@ -13,6 +13,7 @@ import (
 func managementLockSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Management Lock.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,15 +21,17 @@ func managementLockSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The scope at which the Management Lock should be created.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"lock_level": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Level to be used for this Lock.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managementlocks.LockLevelCanNotDelete),
 				string(managementlocks.LockLevelReadOnly),
@@ -36,6 +39,7 @@ func managementLockSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"notes": {
+			Description:  "Notes about the lock.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

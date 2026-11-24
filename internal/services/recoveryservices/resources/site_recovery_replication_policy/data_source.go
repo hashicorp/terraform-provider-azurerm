@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSiteRecoveryReplicationPolicyRead,
+		Description: "Use this data source to access information about an existing Azure Site Recovery replication policy.",
+		Read:        dataSourceSiteRecoveryReplicationPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,23 +28,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Azure Site Recovery replication policy.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"recovery_vault_name": {
+				Description:  "The name of the Recovery Services Vault that the Azure Site Recovery replication policy is associated with.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"recovery_point_retention_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The duration in minutes for which the recovery points need to be stored.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 			"application_consistent_snapshot_frequency_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The frequency (in minutes) at which to create application consistent recovery.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 		},
 	}

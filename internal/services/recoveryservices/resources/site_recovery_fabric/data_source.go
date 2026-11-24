@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSiteRecoveryFabricRead,
+		Description: "Use this data source to access information about an existing Site Recovery Replication Fabric.",
+		Read:        dataSourceSiteRecoveryFabricRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Site Recovery Replication Fabric.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -35,6 +37,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"recovery_vault_name": {
+				Description:  "The name of the Recovery Services Vault that the Site Recovery Replication Fabric is associated with.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RecoveryServicesVaultName,

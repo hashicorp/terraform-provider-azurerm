@@ -28,6 +28,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_resource_provider_registration"
 }
 
+func (r Resource) Description() string {
+	return "Manages the registration of a Resource Provider - which allows access to the API's supported by this Resource Provider."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return providers.ValidateSubscriptionProviderID
 }

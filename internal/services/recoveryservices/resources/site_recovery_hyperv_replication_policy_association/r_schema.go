@@ -14,6 +14,7 @@ import (
 func (h Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the replication policy association.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (h Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hyperv_site_id": {
+			Description:  "The ID of the HyperV site to which the policy should be associated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func (h Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_id": {
+			Description:  "The ID of the HyperV replication policy which to be associated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

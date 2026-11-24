@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceResourceGroupTemplateDeploymentRead,
+		Description: "Use this data source to access information about an existing Resource Group Template Deployment.",
+		Read:        dataSourceResourceGroupTemplateDeploymentRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Resource Group Template Deployment.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.TemplateDeploymentName,
@@ -37,8 +39,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			// Computed
 			"output_content": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The JSON Content of the Outputs of the ARM Template Deployment.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},

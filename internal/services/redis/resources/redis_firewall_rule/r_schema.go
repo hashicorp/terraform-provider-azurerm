@@ -13,6 +13,7 @@ import (
 func redisFirewallRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,16 +21,18 @@ func redisFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"redis_cache_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Redis Cache.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"start_ip": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The lowest IP address included in the range.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.IsIPAddress,
 				validation.StringIsNotEmpty,
@@ -37,8 +40,9 @@ func redisFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"end_ip": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The highest IP address included in the range.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.IsIPAddress,
 				validation.StringIsNotEmpty,

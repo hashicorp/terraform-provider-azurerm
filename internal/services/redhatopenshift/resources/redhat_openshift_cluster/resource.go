@@ -24,6 +24,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_redhat_openshift_cluster"
 }
 
+func (r Resource) Description() string {
+	return "Manages a fully managed Azure Red Hat OpenShift Cluster (also known as ARO)."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return openshiftclusters.ValidateOpenShiftClusterID
 }

@@ -56,6 +56,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
+				Description:  "ID source network interface.",
 				Type:         pluginsdk.TypeString,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
@@ -63,12 +64,14 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			},
 
 			"ip_configuration": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Description: "IP configuration to assign when a failover is done.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
+				ConfigMode:  pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "Name of the IP configuration, which must be consistent with the name of the IP configuration of the source Virtual Machine.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -76,38 +79,44 @@ func networkInterfaceResource() *pluginsdk.Resource {
 						},
 
 						"failover_test_static_ip": {
+							Description:  "Static IP to assign when a test failover is done.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"target_static_ip": {
+							Description:  "Static IP to assign when a failover is done.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"failover_test_subnet_name": {
+							Description:  "Name of the subnet to use when a test failover is done.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"target_subnet_name": {
+							Description:  "Name of the subnet to use when a failover is done.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"failover_test_public_ip_address_id": {
+							Description:  "ID of the public IP object to use when a test failover is done.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"recovery_load_balancer_backend_address_pool_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Description: "A list of IDs of Load Balancer Backend Address Pools to use when a failover is done.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
@@ -115,14 +124,16 @@ func networkInterfaceResource() *pluginsdk.Resource {
 						},
 
 						"recovery_public_ip_address_id": {
+							Description:  "ID of the public IP object to use when a failover is done.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"primary": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
+							Description: "Whether this IP configuration is primary. If only one `ip_configuration` block is specified, it will be treated as primary when omitted.",
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
 							// NOTE: O+C - Azure marks the sole IP configuration as primary when omitted.
 							Computed: true,
 						},
@@ -144,6 +155,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_url": {
+							Description:  "The URL to the Key Vault Secret used as the Disk Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_secret` resource.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
@@ -162,6 +174,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_url": {
+							Description:  "The URL to the Key Vault Key used as the Key Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_key` resource.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),

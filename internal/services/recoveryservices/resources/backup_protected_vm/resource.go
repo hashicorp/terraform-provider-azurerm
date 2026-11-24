@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRecoveryServicesBackupProtectedVMCreate,
-		Read:   resourceRecoveryServicesBackupProtectedVMRead,
-		Update: resourceRecoveryServicesBackupProtectedVMUpdate,
-		Delete: resourceRecoveryServicesBackupProtectedVMDelete,
+		Description: "Manages an Azure Backup Protected Virtual Machine.",
+		Create:      resourceRecoveryServicesBackupProtectedVMCreate,
+		Read:        resourceRecoveryServicesBackupProtectedVMRead,
+		Update:      resourceRecoveryServicesBackupProtectedVMUpdate,
+		Delete:      resourceRecoveryServicesBackupProtectedVMDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := protecteditems.ParseProtectedItemID(id)

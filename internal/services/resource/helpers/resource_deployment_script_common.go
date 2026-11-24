@@ -68,9 +68,10 @@ type ResourceDeploymentScriptPatchModel struct {
 func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*pluginsdk.Schema {
 	result := map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Resource Deployment Script. The name length must be from 1 to 260 characters. The name can only contain alphanumeric, underscore, parentheses, hyphen and period, and it cannot end with a period.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9_()-.]{0,259}[a-zA-Z0-9_()-]$`),
 				`The name length must be from 1 to 260 characters. The name can only contain alphanumeric, underscore, parentheses, hyphen and period, and it cannot end with a period.`,
@@ -82,6 +83,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		"location": commonschema.Location(),
 
 		"retention_interval": {
+			Description:  "Interval for which the service retains the script resource after it reaches a terminal state. Resource will be deleted when this duration expires. The time duration should be between `1` hour and `26` hours (inclusive) and should be specified in ISO 8601 format.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -89,6 +91,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"command_line": {
+			Description:  "Command line arguments to pass to the script.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -96,6 +99,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"cleanup_preference": {
+			Description:  "The cleanup preference when the script execution gets in a terminal state.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -111,6 +115,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_group_name": {
+						Description:  "Container Group name, if not specified then the name will get auto-generated. For more information, please refer to the [Container Configuration](https://learn.microsoft.com/rest/api/resources/deployment-scripts/create?tabs=HTTP#containerconfiguration) documentation.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -126,12 +131,14 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the environment variable.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"secure_value": {
+						Description:  "The value of the secure environment variable.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -139,6 +146,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 					},
 
 					"value": {
+						Description:  "The value of the environment variable.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -149,6 +157,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"force_update_tag": {
+			Description:  "Gets or sets how the deployment script should be forced to execute even if the script resource has not changed. Can be current time stamp or a GUID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -158,6 +167,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
 
 		"primary_script_uri": {
+			Description:  "URI for the script. This is the entry point for the external script.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -166,6 +176,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"script_content": {
+			Description:  "Script body.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -181,6 +192,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key": {
+						Description:  "The Storage Account access key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -188,6 +200,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 					},
 
 					"name": {
+						Description:  "The Storage Account name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -197,15 +210,17 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"supporting_script_uris": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+			Description: "Supporting files for the external script.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"timeout": {
+			Description:  "Maximum allowed script execution time specified in ISO 8601 format. Needs to be greater than 0 and smaller than 1 day.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -238,8 +253,9 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 func GetDeploymentScriptAttributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"outputs": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "List of script outputs.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

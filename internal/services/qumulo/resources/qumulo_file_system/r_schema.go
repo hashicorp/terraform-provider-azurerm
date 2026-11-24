@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Azure Native Qumulo Scalable File System resource.",
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -25,6 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"admin_password": {
+			Description:  "The initial administrator password of the Azure Native Qumulo Scalable File System.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"email": {
+			Description:  "The email address used for the Azure Native Qumulo Scalable File System.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,9 +43,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The storage SKU.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			// Use enum in SDK if swagger issue is resolved https://github.com/Azure/azure-rest-api-specs/issues/34017
 			ValidateFunc: validation.StringInSlice([]string{
 				"Cold_LRS",
@@ -52,6 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet_id": {
+			Description:  "The delegated subnet ID for VNet injection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -61,6 +66,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"zone": commonschema.ZoneSingleRequiredForceNew(),
 
 		"offer_id": {
+			Description:  "The marketplace offer ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -69,6 +75,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"plan_id": {
+			Description:  "The marketplace plan ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -77,6 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"publisher_id": {
+			Description:  "The marketplace publisher ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

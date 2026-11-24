@@ -22,6 +22,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the replicated VM.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"recovery_vault_id": commonschema.ResourceIDReferenceRequired(&vaults.VaultId{}, "Recovery Services Vault"),
 
 		"source_vm_name": {
+			Description:  "The name of the source VM in VMWare.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"appliance_name": {
+			Description:  "The name of VMWare appliance which handles the replication.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -47,6 +50,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"recovery_replication_policy_id": commonschema.ResourceIDReferenceRequired(&replicationpolicies.ReplicationPolicyId{}, "Replication Policy"),
 
 		"physical_server_credential_name": {
+			Description:  "The name of the credential to access the source VM. More information about the credentials could be found [here](https://learn.microsoft.com/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -54,6 +58,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"license_type": {
+			Description:  "The license type of the VM.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(replicationprotecteditems.LicenseTypeNotSpecified),
@@ -63,6 +68,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"target_resource_group_id": commonschema.ResourceIDReferenceRequired(&commonids.ResourceGroupId{}, "Resource Group"),
 
 		"target_vm_name": {
+			Description:  "Name of the VM that should be created when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -70,6 +76,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"default_log_storage_account_id": {
+			Description:  "The ID of the Storage Account that should be used for logging during replication.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
@@ -77,6 +84,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"default_recovery_disk_type": {
+			Description:  "The type of Storage Account that should be used for recovery disks when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
@@ -84,12 +92,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"default_target_disk_encryption_set_id": {
+			Description:  "The ID of the default Disk Encryption Set that should be used for the disks when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 		},
 
 		"multi_vm_group_name": {
+			Description:  "Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -98,12 +108,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"target_proximity_placement_group_id": commonschema.ResourceIDReferenceOptional(&proximityplacementgroups.ProximityPlacementGroupId{}, "Proximity Placement Group"),
 
 		"target_vm_size": {
+			Description:  "Size of the VM that should be created when a failover is done, such as `Standard_F2`. If it's not specified, it will automatically be set by detecting the source VM size.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"target_availability_set_id": {
+			Description:  "The ID of Availability Set that the new VM should belong to when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateAvailabilitySetID,
@@ -113,6 +125,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_zone": {
+			Description:  "The Availability Zone where the Failover VM should exist.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -122,6 +135,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_network_id": {
+			Description:  "The ID of network to use when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
@@ -134,9 +148,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// managed disk is enabled only if mobility service is already installed. (in most cases, it's not installed)
 		"managed_disk": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem:     resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema(),
+			Description: "It's available only if mobility service is already installed on the source VM.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Elem:        resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema(),
 		},
 
 		"network_interface": {

@@ -22,6 +22,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the Recovery Services Vault to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,10 +30,11 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		},
 
 		"source_vm_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true,
+			Description: "The ID of the Virtual Machine to back up.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				validation.StringIsEmpty,
 				azure.ValidateResourceID,
@@ -42,12 +44,14 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		},
 
 		"backup_policy_id": {
+			Description:  "The ID of the backup policy to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
 		},
 
 		"exclude_disk_luns": {
+			Description:   "A list of Disks' Logical Unit Numbers (LUN) to be excluded for VM Protection.",
 			Type:          pluginsdk.TypeSet,
 			ConflictsWith: []string{"include_disk_luns"},
 			Optional:      true,
@@ -58,6 +62,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		},
 
 		"include_disk_luns": {
+			Description:   "A list of Disks' Logical Unit Numbers (LUN) to be included for VM Protection.",
 			Type:          pluginsdk.TypeSet,
 			ConflictsWith: []string{"exclude_disk_luns"},
 			Optional:      true,
@@ -68,8 +73,9 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		},
 
 		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The protection state of the backup.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because `protection_state` is set by Azure and may not be a persistent value.
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{

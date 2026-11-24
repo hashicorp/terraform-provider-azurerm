@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRedisLinkedServerCreate,
-		Read:   resourceRedisLinkedServerRead,
-		Delete: resourceRedisLinkedServerDelete,
+		Description: "Manages a Redis Linked Server (i.e. Geo Location).",
+		Create:      resourceRedisLinkedServerCreate,
+		Read:        resourceRedisLinkedServerRead,
+		Delete:      resourceRedisLinkedServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := linkedserver.ParseLinkedServerID(id)
 			return err

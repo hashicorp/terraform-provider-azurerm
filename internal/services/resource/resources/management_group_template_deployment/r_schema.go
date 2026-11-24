@@ -16,6 +16,7 @@ import (
 func managementGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Template Deployment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func managementGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"management_group_id": {
+			Description:  "The ID of the Management Group to apply the Deployment Template to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,9 +34,10 @@ func managementGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"template_content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The contents of the ARM Template which should be deployed into this Resource Group.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ExactlyOneOf: []string{
 				"template_content",
 				"template_spec_version_id",
@@ -43,8 +46,9 @@ func managementGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"template_spec_version_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The ID of the Template Spec Version to deploy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ExactlyOneOf: []string{
 				"template_content",
 				"template_spec_version_id",
@@ -54,24 +58,27 @@ func managementGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 
 		// Optional
 		"debug_level": {
+			Description:  "The Debug Level which should be used for this Resource Group Template Deployment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(helpers.TemplateDeploymentDebugLevels, false),
 		},
 
 		"parameters_content": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			Computed:  true, // azignore:AZS007 - pre-existing violation
-			StateFunc: pluginsdk.NormalizeJson,
+			Description: "The contents of the ARM Template parameters file - containing a JSON list of parameters.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			StateFunc:   pluginsdk.NormalizeJson,
 		},
 
 		"tags": commonschema.Tags(),
 
 		// Computed
 		"output_content": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The JSON Content of the Outputs of the ARM Template Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 			// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 		},

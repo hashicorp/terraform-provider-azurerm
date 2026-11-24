@@ -15,6 +15,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_site_recovery_vmware_replicated_vm"
 }
 
+func (r Resource) Description() string {
+	return "Manages a VMWare replicated VM using Azure Site Recovery (VMWare to Azure only). A replicated VM keeps a copiously updated image of the VM in Azure in order to be able to start the VM in Azure in case of a disaster."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationprotecteditems.ValidateReplicationProtectedItemID
 }

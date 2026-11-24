@@ -16,6 +16,7 @@ import (
 func siteRecoveryReplicationPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the replication policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,17 +25,20 @@ func siteRecoveryReplicationPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the vault that should be updated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 		"recovery_point_retention_in_minutes": {
+			Description:  "The duration in minutes for which the recovery points need to be stored.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(0, 365*24*60),
 		},
 		"application_consistent_snapshot_frequency_in_minutes": {
+			Description:  "The frequency(in minutes) at which to create application consistent recovery points.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(0, 365*24*60),

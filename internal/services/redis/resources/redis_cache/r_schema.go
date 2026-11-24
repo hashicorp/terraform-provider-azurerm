@@ -18,9 +18,10 @@ import (
 func redisCacheSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Redis instance.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -30,43 +31,50 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The size of the Redis Cache to deploy.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"family": {
+			Description:  "The SKU family/pricing group to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuFamily(), false),
 		},
 
 		"sku_name": {
+			Description:  "The SKU of Redis to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuName(), false),
 		},
 
 		"minimum_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(redisresources.TlsVersionOnePointTwo),
+			Description: "The minimum TLS version.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(redisresources.TlsVersionOnePointTwo),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(redisresources.TlsVersionOnePointTwo),
 			}, false),
 		},
 
 		"shard_count": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "*Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 		},
 
 		"non_ssl_port_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Default:  false,
-			Optional: true,
+			Description: "Enable the non-SSL port (6379) - disabled by default.",
+			Type:        pluginsdk.TypeBool,
+			Default:     false,
+			Optional:    true,
 		},
 
 		"subnet_id": {
+			Description:  "*Only available when using the Premium SKU* The ID of the Subnet within which the Redis Cache should be deployed. This Subnet must only contain Azure Cache for Redis instances without any other type of resources.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -74,8 +82,9 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_static_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. This argument implies the use of `subnet_id`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
 			Computed: true,
 			ForceNew: true,
@@ -89,29 +98,34 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_directory_authentication_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Enable Microsoft Entra (AAD) authentication.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"maxclients": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "Returns the max number of connected clients at the same time.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"maxmemory_delta": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The max-memory delta for this Redis instance.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						// Note: O+C this gets a variable default based on the cache's total memory. This can remain O+C as it can be updated without issue
 						Computed: true,
 					},
 
 					"maxmemory_reserved": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "Value in megabytes reserved for non-cache usage e.g. failover.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						// Note: O+C this gets a variable default based on the cache's total memory. This can remain O+C as it can be updated without issue
 						Computed: true,
 					},
 
 					"maxmemory_policy": {
+						Description:  "How Redis will select what to remove when `maxmemory` is reached.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "volatile-lru",
@@ -119,15 +133,17 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"maxfragmentationmemory_reserved": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "Value in megabytes reserved to accommodate for memory fragmentation.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						// Note: O+C this gets a variable default based on the cache's total memory. This can remain O+C as it can be updated without issue
 						Computed: true,
 					},
 
 					"data_persistence_authentication_method": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Preferred auth method to communicate to Storage Account used for data persistence.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"SAS",
 							"ManagedIdentity",
@@ -135,54 +151,64 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"rdb_backup_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Is Backup Enabled? Only supported on Premium SKUs.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"rdb_backup_frequency": {
+						Description:  "The Backup Frequency in Minutes. Only supported on Premium SKUs.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validate.CacheBackupFrequency,
 					},
 
 					"rdb_backup_max_snapshot_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The maximum number of snapshots to create as a backup. Only supported for Premium SKUs.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 					},
 
 					"rdb_storage_connection_string": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Description: "The Connection String to the Storage Account. Only supported for Premium SKUs. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.example.primary_blob_endpoint};AccountName=${azurerm_storage_account.example.name};AccountKey=${azurerm_storage_account.example.primary_access_key}`.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Sensitive:   true,
 					},
 
 					"notify_keyspace_events": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Keyspace notifications allows clients to subscribe to Pub/Sub channels in order to receive events affecting the Redis data set in some way. [Reference](https://redis.io/topics/notifications#configuration).",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"aof_backup_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Enable or disable AOF persistence for this Redis Cache.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"aof_storage_connection_string_0": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Description: "First Storage Account connection string for AOF persistence.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Sensitive:   true,
 					},
 
 					"aof_storage_connection_string_1": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Description: "Second Storage Account connection string for AOF persistence.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Sensitive:   true,
 					},
 					"authentication_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "If set to `false`, the Redis instance will be accessible without authentication.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"storage_account_subscription_id": {
+						Description:  "The ID of the Subscription containing the Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
@@ -197,6 +223,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"day_of_week": {
+						Description:      "The Weekday name.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						DiffSuppressFunc: suppress.CaseDifference,
@@ -204,6 +231,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"maintenance_window": {
+						Description:  "The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT5H",
@@ -211,6 +239,7 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"start_hour_utc": {
+						Description:  "The Start Hour for maintenance in UTC - possible values range from `0 - 23`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
@@ -220,55 +249,64 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Hostname of the Redis Instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The non-SSL Port of the Redis Instance.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"ssl_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The SSL Port of the Redis Instance.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary Access Key for the Redis Instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary Access Key for the Redis Instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary connection string of the Redis Instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary connection string of the Redis Instance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether or not public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and Private Endpoint. `false` means only Private Endpoint access is allowed.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		// todo: investigate the difference between `replicas_per_master` and `replicas_per_primary` - are these
 		// the same field that's been renamed ala Redis? https://github.com/Azure/azure-rest-api-specs/pull/13005
 		"replicas_per_master": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "Amount of replicas to create per master for this Redis Cache.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// NOTE: O+C returns a value when `replicas_per_primary` is set - this can remain as there is no issue updating it
 			Computed: true,
 			// Can't make more than 3 replicas in portal, assuming it's a limitation
@@ -278,22 +316,25 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"replicas_per_primary": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// NOTE: O+C returns a value when `replicas_per_master` is set - this can remain as there is no issue updating it
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(1, 3),
 		},
 
 		"tenant_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A mapping of tenant settings to assign to the resource.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"redis_version": {
+			Description:  "Redis version. Only major version needed.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "6",
@@ -309,9 +350,10 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"access_keys_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether access key authentication is enabled? `active_directory_authentication_enabled` must be set to `true` to disable access key authentication.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tags": commonschema.Tags(),

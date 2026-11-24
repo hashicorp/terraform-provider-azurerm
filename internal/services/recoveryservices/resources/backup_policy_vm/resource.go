@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBackupProtectionPolicyVMCreate,
-		Read:   resourceBackupProtectionPolicyVMRead,
-		Update: resourceBackupProtectionPolicyVMUpdate,
-		Delete: resourceBackupProtectionPolicyVMDelete,
+		Description: "Manages an Azure Backup VM Backup Policy.",
+		Create:      resourceBackupProtectionPolicyVMCreate,
+		Read:        resourceBackupProtectionPolicyVMRead,
+		Update:      resourceBackupProtectionPolicyVMUpdate,
+		Delete:      resourceBackupProtectionPolicyVMDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&protectionpolicies.BackupPolicyId{}),
 

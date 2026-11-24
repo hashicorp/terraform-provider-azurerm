@@ -25,6 +25,7 @@ import (
 func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the replication for the replicated VM.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +35,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the vault that should be updated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,6 +43,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_recovery_fabric_name": {
+			Description:  "Name of fabric that should contain this replication.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,6 +51,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_vm_id": {
+			Description:  "ID of the VM to replicate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -58,6 +62,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_recovery_fabric_id": {
+			Description:  "ID of fabric where the VM replication should be handled when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -65,6 +70,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_replication_policy_id": {
+			Description:  "ID of the policy to use for this replicated VM.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -72,6 +78,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_recovery_protection_container_name": {
+			Description:  "Name of the protection container to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -79,6 +86,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_recovery_protection_container_id": {
+			Description:  "ID of protection container where the VM replication should be created when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -86,6 +94,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_resource_group_id": {
+			Description:  "ID of Resource Group where the VM should be created when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -93,6 +102,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_availability_set_id": {
+			Description:  "ID of Availability Set that the new VM should belong to when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateAvailabilitySetID,
@@ -104,6 +114,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		"target_zone": commonschema.ZoneSingleOptionalForceNew(),
 
 		"target_network_id": {
+			Description:  "Network to use when a failover is done (recommended to set if any network_interface is configured for failover).",
 			Type:         pluginsdk.TypeString,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
@@ -111,6 +122,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"test_network_id": {
+			Description:  "Network to use when a test failover is done.",
 			Type:         pluginsdk.TypeString,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
@@ -128,6 +140,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disk_uri": {
+						Description:  "ID of disk that should be replicated.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -135,6 +148,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"staging_storage_account_id": {
+						Description:  "Storage Account that should be used for caching.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -142,6 +156,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"target_storage_account_id": {
+						Description:  "Storage Account disk should belong to when a failover is done.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -152,6 +167,7 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"multi_vm_group_name": {
+			Description:  "Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -166,36 +182,42 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disk_id": {
+						Description:  "ID of disk that should be replicated.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"staging_storage_account_id": {
+						Description:  "Storage Account that should be used for caching.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateStorageAccountID,
 					},
 
 					"target_resource_group_id": {
+						Description:  "Resource Group disk should belong to when a failover is done.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateResourceGroupID,
 					},
 
 					"target_disk_type": {
+						Description:  "What type should the disk be when a failover is done.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 					},
 
 					"target_replica_disk_type": {
+						Description:  "What type should the disk be that holds the replication data.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 					},
 
 					"target_disk_encryption_set_id": {
+						Description:  "The Disk Encryption Set that the Managed Disk will be associated with.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
@@ -213,32 +235,37 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_proximity_placement_group_id": {
+			Description:  "ID of Proximity Placement Group the new VM should belong to when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 		},
 
 		"target_boot_diagnostic_storage_account_id": {
+			Description:  "ID of the Storage Account which the new VM should used for boot diagnostic when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"target_capacity_reservation_group_id": {
+			Description:  "ID of the Capacity Reservation Group where the new VM should belong to when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 		},
 
 		"target_virtual_machine_scale_set_id": {
+			Description:  "ID of the Virtual Machine Scale Set which the new VM should belong to when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 		},
 
 		"target_virtual_machine_size": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The size the Virtual Machine should have.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C if not specified, this gets set to the vm_size of the virtual machine
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
