@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -53,7 +54,7 @@ func RegisterResource() *pluginsdk.Resource {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if parametersRemoved(oldParameters, newParameters) {
+					if helpers.ParametersRemoved(oldParameters, newParameters) {
 						return d.ForceNew("parameters")
 					}
 				}

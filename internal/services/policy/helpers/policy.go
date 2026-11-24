@@ -119,9 +119,9 @@ func GetPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {
 	return
 }
 
-// parametersRemoved reports whether any of the old parameters are missing from the new ones. Parameters can't be
+// ParametersRemoved reports whether any of the old parameters are missing from the new ones. Parameters can't be
 // removed or renamed in place, so a change like that needs the resource to be recreated.
-func parametersRemoved[T any](oldParameters, newParameters map[string]T) bool {
+func ParametersRemoved[T any](oldParameters, newParameters map[string]T) bool {
 	for k := range oldParameters {
 		if _, ok := newParameters[k]; !ok {
 			return true

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/helpers"
@@ -90,7 +91,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if parametersRemoved(pointer.From(oldParameters), pointer.From(newParameters)) {
+					if helpers.ParametersRemoved(pointer.From(oldParameters), pointer.From(newParameters)) {
 						return metadata.ResourceDiff.ForceNew("parameters")
 					}
 				}
