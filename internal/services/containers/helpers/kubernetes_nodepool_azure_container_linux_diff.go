@@ -25,7 +25,6 @@ func NodePoolAzureContainerLinuxCustomizeDiff(nodePoolPath string) pluginsdk.Cus
 			return nil
 		}
 
-		// The SDK reports no count for both an omitted block and an unknown block.
 		if _, ok := d.GetOkExists(prefix + "security.#"); !ok {
 			config := d.GetRawConfig()
 			if !config.IsKnown() || config.IsNull() {
