@@ -121,9 +121,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"route_topic_id": {
-            Description:  "The Event Grid topic resource ID to route messages to.",
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Description: "The Event Grid topic resource ID to route messages to.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.Any(
 							topics.ValidateTopicID,
 							namespacetopics.ValidateNamespaceTopicID,
