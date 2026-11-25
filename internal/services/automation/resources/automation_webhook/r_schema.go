@@ -16,6 +16,7 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
+			Description:  "The name of the Webhook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
+			Description:  "The name of the Automation Account in which the Webhook is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"expiry_time": {
+			Description:      "Timestamp when the webhook expires.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -38,32 +41,37 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"runbook_name": {
+			Description:  "Name of the Automation Runbook to execute by Webhook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.RunbookName(),
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Controls if Webhook is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"run_on_worker_group": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Name of the hybrid worker group the Webhook job will run on.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "Map of input parameters passed to runbook.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 		"uri": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "URI to initiate the webhook. Can be generated using [Generate URI API](https://learn.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			// NOTE: O+C this is generated if omitted and cannot be updated so this should remain
 			Computed:     true,
 			Sensitive:    true,

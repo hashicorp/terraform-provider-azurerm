@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelFacebookCreate,
-		Read:   resourceBotChannelFacebookRead,
-		Delete: resourceBotChannelFacebookDelete,
-		Update: resourceBotChannelFacebookUpdate,
+		Description: "Manages a Facebook integration for a Bot Channel.",
+		Create:      resourceBotChannelFacebookCreate,
+		Read:        resourceBotChannelFacebookRead,
+		Delete:      resourceBotChannelFacebookDelete,
+		Update:      resourceBotChannelFacebookUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

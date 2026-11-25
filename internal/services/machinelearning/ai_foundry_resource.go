@@ -142,7 +142,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+					"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 					"key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,

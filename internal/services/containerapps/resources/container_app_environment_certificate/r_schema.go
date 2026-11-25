@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Apps Environment Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"container_app_environment_id": {
+			Description:  "The Container App Managed Environment ID to configure this Certificate on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"certificate_blob_base64": {
+			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -39,6 +42,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"certificate_password": {
+			Description:  "The password for the Certificate.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -55,16 +59,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  "System",
+						Description: "The Managed Identity to authenticate with Azure Key Vault.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     "System",
 						ValidateFunc: validation.Any(
 							validation.StringInSlice([]string{"System"}, false),
 							commonids.ValidateUserAssignedIdentityID,
 						),
 					},
 					"key_vault_secret_id": {
+						Description:  "The ID of the Key Vault Secret containing the certificate.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,

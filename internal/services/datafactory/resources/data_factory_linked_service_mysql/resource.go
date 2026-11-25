@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceMySQLRead,
-		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceMySQLDelete,
+		Description: "Manages a Linked Service (connection) between MySQL and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceMySQLCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceMySQLRead,
+		Update:      resourceDataFactoryLinkedServiceMySQLCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceMySQLDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

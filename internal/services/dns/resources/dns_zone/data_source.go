@@ -33,14 +33,20 @@ func (DataSource) ResourceType() string {
 	return "azurerm_dns_zone"
 }
 
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing DNS Zone."
+}
+
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the DNS Zone.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"resource_group_name": {
+			Description: "The name of the Resource Group where the DNS Zone exists. If the Name of the Resource Group is not provided, the first DNS Zone from the list of DNS Zones in your subscription that matches `name` will be returned.",
 			// TODO: we need a CommonSchema type for this which doesn't have ForceNew
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -52,20 +58,23 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"number_of_record_sets": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of records already in the zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_number_of_record_sets": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "Maximum number of Records in the zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"name_servers": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:      pluginsdk.HashString,
+			Description: "A list of values that make up the NS record for the zone.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Set:         pluginsdk.HashString,
 		},
 
 		"tags": commonschema.TagsDataSource(),

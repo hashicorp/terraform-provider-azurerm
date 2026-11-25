@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDatadogTagRulesCreate,
-		Read:   resourceDatadogTagRulesRead,
-		Update: resourceDatadogTagRulesUpdate,
-		Delete: resourceDatadogTagRulesDelete,
+		Description: "Manages TagRules on the datadog Monitor.",
+		Create:      resourceDatadogTagRulesCreate,
+		Read:        resourceDatadogTagRulesRead,
+		Update:      resourceDatadogTagRulesUpdate,
+		Delete:      resourceDatadogTagRulesDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

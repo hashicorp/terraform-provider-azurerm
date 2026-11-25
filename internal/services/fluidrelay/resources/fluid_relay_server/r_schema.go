@@ -16,6 +16,7 @@ import (
 func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Fluid Relay Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,8 +27,9 @@ func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags":                commonschema.Tags(),
 		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"storage_sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "SKU of the storage associated with the resource.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C due to the issue linked below
 			// todo remove computed when https://github.com/Azure/azure-rest-api-specs/issues/19700 is fixed
 			Computed:     true,
@@ -42,12 +44,14 @@ func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Description:  "The Key Vault Key ID that will be used to encrypt the Fluid Relay Server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 					},
 
 					"user_assigned_identity_id": {
+						Description:  "The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -61,44 +65,50 @@ func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 func (s Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"frs_tenant_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Fluid tenantId for this server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"orderer_endpoints": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "An array of the Fluid Relay Orderer endpoints. This will be deprecated in future version of Fluid Relay Server and will always be empty, [more details](https://learn.microsoft.com/azure/azure-fluid-relay/concepts/version-compatibility).",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"storage_endpoints": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "An array of storage endpoints for this Fluid Relay Server. This will be deprecated in future version of Fluid Relay Server and will always be empty, [more details](https://learn.microsoft.com/azure/azure-fluid-relay/concepts/version-compatibility).",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"service_endpoints": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "An array of service endpoints for this Fluid Relay Server.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary key for this server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary key for this server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

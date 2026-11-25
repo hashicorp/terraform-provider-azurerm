@@ -14,9 +14,10 @@ import (
 func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 	// lintignore:XS003
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Description: "Actions that are valid for all resources regardless of any conditions.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cache_expiration_action": {
