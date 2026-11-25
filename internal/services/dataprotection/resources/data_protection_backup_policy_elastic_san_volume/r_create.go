@@ -88,7 +88,7 @@ func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanV
 
 		isDefault := name == "Default"
 		taggingCriterion := basebackuppolicyresources.TaggingCriteria{
-			IsDefault: isDefault,
+			IsDefault:       isDefault,
 			TaggingPriority: int64(tagPriority),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(name + "_"),
