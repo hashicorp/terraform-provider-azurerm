@@ -6,7 +6,7 @@ The provider should be implemented using stable Azure Resource Manager (ARM) API
 
 These breaking API changes often materialise into [breaking changes](guide-breaking-changes.md) which can involve non-trivial upgrade steps and/or require waiting until a major version release to make the breaking change. v3.0.0 was released in March 2022, v4.0.0 in August 2024, and v5.0.0 in July 2026.
 
-In November 2025 we implemented an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
+In December 2025 we added an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
 
 ### Rerunning checks locally
 
@@ -18,7 +18,7 @@ go run internal/tools/preview-api-version-linter/main.go
 
 ### Obtaining exception to use preview API
 
-> **Warning:** Using a preview API version can be risky, prone to human error, and can result in a substandard user experience. An exception is a last resort only when all the consequences are fully understood and there is no alternative.
+> **Warning:** Exceptions are rare. Preview APIs change without notice and the breakage lands on users.
 
 To add an exception to use preview API version, the following criteria must be met:
 
@@ -37,14 +37,14 @@ To add an exception, insert an entry to `internal/tools/preview-api-version-lint
   service: compute
   version: 2021-06-01-preview
   stableVersionTargetDate: 2026-01-01
-  responsibleIndividual: github.com/gerrytan
+  responsibleIndividual: github.com/gerrytan, github.com/somebody
 ```
 
 - `module`: go module name as per go.mod, see internal/tools/preview-api-version-linter/sdk/sdk_types.go for supported modules
 - `service`: service name as per the vendor path, for `vendor/github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-01-06-preview` the service name is `compute`
 - `version`: preview version as per the vendor path
 - `stableVersionTargetDate`: estimated stable API version release date, does not have to be the actual stable version string
-- `responsibleIndividual`: individual with deep expertise of the API that can be contacted in the future, has to be a `github.com/myuser` GitHub handle or an email address
+- `responsibleIndividual`: individual(s) with deep expertise of the API that can be contacted in the future, has to be one or more comma-separated `github.com/myuser` GitHub handles or email addresses
 
 Entries have to be sorted alphabetically by `module`, `service` and `version`.
 
