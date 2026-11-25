@@ -799,7 +799,7 @@ func (l LinuxFunctionAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
-						Description: "Should HTTPS be required on connections?",
+						Description: "Whether HTTPS should be required on connections.",
 					},
 
 					"http_route_api_prefix": {
@@ -1298,7 +1298,7 @@ func (l LinuxFunctionAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
-						Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
+						Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 					},
 
 					"scm_ip_restriction": {

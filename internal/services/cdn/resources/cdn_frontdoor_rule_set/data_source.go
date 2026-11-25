@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorRuleSetRead,
+		Description: "Use this data source to access information about an existing Front Door (standard/premium) Rule Set.",
+		Read:        dataSourceCdnFrontDoorRuleSetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,12 +29,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Rule Set to retrieve.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorRuleSetName,
 			},
 
 			"profile_name": {
+				Description:  "The name of the Front Door Profile where this Front Door Rule Set exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorName,
@@ -42,8 +45,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"cdn_frontdoor_profile_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Front Door Profile within which this Front Door Rule Set exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

@@ -39,7 +39,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should this function be enabled?",
+			Description: "Whether this function should be enabled.",
 		},
 
 		"language": {

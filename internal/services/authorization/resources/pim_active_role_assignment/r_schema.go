@@ -19,7 +19,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Scope for this Role Assignment, should be a valid resource ID.",
+			Description: "The scope for this Role Assignment, should be a valid resource ID.",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
 				// https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
@@ -38,7 +38,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Role Definition ID for this Role Assignment.",
+			Description: "The Role Definition ID for this Role Assignment.",
 		},
 
 		"principal_id": {
@@ -54,7 +54,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The justification for this Role Assignment.",
+			Description: "The justification for the Role Assignment.",
 		},
 
 		"schedule": {

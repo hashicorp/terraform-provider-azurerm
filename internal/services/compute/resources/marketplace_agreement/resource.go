@@ -20,9 +20,10 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMarketplaceAgreementCreate,
-		Read:   resourceMarketplaceAgreementRead,
-		Delete: resourceMarketplaceAgreementDelete,
+		Description: "Allows accepting the Legal Terms for a Marketplace Image.",
+		Create:      resourceMarketplaceAgreementCreate,
+		Read:        resourceMarketplaceAgreementRead,
+		Delete:      resourceMarketplaceAgreementDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := agreements.ParsePlanID(id)
 			return err

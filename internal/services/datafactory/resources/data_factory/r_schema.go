@@ -17,6 +17,7 @@ import (
 func dataFactorySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,33 +38,44 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"account_name": {
+						Description:  "The GitHub account name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch_name": {
+						Description:  "The branch of the repository to get code from.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"git_url": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The GitHub Enterprise host name. For example: `https://github.<mydomain>.com`. Use `https://github.com` for open source repositories.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+					},
+					"last_commit_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"repository_name": {
+						Description:  "The name of the git repository.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"root_folder": {
+						Description:  "The root folder within the repository. Set to `/` for the top level.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"publishing_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Default:  true,
-						Optional: true,
+						Description: "Whether automated publishing is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Default:     true,
+						Optional:    true,
 					},
 				},
 			},
@@ -77,39 +89,46 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"account_name": {
+						Description:  "The VSTS account name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch_name": {
+						Description:  "The branch of the repository to get code from.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"project_name": {
+						Description:  "The name of the VSTS project.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"repository_name": {
+						Description:  "The name of the git repository.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"root_folder": {
+						Description:  "The root folder within the repository. Set to `/` for the top level.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"tenant_id": {
+						Description:  "The Tenant ID associated with the VSTS account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"publishing_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Default:  true,
-						Optional: true,
+						Description: "Whether automated publishing is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Default:     true,
+						Optional:    true,
 					},
 				},
 			},
@@ -121,18 +140,21 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The global parameter name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"type": {
+						Description:  "The global parameter type.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(factories.PossibleValuesForGlobalParameterType(), false),
 					},
 
 					"value": {
+						Description:  "The global parameter value.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -142,23 +164,27 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_virtual_network_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether Managed Virtual Network is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"public_network_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Data Factory is visible to the public network.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"purview_id": {
+			Description:  "The ID of the Purview Account resource associated with the Data Factory.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: account.ValidateAccountID,
 		},
 
 		"customer_managed_key_id": {
+			Description:  "The Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption.",
 			Type:         pluginsdk.TypeString,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
@@ -166,6 +192,7 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"customer_managed_key_identity_id": {
+			Description:  "The ID of the User Assigned Identity associated with the Customer Managed Key. Can be left empty once factory is created to use the System Assigned Identity. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/enable-customer-managed-key) for more information.",
 			Type:         pluginsdk.TypeString,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
-		Read:   resourceDataFactoryDatasetDelimitedTextRead,
-		Update: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
-		Delete: resourceDataFactoryDatasetDelimitedTextDelete,
+		Description: "Manages an Azure Delimited Text Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetDelimitedTextCreateUpdate,
+		Read:        resourceDataFactoryDatasetDelimitedTextRead,
+		Update:      resourceDataFactoryDatasetDelimitedTextCreateUpdate,
+		Delete:      resourceDataFactoryDatasetDelimitedTextDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

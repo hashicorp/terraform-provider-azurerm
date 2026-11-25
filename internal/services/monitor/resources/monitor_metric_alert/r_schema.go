@@ -17,6 +17,7 @@ import (
 func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Metric Alert.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,9 +27,10 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"scopes": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Description: "A set of strings of resource IDs at which the metric criteria should be applied.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -40,7 +42,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
-			Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, Resource Group scope or multiple scopes.`,
+			Description: "The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource.",
 		},
 
 		"target_resource_location": {
@@ -49,7 +51,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Computed:         true, // azignore:AZS007 - pre-existing violation
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			Description:      `The location of the target pluginsdk. Required when using subscription, Resource Group scope or multiple scopes.`,
+			Description:      "The location of the target resource.",
 		},
 
 		// static criteria
@@ -61,18 +63,21 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"metric_namespace": {
+						Description:  "One of the metric namespaces to be monitored.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"metric_name": {
+						Description:  "One of the metric names to be monitored.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"aggregation": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The statistic that runs over the metric values.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Average",
 							"Count",
@@ -87,13 +92,15 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "One of the dimension names.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The dimension operator.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 										"Exclude",
@@ -101,9 +108,10 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MinItems: 1,
+									Description: "The list of dimension values.",
+									Type:        pluginsdk.TypeList,
+									Required:    true,
+									MinItems:    1,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -112,18 +120,21 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"operator": {
+						Description:  "The criteria operator.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForOperator(), false),
 					},
 					"threshold": {
-						Type:     pluginsdk.TypeFloat,
-						Required: true,
+						Description: "The criteria threshold value that activates the alert.",
+						Type:        pluginsdk.TypeFloat,
+						Required:    true,
 					},
 					"skip_metric_validation": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -140,18 +151,21 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"metric_namespace": {
+						Description:  "One of the metric namespaces to be monitored.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"metric_name": {
+						Description:  "One of the metric names to be monitored.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"aggregation": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The statistic that runs over the metric values.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Average",
 							"Count",
@@ -166,13 +180,15 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "One of the dimension names.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The dimension operator.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 										"Exclude",
@@ -180,9 +196,10 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MinItems: 1,
+									Description: "The list of dimension values.",
+									Type:        pluginsdk.TypeList,
+									Required:    true,
+									MinItems:    1,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -191,17 +208,20 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"operator": {
+						Description:  "The criteria operator.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdOperator(), false),
 					},
 					"alert_sensitivity": {
+						Description:  "The extent of deviation required to trigger an alert.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdSensitivity(), false),
 					},
 
 					"evaluation_total_count": {
+						Description:  "The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(1),
@@ -209,6 +229,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"evaluation_failure_count": {
+						Description:  "The number of violations to trigger an alert.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(1),
@@ -216,13 +237,15 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ignore_data_before": {
+						Description:  "The [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) date from which to start learning the metric historical data and calculate the dynamic thresholds.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 					"skip_metric_validation": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether to skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 				},
 			},
@@ -237,16 +260,19 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"web_test_id": {
+						Description:  "The ID of the Application Insights Web Test.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: webtestsapis.ValidateWebTestID,
 					},
 					"component_id": {
+						Description:  "The ID of the Application Insights Resource.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: componentsapis.ValidateComponentID,
 					},
 					"failed_location_count": {
+						Description:  "The number of failed locations.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(1),
@@ -261,13 +287,15 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"action_group_id": {
+						Description:  "The ID of the Action Group can be sourced from [the `azurerm_monitor_action_group` resource](./monitor_action_group.html).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 					"webhook_properties": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "The map of custom string properties to include with the post operation. These data are appended to the webhook payload.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -278,26 +306,30 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_mitigate": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the alerts in this Metric Alert should be auto resolved.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of this Metric Alert.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Metric Alert should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"frequency": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "PT1M",
+			Description: "The evaluation frequency of this Metric Alert, represented in ISO 8601 duration format.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "PT1M",
 			ValidateFunc: validation.StringInSlice([]string{
 				"PT1M",
 				"PT5M",
@@ -308,6 +340,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"severity": {
+			Description:  "The severity of this Metric Alert.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      3,
@@ -315,9 +348,10 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"window_size": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "PT5M",
+			Description: "The period of time that is used to monitor alert activity, represented in ISO 8601 duration format. This value must be greater than `frequency`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "PT5M",
 			ValidateFunc: validation.StringInSlice([]string{
 				"PT1M",
 				"PT5M",

@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmLoadBalancerRuleRead,
+		Description: "Use this data source to access information about an existing Load Balancer Rule.",
+		Read:        dataSourceArmLoadBalancerRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,70 +27,83 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Load Balancer Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleName,
 			},
 
 			"loadbalancer_id": {
+				Description:  "The ID of the Load Balancer Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
 			},
 
 			"frontend_ip_configuration_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the frontend IP configuration to which the rule is associated.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The transport protocol for the external endpoint.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"frontend_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The port for the external endpoint.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"backend_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The port used for internal connections on the endpoint.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"backend_address_pool_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A reference to a Backend Address Pool over which this Load Balancing Rule operates.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"probe_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A reference to a Probe used by this Load Balancing Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"floating_ip_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If Floating IPs are enabled for this Load Balancer Rule.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tcp_reset_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If TCP Reset is enabled for this Load Balancer Rule.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"disable_outbound_snat": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If outbound SNAT is enabled for this Load Balancer Rule.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The idle timeout in minutes for TCP connections.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"load_distribution": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The load balancing distribution type used by the Load Balancer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

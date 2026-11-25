@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_monitor_data_collection_endpoint"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Data Collection Endpoint."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return datacollectionendpoints.ValidateDataCollectionEndpointID
 }

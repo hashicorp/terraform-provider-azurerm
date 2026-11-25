@@ -11,26 +11,30 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_id": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "Resource ID of an associated DevCenter.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name of this Dev Center Project.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			ForceNew: true,
-			Optional: true,
-			Type:     pluginsdk.TypeString,
+			Description: "Description of the project.",
+			ForceNew:    true,
+			Optional:    true,
+			Type:        pluginsdk.TypeString,
 		},
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"maximum_dev_boxes_per_user": {
-			Optional: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.",
+			Optional:    true,
+			Type:        pluginsdk.TypeInt,
 		},
 		"tags": commonschema.Tags(),
 	}
@@ -39,8 +43,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_uri": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The URI of the Dev Center resource this project is associated with.",
+			Computed:    true,
+			Type:        pluginsdk.TypeString,
 		},
 	}
 }

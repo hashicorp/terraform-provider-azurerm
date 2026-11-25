@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDevTestVirtualNetworkCreate,
-		Read:   resourceArmDevTestVirtualNetworkRead,
-		Update: resourceArmDevTestVirtualNetworkUpdate,
-		Delete: resourceArmDevTestVirtualNetworkDelete,
+		Description: "Manages a Virtual Network within a DevTest Lab.",
+		Create:      resourceArmDevTestVirtualNetworkCreate,
+		Read:        resourceArmDevTestVirtualNetworkRead,
+		Update:      resourceArmDevTestVirtualNetworkUpdate,
+		Delete:      resourceArmDevTestVirtualNetworkDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualnetworks.ParseVirtualNetworkID(id)
 			return err

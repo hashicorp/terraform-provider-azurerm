@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: firewallDataSourceRead,
+		Description: "Use this data source to access information about an existing Azure Firewall.",
+		Read:        firewallDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Azure Firewall.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FirewallName,
@@ -40,18 +42,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU name of the Azure Firewall.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU tier of the Azure Firewall.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"firewall_policy_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Firewall Policy applied to the Azure Firewall.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_configuration": {
@@ -64,16 +69,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Subnet where the Azure Firewall is deployed.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Public IP address of the Azure Firewall.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Private IP Address of the Azure Firewall.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -89,38 +97,44 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Subnet where the Azure Firewall is deployed.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Public IP address of the Azure Firewall.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Private IP Address of the Azure Firewall.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"threat_intel_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The operation mode for threat intelligence-based filtering.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dns_servers": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"dns_proxy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "Whether DNS proxy is enabled. It will forward DNS requests to the DNS servers when it is `true`.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"virtual_hub": {
@@ -129,23 +143,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"virtual_hub_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Virtual Hub where the Azure Firewall resides in.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_ip_count": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of public IPs assigned to the Azure Firewall.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"public_ip_addresses": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The list of public IP addresses associated with the Azure Firewall.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The private IP address associated with the Azure Firewall.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

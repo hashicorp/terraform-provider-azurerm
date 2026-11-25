@@ -46,6 +46,7 @@ var _ sdk.DataSource = DataSource{}
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the Dynatrace monitor.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -60,73 +61,86 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"monitoring_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Flag specifying if the resource monitoring is enabled or disabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"marketplace_subscription": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"plan": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "Billing plan information.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"billing_cycle": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Different billing cycles.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"plan": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Plan ID as published by Dynatrace.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"usage_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Different usage type.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"effective_date": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Date when plan was applied.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"user": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "User's information.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"country": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Country of the user.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"email": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Email of the user used by Dynatrace for contacting them if needed.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"first_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "First name of the user.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"last_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Last name of the user.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"phone_number": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Phone number of the user by Dynatrace for contacting them if needed.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -163,6 +177,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_dynatrace_monitor"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Dynatrace Monitor."
 }
 
 func (d DataSource) Read() sdk.ResourceFunc {

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorEndpointCreate,
-		Read:   resourceCdnFrontDoorEndpointRead,
-		Update: resourceCdnFrontDoorEndpointUpdate,
-		Delete: resourceCdnFrontDoorEndpointDelete,
+		Description: "Manages a Front Door (standard/premium) Endpoint.",
+		Create:      resourceCdnFrontDoorEndpointCreate,
+		Read:        resourceCdnFrontDoorEndpointRead,
+		Update:      resourceCdnFrontDoorEndpointUpdate,
+		Delete:      resourceCdnFrontDoorEndpointDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

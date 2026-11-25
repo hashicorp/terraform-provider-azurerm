@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_cost_anomaly_alert"
 }
 
+func (Resource) Description() string {
+	return "Manages a Cost Anomaly Alert."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return scheduledactionoperationgroup.ValidateScopedScheduledActionID
 }

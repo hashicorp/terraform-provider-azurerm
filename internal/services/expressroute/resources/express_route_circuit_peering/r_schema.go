@@ -14,47 +14,54 @@ import (
 func expressRouteCircuitPeeringSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"peering_type": {
+			Description:  "The type of the ExpressRoute Circuit Peering.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(expressroutecircuitpeerings.PossibleValuesForExpressRoutePeeringType(), false),
 		},
 
 		"express_route_circuit_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the ExpressRoute Circuit in which to create the Peering.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"primary_peer_address_prefix": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A `/30` subnet for the primary link.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			RequiredWith: []string{
 				"secondary_peer_address_prefix",
 			},
 		},
 
 		"secondary_peer_address_prefix": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A `/30` subnet for the secondary link.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			RequiredWith: []string{
 				"primary_peer_address_prefix",
 			},
 		},
 
 		"ipv4_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "A boolean value indicating whether the IPv4 peering is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"vlan_id": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "A valid VLAN ID to establish this peering on.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"shared_key": {
+			Description:  "The shared key.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -62,9 +69,10 @@ func expressRouteCircuitPeeringSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"peer_asn": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Either a 16-bit or a 32-bit ASN. Can either be public or private.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"microsoft_peering_config": {
@@ -175,21 +183,25 @@ func expressRouteCircuitPeeringSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"azure_asn": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The ASN used by Azure.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"primary_azure_port": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Primary Port used by Azure for this Peering.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"secondary_azure_port": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Secondary Port used by Azure for this Peering.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"route_filter_id": {
+			Description:  "The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: routefilters.ValidateRouteFilterID,
