@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_job_step"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Elastic Job Step."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return jobsteps.ValidateStepID
 }

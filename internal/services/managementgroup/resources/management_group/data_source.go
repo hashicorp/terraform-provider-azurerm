@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceManagementGroupRead,
+		Description: "Use this data source to access information about an existing Management Group.",
+		Read:        dataSourceManagementGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name or UUID of this Management Group.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -37,6 +39,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"display_name": {
+				Description:  "The display name of this Management Group.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -44,37 +47,43 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"tenant_scoped_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Management Group ID with the Tenant ID prefix.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"parent_management_group_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of any Parent Management Group.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subscription_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of Subscription IDs which are directly assigned to this Management Group.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"management_group_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of Management Group IDs which directly belong to this Management Group.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"all_subscription_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of Subscription IDs which are assigned to this Management Group or its children Management Groups.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"all_management_group_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of Management Group IDs which directly or indirectly belong to this Management Group.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 		},
 	}

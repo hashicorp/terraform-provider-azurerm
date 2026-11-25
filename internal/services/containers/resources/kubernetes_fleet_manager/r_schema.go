@@ -12,9 +12,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name of this Kubernetes Fleet Manager.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"hub_profile": {

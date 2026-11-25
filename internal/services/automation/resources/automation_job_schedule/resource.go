@@ -15,9 +15,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationJobScheduleCreate,
-		Read:   resourceAutomationJobScheduleRead,
-		Delete: resourceAutomationJobScheduleDelete,
+		Description: "Links an Automation Runbook and Schedule.",
+		Create:      resourceAutomationJobScheduleCreate,
+		Read:        resourceAutomationJobScheduleRead,
+		Delete:      resourceAutomationJobScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &schedule.ScheduleId{}, &runbook.RunbookId{})

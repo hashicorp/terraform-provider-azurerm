@@ -106,7 +106,7 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
-		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}, "Subnet"),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
 			Type:         pluginsdk.TypeString,

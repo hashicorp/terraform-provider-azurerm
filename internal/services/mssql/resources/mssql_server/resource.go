@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlServerCreate,
-		Read:   resourceMsSqlServerRead,
-		Update: resourceMsSqlServerUpdate,
-		Delete: resourceMsSqlServerDelete,
+		Description: "Manages a Microsoft SQL Azure Database Server.",
+		Create:      resourceMsSqlServerCreate,
+		Read:        resourceMsSqlServerRead,
+		Update:      resourceMsSqlServerUpdate,
+		Delete:      resourceMsSqlServerDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SqlServerId{}),
 		Identity: &schema.ResourceIdentity{

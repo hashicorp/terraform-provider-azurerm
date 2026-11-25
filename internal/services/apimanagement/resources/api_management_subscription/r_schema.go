@@ -18,6 +18,7 @@ import (
 func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subscription_id": {
+			Description:  "An Identifier which should used as the ID of this Subscription. If not specified a new Subscription ID will be generated.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -27,6 +28,7 @@ func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 
 		// 3.0 this seems to have been renamed to owner id?
 		"user_id": {
+			Description:  "The ID of the User which should be assigned to this Subscription.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -38,12 +40,14 @@ func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"display_name": {
+			Description:  "The display name of this Subscription.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"product_id": {
+			Description:   "The ID of the Product which should be assigned to this Subscription.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -52,6 +56,7 @@ func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"api_id": {
+			Description:   "The ID of the API which should be assigned to this Subscription.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -60,6 +65,7 @@ func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"state": {
+			Description:  "The state of this Subscription.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(subscription.SubscriptionStateSubmitted),
@@ -67,25 +73,28 @@ func apiManagementSubscriptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"primary_key": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The primary subscription key to use for the subscription.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because the API generates a subscription key when not specified
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_key": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The secondary subscription key to use for the subscription.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because the API generates a subscription key when not specified
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"allow_tracing": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether tracing can be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

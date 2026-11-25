@@ -25,6 +25,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_dns_zone"
 }
 
+func (Resource) Description() string {
+	return "Enables you to manage DNS zones within Azure DNS. These zones are hosted on Azure's name servers to which you can delegate the zone from the parent domain."
+}
+
 func (r Resource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 2,

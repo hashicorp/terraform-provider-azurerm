@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMsSqlServerRead,
+		Description: "Use this data source to access information about an existing Microsoft SQL Server.",
+		Read:        dataSourceMsSqlServerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,8 +32,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this Microsoft SQL Server.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -40,38 +42,44 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The version of the Microsoft SQL Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"administrator_login": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The administrator login name of the Microsoft SQL Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"express_vulnerability_assessment_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Express Vulnerability Assessment Configuration is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"fully_qualified_domain_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The fully qualified domain name of the Microsoft SQL Server.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"restorable_dropped_database_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of dropped restorable database IDs on the Microsoft SQL Server.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"transparent_data_encryption_key_vault_key_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Key Vault Key URI to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

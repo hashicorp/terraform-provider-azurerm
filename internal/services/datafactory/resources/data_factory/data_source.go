@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDataFactoryRead,
+		Description: "Use this data source to access information about an existing Azure Data Factory (Version 2).",
+		Read:        dataSourceDataFactoryRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,11 +32,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this Azure Data Factory.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/azure/data-factory/naming-rules`,
+					`Invalid name for Data Factory, see https://learn.microsoft.com/azure/data-factory/naming-rules`,
 				),
 			},
 
@@ -51,24 +53,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"account_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The GitHub account name.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"branch_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The branch of the repository to get code from.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"git_url": {
+							Description: "The GitHub repository URL.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"last_commit_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"repository_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the git repository.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"root_folder": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The root folder within the repository.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -80,28 +91,34 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"account_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The VSTS account name.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"branch_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The branch of the repository to get code from.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"project_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the VSTS project.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"repository_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the git repository.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"root_folder": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The root folder within the repository.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Tenant ID associated with the VSTS account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -166,6 +183,7 @@ func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfigu
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"git_url":         pointer.From(v.HostName),
+			"last_commit_id":  pointer.From(v.LastCommitId),
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
 		})

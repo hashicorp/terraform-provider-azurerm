@@ -13,7 +13,7 @@ import (
 
 func webPubsubNetworkAclSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
+		"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}, "Web Pub/Sub Service"),
 
 		"default_action": {
 			Type:         pluginsdk.TypeString,

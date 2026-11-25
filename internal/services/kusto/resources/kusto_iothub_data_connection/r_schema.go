@@ -15,6 +15,7 @@ import (
 func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Kusto IotHub Data Connection to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"cluster_name": {
+			Description:  "The name of the Kusto Cluster this data connection will be added to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the Kusto Database this data connection will be added to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,6 +43,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"iothub_id": {
+			Description:  "The resource ID of the IotHub this data connection will use for ingestion.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -47,6 +51,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"consumer_group": {
+			Description:  "The IotHub consumer group this data connection will use for ingestion.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -54,6 +59,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"shared_access_policy_name": {
+			Description:  "The IotHub Shared Access Policy this data connection will use for ingestion, which must have read permission.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -61,6 +67,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"table_name": {
+			Description:  "The target table name used for the message ingestion. Table must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,
@@ -68,6 +75,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mapping_rule_name": {
+			Description:  "The mapping rule used for the message ingestion. Mapping rule must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,
@@ -75,6 +83,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_format": {
+			Description:  "The data format of the IoTHub messages.",
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,
@@ -82,6 +91,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_routing_type": {
+			Description:  "Indication for database routing information from the data connection, by default only database routing information is allowed.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -90,9 +100,10 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"event_system_properties": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			ForceNew: true,
+			Description: "The System Properties that each IoT Hub message should contain.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -100,6 +111,7 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retrieval_start_date": {
+			Description:  "The date after which data should be retrieved from IoT Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the IoT Hub, based on its retention period.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

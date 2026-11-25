@@ -15,18 +15,20 @@ import (
 func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Key Vault Key.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: keyvault.ValidateNestedItemName,
 		},
 
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"key_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Key Type to use for this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			// turns out Azure's *really* sensitive about the casing of these
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 			ValidateFunc: validation.StringInSlice([]string{
@@ -38,6 +40,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_size": {
+			Description:   "The Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA` or `RSA-HSM`.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ForceNew:      true,
@@ -45,8 +48,9 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_opts": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "A list of JSON web key operations. These values are case-sensitive.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				// turns out Azure's *really* sensitive about the casing of these
@@ -63,10 +67,11 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"curve": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true,
+			Description: "The curve to use when creating an `EC` key. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. The API will.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true,
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				return old == "SECP256K1" && new == string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK)
 			},
@@ -86,12 +91,14 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"not_before_date": {
+			Description:  "Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
 		"expiration_date": {
+			Description:  "Expiration UTC datetime (Y-m-d'T'H:M:S'Z').",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsRFC3339Time,
@@ -105,6 +112,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"json": {
+						Description:      "The policy contents in JSON format.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ValidateFunc:     validation.StringIsJSON,
@@ -112,9 +120,10 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"immutable": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether this policy is immutable.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -127,6 +136,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expire_after": {
+						Description:  "Expire a Key Vault Key after given duration as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
@@ -142,6 +152,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 
 					// <= expiry_time - 7, >=7
 					"notify_before_expiry": {
+						Description:  "Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.ISO8601DurationBetween("P7D", "P36493D"),
@@ -158,6 +169,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"time_after_creation": {
+									Description:  "Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.ISO8601Duration,
@@ -167,6 +179,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 									},
 								},
 								"time_before_expiry": {
+									Description:  "Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.ISO8601Duration,
@@ -184,53 +197,63 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current version of the Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"versionless_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Base ID of the Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"n": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The RSA modulus of this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"e": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The RSA public exponent of this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"x": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The EC X component of this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"y": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The EC Y component of this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_key_pem": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The PEM encoded public key of this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_key_openssh": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The OpenSSH encoded public key of this Key Vault Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The (Versioned) ID for this Key Vault Key. This property points to a specific version of a Key Vault Key, as such using this won't auto-rotate values if used in other Azure Services.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_versionless_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Versionless ID of the Key Vault Key. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Key is updated.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

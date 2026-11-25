@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Account.",
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -19,6 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"application_id": {
+			Description:  "Customer owned application ID.",
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -31,8 +33,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_plan_id": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "Billing Plan ID.",
+			Computed:    true,
+			Type:        pluginsdk.TypeString,
 		},
 	}
 }

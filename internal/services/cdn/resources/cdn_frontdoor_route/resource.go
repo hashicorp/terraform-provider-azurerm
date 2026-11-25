@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorRouteCreate,
-		Read:   resourceCdnFrontDoorRouteRead,
-		Update: resourceCdnFrontDoorRouteUpdate,
-		Delete: resourceCdnFrontDoorRouteDelete,
+		Description: "Manages a Front Door (standard/premium) Route.",
+		Create:      resourceCdnFrontDoorRouteCreate,
+		Read:        resourceCdnFrontDoorRouteRead,
+		Update:      resourceCdnFrontDoorRouteUpdate,
+		Delete:      resourceCdnFrontDoorRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

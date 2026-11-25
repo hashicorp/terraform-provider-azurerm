@@ -149,7 +149,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 					},
 				},
 			},
@@ -167,7 +167,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 					},
 				},
 			},

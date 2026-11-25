@@ -166,8 +166,8 @@ github.com/govalues/decimal
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.82.0
-## explicit; go 1.26.6
+# github.com/hashicorp/go-azure-helpers v0.83.0
+## explicit; go 1.26.11
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
 github.com/hashicorp/go-azure-helpers/framework/convert
@@ -692,6 +692,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iot
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/defaultparametergroups
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/passwordauthentications
+github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/pools
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections
@@ -1456,8 +1461,8 @@ github.com/hashicorp/terraform-plugin-log/tfsdklog
 ## explicit; go 1.25.0
 github.com/hashicorp/terraform-plugin-mux/internal/logging
 github.com/hashicorp/terraform-plugin-mux/tf5muxserver
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
-## explicit; go 1.25.8
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.41.1
+## explicit; go 1.26.0
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging

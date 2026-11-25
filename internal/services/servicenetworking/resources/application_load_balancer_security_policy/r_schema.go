@@ -26,11 +26,11 @@ func (f Resource) Arguments() map[string]*schema.Schema {
 			),
 		},
 
-		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&securitypoliciesinterface.TrafficControllerId{}),
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&securitypoliciesinterface.TrafficControllerId{}, "Application Load Balancer"),
 
 		"location": commonschema.Location(),
 
-		"web_application_firewall_policy_id": commonschema.ResourceIDReferenceRequiredForceNew(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}),
+		"web_application_firewall_policy_id": commonschema.ResourceIDReferenceRequiredForceNew(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}, "Web Application Firewall Policy"),
 
 		"tags": commonschema.Tags(),
 	}

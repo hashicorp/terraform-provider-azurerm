@@ -20,7 +20,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}),
+		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}, "Spring Cloud Accelerator"),
 
 		"git_repository": {
 			Type:     pluginsdk.TypeList,

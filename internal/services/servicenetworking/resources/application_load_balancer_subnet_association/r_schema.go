@@ -20,9 +20,9 @@ func (t Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ApplicationLoadBalancerSubnetAssociationName(),
 		},
 
-		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}),
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}, "Application Gateway for Containers"),
 
-		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}, "Subnet"),
 
 		"tags": commonschema.Tags(),
 	}

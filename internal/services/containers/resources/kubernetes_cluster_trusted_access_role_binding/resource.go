@@ -23,3 +23,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_cluster_trusted_access_role_binding"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Kubernetes Cluster Trusted Access Role Binding."
+}

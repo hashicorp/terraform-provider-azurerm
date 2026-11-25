@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppActionCustomCreateUpdate,
-		Read:   resourceLogicAppActionCustomRead,
-		Update: resourceLogicAppActionCustomCreateUpdate,
-		Delete: resourceLogicAppActionCustomDelete,
+		Description: "Manages a Custom Action within a Logic App Workflow.",
+		Create:      resourceLogicAppActionCustomCreateUpdate,
+		Read:        resourceLogicAppActionCustomRead,
+		Update:      resourceLogicAppActionCustomCreateUpdate,
+		Delete:      resourceLogicAppActionCustomDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ActionID(id)

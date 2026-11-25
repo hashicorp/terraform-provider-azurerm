@@ -11,7 +11,7 @@ import (
 
 func hdinsightInteractiveQueryClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": helpers.SchemaHDInsightName(),
+		"name": helpers.SchemaHDInsightName("HDInsight Interactive Query Cluster"),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -34,14 +34,15 @@ func hdinsightInteractiveQueryClusterSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tier": helpers.SchemaHDInsightTier(),
+		"tier": helpers.SchemaHDInsightTier("HDInsight Interactive Query Cluster"),
 
 		"tls_min_version": helpers.SchemaHDInsightTls(),
 
 		"encryption_in_transit_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether encryption in transit is enabled for this Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"disk_encryption": helpers.SchemaHDInsightsDiskEncryptionProperties(),
@@ -53,9 +54,10 @@ func hdinsightInteractiveQueryClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"interactive_hive": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The version of Interactive Query which should be used for this HDInsight Interactive Query Cluster.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 					},
 				},
 			},
@@ -80,13 +82,15 @@ func hdinsightInteractiveQueryClusterSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"https_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The HTTPS Connectivity Endpoint for this HDInsight Interactive Query Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ssh_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SSH Connectivity Endpoint for this HDInsight Interactive Query Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"monitor": helpers.SchemaHDInsightsMonitor(),
