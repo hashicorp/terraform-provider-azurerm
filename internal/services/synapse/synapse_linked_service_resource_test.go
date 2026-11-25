@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -287,7 +287,6 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
