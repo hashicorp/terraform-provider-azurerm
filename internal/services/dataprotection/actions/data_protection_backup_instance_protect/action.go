@@ -44,9 +44,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"backup_instance_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ID of the backup instance on which to perform the action.",
 				MarkdownDescription: "The ID of the backup instance on which to perform the action.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: backupinstanceresources.ValidateBackupInstanceID,
@@ -55,9 +55,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"protect_action": schema.StringAttribute{
-				Required:            true,
 				Description:         "The protect state action to take on this backup instance.",
 				MarkdownDescription: "The protect state action to take on this backup instance.",
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						StopProtection,

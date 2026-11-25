@@ -28,33 +28,33 @@ type Registry struct {
 func ContainerAppRegistrySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MinItems: 1,
 		Optional: true,
+		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"server": {
+					Description:  "The FQDN for the Container Registry.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The FQDN for the Container Registry.",
 				},
 
 				"username": {
+					Description: "The username to use for this Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The username to use for this Container Registry.",
 				},
 
 				"password_secret_name": {
+					Description: "The name of the Secret Reference containing the password value for this user on the Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The name of the Secret Reference containing the password value for this user on the Container Registry.",
 				},
 
 				"identity": {
+					Description: "The ID of the Managed Identity to use when pulling from the Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The ID of the Managed Identity to use when pulling from the Container Registry.",
 				},
 			},
 		},
@@ -68,27 +68,27 @@ func ContainerAppRegistrySchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"server": {
+					Description: "The FQDN for the Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The FQDN for the Container Registry.",
 				},
 
 				"username": {
+					Description: "The username used for this Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The username used for this Container Registry.",
 				},
 
 				"password_secret_name": {
+					Description: "The name of the Secret Reference containing the password value for the user on the Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the Secret Reference containing the password value for the user on the Container Registry.",
 				},
 
 				"identity": {
+					Description: "Resource ID for the User Assigned Managed Identity to use when pulling from the Container Registry.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Resource ID for the User Assigned Managed Identity to use when pulling from the Container Registry.",
 				},
 			},
 		},
@@ -179,17 +179,17 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allow_insecure_connections": {
+					Description: "Whether this ingress should allow insecure connections.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Whether this ingress should allow insecure connections.",
 				},
 
 				"external_enabled": {
+					Description: "Whether connections to this Ingress from outside the Container App Environment are enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Whether connections to this Ingress from outside the Container App Environment are enabled.",
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
@@ -250,49 +250,49 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"fqdn": {
+					Description: "The FQDN of the ingress.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The FQDN of the ingress.",
 				},
 
 				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
 
 				"session_affinity_enabled": {
+					Description: "Whether session affinity is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Whether session affinity is enabled.",
 				},
 
 				"target_port": {
+					Description:  "The target port on the container for the Ingress traffic.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The target port on the container for the Ingress traffic.",
 				},
 
 				"exposed_port": {
+					Description:  "The exposed port on the container for the Ingress traffic.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The exposed port on the container for the Ingress traffic.",
 				},
 
 				"traffic_weight": ContainerAppIngressTrafficWeight(),
 
 				"transport": {
+					Description:  "The transport method for the Ingress.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(containerapps.IngressTransportMethodAuto),
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
-					Description:  "The transport method for the Ingress.",
 				},
 
 				"client_certificate_mode": {
+					Description:  "The client certificate mode for the Ingress.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressClientCertificateMode(), false),
-					Description:  "The client certificate mode for the Ingress.",
 				},
 			},
 		},
@@ -306,9 +306,9 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allow_insecure_connections": {
+					Description: "Whether this ingress allows insecure connections.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Whether this ingress allows insecure connections.",
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
@@ -366,49 +366,49 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"external_enabled": {
+					Description: "Whether this is an external Ingress.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Whether this is an external Ingress.",
 				},
 
 				"fqdn": {
+					Description: "The FQDN of the ingress.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The FQDN of the ingress.",
 				},
 
 				"ip_security_restriction": ContainerAppIngressIpSecurityRestrictionComputed(),
 
 				"session_affinity_enabled": {
+					Description: "Whether session affinity is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Whether session affinity is enabled.",
 				},
 
 				"target_port": {
+					Description: "The target port on the container for the Ingress traffic.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The target port on the container for the Ingress traffic.",
 				},
 
 				"exposed_port": {
+					Description: "The exposed port on the container for the Ingress traffic.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The exposed port on the container for the Ingress traffic.",
 				},
 
 				"traffic_weight": ContainerAppIngressTrafficWeightComputed(),
 
 				"transport": {
+					Description: "The transport method for the Ingress.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The transport method for the Ingress.",
 				},
 
 				"client_certificate_mode": {
+					Description: "The client certificate mode for the Ingress.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The client certificate mode for the Ingress.",
 				},
 			},
 		},
@@ -530,21 +530,21 @@ func ContainerAppIngressCustomDomainSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"certificate_binding_type": {
+					Description: "The Binding type.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Binding type.",
 				},
 
 				"certificate_id": {
+					Description: "The ID of the Container App Environment Certificate.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The ID of the Container App Environment Certificate.",
 				},
 
 				"name": {
+					Description: "The hostname of the Certificate.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The hostname of the Certificate.",
 				},
 			},
 		},
@@ -638,30 +638,30 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"action": {
+					Description:  "The IP-filter action. `Allow` or `Deny`.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAction(), false),
-					Description:  "The IP-filter action. `Allow` or `Deny`.",
 				},
 
 				"description": {
+					Description: "Describe the IP restriction rule that is being sent to the container-app.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "Describe the IP restriction rule that is being sent to the container-app.",
 				},
 
 				"ip_address_range": {
+					Description:  "The incoming IP address or range of IP addresses (in CIDR notation).",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPAddress),
-					Description:  "The incoming IP address or range of IP addresses (in CIDR notation).",
 				},
 
 				"name": {
+					Description:  "Name for the IP restriction rule.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "Name for the IP restriction rule.",
 				},
 			},
 		},
@@ -675,27 +675,27 @@ func ContainerAppIngressIpSecurityRestrictionComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"action": {
+					Description: "The IP-filter action.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The IP-filter action.",
 				},
 
 				"description": {
+					Description: "Description of the IP restriction rule that is being sent to the container-app.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Description of the IP restriction rule that is being sent to the container-app.",
 				},
 
 				"ip_address_range": {
+					Description: "CIDR notation that matches the incoming IP address.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "CIDR notation that matches the incoming IP address.",
 				},
 
 				"name": {
+					Description: "Name for the IP restriction rule.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Name for the IP restriction rule.",
 				},
 			},
 		},
@@ -709,31 +709,31 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"label": {
+					Description:  "The label to apply to the revision as a name prefix for routing traffic.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The label to apply to the revision as a name prefix for routing traffic.",
 				},
 
 				"revision_suffix": {
+					Description:  "The suffix string to which this `traffic_weight` applies.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The suffix string to which this `traffic_weight` applies.",
 				},
 
 				"latest_revision": {
+					Description: "This traffic Weight applies to the latest stable Container Revision. At most only one `traffic_weight` block can have the `latest_revision` set to `true`.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "This traffic Weight applies to the latest stable Container Revision. At most only one `traffic_weight` block can have the `latest_revision` set to `true`.",
 				},
 
 				"percentage": {
+					Description:  "The percentage of traffic which should be sent this revision.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 100),
-					Description:  "The percentage of traffic which should be sent this revision.",
 				},
 			},
 		},
@@ -747,27 +747,27 @@ func ContainerAppIngressTrafficWeightComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"label": {
+					Description: "The label to apply to the revision as a name prefix for routing traffic.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The label to apply to the revision as a name prefix for routing traffic.",
 				},
 
 				"revision_suffix": {
+					Description: "The suffix string to which this `traffic_weight` applies.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The suffix string to which this `traffic_weight` applies.",
 				},
 
 				"latest_revision": {
+					Description: "This traffic Weight relates to the latest stable Container Revision.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "This traffic Weight relates to the latest stable Container Revision.",
 				},
 
 				"percentage": {
+					Description: "The percentage of traffic which should be sent this revision.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The percentage of traffic which should be sent this revision.",
 				},
 			},
 		},
@@ -860,28 +860,28 @@ type Dapr struct {
 func ContainerDaprSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
+					Description: "The Dapr Application Identifier.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
-					Description: "The Dapr Application Identifier.",
 				},
 
 				"app_port": {
+					Description: "The port which the application is listening on. This is the same as the `ingress` port.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Description: "The port which the application is listening on. This is the same as the `ingress` port.",
 				},
 
 				"app_protocol": {
+					Description:  "The protocol for the app.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(containerapps.AppProtocolHTTP),
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAppProtocol(), false),
-					Description:  "The protocol for the app.",
 				},
 			},
 		},
@@ -895,21 +895,21 @@ func ContainerDaprSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
+					Description: "The Dapr Application Identifier.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Dapr Application Identifier.",
 				},
 
 				"app_port": {
+					Description: "The port which the application is listening on. This is the same as the `ingress` port.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The port which the application is listening on. This is the same as the `ingress` port.",
 				},
 
 				"app_protocol": {
+					Description: "The protocol for the app.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The protocol for the app.",
 				},
 			},
 		},
@@ -966,22 +966,22 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the Metadata configuration item.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the Metadata configuration item.",
 				},
 
 				"value": {
+					Description: "The value for this metadata configuration item.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The value for this metadata configuration item.",
 				},
 
 				"secret_name": {
+					Description: "The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.",
 				},
 			},
 		},
@@ -1007,8 +1007,8 @@ type ContainerTemplate struct {
 func ContainerTemplateSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"container": ContainerAppContainerSchema(),
@@ -1016,35 +1016,35 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"init_container": InitContainerAppContainerSchema(),
 
 				"min_replicas": {
+					Description:  "The minimum number of replicas for this container.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 300),
-					Description:  "The minimum number of replicas for this container.",
 				},
 
 				"max_replicas": {
+					Description:  "The maximum number of replicas for this container.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 300),
-					Description:  "The maximum number of replicas for this container.",
 				},
 
 				"cooldown_period_in_seconds": {
+					Description:  "The number of seconds to wait before scaling down the number of instances again.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      300,
 					ValidateFunc: validation.IntAtLeast(1),
-					Description:  "The number of seconds to wait before scaling down the number of instances again.",
 				},
 
 				"polling_interval_in_seconds": {
+					Description:  "The interval in seconds used for polling KEDA.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      30,
 					ValidateFunc: validation.IntAtLeast(1),
-					Description:  "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchema(),
@@ -1058,19 +1058,19 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"volume": ContainerVolumeSchema(),
 
 				"revision_suffix": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// Note: O+C because O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
-					Computed:    true,
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					// Note: O+C because O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
+					Computed: true,
 				},
 
 				"termination_grace_period_seconds": {
+					Description:  "The time in seconds after the container is sent the termination signal before the process is forcibly killed.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 600),
-					Description:  "The time in seconds after the container is sent the termination signal before the process is forcibly killed.",
 				},
 			},
 		},
@@ -1088,27 +1088,27 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 				"init_container": InitContainerAppContainerSchemaComputed(),
 
 				"min_replicas": {
+					Description: "The minimum number of replicas for this container.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The minimum number of replicas for this container.",
 				},
 
 				"max_replicas": {
+					Description: "The maximum number of replicas for this container.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The maximum number of replicas for this container.",
 				},
 
 				"cooldown_period_in_seconds": {
+					Description: "The number of seconds to wait before scaling down the number of instances again.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds to wait before scaling down the number of instances again.",
 				},
 
 				"polling_interval_in_seconds": {
+					Description: "The interval in seconds used for polling KEDA.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchemaComputed(),
@@ -1244,57 +1244,57 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.ContainerAppContainerName,
-					Description:  "The name of the container.",
 				},
 
 				"image": {
+					Description:  "The image to use to create the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The image to use to create the container.",
 				},
 
 				"cpu": {
+					Description:  "The amount of vCPU to allocate to the container.",
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
+					Description:  "The amount of memory to allocate to the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
+					Description: "The amount of ephemeral storage available to the Container App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of ephemeral storage available to the Container App.",
 				},
 
 				"env": ContainerEnvVarSchema(),
 
 				"args": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of extra arguments to pass to the container.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of extra arguments to pass to the container.",
 				},
 
 				"command": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
 				},
 
 				"liveness_probe": ContainerAppLivenessProbeSchema(),
@@ -1316,53 +1316,53 @@ func ContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the container.",
 				},
 
 				"image": {
+					Description: "The image to use to create the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The image to use to create the container.",
 				},
 
 				"cpu": {
+					Description: "The amount of vCPU allocated to the container.",
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU allocated to the container.",
 				},
 
 				"memory": {
+					Description: "The amount of memory allocated to the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory allocated to the container.",
 				},
 
 				"ephemeral_storage": {
+					Description: "The amount of ephemeral storage available to the Container App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of ephemeral storage available to the Container App.",
 				},
 
 				"env": ContainerEnvVarSchemaComputed(),
 
 				"args": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of extra arguments passed to the container.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of extra arguments passed to the container.",
 				},
 
 				"command": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A command passed to the container to override the default. This is provided as a list of command line elements without spaces.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A command passed to the container to override the default. This is provided as a list of command line elements without spaces.",
 				},
 
 				"liveness_probe": ContainerAppLivenessProbeSchemaComputed(),
@@ -1398,57 +1398,57 @@ func InitContainerAppContainerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.ContainerAppContainerName,
-					Description:  "The name of the container.",
 				},
 
 				"image": {
+					Description:  "The image to use to create the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The image to use to create the container.",
 				},
 
 				"cpu": {
+					Description:  "The amount of vCPU to allocate to the container.",
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
+					Description:  "The amount of memory to allocate to the container.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
+					Description: "The amount of ephemeral storage available to the Container App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of ephemeral storage available to the Container App.",
 				},
 
 				"env": ContainerEnvVarSchema(),
 
 				"args": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of extra arguments to pass to the container.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of extra arguments to pass to the container.",
 				},
 
 				"command": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
 				},
 
 				"volume_mounts": ContainerVolumeMountSchema(),
@@ -1464,53 +1464,53 @@ func InitContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the container.",
 				},
 
 				"image": {
+					Description: "The image to use to create the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The image to use to create the container.",
 				},
 
 				"cpu": {
+					Description: "The amount of vCPU allocated to the container.",
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU allocated to the container.",
 				},
 
 				"memory": {
+					Description: "The amount of memory allocated to the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory allocated to the container.",
 				},
 
 				"ephemeral_storage": {
+					Description: "The amount of ephemeral storage available to the Container App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of ephemeral storage available to the Container App.",
 				},
 
 				"env": ContainerEnvVarSchemaComputed(),
 
 				"args": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of extra arguments passed to the container.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of extra arguments passed to the container.",
 				},
 
 				"command": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A command passed to the container to override the default. This is provided as a list of command line elements without spaces.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A command passed to the container to override the default. This is provided as a list of command line elements without spaces.",
 				},
 
 				"volume_mounts": ContainerVolumeMountSchemaComputed(),
@@ -1661,35 +1661,35 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the volume.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the volume.",
 				},
 
 				"storage_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "EmptyDir",
+					Description: "The type of storage to use for the volume.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "EmptyDir",
 					ValidateFunc: validation.StringInSlice(
 						containerapps.PossibleValuesForStorageType(),
 						false,
 					),
-					Description: "The type of storage to use for the volume.",
 				},
 
 				"storage_name": {
+					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validate.ManagedEnvironmentStorageName,
-					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`.",
 				},
 
 				"mount_options": {
+					Description:  "Mount options used while mounting the AzureFile.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "Mount options used while mounting the AzureFile.",
 				},
 			},
 		},
@@ -1793,24 +1793,24 @@ func ContainerVolumeMountSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the volume to mount. This must match the name of a volume defined in the `volume` block.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the volume to mount. This must match the name of a volume defined in the `volume` block.",
 				},
 
 				"path": {
+					Description:  "The path within the container at which the volume should be mounted. Must not contain `:`.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The path within the container at which the volume should be mounted. Must not contain `:`.",
 				},
 
 				"sub_path": {
+					Description:  "The sub path of the volume to be mounted in the container.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The sub path of the volume to be mounted in the container.",
 				},
 			},
 		},
@@ -1824,21 +1824,21 @@ func ContainerVolumeMountSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of the Volume to be mounted in the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the Volume to be mounted in the container.",
 				},
 
 				"path": {
+					Description: "The path in the container at which to mount this volume.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The path in the container at which to mount this volume.",
 				},
 
 				"sub_path": {
+					Description: "The sub path of the volume to be mounted in the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The sub path of the volume to be mounted in the container.",
 				},
 			},
 		},
@@ -1888,27 +1888,27 @@ type ContainerEnvVar struct {
 func ContainerEnvVarSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MinItems: 1,
 		Optional: true,
+		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the environment variable.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the environment variable.",
 				},
 
 				"value": {
+					Description: "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used.",
 				},
 
 				"secret_name": {
+					Description: "Name of the Container App secret from which to pull the environment variable value.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "Name of the Container App secret from which to pull the environment variable value.",
 				},
 			},
 		},
@@ -1922,21 +1922,21 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of the environment variable for the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the environment variable for the container.",
 				},
 
 				"value": {
+					Description: "The value for this environment variable.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The value for this environment variable.",
 				},
 
 				"secret_name": {
+					Description: "The name of the secret that contains the value for this environment variable.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of the secret that contains the value for this environment variable.",
 				},
 			},
 		},
@@ -2026,35 +2026,35 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "Type of probe.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"TCP",
 						string(containerapps.SchemeHTTP),
 						string(containerapps.SchemeHTTPS),
 					}, true),
-					Description: "Type of probe.",
 				},
 
 				"port": {
+					Description:  "The port number on which to connect.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The port number on which to connect.",
 				},
 
 				"host": {
+					Description: "The probe hostname. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.", // azignore:AZS014 - not a fixed value
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The probe hostname. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.", // azignore:AZS014 - not a fixed value
 				},
 
 				"path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
-					Computed:    true,
 					Description: "The URI to use for HTTP type probes. Not valid for `TCP` type probes.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Computed: true,
 				},
 
 				"header": {
@@ -2063,59 +2063,59 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description:  "The HTTP Header Name.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The HTTP Header Name.",
 							},
 
 							"value": {
+								Description: "The HTTP Header value.",
 								Type:        pluginsdk.TypeString,
 								Required:    true,
-								Description: "The HTTP Header value.",
 							},
 						},
 					},
 				},
 
 				"initial_delay": {
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 60),
-					Description:  "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
+					Description:  "How often, in seconds, the probe should run.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
+					Description:  "Time in seconds after which the probe times out.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      1,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
+					Description:  "The number of consecutive failures required to consider this probe as failed.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
 					ValidateFunc: validation.IntBetween(1, 48),
-					Description:  "The number of consecutive failures required to consider this probe as failed.",
 				},
 
 				"success_count_threshold": {
+					Description:  "The number of consecutive successful responses required to consider this probe as successful.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
 					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive successful responses required to consider this probe as successful.",
 				},
 			},
 		},
@@ -2129,27 +2129,27 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
+					Description: "Type of probe.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Type of probe.",
 				},
 
 				"port": {
+					Description: "The port number on which to connect.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The port number on which to connect.",
 				},
 
 				"host": {
+					Description: "The probe hostname.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The probe hostname.",
 				},
 
 				"path": {
+					Description: "The URI to use for HTTP type probes.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The URI to use for HTTP type probes.",
 				},
 
 				"header": {
@@ -2158,48 +2158,48 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description: "The HTTP Header Name.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The HTTP Header Name.",
 							},
 
 							"value": {
+								Description: "The HTTP Header value.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The HTTP Header value.",
 							},
 						},
 					},
 				},
 
 				"initial_delay": {
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
+					Description: "How often, in seconds, the probe should run.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
+					Description: "Time in seconds after which the probe times out.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
+					Description: "The number of consecutive failures required to consider this probe as failed.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed.",
 				},
 
 				"success_count_threshold": {
+					Description: "The number of consecutive successful responses required to consider this probe as successful.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive successful responses required to consider this probe as successful.",
 				},
 			},
 		},
@@ -2307,35 +2307,35 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "Type of probe.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"TCP",
 						string(containerapps.SchemeHTTP),
 						string(containerapps.SchemeHTTPS),
 					}, false),
-					Description: "Type of probe.",
 				},
 
 				"port": {
+					Description:  "The port number on which to connect.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The port number on which to connect.",
 				},
 
 				"host": {
+					Description: "The probe hostname. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.", // azignore:AZS014 - not a fixed value
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The probe hostname. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.", // azignore:AZS014 - not a fixed value
 				},
 
 				"path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
-					Computed:    true,
 					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Computed: true,
 				},
 
 				"header": {
@@ -2344,51 +2344,51 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description:  "The HTTP Header Name.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The HTTP Header Name.",
 							},
 
 							"value": {
+								Description: "The HTTP Header value.",
 								Type:        pluginsdk.TypeString,
 								Required:    true,
-								Description: "The HTTP Header value.",
 							},
 						},
 					},
 				},
 
 				"initial_delay": {
+					Description:  "The time in seconds to wait after the container has started before the probe is started.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      1,
 					ValidateFunc: validation.IntBetween(0, 60),
-					Description:  "The time in seconds to wait after the container has started before the probe is started.",
 				},
 
 				"interval_seconds": {
+					Description:  "How often, in seconds, the probe should run.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
+					Description:  "Time in seconds after which the probe times out.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      1,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
+					Description:  "The number of consecutive failures required to consider this probe as failed.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
 					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed.",
 				},
 			},
 		},
@@ -2402,27 +2402,27 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
+					Description: "Type of probe.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "Type of probe.",
 				},
 
 				"port": {
+					Description: "The port number on which to connect.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The port number on which to connect.",
 				},
 
 				"host": {
+					Description: "The probe hostname.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The probe hostname.",
 				},
 
 				"path": {
+					Description: "The URI used with the `host` for HTTP type probes.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The URI used with the `host` for HTTP type probes.",
 				},
 
 				"header": {
@@ -2431,42 +2431,42 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description: "The HTTP Header Name.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The HTTP Header Name.",
 							},
 
 							"value": {
+								Description: "The HTTP Header value.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The HTTP Header value.",
 							},
 						},
 					},
 				},
 
 				"initial_delay": {
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
+					Description: "How often, in seconds, the probe should run.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
+					Description: "Time in seconds after which the probe times out.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
+					Description: "The number of consecutive failures required to consider this probe as failed.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed.",
 				},
 			},
 		},
@@ -2571,35 +2571,35 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "Type of probe.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"TCP",
 						string(containerapps.SchemeHTTP),
 						string(containerapps.SchemeHTTPS),
 					}, false),
-					Description: "Type of probe.",
 				},
 
 				"port": {
+					Description:  "The port number on which to connect.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The port number on which to connect.",
 				},
 
 				"host": {
+					Description: "The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.", // azignore:AZS014 - not a fixed value
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.", // azignore:AZS014 - not a fixed value
 				},
 
 				"path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
-					Computed:    true,
 					Description: "The URI to use with the `host` for HTTP type probes. Not valid for `TCP` type probes.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Computed: true,
 				},
 
 				"header": {
@@ -2608,51 +2608,51 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description:  "The HTTP Header Name.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The HTTP Header Name.",
 							},
 
 							"value": {
+								Description: "The HTTP Header value.",
 								Type:        pluginsdk.TypeString,
 								Required:    true,
-								Description: "The HTTP Header value.",
 							},
 						},
 					},
 				},
 
 				"initial_delay": {
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 60),
-					Description:  "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
+					Description:  "How often, in seconds, the probe should run.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
+					Description:  "Time in seconds after which the probe times out.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      1,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
+					Description:  "The number of consecutive failures required to consider this probe as failed.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
 					ValidateFunc: validation.IntBetween(1, 240),
-					Description:  "The number of consecutive failures required to consider this probe as failed.",
 				},
 			},
 		},
@@ -2695,42 +2695,42 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description: "The HTTP Header Name.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The HTTP Header Name.",
 							},
 
 							"value": {
+								Description: "The HTTP Header value.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The HTTP Header value.",
 							},
 						},
 					},
 				},
 
 				"initial_delay": {
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before the probe is initiated.",
 				},
 
 				"interval_seconds": {
+					Description: "How often, in seconds, the probe should run.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "How often, in seconds, the probe should run.",
 				},
 
 				"timeout": {
+					Description: "Time in seconds after which the probe times out.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "Time in seconds after which the probe times out.",
 				},
 
 				"failure_count_threshold": {
+					Description: "The number of consecutive failures required to consider this probe as failed.",
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed.",
 				},
 			},
 		},
@@ -2854,34 +2854,34 @@ func SecretsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The identity to use for accessing Key Vault reference.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.Any(
 						commonids.ValidateUserAssignedIdentityID,
 						validation.StringInSlice([]string{"System"}, false),
 					),
-					Description: "The identity to use for accessing Key Vault reference.",
 				},
 
 				"key_vault_secret_id": {
+					Description:  "The Key Vault Secret ID. This can be a versioned or version-less ID.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
-					Description:  "The Key Vault Secret ID. This can be a versioned or version-less ID.",
 				},
 
 				"name": {
+					Description:  "The Secret name.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.SecretName,
-					Description:  "The Secret name.",
 				},
 
 				"value": {
+					Description: "The value for this secret.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Sensitive:   true,
-					Description: "The value for this secret.",
 				},
 			},
 		},
@@ -2896,28 +2896,28 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
+					Description: "The identity used for accessing the Key Vault.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The identity used for accessing the Key Vault.",
 				},
 
 				"key_vault_secret_id": {
+					Description: "The ID of a Key Vault Secret.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The ID of a Key Vault Secret.",
 				},
 
 				"name": {
+					Description: "The secret name.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The secret name.",
 				},
 
 				"value": {
+					Description: "The value for this secret.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Sensitive:   true,
-					Description: "The value for this secret.",
 				},
 			},
 		},
@@ -3233,13 +3233,13 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 					},
 				},
 				"identity_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The ID of the identity used to authenticate with the scale rule backend. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.Any(
 						commonids.ValidateUserAssignedIdentityID,
 						validation.StringInSlice([]string{"System"}, false),
 					),
-					Description: "The ID of the identity used to authenticate with the scale rule backend. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.",
 				},
 			},
 		},
@@ -3288,9 +3288,9 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 					},
 				},
 				"identity_id": {
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "ID of the System or User Managed Identity used to execute scale rule.",
 				},
 			},
 		},

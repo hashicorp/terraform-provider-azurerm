@@ -12,32 +12,32 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"container_app_environment_id": {
+			Description:  "The ID of the Container Apps Managed Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
-			Description:  "The ID of the Container Apps Managed Environment.",
 		},
 
 		"certificate_blob_base64": {
+			Description:  "The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsBase64,
-			Description:  "The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.",
 		},
 
 		"certificate_password": {
+			Description: "The password for the Certificate bundle.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			Sensitive:   true,
-			Description: "The password for the Certificate bundle.",
 		},
 
 		"dns_suffix": {
+			Description:  "Custom DNS Suffix for the Container App Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "Custom DNS Suffix for the Container App Environment.",
 		},
 	}
 }

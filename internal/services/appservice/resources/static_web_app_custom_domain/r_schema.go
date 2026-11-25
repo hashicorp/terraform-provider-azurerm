@@ -42,8 +42,8 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"validation_token": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }

@@ -32,8 +32,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:   "The ID of the Virtual Network within which the Backend Address Pool should exist.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"backend_address_ip_configuration_id"},
 			ValidateFunc:  commonids.ValidateVirtualNetworkID,
+			ConflictsWith: []string{"backend_address_ip_configuration_id"},
 		},
 
 		"ip_address": {
@@ -44,11 +44,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_address_ip_configuration_id": {
+			Description:   "The IP config ID of the regional load balancer that's added to the global load balancer's backend address pool.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"virtual_network_id"},
 			ValidateFunc:  loadbalancers.ValidateFrontendIPConfigurationID,
-			Description:   "The IP config ID of the regional load balancer that's added to the global load balancer's backend address pool.",
+			ConflictsWith: []string{"virtual_network_id"},
 		},
 	}
 }

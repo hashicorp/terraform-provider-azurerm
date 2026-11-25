@@ -23,8 +23,8 @@ func apiManagementPolicyFragmentSchema() map[string]*pluginsdk.Schema {
 			Description:  "The format of the Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
 			Default:      policyfragment.PolicyFragmentContentFormatXml,
+			ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
 		},
 
 		"value": {

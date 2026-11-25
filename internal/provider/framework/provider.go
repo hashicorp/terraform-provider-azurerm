@@ -56,156 +56,156 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"subscription_id": schema.StringAttribute{
+				Description: "The Subscription ID which should be used.",
 				// Note: There is no equivalent of `DefaultFunc` in the provider schema package. This property is Required, but can be
 				// set via env var instead of provider config, so needs to be toggled in schema based on the presence of that env var.
-				Optional:    true,
-				Description: "The Subscription ID which should be used.",
+				Optional: true,
 			},
 
 			"client_id": schema.StringAttribute{
-				Optional:    true,
 				Description: "The Client ID which should be used.",
+				Optional:    true,
 			},
 
 			"client_id_file_path": schema.StringAttribute{
-				Optional:    true,
 				Description: "The path to a file containing the Client ID which should be used.",
+				Optional:    true,
 			},
 
 			"tenant_id": schema.StringAttribute{
-				Optional:    true,
 				Description: "The Tenant ID which should be used.",
+				Optional:    true,
 			},
 
 			"auxiliary_tenant_ids": schema.ListAttribute{
-				Optional:    true,
 				ElementType: types.StringType,
+				Optional:    true,
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(3),
 				},
 			},
 
 			"environment": schema.StringAttribute{
-				Optional:    true,
 				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.", // azignore:AZS014 - the provider cannot set a Default in its schema
+				Optional:    true,
 			},
 
 			"metadata_host": schema.StringAttribute{
-				Optional:    true,
 				Description: "The Hostname which should be used for the Azure Metadata Service.",
+				Optional:    true,
 			},
 
 			// Client Certificate specific fields
 			"client_certificate": schema.StringAttribute{
-				Optional:    true,
 				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate.",
+				Optional:    true,
 			},
 
 			"client_certificate_path": schema.StringAttribute{
-				Optional:    true,
 				Description: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
+				Optional:    true,
 			},
 
 			"client_certificate_password": schema.StringAttribute{
-				Optional:    true,
 				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
+				Optional:    true,
 			},
 
 			// Client Secret specific fields
 			"client_secret": schema.StringAttribute{
-				Optional:    true,
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
+				Optional:    true,
 			},
 
 			"client_secret_file_path": schema.StringAttribute{
-				Optional:    true,
 				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
+				Optional:    true,
 			},
 
 			"ado_pipeline_service_connection_id": schema.StringAttribute{
-				Optional:    true,
 				Description: "The Azure DevOps Pipeline Service Connection ID.",
+				Optional:    true,
 			},
 
 			// OIDC specific fields
 			"oidc_request_token": schema.StringAttribute{
-				Optional:    true,
 				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
+				Optional:    true,
 			},
 
 			"oidc_request_url": schema.StringAttribute{
-				Optional:    true,
 				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
+				Optional:    true,
 			},
 
 			"oidc_token": schema.StringAttribute{
-				Optional:    true,
 				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
+				Optional:    true,
 			},
 
 			"oidc_token_file_path": schema.StringAttribute{
-				Optional:    true,
 				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
+				Optional:    true,
 			},
 
 			"use_oidc": schema.BoolAttribute{
-				Optional:    true,
 				Description: "Allow OpenID Connect to be used for authentication.",
+				Optional:    true,
 			},
 
 			// Managed Service Identity specific fields
 			"use_msi": schema.BoolAttribute{
-				Optional:    true,
 				Description: "Allow Managed Service Identity to be used for Authentication.",
+				Optional:    true,
 			},
 
 			"msi_endpoint": schema.StringAttribute{
-				Optional:    true,
 				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
+				Optional:    true,
 			},
 
 			"msi_api_version": schema.StringAttribute{
-				Optional:    true,
 				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
+				Optional:    true,
 			},
 
 			// Azure CLI specific fields
 			"use_cli": schema.BoolAttribute{
-				Optional:    true,
 				Description: "Allow Azure CLI to be used for Authentication.",
+				Optional:    true,
 			},
 
 			// Azure AKS Workload Identity fields
 			"use_aks_workload_identity": schema.BoolAttribute{
-				Optional:    true,
 				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
+				Optional:    true,
 			},
 
 			// Managed Tracking GUID for User-agent
 			"partner_id": schema.StringAttribute{
-				Optional:    true,
 				Description: "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
+				Optional:    true,
 			},
 
 			"disable_correlation_request_id": schema.BoolAttribute{
-				Optional:    true,
 				Description: "This will disable the x-ms-correlation-request-id header.",
+				Optional:    true,
 			},
 
 			"disable_terraform_partner_id": schema.BoolAttribute{
-				Optional:    true,
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
+				Optional:    true,
 			},
 
 			// Advanced feature flags
 			"storage_use_azuread": schema.BoolAttribute{
-				Optional:    true,
 				Description: "Whether the AzureRM Provider should use Azure AD Authentication when accessing the Storage Data Plane APIs.",
+				Optional:    true,
 			},
 
 			"resource_provider_registrations": schema.StringAttribute{
-				Optional:    true,
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
+				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						resourceproviders.ProviderRegistrationsNone,
@@ -218,9 +218,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			"resource_providers_to_register": schema.ListAttribute{
+				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				ElementType: types.StringType,
 				Optional:    true,
-				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				Validators: []validator.List{
 					typehelpers.WrappedListValidator{
 						Func:         resourceproviders.EnhancedValidate,
@@ -233,18 +233,15 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 		Blocks: map[string]schema.Block{
 			"features": schema.ListNestedBlock{
-				Validators: []validator.List{
-					listvalidator.SizeBetween(1, 1),
-				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
-							Optional:    true,
 							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion.",
+							Optional:    true,
 						},
 						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
-							Optional:    true,
 							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present.",
+							Optional:    true,
 						},
 					},
 					Blocks: map[string]schema.Block{
@@ -296,8 +293,8 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"force_delete": schema.BoolAttribute{
-										Optional:    true,
 										Description: "When enabled, the managed Resource Group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+										Optional:    true,
 									},
 								},
 							},
@@ -306,35 +303,35 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"auto_delete_subscription_default_rule": schema.BoolAttribute{
-										Optional:    true,
 										Description: "When enabled, the $Default rule is automatically deleted after creating a Service Bus subscription, preventing unfiltered message delivery.",
+										Optional:    true,
 									},
 								},
 							},
 						},
 						"enhanced_validation": schema.ListNestedBlock{
-							Validators: []validator.List{
-								listvalidator.SizeAtMost(1),
-							},
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"locations": schema.BoolAttribute{
-										Optional:    true,
 										Description: "Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+										Optional:    true,
 									},
 									"resource_providers": schema.BoolAttribute{
-										Optional:    true,
 										Description: "Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
+										Optional:    true,
 									},
 									"preflight_enabled": schema.BoolAttribute{
-										Optional:    true,
 										Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+										Optional:    true,
 									},
 									"preflight_location_fallback": schema.StringAttribute{
-										Optional:    true,
 										Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
+										Optional:    true,
 									},
 								},
+							},
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
 							},
 						},
 						"key_vault": schema.ListNestedBlock{
@@ -428,8 +425,8 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
-										Optional:    true,
 										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed.",
+										Optional:    true,
 									},
 									"prevent_volume_destruction": schema.BoolAttribute{
 										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss.",
@@ -541,6 +538,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							},
 						},
 					},
+				},
+				Validators: []validator.List{
+					listvalidator.SizeBetween(1, 1),
 				},
 			},
 		},

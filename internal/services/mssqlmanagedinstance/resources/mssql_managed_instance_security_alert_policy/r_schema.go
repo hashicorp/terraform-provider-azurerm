@@ -51,10 +51,10 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 			Description: "An array of email addresses to which the alert is sent.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"retention_days": {

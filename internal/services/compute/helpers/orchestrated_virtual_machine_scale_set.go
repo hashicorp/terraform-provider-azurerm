@@ -66,8 +66,8 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					Required:         true,
 					ForceNew:         true,
 					Sensitive:        true,
-					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 					ValidateFunc:     ValidatePasswordComplexityWindows,
+					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 				},
 
 				"computer_name_prefix": ComputerPrefixWindowsSchema(),
@@ -91,8 +91,8 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     true,
 					ForceNew:    true,
+					Default:     true,
 				},
 
 				"patch_assessment_mode": {
@@ -147,8 +147,8 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 					Optional:         true,
 					ForceNew:         true,
 					Sensitive:        true,
-					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 					ValidateFunc:     ValidatePasswordComplexityLinux,
+					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 				},
 
 				"admin_ssh_key":        SSHKeysSchema(false),
@@ -165,8 +165,8 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 					Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     true,
 					ForceNew:    true,
+					Default:     true,
 				},
 
 				"patch_assessment_mode": {
@@ -380,28 +380,28 @@ func OrchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Description: "A list of Backend Address Pools IDs from an Application Gateway which this Virtual Machine Scale Set should be connected to.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
-					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					Set:         pluginsdk.HashString,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 
 				"application_security_group_ids": {
 					Description: "A list of Application Security Group IDs which this Virtual Machine Scale Set should be connected to.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
+					MaxItems:    20,
+					Set:         pluginsdk.HashString,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 					},
-					Set:      pluginsdk.HashString,
-					MaxItems: 20,
 				},
 
 				"load_balancer_backend_address_pool_ids": {
 					Description: "A list of Backend Address Pools IDs from a Load Balancer which this Virtual Machine Scale Set should be connected to.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
-					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					Set:         pluginsdk.HashString,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 
 				"primary": {
@@ -555,11 +555,11 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Description: "The create option which should be used for this Data Disk. (FromImage should only be used if the source image includes data disks).",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
+					Default:     string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 						string(virtualmachinescalesets.DiskCreateOptionTypesFromImage),
 					}, false),
-					Default: string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 				},
 
 				"disk_encryption_set_id": {
@@ -605,19 +605,19 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_iops_read_write": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntAtLeast(1),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
 					// Note: O+C because Azure assigns IOPS based on disk size when not specified
-					Computed: true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"disk_mbps_read_write": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntAtLeast(1),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
 					// Note: O+C because Azure assigns throughput based on disk size when not specified
-					Computed: true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 			},
 		},
@@ -635,8 +635,8 @@ func OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk
 					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     false,
 					ForceNew:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -747,8 +747,8 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 					Description:  "Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in `ISO 8601` format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 				},
 			},
 		},
@@ -766,15 +766,15 @@ func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Sche
 					Description:  "The base number of VMs of `Regular` priority that will be created before any VMs of priority `Spot` are created.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 1000),
 					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 1000),
 				},
 				"regular_percentage_above_base": {
 					Description:  "The desired percentage of VM instances that are of `Regular` priority after the base count has been reached.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
 					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 100),
 				},
 			},
 		},

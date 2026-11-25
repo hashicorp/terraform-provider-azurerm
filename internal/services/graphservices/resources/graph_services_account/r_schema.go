@@ -13,17 +13,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of this Account.",
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"application_id": {
 			Description:  "Customer owned application ID.",
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 		"tags": commonschema.Tags(),
@@ -34,8 +34,8 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_plan_id": {
 			Description: "Billing Plan ID.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

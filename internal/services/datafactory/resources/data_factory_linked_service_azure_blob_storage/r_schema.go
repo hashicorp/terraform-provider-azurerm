@@ -44,13 +44,13 @@ func dataFactoryLinkedServiceAzureBlobStorageSchema() map[string]*pluginsdk.Sche
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
 
 				maskedNew := accountKeyRegex.ReplaceAllString(new, "")
 				return (new == d.Get(k).(string)) && (maskedNew == old)
 			},
+			ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 		},
 
 		"storage_kind": {

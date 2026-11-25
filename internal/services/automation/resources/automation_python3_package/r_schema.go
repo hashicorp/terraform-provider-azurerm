@@ -32,24 +32,24 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"content_uri": {
 			Description:  "The URL of the python package.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"content_version": {
 			Description:  "The version of the python3 package.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"hash_algorithm": {
 			Description:  "The hash algorithm used to hash the content of the python3 package.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"hash_value"},
 		},
@@ -57,8 +57,8 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"hash_value": {
 			Description:  "The hash value of the content.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"hash_algorithm"},
 		},

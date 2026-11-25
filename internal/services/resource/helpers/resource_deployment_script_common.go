@@ -99,8 +99,8 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(deploymentscripts.PossibleValuesForCleanupOptions(), false),
 			Default:      string(deploymentscripts.CleanupOptionsAlways),
+			ValidateFunc: validation.StringInSlice(deploymentscripts.PossibleValuesForCleanupOptions(), false),
 		},
 
 		"container": {
@@ -123,6 +123,7 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			ForceNew: true,
+			Set:      HashEnvironmentVariables,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -134,8 +135,8 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 					"secure_value": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"value": {
@@ -145,7 +146,6 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 					},
 				},
 			},
-			Set: HashEnvironmentVariables,
 		},
 
 		"force_update_tag": {
@@ -183,8 +183,8 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 					"key": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"name": {
@@ -209,8 +209,8 @@ func GetDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.ISO8601DurationBetween("PT1S", "P1D"),
 			Default:      "P1D",
+			ValidateFunc: validation.ISO8601DurationBetween("PT1S", "P1D"),
 		},
 
 		"tags": commonschema.Tags(),

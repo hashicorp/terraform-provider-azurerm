@@ -70,8 +70,8 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"network_rulesets": {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
-			MaxItems:   1,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
+			MaxItems:   1,
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

@@ -1167,13 +1167,13 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
+			Set:         pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Set: pluginsdk.HashString,
-			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
 			},
 		},
 
@@ -1315,9 +1315,9 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: required,
 		Optional: !required,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: result,
 		},
@@ -1350,13 +1350,13 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
+			Set:         pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Set: pluginsdk.HashString,
-			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
 			},
 		},
 
@@ -1498,9 +1498,9 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: required,
 		Optional: !required,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: result,
 		},

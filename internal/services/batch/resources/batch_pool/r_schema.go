@@ -52,8 +52,8 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			Description:  "The maximum number of tasks that can run concurrently on a single compute node in the pool.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      1,
 			ForceNew:     true,
+			Default:      1,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 		"fixed_scale": {
@@ -134,26 +134,26 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 					},
 					"container_image_names": {
-						Description: "A list of container image names to use, as would be specified by `docker pull`.",
-						Type:        pluginsdk.TypeSet,
-						Optional:    true,
-						ForceNew:    true,
+						Description:  "A list of container image names to use, as would be specified by `docker pull`.",
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						ForceNew:     true,
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 					},
 					"container_registries": {
-						Description: "Additional container registries from which container images can be pulled by the pool's VMs.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
-						ForceNew:    true,
-						ConfigMode:  pluginsdk.SchemaConfigModeAttr,
+						Description:  "Additional container registries from which container images can be pulled by the pool's VMs.",
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						ForceNew:     true,
+						ConfigMode:   pluginsdk.SchemaConfigModeAttr,
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						Elem: &pluginsdk.Resource{
 							Schema: containerRegistry(),
 						},
-						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 					},
 				},
 			},
@@ -197,8 +197,8 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     validation.StringIsNotEmpty,
+						DiffSuppressFunc: suppress.CaseDifference,
 						AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 					},
 
@@ -423,15 +423,15 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						Optional:         true,
 						ForceNew:         true,
 						Default:          string(pool.DynamicVNetAssignmentScopeNone),
-						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     validation.StringInSlice(pool.PossibleValuesForDynamicVNetAssignmentScope(), false),
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 					"accelerated_networking_enabled": {
 						Description: "Whether to enable accelerated networking.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     false,
 						ForceNew:    true,
+						Default:     false,
 					},
 					"subnet_id": {
 						Description:  "The ARM resource identifier of the Virtual Network subnet which the compute nodes of the pool will join.",
@@ -445,10 +445,10 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						ForceNew:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 					"public_address_provisioning_type": {
 						Description:  "Type of public IP address provisioning.",
@@ -704,8 +704,8 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 					"host_encryption_enabled": {
 						Description: "Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. This will enable the encryption for all the disks including Resource/Temp disk at host itself.",
 						Type:        pluginsdk.TypeBool,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"security_type": {
 						Description:  "The security type of the Virtual Machine.",
@@ -830,8 +830,8 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 					"enable_automatic_updates": {
 						Description: "Whether automatic updates are enabled on the Virtual Machine.",
 						Type:        pluginsdk.TypeBool,
-						Default:     true,
 						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
@@ -919,9 +919,10 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
 					},
 					"auto_user": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						MaxItems:     1,
+						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"elevation_level": {
@@ -940,7 +941,6 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
 					},
 				},
 			},

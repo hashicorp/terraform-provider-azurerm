@@ -76,8 +76,8 @@ func dataFactoryTriggerTumblingWindowSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"activated": {
@@ -124,8 +124,8 @@ func dataFactoryTriggerTumblingWindowSchema() map[string]*pluginsdk.Schema {
 			Description:      "The end time of Tumbling Window, formatted as an RFC3339 string.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"max_concurrency": {

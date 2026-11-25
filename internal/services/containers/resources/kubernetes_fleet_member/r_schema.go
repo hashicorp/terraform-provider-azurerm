@@ -11,26 +11,26 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"kubernetes_cluster_id": {
 			Description: "The ARM resource ID of the cluster that joins the Fleet.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"kubernetes_fleet_id": {
 			Description: "The Kubernetes Fleet ID within which this Kubernetes Fleet Member should exist.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"name": {
 			Description: "The name of this Kubernetes Fleet Member.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"group": {
 			Description: "The group this member belongs to for multi-cluster update management.",
-			Optional:    true,
 			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

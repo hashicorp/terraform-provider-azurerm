@@ -89,8 +89,8 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 
 		"dataset": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"granularity": {

@@ -184,8 +184,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						Computed:      true, // azignore:AZS007 - pre-existing violation
-						ConflictsWith: []string{"activation_rules.0.require_multifactor_authentication"},
 						ValidateFunc:  validation.StringIsNotEmpty,
+						ConflictsWith: []string{"activation_rules.0.require_multifactor_authentication"},
 					},
 
 					"require_multifactor_authentication": {

@@ -42,24 +42,24 @@ func (s KustoDatabaseScriptV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"url", "script_content"},
 			RequiredWith: []string{"sas_token"},
+			ExactlyOneOf: []string{"url", "script_content"},
 		},
 
 		"sas_token": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"url"},
 			Sensitive:    true,
+			RequiredWith: []string{"url"},
 		},
 
 		"script_content": {
 			Type:         pluginsdk.TypeString,
-			ExactlyOneOf: []string{"url", "script_content"},
 			Optional:     true,
 			ForceNew:     true,
 			Sensitive:    true,
+			ExactlyOneOf: []string{"url", "script_content"},
 		},
 	}
 }

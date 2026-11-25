@@ -39,9 +39,9 @@ func proximityPlacementGroupSchema() map[string]*pluginsdk.Schema {
 			Description:  "The supported zone of the Proximity Placement Group.",
 			Type:         schema.TypeString,
 			Optional:     true,
-			RequiredWith: []string{"allowed_vm_sizes"},
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"allowed_vm_sizes"},
 		},
 
 		"tags": commonschema.Tags(),

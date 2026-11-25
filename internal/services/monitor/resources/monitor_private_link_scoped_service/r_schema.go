@@ -35,16 +35,16 @@ func monitorPrivateLinkScopedServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"linked_resource_id": {
-			Description:      "The ID of the linked resource.",
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Description: "The ID of the linked resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				componentsapis.ValidateComponentID,
 				workspaces.ValidateWorkspaceID,
 				datacollectionendpoints.ValidateDataCollectionEndpointID,
 			),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
 }

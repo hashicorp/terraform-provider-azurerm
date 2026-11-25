@@ -73,8 +73,8 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Description: "A list of values that make up the NS record for the zone.",
 			Type:        pluginsdk.TypeSet,
 			Computed:    true,
-			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:         pluginsdk.HashString,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"tags": commonschema.TagsDataSource(),

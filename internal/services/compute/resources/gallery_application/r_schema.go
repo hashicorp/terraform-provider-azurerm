@@ -55,8 +55,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:      "The end of life date in RFC3339 format of the Gallery Application.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"eula": {

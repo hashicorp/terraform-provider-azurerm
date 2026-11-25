@@ -43,8 +43,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// Note: O+C API sets and returns a default value if omitted
 			Computed:         true,
-			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 		},
 		"interval": {
 			Description:  "The interval between job executions.",
@@ -58,8 +58,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// Note: O+C API sets and returns a default value if omitted
 			Computed:         true,
-			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 		},
 	}
 }

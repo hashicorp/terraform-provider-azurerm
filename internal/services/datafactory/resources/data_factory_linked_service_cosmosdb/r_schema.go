@@ -34,17 +34,17 @@ func dataFactoryLinkedServiceCosmosdbSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
-			ConflictsWith:    []string{"account_endpoint", "account_key"},
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
+			ConflictsWith:    []string{"account_endpoint", "account_key"},
 		},
 
 		"account_endpoint": {
 			Description:   "The endpoint of the Azure CosmosDB account.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"connection_string"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"connection_string"},
 		},
 
 		"account_key": {
@@ -52,8 +52,8 @@ func dataFactoryLinkedServiceCosmosdbSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
-			ConflictsWith: []string{"connection_string"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"connection_string"},
 		},
 
 		"database": {

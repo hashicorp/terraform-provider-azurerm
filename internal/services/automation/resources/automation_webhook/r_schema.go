@@ -36,8 +36,8 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"runbook_name": {
@@ -71,9 +71,9 @@ func automationWebhookSchema() map[string]*pluginsdk.Schema {
 			Description: "URI to initiate the webhook. Can be generated using [Generate URI API](https://learn.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			ForceNew:    true,
 			// NOTE: O+C this is generated if omitted and cannot be updated so this should remain
 			Computed:     true,
+			ForceNew:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
