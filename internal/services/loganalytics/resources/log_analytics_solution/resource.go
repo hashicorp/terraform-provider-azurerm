@@ -30,6 +30,10 @@ func (s Resource) ResourceType() string {
 	return "azurerm_log_analytics_solution"
 }
 
+func (s Resource) Description() string {
+	return "Manages a Log Analytics (formally Operational Insights) Solution."
+}
+
 func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return solution.ValidateSolutionID
 }

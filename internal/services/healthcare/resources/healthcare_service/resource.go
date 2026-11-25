@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareServiceCreateUpdate,
-		Read:   resourceHealthcareServiceRead,
-		Update: resourceHealthcareServiceCreateUpdate,
-		Delete: resourceHealthcareServiceDelete,
+		Description: "Manages a Healthcare Service.",
+		Create:      resourceHealthcareServiceCreateUpdate,
+		Read:        resourceHealthcareServiceRead,
+		Update:      resourceHealthcareServiceCreateUpdate,
+		Delete:      resourceHealthcareServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

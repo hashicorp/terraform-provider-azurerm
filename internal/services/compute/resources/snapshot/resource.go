@@ -22,10 +22,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSnapshotCreateUpdate,
-		Read:   resourceSnapshotRead,
-		Update: resourceSnapshotCreateUpdate,
-		Delete: resourceSnapshotDelete,
+		Description: "Manages a Disk Snapshot.",
+		Create:      resourceSnapshotCreateUpdate,
+		Read:        resourceSnapshotRead,
+		Update:      resourceSnapshotCreateUpdate,
+		Delete:      resourceSnapshotDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := snapshots.ParseSnapshotID(id)

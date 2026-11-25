@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
-		Read:   resourceMonitorSmartDetectorAlertRuleRead,
-		Update: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
-		Delete: resourceMonitorSmartDetectorAlertRuleDelete,
+		Description: "Manages a Monitor Smart Detector Alert Rule.",
+		Create:      resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Read:        resourceMonitorSmartDetectorAlertRuleRead,
+		Update:      resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Delete:      resourceMonitorSmartDetectorAlertRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

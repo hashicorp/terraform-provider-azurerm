@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorAutoScaleSettingCreateUpdate,
-		Read:   resourceMonitorAutoScaleSettingRead,
-		Update: resourceMonitorAutoScaleSettingCreateUpdate,
-		Delete: resourceMonitorAutoScaleSettingDelete,
+		Description: "Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.",
+		Create:      resourceMonitorAutoScaleSettingCreateUpdate,
+		Read:        resourceMonitorAutoScaleSettingRead,
+		Update:      resourceMonitorAutoScaleSettingCreateUpdate,
+		Delete:      resourceMonitorAutoScaleSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := autoscalesettings.ParseAutoScaleSettingID(id)

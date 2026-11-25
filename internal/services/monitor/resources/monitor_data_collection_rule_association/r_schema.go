@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_resource_id": {
+			Description:  "The ID of the Azure Resource which to associate to a Data Collection Rule or a Data Collection Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description: "The name which should be used for this Data Collection Rule Association.",
 			// TODO: should this be hard-coded in the Create?
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_collection_endpoint_id": {
+			Description:  "The ID of the Data Collection Endpoint which will be associated to the target resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: datacollectionendpoints.ValidateDataCollectionEndpointID,
@@ -37,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_collection_rule_id": {
+			Description:  "The ID of the Data Collection Rule which will be associated to the target resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
@@ -45,8 +49,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of the Data Collection Rule Association.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

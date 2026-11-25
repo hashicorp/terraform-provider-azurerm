@@ -12,6 +12,7 @@ import (
 func managementGroupSubscriptionAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"management_group_id": {
+			Description:  "The ID of the Management Group to associate the Subscription with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func managementGroupSubscriptionAssociationSchema() map[string]*pluginsdk.Schema
 		},
 
 		"subscription_id": {
+			Description:  "The ID of the Subscription to be associated with the Management Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

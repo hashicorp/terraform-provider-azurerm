@@ -36,8 +36,9 @@ func SchemaApiManagementDataSourceName() *pluginsdk.Schema {
 
 // SchemaApiManagementChildName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildName() *pluginsdk.Schema {
+func SchemaApiManagementChildName(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -45,10 +46,11 @@ func SchemaApiManagementChildName() *pluginsdk.Schema {
 	}
 }
 
-// SchemaApiManagementChildName returns the Schema for the identifier
+// SchemaApiManagementApiName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementApiName() *pluginsdk.Schema {
+func SchemaApiManagementApiName(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -58,8 +60,9 @@ func SchemaApiManagementApiName() *pluginsdk.Schema {
 
 // SchemaApiManagementChildDataSourceName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildDataSourceName() *pluginsdk.Schema {
+func SchemaApiManagementChildDataSourceName(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementChildName,
@@ -68,6 +71,7 @@ func SchemaApiManagementChildDataSourceName() *pluginsdk.Schema {
 
 func SchemaApiManagementUserName() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  "The Identifier for this User, which must be unique within the API Management Service.",
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -77,6 +81,7 @@ func SchemaApiManagementUserName() *pluginsdk.Schema {
 
 func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  "The Identifier for the User.",
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementUserName,
@@ -90,8 +95,9 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"content_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The Content Type of this representation, such as `application/json`.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"form_parameter": SchemaApiManagementOperationParameterContract(),
@@ -99,13 +105,15 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 				"example": SchemaApiManagementOperationParameterExampleContract(),
 
 				"schema_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The ID of an API Management Schema which represents this Response.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"type_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The Type Name defined by the Schema.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 			},
 		},
@@ -245,13 +253,15 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 				"example": SchemaApiManagementOperationParameterExampleContract(),
 
 				"schema_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The name of the Schema.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"type_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The type name defined by the Schema.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 			},
 		},
@@ -345,27 +355,32 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The name of this example.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"summary": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "A short description for this example.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"description": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "A long description for this example.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"value": {
+					Description:      "The example of the representation.",
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				},
 
 				"external_value": {
+					Description:  "A URL that points to the literal example.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,

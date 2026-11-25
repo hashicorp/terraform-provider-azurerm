@@ -28,6 +28,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_virtual_machine_scale_set_standby_pool"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Standby Pool for Virtual Machine Scale Sets. ~> **Note:** Follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return standbyvirtualmachinepools.ValidateStandbyVirtualMachinePoolID
 }

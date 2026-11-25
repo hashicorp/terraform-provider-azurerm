@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementProductApiCreate,
-		Read:   resourceApiManagementProductApiRead,
-		Delete: resourceApiManagementProductApiDelete,
+		Description: "Manages an API Management API Assignment to a Product.",
+		Create:      resourceApiManagementProductApiCreate,
+		Read:        resourceApiManagementProductApiRead,
+		Delete:      resourceApiManagementProductApiDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := productapi.ParseProductApiID(id)
 			return err

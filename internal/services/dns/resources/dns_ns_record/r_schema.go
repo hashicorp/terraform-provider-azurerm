@@ -11,35 +11,40 @@ import (
 func dnsNsRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the DNS NS Record.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The DNS Zone where the resource exists.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"records": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "A list of values that make up the NS record.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"ttl": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The Time To Live (TTL) of the DNS record in seconds.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS NS Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

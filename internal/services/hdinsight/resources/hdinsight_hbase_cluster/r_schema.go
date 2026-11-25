@@ -11,7 +11,7 @@ import (
 
 func hdinsightHbaseClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": helpers.SchemaHDInsightName(),
+		"name": helpers.SchemaHDInsightName("HDInsight HBase Cluster"),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -19,7 +19,7 @@ func hdinsightHbaseClusterSchema() map[string]*pluginsdk.Schema {
 
 		"cluster_version": helpers.SchemaHDInsightClusterVersion(),
 
-		"tier": helpers.SchemaHDInsightTier(),
+		"tier": helpers.SchemaHDInsightTier("HDInsight HBase Cluster"),
 
 		"tls_min_version": helpers.SchemaHDInsightTls(),
 
@@ -30,9 +30,10 @@ func hdinsightHbaseClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"hbase": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The version of HBase which should be used for this HDInsight HBase Cluster.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 					},
 				},
 			},
@@ -74,13 +75,15 @@ func hdinsightHbaseClusterSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"https_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The HTTPS Connectivity Endpoint for this HDInsight HBase Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ssh_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SSH Connectivity Endpoint for this HDInsight HBase Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"monitor": helpers.SchemaHDInsightsMonitor(),

@@ -41,9 +41,14 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_monitor_workspace"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Workspace."
+}
+
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -58,20 +63,24 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"query_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The query endpoint for the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether network access from public internet to the Workspace are allowed.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 		"default_data_collection_endpoint_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the managed default Data Collection Endpoint created with the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"default_data_collection_rule_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the managed default Data Collection Rule created with the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

@@ -38,6 +38,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_container_app_environment_storage"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Container App Environment Storage."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -45,7 +49,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedEnvironmentStorageName,
-			Description:  "The name for this Container App Environment Storage.",
+			Description:  "The name of the Container App Environment Storage.",
 		},
 
 		"container_app_environment_id": {

@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataShareDataSetBlobStorageCreate,
-		Read:   resourceDataShareDataSetBlobStorageRead,
-		Delete: resourceDataShareDataSetBlobStorageDelete,
+		Description: "Manages a Data Share Blob Storage Dataset.",
+		Create:      resourceDataShareDataSetBlobStorageCreate,
+		Read:        resourceDataShareDataSetBlobStorageRead,
+		Delete:      resourceDataShareDataSetBlobStorageDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

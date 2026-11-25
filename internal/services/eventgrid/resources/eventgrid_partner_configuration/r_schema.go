@@ -20,6 +20,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"default_maximum_expiration_time_in_days": &schema.Schema{
+			Description:  "Time used to validate the authorization expiration time for each authorized partner.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 365),
@@ -32,16 +33,19 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"partner_registration_id": &schema.Schema{
+						Description:  "The immutable ID of the corresponding partner registration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"partner_name": &schema.Schema{
+						Description:  "The name of a verified partner.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"authorization_expiration_time_in_utc": &schema.Schema{
+						Description:  "Expiration time of the partner authorization.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsRFC3339Time,

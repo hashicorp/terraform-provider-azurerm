@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_resource_group_cost_management_view"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Cost Management View for a Resource Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ResourceGroupCostManagementViewID
 }

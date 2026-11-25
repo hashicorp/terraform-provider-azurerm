@@ -25,7 +25,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"routing_configuration_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrulecollections.RoutingConfigurationId{}),
+		"routing_configuration_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrulecollections.RoutingConfigurationId{}, "Network Manager Routing Configuration"),
 
 		"network_group_ids": {
 			Type:     pluginsdk.TypeList,

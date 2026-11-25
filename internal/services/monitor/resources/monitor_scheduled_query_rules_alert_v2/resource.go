@@ -23,6 +23,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_monitor_scheduled_query_rules_alert_v2"
 }
 
+func (r Resource) Description() string {
+	return "Manages an AlertingAction Scheduled Query Rules Version 2 resource within Azure Monitor."
+}
+
 func (r Resource) Identity() resourceids.ResourceId {
 	return &scheduledqueryrules.ScheduledQueryRuleId{}
 }

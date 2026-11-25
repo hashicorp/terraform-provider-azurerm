@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_virtual_endpoint/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetAzureBlobCreateUpdate,
-		Read:   resourceDataFactoryDatasetAzureBlobRead,
-		Update: resourceDataFactoryDatasetAzureBlobCreateUpdate,
-		Delete: resourceDataFactoryDatasetAzureBlobDelete,
+		Description: "Manages an Azure Blob Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetAzureBlobCreateUpdate,
+		Read:        resourceDataFactoryDatasetAzureBlobRead,
+		Update:      resourceDataFactoryDatasetAzureBlobCreateUpdate,
+		Delete:      resourceDataFactoryDatasetAzureBlobDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

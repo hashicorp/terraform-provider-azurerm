@@ -17,6 +17,7 @@ import (
 func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Digital Twins Time Series Database Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"digital_twins_id": {
+			Description:  "The ID of the Digital Twins.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_name": {
+			Description:  "Name of the Event Hub.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,6 +41,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_namespace_id": {
+			Description:  "The ID of the Event Hub Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -45,6 +49,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_namespace_endpoint_uri": {
+			Description:  "URI of the Event Hub Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -52,6 +57,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"kusto_cluster_id": {
+			Description:  "The ID of the Kusto Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -59,6 +65,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"kusto_cluster_uri": {
+			Description:  "URI of the Kusto Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -66,6 +73,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"kusto_database_name": {
+			Description:  "Name of the Kusto Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -73,6 +81,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_consumer_group_name": {
+			Description:  "Name of the Event Hub Consumer Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "$Default",
@@ -81,6 +90,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"kusto_table_name": {
+			Description:  "Name of the Kusto Table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "AdtPropertyEvents",

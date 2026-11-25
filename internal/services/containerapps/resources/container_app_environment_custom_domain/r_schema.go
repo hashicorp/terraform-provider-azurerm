@@ -16,28 +16,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Custom Domain on.",
+			Description:  "The ID of the Container Apps Managed Environment.",
 		},
 
 		"certificate_blob_base64": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsBase64,
-			Description:  "The Custom Domain Certificate Private Key as a base64 encoded PFX or PEM.",
+			Description:  "The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.",
 		},
 
 		"certificate_password": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			Sensitive:   true,
-			Description: "The Custom Domain Certificate password.",
+			Description: "The password for the Certificate bundle.",
 		},
 
 		"dns_suffix": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The Custom Domain DNS suffix for this Container App Environment.",
+			Description:  "Custom DNS Suffix for the Container App Environment.",
 		},
 	}
 }

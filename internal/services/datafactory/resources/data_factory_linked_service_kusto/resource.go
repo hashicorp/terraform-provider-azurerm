@@ -20,10 +20,11 @@ type ServicePrincipalKey struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceKustoCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceKustoRead,
-		Update: resourceDataFactoryLinkedServiceKustoCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceKustoDelete,
+		Description: "Manages a Linked Service (connection) between a Kusto Cluster and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceKustoCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceKustoRead,
+		Update:      resourceDataFactoryLinkedServiceKustoCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceKustoDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

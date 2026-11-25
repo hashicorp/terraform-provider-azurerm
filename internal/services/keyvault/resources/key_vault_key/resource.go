@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultKeyCreate,
-		Read:   resourceKeyVaultKeyRead,
-		Update: resourceKeyVaultKeyUpdate,
-		Delete: resourceKeyVaultKeyDelete,
+		Description: "Manages a Key Vault Key.",
+		Create:      resourceKeyVaultKeyCreate,
+		Read:        resourceKeyVaultKeyRead,
+		Update:      resourceKeyVaultKeyUpdate,
+		Delete:      resourceKeyVaultKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := keyvault.ParseNestedItemID(id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)

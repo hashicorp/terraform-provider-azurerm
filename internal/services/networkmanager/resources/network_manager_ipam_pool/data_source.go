@@ -49,7 +49,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"network_manager_id": commonschema.ResourceIDReferenceRequired(&ipampools.NetworkManagerId{}),
+		"network_manager_id": commonschema.ResourceIDReferenceRequired(&ipampools.NetworkManagerId{}, "Network Manager"),
 	}
 }
 

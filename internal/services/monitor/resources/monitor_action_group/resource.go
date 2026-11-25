@@ -18,10 +18,11 @@ const monitorActionGroupResourceName = "azurerm_monitor_action_group"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorActionGroupCreateUpdate,
-		Read:   resourceMonitorActionGroupRead,
-		Update: resourceMonitorActionGroupCreateUpdate,
-		Delete: resourceMonitorActionGroupDelete,
+		Description: "Manages an Action Group within Azure Monitor.",
+		Create:      resourceMonitorActionGroupCreateUpdate,
+		Read:        resourceMonitorActionGroupRead,
+		Update:      resourceMonitorActionGroupCreateUpdate,
+		Delete:      resourceMonitorActionGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&actiongroupsapis.ActionGroupId{}),
 

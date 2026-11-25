@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_active_directory_administrator"
 }
 
+func (r Resource) Description() string {
+	return "Allows you to set a user, group or Service Principal as the AAD Administrator for an Azure SQL Managed Instance."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ManagedInstanceAzureActiveDirectoryAdministratorID
 }

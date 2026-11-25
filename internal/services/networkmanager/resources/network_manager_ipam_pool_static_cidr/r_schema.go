@@ -25,7 +25,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}),
+		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}, "Network Manager IP Address Management (IPAM) Pool"),
 
 		"address_prefixes": {
 			Type:         pluginsdk.TypeList,

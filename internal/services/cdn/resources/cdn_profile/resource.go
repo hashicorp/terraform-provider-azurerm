@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnProfileCreate,
-		Read:   resourceCdnProfileRead,
-		Update: resourceCdnProfileUpdate,
-		Delete: resourceCdnProfileDelete,
+		Description: "Manages a CDN (classic) Profile to create a collection of CDN Endpoints.",
+		Create:      resourceCdnProfileCreate,
+		Read:        resourceCdnProfileRead,
+		Update:      resourceCdnProfileUpdate,
+		Delete:      resourceCdnProfileDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

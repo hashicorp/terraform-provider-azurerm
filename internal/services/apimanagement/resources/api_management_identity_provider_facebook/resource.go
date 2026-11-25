@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderFacebookCreateUpdate,
-		Read:   resourceApiManagementIdentityProviderFacebookRead,
-		Update: resourceApiManagementIdentityProviderFacebookCreateUpdate,
-		Delete: resourceApiManagementIdentityProviderFacebookDelete,
+		Description: "Manages an API Management Facebook Identity Provider.",
+		Create:      resourceApiManagementIdentityProviderFacebookCreateUpdate,
+		Read:        resourceApiManagementIdentityProviderFacebookRead,
+		Update:      resourceApiManagementIdentityProviderFacebookCreateUpdate,
+		Delete:      resourceApiManagementIdentityProviderFacebookDelete,
 
 		Importer: helpers.IdentityProviderImportFunc(identityprovider.IdentityProviderTypeFacebook),
 

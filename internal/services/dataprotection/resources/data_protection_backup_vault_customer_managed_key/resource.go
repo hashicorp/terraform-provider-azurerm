@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_vault_customer_managed_key"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backup Vault Customer Managed Key."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backupvaultresources.ValidateBackupVaultID
 }

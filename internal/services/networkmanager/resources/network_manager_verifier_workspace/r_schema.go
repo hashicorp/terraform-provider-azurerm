@@ -24,7 +24,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&verifierworkspaces.NetworkManagerId{}),
+		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&verifierworkspaces.NetworkManagerId{}, "Network Manager"),
 
 		"location": commonschema.Location(),
 

@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_eventgrid_partner_configuration"
 }
 
+func (Resource) Description() string {
+	return "Manages an Event Grid Partner Configuration."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateResourceGroupID
 }

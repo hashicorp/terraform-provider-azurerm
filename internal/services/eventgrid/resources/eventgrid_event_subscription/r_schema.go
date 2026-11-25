@@ -16,6 +16,7 @@ func eventgridEventSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"name": helpers.EventSubscriptionSchemaEventSubscriptionName(),
 
 		"scope": {
+			Description:  "The scope at which the EventGrid Event Subscription should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

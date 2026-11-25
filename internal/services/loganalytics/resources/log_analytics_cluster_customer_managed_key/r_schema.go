@@ -12,6 +12,7 @@ import (
 func logAnalyticsClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"log_analytics_cluster_id": {
+			Description:  "The ID of the Log Analytics Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func logAnalyticsClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema 
 		},
 
 		"key_vault_key_id": {
+			Description:  "The ID of the Key Vault Key to use for encryption.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),

@@ -27,7 +27,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}),
+		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}, "Network Manager Verifier Workspace"),
 
 		"source_resource_id": {
 			Type:     pluginsdk.TypeString,

@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmRoleAssignmentCreate,
-		Read:   resourceArmRoleAssignmentRead,
-		Update: resourceArmRoleAssignmentUpdate,
-		Delete: resourceArmRoleAssignmentDelete,
+		Description: "Assigns a given Principal (User or Group) to a given Role.",
+		Create:      resourceArmRoleAssignmentCreate,
+		Read:        resourceArmRoleAssignmentRead,
+		Update:      resourceArmRoleAssignmentUpdate,
+		Delete:      resourceArmRoleAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.RoleAssignmentID(id)
