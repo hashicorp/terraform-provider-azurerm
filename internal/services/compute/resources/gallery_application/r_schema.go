@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package gallery_application
@@ -20,6 +20,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Gallery Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"gallery_id": {
+			Description:  "The ID of the Shared Image Gallery.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"supported_os_type": {
+			Description:  "The type of the Operating System supported for the Gallery Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -43,11 +46,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of the Gallery Application.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"end_of_life_date": {
+			Description:      "The end of life date in RFC3339 format of the Gallery Application.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: suppress.RFC3339Time,
@@ -55,18 +60,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eula": {
+			Description:  "The End User Licence Agreement of the Gallery Application.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"privacy_statement_uri": {
+			Description:  "The URI containing the Privacy Statement associated with the Gallery Application.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"release_note_uri": {
+			Description:  "The URI containing the Release Notes associated with the Gallery Application.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

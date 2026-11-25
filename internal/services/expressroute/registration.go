@@ -7,6 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/express_route_circuit"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/express_route_circuit_authorization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/express_route_circuit_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/express_route_circuit_peering"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/express_route_port"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/express_route_port_authorization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/resources/route_filter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -45,22 +52,22 @@ func (r Registration) Resources() []sdk.Resource {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_express_route_circuit":         dataSourceExpressRouteCircuit(),
-		"azurerm_express_route_circuit_peering": dataSourceExpressRouteCircuitPeering(),
-		"azurerm_route_filter":                  dataSourceRouteFilter(),
+		"azurerm_express_route_circuit":         express_route_circuit.RegisterDataSource(),
+		"azurerm_express_route_circuit_peering": express_route_circuit_peering.RegisterDataSource(),
+		"azurerm_route_filter":                  route_filter.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_express_route_circuit":               resourceExpressRouteCircuit(),
-		"azurerm_express_route_circuit_authorization": resourceExpressRouteCircuitAuthorization(),
-		"azurerm_express_route_circuit_connection":    resourceExpressRouteCircuitConnection(),
-		"azurerm_express_route_circuit_peering":       resourceExpressRouteCircuitPeering(),
-		"azurerm_express_route_port":                  resourceArmExpressRoutePort(),
-		"azurerm_express_route_port_authorization":    resourceExpressRoutePortAuthorization(),
-		"azurerm_route_filter":                        resourceRouteFilter(),
+		"azurerm_express_route_circuit":               express_route_circuit.RegisterResource(),
+		"azurerm_express_route_circuit_authorization": express_route_circuit_authorization.RegisterResource(),
+		"azurerm_express_route_circuit_connection":    express_route_circuit_connection.RegisterResource(),
+		"azurerm_express_route_circuit_peering":       express_route_circuit_peering.RegisterResource(),
+		"azurerm_express_route_port":                  express_route_port.RegisterResource(),
+		"azurerm_express_route_port_authorization":    express_route_port_authorization.RegisterResource(),
+		"azurerm_route_filter":                        route_filter.RegisterResource(),
 	}
 }
 

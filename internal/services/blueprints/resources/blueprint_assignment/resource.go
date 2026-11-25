@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package blueprint_assignment
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBlueprintAssignmentCreateUpdate,
-		Update: resourceBlueprintAssignmentCreateUpdate,
-		Read:   resourceBlueprintAssignmentRead,
-		Delete: resourceBlueprintAssignmentDelete,
+		Description: "Manages a Blueprint Assignment resource.",
+		Create:      resourceBlueprintAssignmentCreateUpdate,
+		Update:      resourceBlueprintAssignmentCreateUpdate,
+		Read:        resourceBlueprintAssignmentRead,
+		Delete:      resourceBlueprintAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := assignment.ParseScopedBlueprintAssignmentID(id)

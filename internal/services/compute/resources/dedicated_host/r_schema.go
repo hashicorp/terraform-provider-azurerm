@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dedicated_host
@@ -15,6 +15,7 @@ import (
 func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dedicated Host.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dedicated_host_group_id": {
+			Description:  "The ID of the Dedicated Host Group where the Dedicated Host should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,9 +33,10 @@ func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
-			Required: true,
+			Description: "The SKU name of the Dedicated Host.",
+			Type:        pluginsdk.TypeString,
+			ForceNew:    true,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"DADSv5-Type1",
 				"DASv4-Type1",
@@ -84,20 +87,23 @@ func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"platform_fault_domain": {
-			Type:     pluginsdk.TypeInt,
-			ForceNew: true,
-			Required: true,
+			Description: "The fault domain of the Dedicated Host Group in which to create the Dedicated Host.",
+			Type:        pluginsdk.TypeInt,
+			ForceNew:    true,
+			Required:    true,
 		},
 
 		"auto_replace_on_failure": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Dedicated Host should automatically be replaced in case of a Hardware Failure.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"license_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The software license type that will be applied to the VMs deployed on the Dedicated Host.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
 				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),

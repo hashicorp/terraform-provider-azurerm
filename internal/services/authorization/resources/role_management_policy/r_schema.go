@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package role_management_policy
@@ -16,7 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"role_definition_id": {
-			Description:  "ID of the Azure Role to which this policy is assigned",
+			Description:  "The scoped Role Definition ID of the role for which this policy will apply.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,13 +24,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
-			Description: "The scope of the role to which this policy will apply",
+			Description: "The scope to which this Role Management Policy will apply. Can refer to a Management Group, a subscription, a Resource Group or a resource.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
@@ -43,7 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eligible_assignment_rules": {
-			Description: "The rules for eligible assignment of the policy",
+			Description: "The rules for eligible assignment of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -51,14 +51,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "Must the assignment have an expiry date",
+						Description: "Whether an assignment must have an expiry date. `false` allows permanent assignment.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"expire_after": {
-						Description:  "The duration after which assignments expire",
+						Description:  "The maximum length of time an assignment can be valid, as an ISO8601 duration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -69,7 +69,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"active_assignment_rules": {
-			Description: "The rules for active assignment of the policy",
+			Description: "The rules for active assignment of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -77,14 +77,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "Must the assignment have an expiry date",
+						Description: "Whether an assignment must have an expiry date. `false` allows permanent assignment.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"expire_after": {
-						Description:  "The duration after which assignments expire",
+						Description:  "The maximum length of time an assignment can be valid, as an ISO8601 duration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -92,21 +92,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_multifactor_authentication": {
-						Description: "Whether multi-factor authentication is required to make an assignment",
+						Description: "Whether multi-factor authentication is required to create new assignments.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_justification": {
-						Description: "Whether a justification is required to make an assignment",
+						Description: "Whether a justification is required to create new assignments.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_ticket_info": {
-						Description: "Whether ticket information is required to make an assignment",
+						Description: "Whether ticket information is required to create new assignments.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -116,7 +116,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"activation_rules": {
-			Description: "The activation rules of the policy",
+			Description: "The activation rules of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -124,7 +124,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"maximum_duration": {
-						Description: "The time after which the an activation can be valid for",
+						Description: "The maximum length of time an activated role can be valid, in an ISO8601 Duration format (e.g. `PT8H`).",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -137,14 +137,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_approval": {
-						Description: "Whether an approval is required for activation",
+						Description: "Whether approval is required for activation. If `true` an `approval_stage` block must be provided.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"approval_stage": {
-						Description: "The approval stages for the activation",
+						Description: "The approval stages for the activation.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						// Note: O+C because when `activation_rules` is specified, there will be an empty "approval_stage" populated by the API.
@@ -153,21 +153,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"primary_approver": {
-									Description: "The IDs of the users or groups who can approve the activation",
+									Description: "The IDs of the users or groups who can approve the activation.",
 									Type:        pluginsdk.TypeSet,
 									Required:    true,
 									MinItems:    1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"object_id": {
-												Description:  "The ID of the object to act as an approver",
+												Description:  "The ID of the object which will act as an approver.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.IsUUID,
 											},
 
 											"type": {
-												Description:  "The type of object acting as an approver",
+												Description:  "The type of object acting as an approver.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringInSlice([]string{"User", "Group"}, false),
@@ -180,7 +180,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"required_conditional_access_authentication_context": {
-						Description:   "Whether a conditional access context is required during activation",
+						Description:   "The Entra ID Conditional Access context that must be present for activation.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						Computed:      true, // azignore:AZS007 - pre-existing violation
@@ -189,7 +189,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_multifactor_authentication": {
-						Description:   "Whether multi-factor authentication is required during activation",
+						Description:   "Whether multi-factor authentication is required to activate the role.",
 						Type:          pluginsdk.TypeBool,
 						Optional:      true,
 						Computed:      true, // azignore:AZS007 - pre-existing violation
@@ -197,14 +197,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"require_justification": {
-						Description: "Whether a justification is required during activation",
+						Description: "Whether a justification is required during activation of the role.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_ticket_info": {
-						Description: "Whether ticket information is required during activation",
+						Description: "Whether ticket information is required during activation of the role.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -214,7 +214,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"notification_rules": {
-			Description: "The notification rules of the policy",
+			Description: "The notification rules of the policy.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -222,7 +222,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_assignments": {
-						Description: "Notifications about active assignments",
+						Description: "Notifications about active assignments.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -233,7 +233,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"eligible_activations": {
-						Description: "Notifications about activations of eligible assignments",
+						Description: "Notifications about activations of eligible assignments.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -244,7 +244,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"eligible_assignments": {
-						Description: "Notifications about eligible assignments",
+						Description: "Notifications about eligible assignments.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -262,13 +262,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "The name of the policy",
+			Description: "The name of this policy, which is typically a UUID and may change over time.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
 		"description": {
-			Description: "The Description of the policy",
+			Description: "The description of this policy.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

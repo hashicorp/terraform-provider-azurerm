@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_job_schedule
@@ -15,9 +15,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationJobScheduleCreate,
-		Read:   resourceAutomationJobScheduleRead,
-		Delete: resourceAutomationJobScheduleDelete,
+		Description: "Links an Automation Runbook and Schedule.",
+		Create:      resourceAutomationJobScheduleCreate,
+		Read:        resourceAutomationJobScheduleRead,
+		Delete:      resourceAutomationJobScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &schedule.ScheduleId{}, &runbook.RunbookId{})

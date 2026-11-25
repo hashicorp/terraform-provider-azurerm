@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_extension
@@ -18,9 +18,10 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Azure Stack HCI Extension.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringDoesNotContainAny("/"),
@@ -28,6 +29,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"arc_setting_id": {
+			Description:  "The ID of the Azure Stack HCI Cluster Arc Setting.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +37,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"publisher": {
+			Description:  "The name of the extension handler publisher, such as `Microsoft.Azure.Monitor`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +45,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"type": {
+			Description:  "The type of the extension. For example `CustomScriptExtension` or `AzureMonitorLinuxAgent`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,19 +53,22 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"auto_upgrade_minor_version_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			ForceNew:    true,
 		},
 
 		"automatic_upgrade_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the extension should be automatically upgraded by the platform if there is a newer version available.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"protected_settings": {
+			Description:      "The JSON formatted protected settings for the extension.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
@@ -70,6 +77,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"settings": {
+			Description:      "The JSON formatted public settings for the extension.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -77,6 +85,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"type_handler_version": {
+			Description:  "The version of the script handler.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

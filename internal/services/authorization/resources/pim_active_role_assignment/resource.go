@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package pim_active_role_assignment
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_pim_active_role_assignment"
+}
+
+func (Resource) Description() string {
+	return "Manages a PIM Active Role Assignment."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

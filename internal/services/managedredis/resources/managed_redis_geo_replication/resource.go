@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_redis_geo_replication
@@ -27,6 +27,10 @@ var (
 
 func (r Resource) ResourceType() string {
 	return "azurerm_managed_redis_geo_replication"
+}
+
+func (r Resource) Description() string {
+	return "Manages Managed Redis Geo-Replication by linking and unlinking databases in a geo-replication group."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_deployment
@@ -27,6 +27,10 @@ var _ sdk.ResourceWithCustomizeDiff = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services Account Deployment."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

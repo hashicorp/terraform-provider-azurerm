@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proximity_placement_group
@@ -13,6 +13,7 @@ import (
 func proximityPlacementGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Proximity Placement Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,9 +25,10 @@ func proximityPlacementGroupSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"allowed_vm_sizes": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MinItems: 1,
+			Description: "The supported sizes of Virtual Machines that can be created in the Proximity Placement Group.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -34,6 +36,7 @@ func proximityPlacementGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zone": {
+			Description:  "The supported zone of the Proximity Placement Group.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			RequiredWith: []string{"allowed_vm_sizes"},

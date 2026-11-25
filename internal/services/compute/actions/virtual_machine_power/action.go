@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_power
@@ -39,8 +39,8 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 		Attributes: map[string]schema.Attribute{
 			"virtual_machine_id": schema.StringAttribute{
 				Required:            true,
-				Description:         "The ID of the virtual machine on which to perform the action.",
-				MarkdownDescription: "The ID of the virtual machine on which to perform the action.",
+				Description:         "The ID of the Virtual Machine on which to perform the action.",
+				MarkdownDescription: "The ID of the Virtual Machine on which to perform the action.",
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: virtualmachines.ValidateVirtualMachineID,
@@ -50,8 +50,8 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 
 			"power_action": schema.StringAttribute{
 				Required:            true,
-				Description:         "The power state action to take on this virtual machine. Possible values include `restart`, `power_on`, and `power_off`.",
-				MarkdownDescription: "The power state action to take on this virtual machine. Possible values include `restart`, `power_on`, and `power_off`.",
+				Description:         "The power state action to take on this Virtual Machine.",
+				MarkdownDescription: "The power state action to take on this Virtual Machine.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"deallocate",
@@ -64,8 +64,8 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the action to complete. Defaults to `30m`.",
-				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.",
+				Description:         "Timeout duration for the action to complete. Defaults to `30m`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 	}
