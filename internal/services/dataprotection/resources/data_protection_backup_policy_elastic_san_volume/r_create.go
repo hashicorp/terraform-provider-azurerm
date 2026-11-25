@@ -37,14 +37,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
-				}
 				if existing.Model == nil {
 					return fmt.Errorf("retrieving %s: model was nil", id)
 				}
 				if !backupPolicySupportsElasticSanVolumes(existing.Model.Properties) {
 					return fmt.Errorf("%s is not a backup policy for `%s`", id, elasticSanVolumeDatasourceType)
+				}
+				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
@@ -65,36 +65,61 @@ func (r Resource) Create() sdk.ResourceFunc {
 }
 
 func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanVolumeModel) []basebackuppolicyresources.BasePolicyRule {
-	taggingCriteria := []basebackuppolicyresources.TaggingCriteria{{
-		IsDefault:       true,
-		TaggingPriority: 99,
-		TagInfo: basebackuppolicyresources.RetentionTag{
-			Id:      pointer.To("Default_"),
-			TagName: "Default",
-		},
-	}}
-	rules := []basebackuppolicyresources.BasePolicyRule{
-		expandBackupPolicyElasticSanVolumeRetentionRule("Default", input.DefaultRetentionDuration, true),
+	taggingCriteria := []basebackuppolicyresources.TaggingCriteria{}
+	rules := []basebackuppolicyresources.BasePolicyRule{}
+	updateCriteriaAndRules := func(marker basebackuppolicyresources.AbsoluteMarker, duration string) {
+		if duration == "" {
+			return
+		}
+
+		name := "Default"
+		tagPriority := 99
+		isDefault := true
+		switch marker {
+		case basebackuppolicyresources.AbsoluteMarkerFirstOfDay:
+			name = "Daily"
+			tagPriority = 3
+			isDefault = false
+		case basebackuppolicyresources.AbsoluteMarkerFirstOfWeek:
+			name = "Weekly"
+			tagPriority = 2
+			isDefault = false
+		case basebackuppolicyresources.AbsoluteMarkerFirstOfMonth:
+			name = "Monthly"
+			tagPriority = 1
+			isDefault = false
+		}
+
+		taggingCriteria = append(taggingCriteria, basebackuppolicyresources.TaggingCriteria{
+			Criteria: pointer.To([]basebackuppolicyresources.BackupCriteria{basebackuppolicyresources.ScheduleBasedBackupCriteria{
+				AbsoluteCriteria: pointer.To([]basebackuppolicyresources.AbsoluteMarker{marker}),
+			}}),
+			TaggingPriority: int64(tagPriority),
+			TagInfo: basebackuppolicyresources.RetentionTag{
+				Id:      pointer.To(name + "_"),
+				TagName: name,
+			},
+		})
+
+		rules = append(rules, basebackuppolicyresources.AzureRetentionRule{
+			Name:      name,
+			IsDefault: pointer.To(isDefault),
+			Lifecycles: []basebackuppolicyresources.SourceLifeCycle{{
+				DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
+					Duration: duration,
+				},
+				SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
+					DataStoreType: basebackuppolicyresources.DataStoreTypesOperationalStore,
+					ObjectType:    "DataStoreInfoBase",
+				},
+			}},
+		})
 	}
 
-	if input.DailyRetentionDuration != "" {
-		taggingCriteria = append(taggingCriteria, expandBackupPolicyElasticSanVolumeTaggingCriteria("Daily", 3, basebackuppolicyresources.ScheduleBasedBackupCriteria{
-			AbsoluteCriteria: pointer.To([]basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarkerFirstOfDay}),
-		}))
-		rules = append(rules, expandBackupPolicyElasticSanVolumeRetentionRule("Daily", input.DailyRetentionDuration, false))
-	}
-	if input.WeeklyRetentionDuration != "" {
-		taggingCriteria = append(taggingCriteria, expandBackupPolicyElasticSanVolumeTaggingCriteria("Weekly", 2, basebackuppolicyresources.ScheduleBasedBackupCriteria{
-			AbsoluteCriteria: pointer.To([]basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarkerFirstOfWeek}),
-		}))
-		rules = append(rules, expandBackupPolicyElasticSanVolumeRetentionRule("Weekly", input.WeeklyRetentionDuration, false))
-	}
-	if input.MonthlyRetentionDuration != "" {
-		taggingCriteria = append(taggingCriteria, expandBackupPolicyElasticSanVolumeTaggingCriteria("Monthly", 1, basebackuppolicyresources.ScheduleBasedBackupCriteria{
-			AbsoluteCriteria: pointer.To([]basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarkerFirstOfMonth}),
-		}))
-		rules = append(rules, expandBackupPolicyElasticSanVolumeRetentionRule("Monthly", input.MonthlyRetentionDuration, false))
-	}
+	updateCriteriaAndRules("Default", input.DefaultRetentionDuration)
+	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerFirstOfDay, input.DailyRetentionDuration)
+	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerFirstOfWeek, input.WeeklyRetentionDuration)
+	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth, input.MonthlyRetentionDuration)
 
 	backupSchedule := input.DailyBackupSchedule
 	backupRuleName := "BackupDaily"
@@ -105,6 +130,7 @@ func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanV
 	schedule := basebackuppolicyresources.BackupSchedule{
 		RepeatingTimeIntervals: []string{backupSchedule},
 	}
+
 	rules = append(rules, basebackuppolicyresources.AzureBackupRule{
 		Name: backupRuleName,
 		BackupParameters: basebackuppolicyresources.AzureBackupParams{
@@ -119,32 +145,6 @@ func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanV
 			TaggingCriteria: taggingCriteria,
 		},
 	})
+
 	return rules
-}
-
-func expandBackupPolicyElasticSanVolumeRetentionRule(name, duration string, isDefault bool) basebackuppolicyresources.AzureRetentionRule {
-	return basebackuppolicyresources.AzureRetentionRule{
-		Name:      name,
-		IsDefault: pointer.To(isDefault),
-		Lifecycles: []basebackuppolicyresources.SourceLifeCycle{{
-			DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
-				Duration: duration,
-			},
-			SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
-				DataStoreType: basebackuppolicyresources.DataStoreTypesOperationalStore,
-				ObjectType:    "DataStoreInfoBase",
-			},
-		}},
-	}
-}
-
-func expandBackupPolicyElasticSanVolumeTaggingCriteria(name string, priority int64, criteria basebackuppolicyresources.ScheduleBasedBackupCriteria) basebackuppolicyresources.TaggingCriteria {
-	return basebackuppolicyresources.TaggingCriteria{
-		Criteria:        pointer.To([]basebackuppolicyresources.BackupCriteria{criteria}),
-		TaggingPriority: priority,
-		TagInfo: basebackuppolicyresources.RetentionTag{
-			Id:      pointer.To(name + "_"),
-			TagName: name,
-		},
-	}
 }

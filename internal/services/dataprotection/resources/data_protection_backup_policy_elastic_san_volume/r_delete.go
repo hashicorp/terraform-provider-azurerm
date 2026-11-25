@@ -23,20 +23,6 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.BackupPoliciesGet(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return nil
-				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-			if !backupPolicySupportsElasticSanVolumes(resp.Model.Properties) {
-				return fmt.Errorf("%s is not a backup policy for `%s`", *id, elasticSanVolumeDatasourceType)
-			}
-
 			if resp, err := client.BackupPoliciesDelete(ctx, *id); err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
