@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -99,7 +99,7 @@ func (r ThreatIntelligenceIndicator) ResourceType() string {
 	return "azurerm_sentinel_threat_intelligence_indicator"
 }
 
-func (r ThreatIntelligenceIndicator) ModelObject() interface{} {
+func (r ThreatIntelligenceIndicator) ModelObject() any {
 	return &IndicatorModel{}
 }
 

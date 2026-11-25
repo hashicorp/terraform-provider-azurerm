@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector
@@ -21,6 +21,8 @@ import (
 )
 
 type FunctionAppConnectorResource struct{}
+
+var _ sdk.ResourceWithUpdate = FunctionAppConnectorResource{}
 
 type FunctionAppConnectorResourceModel struct {
 	Name             string             `tfschema:"name"`
@@ -88,7 +90,7 @@ func (r FunctionAppConnectorResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r FunctionAppConnectorResource) ModelObject() interface{} {
+func (r FunctionAppConnectorResource) ModelObject() any {
 	return &FunctionAppConnectorResourceModel{}
 }
 

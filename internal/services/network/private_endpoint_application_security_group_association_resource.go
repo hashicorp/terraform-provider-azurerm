@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -48,7 +48,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Attributes()
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (p PrivateEndpointApplicationSecurityGroupAssociationResource) ModelObject() interface{} {
+func (p PrivateEndpointApplicationSecurityGroupAssociationResource) ModelObject() any {
 	return &PrivateEndpointApplicationSecurityGroupAssociationModel{}
 }
 

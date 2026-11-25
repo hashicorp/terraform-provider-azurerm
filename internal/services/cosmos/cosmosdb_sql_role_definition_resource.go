@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -24,10 +24,11 @@ import (
 
 func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLRoleDefinitionCreate,
-		Read:   resourceCosmosDbSQLRoleDefinitionRead,
-		Update: resourceCosmosDbSQLRoleDefinitionUpdate,
-		Delete: resourceCosmosDbSQLRoleDefinitionDelete,
+		Description: "Manages a Cosmos DB SQL Role Definition.",
+		Create:      resourceCosmosDbSQLRoleDefinitionCreate,
+		Read:        resourceCosmosDbSQLRoleDefinitionRead,
+		Update:      resourceCosmosDbSQLRoleDefinitionUpdate,
+		Delete:      resourceCosmosDbSQLRoleDefinitionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -43,6 +44,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"role_definition_id": {
+				Description:  "The GUID as the name of the Cosmos DB SQL Role Definition - one will be generated if not specified.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -53,6 +55,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -60,6 +63,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"type": {
+				Description:  "The type of the Cosmos DB SQL Role Definition.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -68,8 +72,9 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"assignable_scopes": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Description: "A list of fully qualified scopes at or below which Role Assignments may be created using this Cosmos DB SQL Role Definition. It will allow application of this Cosmos DB SQL Role Definition on the entire Database Account or any underlying Database/Collection. Scopes higher than Database Account are not enforceable as assignable scopes.",
+				Type:        pluginsdk.TypeSet,
+				Required:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -77,6 +82,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"name": {
+				Description:  "A user-friendly name for the Cosmos DB SQL Role Definition which must be unique for the Database Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -88,8 +94,9 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"data_actions": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Description: "A list of data actions that are allowed for the Cosmos DB SQL Role Definition.",
+							Type:        pluginsdk.TypeSet,
+							Required:    true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -102,7 +109,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -151,7 +158,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleDefinitionRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -190,7 +197,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -240,7 +247,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleDefinitionRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -261,11 +268,11 @@ func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission {
+func expandSqlRoleDefinitionPermissions(input []any) *[]rbacs.Permission {
 	results := make([]rbacs.Permission, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, rbacs.Permission{
 			DataActions: pluginsdk.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
@@ -275,14 +282,14 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission
 	return &results
 }
 
-func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"data_actions": pluginsdk.FlattenSlice(item.DataActions),
 		})
 	}

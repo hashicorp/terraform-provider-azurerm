@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package manageddevopspools
@@ -161,7 +161,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}, "Dev Center Project"),
 
 		"maximum_concurrency": {
 			Type:         pluginsdk.TypeInt,
@@ -385,7 +385,7 @@ func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ManagedDevOpsPoolResource) ModelObject() interface{} {
+func (ManagedDevOpsPoolResource) ModelObject() any {
 	return &ManagedDevOpsPoolModel{}
 }
 

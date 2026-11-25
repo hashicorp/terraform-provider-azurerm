@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -25,10 +25,11 @@ import (
 
 func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLRoleAssignmentCreate,
-		Read:   resourceCosmosDbSQLRoleAssignmentRead,
-		Update: resourceCosmosDbSQLRoleAssignmentUpdate,
-		Delete: resourceCosmosDbSQLRoleAssignmentDelete,
+		Description: "Manages a Cosmos DB SQL Role Assignment.",
+		Create:      resourceCosmosDbSQLRoleAssignmentCreate,
+		Read:        resourceCosmosDbSQLRoleAssignmentRead,
+		Update:      resourceCosmosDbSQLRoleAssignmentUpdate,
+		Delete:      resourceCosmosDbSQLRoleAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -38,12 +39,13 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rbacs.ParseAccountID(id)
+			_, err := rbacs.ParseSqlRoleAssignmentID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The GUID as the name of the Cosmos DB SQL Role Assignment - one will be generated if not specified.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -54,6 +56,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -61,6 +64,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"principal_id": {
+				Description:  "The ID of the Principal (Client) in Azure Active Directory.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -68,6 +72,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"scope": {
+				Description:  "The data plane resource path for which access is being granted through this Cosmos DB SQL Role Assignment.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -75,6 +80,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"role_definition_id": {
+				Description:  "The resource ID of the Cosmos DB SQL Role Definition.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: rbacs.ValidateSqlRoleDefinitionID,
@@ -83,7 +89,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -99,7 +105,7 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 		name = uuid
 	}
 
-	id := rbacs.NewAccountID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
+	id := rbacs.NewSqlRoleAssignmentID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
 
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -130,13 +136,13 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleAssignmentRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseAccountID(d.Id())
+	id, err := rbacs.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,13 +172,13 @@ func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseAccountID(d.Id())
+	id, err := rbacs.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,13 +201,13 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleAssignmentRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseAccountID(d.Id())
+	id, err := rbacs.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -42,7 +42,7 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 //   - a valid UUID - a "pid-" prefix will be added to the ID if it is not already present
 //   - a valid UUID prefixed with "pid-"
 //   - a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
-func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
+func ValidatePartnerID(i any, k string) ([]string, []error) {
 	uuid := `[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}`
 	return validation.Any(
 		validation.StringIsEmpty,
@@ -139,7 +139,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.", // azignore:AZS014 - the default is set by DefaultFunc
 			},
 
 			"metadata_host": {
@@ -168,7 +168,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", nil),
-				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
+				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			"client_certificate_path": {
@@ -182,7 +182,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", nil),
-				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
+				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			// Client Secret specific fields
@@ -205,7 +205,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
-				Description: "Allow OpenID Connect to be used for authentication",
+				Description: "Allow OpenID Connect to be used for authentication.",
 			},
 
 			"ado_pipeline_service_connection_id": {
@@ -352,7 +352,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
-				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
+				Description: "Whether the AzureRM Provider should use Azure AD Authentication when accessing the Storage Data Plane APIs.",
 			},
 		},
 
@@ -369,7 +369,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 // To configure behavioural aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
-	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
 			if !d.Get("use_cli").(bool) {
@@ -378,7 +378,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 		}
 
 		var auxTenants []string
-		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
+		if v, ok := d.Get("auxiliary_tenant_ids").([]any); ok && len(v) > 0 {
 			auxTenants = *pluginsdk.ExpandStringSlice(v)
 		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
 			auxTenants = strings.Split(v, ";")
@@ -496,12 +496,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	additionalProvidersToRegister := make(resourceproviders.ResourceProviders)
-	for _, rp := range d.Get("resource_providers_to_register").([]interface{}) {
+	for _, rp := range d.Get("resource_providers_to_register").([]any) {
 		additionalProvidersToRegister.Add(rp.(string))
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
-	features := expandFeatures(d.Get("features").([]interface{}))
+	features := expandFeatures(d.Get("features").([]any))
 
 	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")

@@ -140,7 +140,7 @@ The following arguments are supported:
 
 ~> **Note:** The `replication_role` cannot be set while creating and only can be updated to `None` for replica server.
 
-* `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
+* `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `B_Standard_B2ats_v2`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
 
 * `source_server_id` - (Optional) The resource ID of the source PostgreSQL Flexible Server to be restored. Required when `create_mode` is `GeoRestore`, `PointInTimeRestore` or `Replica`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -148,7 +148,11 @@ The following arguments are supported:
 
 ~> **Note:** `auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`.
 
-* `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
+* `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server.
+
+~> **Note:** When `storage_type` is `Premium_LRS`, possible values for `storage_mb` are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
+
+~> **Note:** When `storage_type` is `PremiumV2_LRS`, `storage_mb` can be any multiple of `1024` between `32768` and `67108864` (i.e. between 32 GiB and 65536 GiB).
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
 
@@ -336,4 +340,4 @@ terraform import azurerm_postgresql_flexible_server.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL` - 2025-08-01
+* `Microsoft.DBforPostgreSQL` - 2026-10-01
