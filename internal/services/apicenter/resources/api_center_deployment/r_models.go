@@ -10,6 +10,5 @@ type ApiCenterDeploymentModel struct {
 	Description      string   `tfschema:"description"`
 	EnvironmentId    string   `tfschema:"api_center_environment_id"`
 	ServerRuntimeUrl []string `tfschema:"server_runtime_url"`
-	State            string   `tfschema:"state"`
 	Title            string   `tfschema:"display_name"`
 }

@@ -13,8 +13,9 @@ import (
 //go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name azurerm_api_center_api_definition -service-package-name apicenter -properties "name" -compare-values "subscription_id:api_center_api_version_id,resource_group_name:api_center_api_version_id,service_name:api_center_api_version_id,workspace_name:api_center_api_version_id,api_name:api_center_api_version_id,version_name:api_center_api_version_id"
 
 var (
-	_ sdk.ResourceWithIdentity = Resource{}
-	_ sdk.Resource             = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
+	_ sdk.ResourceWithIdentity      = Resource{}
+	_ sdk.Resource                  = Resource{}
 )
 
 func (r Resource) Identity() resourceids.ResourceId {

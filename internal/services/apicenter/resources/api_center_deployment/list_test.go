@@ -62,7 +62,6 @@ resource "azurerm_api_center_deployment" "test" {
   name                         = "acctest%d${count.index}"
   api_center_api_definition_id = azurerm_api_center_api_definition.test.id
   api_center_environment_id    = azurerm_api_center_environment.test.id
-  state                        = "active"
 
   server_runtime_url = [
     "https://example.com/api",

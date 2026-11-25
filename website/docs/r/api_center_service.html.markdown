@@ -6,7 +6,7 @@ description: |-
   Documentation for azurerm_api_center_service.
 ---
 
-# Resource: azurerm_api_center_service
+# azurerm_api_center_service
 
 Documentation for azurerm_api_center_service.
 

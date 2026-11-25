@@ -95,7 +95,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"url": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The URL of the external documentation.",
-						Optional:     true,
+						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 

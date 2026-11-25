@@ -14,10 +14,6 @@ func expandApiDefinitionPropertiesSpecification(input []ApiDefinitionPropertiesS
 	}
 	v := input[0]
 
-	if v.Url == "" && v.Content == "" {
-		return nil
-	}
-
 	format := apidefinitions.ApiSpecImportSourceFormatInline
 	content := v.Content
 	if v.Url != "" {

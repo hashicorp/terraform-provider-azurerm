@@ -49,15 +49,15 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.Title = state.Title
 			}
 
+			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
 			if metadata.ResourceData.HasChange("specification") {
 				importSpec := expandApiDefinitionPropertiesSpecification(state.Specification)
 				if err := client.ImportSpecificationThenPoll(ctx, *id, *importSpec); err != nil {
 					return fmt.Errorf("importing specification for %s: %+v", id, err)
 				}
-			}
-
-			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil

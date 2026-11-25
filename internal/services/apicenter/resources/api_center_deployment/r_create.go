@@ -72,7 +72,6 @@ func (r Resource) Create() sdk.ResourceFunc {
 					Description:      new(config.Description),
 					EnvironmentId:    new(scopedEnvironmentId),
 					Server:           &deployments.DeploymentServer{RuntimeUri: pointer.To(config.ServerRuntimeUrl)},
-					State:            new(deployments.DeploymentState(config.State)),
 					Title:            new(config.Title),
 				},
 			}

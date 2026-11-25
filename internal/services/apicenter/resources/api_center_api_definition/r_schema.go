@@ -4,7 +4,10 @@
 package api_center_api_definition
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apiversions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -54,6 +57,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeString,
 						Description: "The name of the Specification.",
 						Required:    true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"openapi", "wsdl", "wadl", "graphql", "grpc", "asyncapi", "raml",
+							"other",
+						}, false),
 					},
 
 					"content": {
@@ -61,15 +68,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The content of the Specification.",
 						Optional:    true,
 						// Note: O+C if URL is set, Azure will be used to fetch the specification content and only return that
-						Computed:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Computed:      true,
+						ValidateFunc:  validation.StringIsNotEmpty,
+						ConflictsWith: []string{"specification.0.url"},
+						AtLeastOneOf:  []string{"specification.0.content", "specification.0.url"},
 					},
 
 					"url": {
-						Type:         pluginsdk.TypeString,
-						Description:  "The URL containing the Specification content.",
-						Optional:     true,
-						ValidateFunc: validation.IsURLWithHTTPS,
+						Type:          pluginsdk.TypeString,
+						Description:   "The URL containing the Specification content.",
+						Optional:      true,
+						ValidateFunc:  validation.IsURLWithHTTPS,
+						ConflictsWith: []string{"specification.0.content"},
+						AtLeastOneOf:  []string{"specification.0.content", "specification.0.url"},
 					},
 
 					"version": {
@@ -85,4 +96,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(_ context.Context, metadata sdk.ResourceMetaData) error {
+			diff := metadata.ResourceDiff
+			if diff.HasChange("specification.#") && diff.NewValueKnown("specification.#") && diff.Get("specification.#").(int) == 0 {
+				return diff.ForceNew("specification")
+			}
+			return nil
+		},
+	}
 }

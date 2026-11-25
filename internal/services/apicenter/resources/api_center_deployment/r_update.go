@@ -52,7 +52,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("api_definition_id") {
+			if metadata.ResourceData.HasChange("api_center_api_definition_id") {
 				definition, err := apidefinitions.ParseDefinitionID(state.DefinitionId)
 				if err != nil {
 					return err
@@ -65,7 +65,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.Description = pointer.To(state.Description)
 			}
 
-			if metadata.ResourceData.HasChange("environment_id") {
+			if metadata.ResourceData.HasChange("api_center_environment_id") {
 				environment, err := environments.ParseEnvironmentID(state.EnvironmentId)
 				if err != nil {
 					return err
@@ -77,9 +77,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("server_runtime_url") {
 				model.Properties.Server.RuntimeUri = pointer.To(state.ServerRuntimeUrl)
 			}
-			if metadata.ResourceData.HasChange("state") {
-				model.Properties.State = pointer.ToEnum[deployments.DeploymentState](state.State)
-			}
+
 			if metadata.ResourceData.HasChange("display_name") {
 				model.Properties.Title = pointer.To(state.Title)
 			}

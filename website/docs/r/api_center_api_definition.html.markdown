@@ -63,9 +63,9 @@ The `specification` block supports the following:
 
 * `name` - (Required) The name of the Specification.
 
-* `content` - (Optional) The content of the Specification.
+* `content` - (Optional) The content of the Specification. One of `url` or `content` must be specified.
 
-* `url` - (Optional) The URL containing the Specification content.
+* `url` - (Optional) The URL containing the Specification content. One of `url` or `content` must be specified.
 
 * `version` - (Optional) The version of the Specification.
 

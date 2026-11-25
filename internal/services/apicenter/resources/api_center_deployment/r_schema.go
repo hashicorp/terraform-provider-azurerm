@@ -5,7 +5,6 @@ package api_center_deployment
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/validate"
@@ -64,14 +63,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			// Note: O+C if display name is not set, it will default to the name of the deployment
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 50),
-		},
-
-		"state": {
-			Type:         pluginsdk.TypeString,
-			Description:  "The state of the deployment.",
-			Optional:     true,
-			Default:      deployments.DeploymentStateActive,
-			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentState(), false),
 		},
 	}
 }
