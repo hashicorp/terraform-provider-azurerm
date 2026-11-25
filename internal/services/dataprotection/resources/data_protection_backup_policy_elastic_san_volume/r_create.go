@@ -74,32 +74,33 @@ func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanV
 
 		name := "Default"
 		tagPriority := 99
-		isDefault := true
 		switch marker {
 		case basebackuppolicyresources.AbsoluteMarkerFirstOfDay:
 			name = "Daily"
 			tagPriority = 3
-			isDefault = false
 		case basebackuppolicyresources.AbsoluteMarkerFirstOfWeek:
 			name = "Weekly"
 			tagPriority = 2
-			isDefault = false
 		case basebackuppolicyresources.AbsoluteMarkerFirstOfMonth:
 			name = "Monthly"
 			tagPriority = 1
-			isDefault = false
 		}
 
-		taggingCriteria = append(taggingCriteria, basebackuppolicyresources.TaggingCriteria{
-			Criteria: pointer.To([]basebackuppolicyresources.BackupCriteria{basebackuppolicyresources.ScheduleBasedBackupCriteria{
-				AbsoluteCriteria: pointer.To([]basebackuppolicyresources.AbsoluteMarker{marker}),
-			}}),
+		isDefault := name == "Default"
+		taggingCriterion := basebackuppolicyresources.TaggingCriteria{
+			IsDefault: isDefault,
 			TaggingPriority: int64(tagPriority),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(name + "_"),
 				TagName: name,
 			},
-		})
+		}
+		if !isDefault {
+			taggingCriterion.Criteria = pointer.To([]basebackuppolicyresources.BackupCriteria{basebackuppolicyresources.ScheduleBasedBackupCriteria{
+				AbsoluteCriteria: pointer.To([]basebackuppolicyresources.AbsoluteMarker{marker}),
+			}})
+		}
+		taggingCriteria = append(taggingCriteria, taggingCriterion)
 
 		rules = append(rules, basebackuppolicyresources.AzureRetentionRule{
 			Name:      name,
@@ -116,7 +117,7 @@ func expandBackupPolicyElasticSanVolumePolicyRules(input BackupPolicyElasticSanV
 		})
 	}
 
-	updateCriteriaAndRules("Default", input.DefaultRetentionDuration)
+	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerAllBackup, input.DefaultRetentionDuration)
 	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerFirstOfDay, input.DailyRetentionDuration)
 	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerFirstOfWeek, input.WeeklyRetentionDuration)
 	updateCriteriaAndRules(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth, input.MonthlyRetentionDuration)
