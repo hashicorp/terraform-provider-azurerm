@@ -11,45 +11,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func NodePoolAzureContainerLinuxCustomizeDiff(nodePoolPath string) pluginsdk.CustomizeDiffFunc {
-	prefix := ""
-	if nodePoolPath != "" {
-		prefix = nodePoolPath + ".0."
-	}
-	osSKUPath := prefix + "os_sku"
-	securityPath := prefix + "security.0."
+func NodePoolAzureContainerLinuxCustomizeDiff(pathPrefix string) pluginsdk.CustomizeDiffFunc {
+	osSKUPath := pathPrefix + "os_sku"
+	securityPath := pathPrefix + "security"
 
-	return func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
+	return func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 		osSKU, ok := d.GetOkExists(osSKUPath)
 		if !ok || osSKU.(string) != string(agentpools.OSSKUAzureContainerLinux) {
 			return nil
 		}
 
-		if _, ok := d.GetOkExists(prefix + "security.#"); !ok {
-			config := d.GetRawConfig()
-			if !config.IsKnown() || config.IsNull() {
-				return nil
-			}
-			if nodePoolPath != "" {
-				nodePools := config.GetAttr(nodePoolPath)
-				if !nodePools.IsKnown() || nodePools.IsNull() || nodePools.LengthInt() == 0 {
-					return nil
-				}
-				config = nodePools.AsValueSlice()[0]
-				if !config.IsKnown() || config.IsNull() {
-					return nil
-				}
-			}
-
-			security := config.GetAttr("security")
-			if security.IsKnown() && (security.IsNull() || security.LengthInt() == 0) {
-				return fmt.Errorf("`%ssecure_boot_enabled` must be set to `true` when `%s` is `AzureContainerLinux`", securityPath, osSKUPath)
-			}
+		if !d.NewValueKnown(securityPath) {
 			return nil
 		}
 
 		for _, flag := range []string{"secure_boot_enabled", "vtpm_enabled"} {
-			path := securityPath + flag
+			path := securityPath + ".0." + flag
 			value, ok := d.GetOkExists(path)
 			if ok && !value.(bool) {
 				return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
