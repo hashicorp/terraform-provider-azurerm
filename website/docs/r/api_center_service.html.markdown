@@ -68,3 +68,9 @@ This resource can be imported using its resource ID, e.g.
 ```shell
 terraform import azurerm_api_center_service.example "<resource-id>"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiCenter` - 2024-03-01
