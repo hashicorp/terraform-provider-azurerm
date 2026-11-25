@@ -172,6 +172,8 @@ The following arguments are supported:
 
 * `outbound_network_restriction_enabled` - (Optional) Whether outbound network traffic is restricted for this server. Defaults to `false`.
 
+* `soft_delete_retention_days` - (Optional) The number of days a deleted server is retained in a soft-deleted state and can be restored. Possible values are between `0` and `7`. Setting this to `0` disables soft delete.
+
 * `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id. Required if `type` within the `identity` block is set to either `SystemAssigned, UserAssigned` or `UserAssigned` and should be set at same time as setting `identity_ids`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

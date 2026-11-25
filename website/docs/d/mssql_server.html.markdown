@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the Microsoft SQL Server.
 
+* `soft_delete_retention_days` - The number of days a deleted server is retained in a soft-deleted state and can be restored. A value of `0` means soft delete is disabled.
+
 * `transparent_data_encryption_key_vault_key_id` - The Key Vault Key URI to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.
 
 * `tags` - A mapping of tags assigned to this Microsoft SQL Server.

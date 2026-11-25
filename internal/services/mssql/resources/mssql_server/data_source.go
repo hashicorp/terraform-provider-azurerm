@@ -76,6 +76,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 				},
 			},
 
+			"soft_delete_retention_days": {
+				Description: "The number of days a deleted server is retained in a soft-deleted state and can be restored. A value of `0` means soft delete is disabled.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
+			},
+
 			"transparent_data_encryption_key_vault_key_id": {
 				Description: "The Key Vault Key URI to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.",
 				Type:        pluginsdk.TypeString,
@@ -115,6 +121,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("version", props.Version)
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+			d.Set("soft_delete_retention_days", int(pointer.From(props.RetentionDays)))
 			d.Set("transparent_data_encryption_key_vault_key_id", props.KeyId)
 		}
 

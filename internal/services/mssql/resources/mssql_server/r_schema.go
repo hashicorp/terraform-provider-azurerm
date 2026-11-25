@@ -174,6 +174,14 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 			Default:     false,
 		},
 
+		"soft_delete_retention_days": {
+			Description:  "The number of days a deleted server is retained in a soft-deleted state and can be restored. Possible values are between `0` and `7`. Setting this to `0` disables soft delete.",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(0, 7),
+		},
+
 		"fully_qualified_domain_name": {
 			Description: "The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net).",
 			Type:        pluginsdk.TypeString,
