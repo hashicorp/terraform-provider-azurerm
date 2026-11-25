@@ -7,38 +7,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
-var (
-	storageAccountResourceName  = "azurerm_storage_account"
-	storageKindsSupportsSkuTier = map[storageaccounts.Kind]struct{}{
-		storageaccounts.KindBlobStorage: {},
-		storageaccounts.KindFileStorage: {},
-		storageaccounts.KindStorageVTwo: {},
-	}
-	storageKindsSupportHns = map[storageaccounts.Kind]struct{}{
-		storageaccounts.KindBlobStorage:      {},
-		storageaccounts.KindBlockBlobStorage: {},
-		storageaccounts.KindStorageVTwo:      {},
-	}
-	storageKindsSupportLargeFileShares = map[storageaccounts.Kind]struct{}{
-		storageaccounts.KindFileStorage: {},
-		storageaccounts.KindStorageVTwo: {},
-	}
-	storageReplicationZonalMigrationPairs = map[string]string{
-		"LRS":    "ZRS",
-		"GRS":    "GZRS",
-		"RAGRS":  "RAGZRS",
-		"ZRS":    "LRS",
-		"GZRS":   "GRS",
-		"RAGZRS": "RAGRS",
-	}
-)
+var storageAccountResourceName = "azurerm_storage_account"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
