@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -61,7 +61,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Arguments() 
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}, "Spring Cloud Service"),
 
 		"application_packages": {
 			Type:     pluginsdk.TypeList,
