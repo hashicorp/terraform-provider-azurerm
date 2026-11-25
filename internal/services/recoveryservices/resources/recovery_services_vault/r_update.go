@@ -47,7 +47,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta any) er
 			}
 			if d.HasChange("sku") {
 				// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
-				// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
+				// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
 				// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
 				return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
 			}

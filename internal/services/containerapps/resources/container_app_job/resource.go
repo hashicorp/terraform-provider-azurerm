@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_container_app_job"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Container App Job."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return jobs.ValidateJobID
 }

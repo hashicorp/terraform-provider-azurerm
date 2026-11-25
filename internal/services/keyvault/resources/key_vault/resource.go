@@ -18,10 +18,11 @@ var keyVaultResourceName = "azurerm_key_vault"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultCreate,
-		Read:   resourceKeyVaultRead,
-		Update: resourceKeyVaultUpdate,
-		Delete: resourceKeyVaultDelete,
+		Description: "Manages a Key Vault.",
+		Create:      resourceKeyVaultCreate,
+		Read:        resourceKeyVaultRead,
+		Update:      resourceKeyVaultUpdate,
+		Delete:      resourceKeyVaultDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.KeyVaultId{}),
 

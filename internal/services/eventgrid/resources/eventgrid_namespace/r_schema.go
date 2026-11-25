@@ -22,6 +22,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Event Grid Namespace resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"capacity": {
+			Description:  "The Capacity / Throughput Units for an Eventgrid Namespace.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 40),
@@ -48,11 +50,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {
+						Description:  "The IP mask (CIDR) to match on.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"action": {
+						Description:  "The action to take when the rule is matched.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(namespaces.IPActionTypeAllow),
@@ -63,8 +67,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Whether public network access is allowed for this server.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(namespaces.PublicNetworkAccessEnabled),
 				string(namespaces.PublicNetworkAccessDisabled),
@@ -73,6 +78,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
+			Description:  "Which tier to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
@@ -89,8 +95,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"alternative_authentication_name_source": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of alternative sources for the client authentication name from the client certificate.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForAlternativeAuthenticationNameSource(), false),
@@ -98,6 +105,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"maximum_client_sessions_per_authentication_name": {
+						Description:  "The maximum number of client sessions per authentication name.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -105,6 +113,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"maximum_session_expiry_in_hours": {
+						Description:  "The maximum session expiry interval allowed for all MQTT clients connecting to the Event Grid namespace.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -112,8 +121,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"route_topic_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+            Description:  "The Event Grid topic resource ID to route messages to.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validation.Any(
 							topics.ValidateTopicID,
 							namespacetopics.ValidateNamespaceTopicID,
@@ -127,12 +137,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key": {
+									Description:  "The enrichment key.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 20),
 								},
 
 								"value": {
+									Description:  "The enrichment value.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 128),
@@ -148,12 +160,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key": {
+									Description:  "The enrichment key.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 20),
 								},
 
 								"value": {
+									Description:  "The enrichment value.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringLenBetween(1, 128),

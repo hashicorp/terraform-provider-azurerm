@@ -100,6 +100,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Managed Kubernetes Cluster to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -119,8 +120,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "Set of authorized IP ranges to allow access to API server, e.g. `[\"198.51.100.0/24\"]`.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
@@ -133,8 +135,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The ID of the Subnet where the API server endpoint is delegated to. Is required for bring your own networking.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
@@ -154,6 +157,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"node_subnet_id": {
+						Description:  "The ID of the Subnet where the user nodes are hosted. Is required for bring your own networking.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -161,6 +165,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"system_node_subnet_id": {
+						Description:  "The ID of the Subnet where the system nodes are hosted. Is required for bring your own networking.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -177,16 +182,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"public_fully_qualified_domain_name_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Provisions a Public FQDN for the private cluster.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"private_dns_zone_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  "System",
+						Description: "The ID of the Private DNS Zone which should be used for this Kubernetes Cluster.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     "System",
 						ValidateFunc: validation.Any(
 							privatezones.ValidatePrivateDnsZoneID,
 							validation.StringInSlice([]string{
@@ -206,18 +213,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"internal_ingress_gateway_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Enables Istio Internal Ingress Gateway.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"external_ingress_gateway_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Enables Istio External Ingress Gateway.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"proxy_redirect_mechanism": {
+						Description:  "The mechanism used to redirect application traffic to the Istio sidecar proxy.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      managedclusters.ProxyRedirectionMechanismInitContainers,
@@ -225,32 +235,37 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"certificate_authority": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Description: "This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+								"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 								"root_certificate_object_name": {
+									Description:  "The root certificate object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"certificate_chain_object_name": {
+									Description:  "The certificate chain object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"certificate_object_name": {
+									Description:  "The intermediate certificate object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"key_object_name": {
+									Description:  "The intermediate certificate private key object name in Azure Key Vault.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -259,10 +274,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"revisions": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
-						MaxItems: 2,
+						Description: "One to two Istio control plane revisions for managing minor upgrades using the canary upgrade process. For example, create the resource with `revisions` set to `[\"asm-1-27\"]`. To start the canary upgrade, change `revisions` to `[\"asm-1-27\", \"asm-1-28\"]`. To roll back the canary upgrade, revert to `[\"asm-1-27\"]`. To confirm the upgrade, change to `[\"asm-1-28\"]`.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
+						MaxItems:    2,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringStartsWithOneOf("asm-"),
@@ -281,8 +297,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_zone_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "Resource IDs of the DNS zones to be associated with the Application Routing add-on. Public and private DNS zones can be in different Resource Groups, but all public DNS zones must be in the same Resource Group and all private DNS zones must be in the same Resource Group.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -293,8 +310,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"default_nginx_controller": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The ingress type for the default `NginxIngressController` custom resource.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
 							string(managedclusters.NginxIngressControllerTypeInternal),
@@ -304,6 +322,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"istio_enabled": {
+						Description:  "Enables Istio as a Gateway API implementation.",
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
@@ -316,18 +335,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Client ID of the user-defined Managed Identity used for Web App Routing.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"object_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Object ID of the user-defined Managed Identity used for Web App Routing.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"user_assigned_identity_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The ID of the User Assigned Identity used for Web App Routing.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -343,13 +365,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"current_kubernetes_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current version running on the Azure Kubernetes Managed Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the Azure Kubernetes Managed Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kube_config": {
@@ -359,63 +383,74 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Kubernetes cluster server host.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A username used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "A password or token used to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"kube_config_raw": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"node_resource_group_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"oidc_issuer_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The OIDC issuer URL that is associated with the cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"portal_fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN for the Azure Portal resources when Private Link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"private_fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN for the Kubernetes Cluster when Private Link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

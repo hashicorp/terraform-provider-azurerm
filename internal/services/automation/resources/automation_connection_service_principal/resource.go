@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionServicePrincipalCreate,
-		Read:   resourceAutomationConnectionServicePrincipalRead,
-		Update: resourceAutomationConnectionServicePrincipalUpdate,
-		Delete: resourceAutomationConnectionServicePrincipalDelete,
+		Description: "Manages an Automation Connection with type `AzureServicePrincipal`.",
+		Create:      resourceAutomationConnectionServicePrincipalCreate,
+		Read:        resourceAutomationConnectionServicePrincipalRead,
+		Update:      resourceAutomationConnectionServicePrincipalUpdate,
+		Delete:      resourceAutomationConnectionServicePrincipalDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := connection.ParseConnectionID(id)

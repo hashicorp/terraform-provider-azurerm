@@ -17,10 +17,11 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The hostname of the Certificate. Must be the CN or a named SAN in the certificate.",
+			Description:  "The fully qualified name of the Custom Domain.",
 		},
 
 		"container_app_id": {
+			Description:  "The ID of the Container App to which this Custom Domain should be bound.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"container_app_environment_certificate_id": {
+			Description:  "The ID of the Container App Environment Certificate to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -40,7 +42,7 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
-			Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`.",
+			Description:  "The Certificate Binding type.",
 		},
 	}
 }
@@ -48,8 +50,9 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 func (a Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"container_app_environment_managed_certificate_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Container App Environment Managed Certificate to use.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

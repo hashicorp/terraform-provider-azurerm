@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"managed_instance_id": {
+			Description:  "The ID of the Azure SQL Managed Instance for which to set the administrator.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,26 +21,30 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"login_username": {
+			Description:  "The login name of the principal to set as the Managed Instance Administrator.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"object_id": {
+			Description:  "The Object ID of the principal to set as the Managed Instance Administrator.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"tenant_id": {
+			Description:  "The Azure Active Directory Tenant ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"azuread_authentication_only": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "When `true`, only permit logins from AAD users and administrators. When `false`, also allow local database users.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 	}
 }

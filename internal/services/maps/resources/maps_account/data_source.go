@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMapsAccountRead,
+		Description: "Use this data source to access information about an existing Azure Maps Account.",
+		Read:        dataSourceMapsAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,6 +28,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Maps Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName(),
@@ -35,27 +37,31 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Azure Maps Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.Tags(),
 
 			"x_ms_client_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A unique identifier for the Maps Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary key used to authenticate and authorize access to the Maps REST APIs.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary key used to authenticate and authorize access to the Maps REST APIs. The second key is given to provide seamless key regeneration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Monitor Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,9 +22,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"location": commonschema.Location(),
@@ -35,16 +37,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"query_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The query endpoint for the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"default_data_collection_endpoint_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the managed default Data Collection Endpoint created with the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"default_data_collection_rule_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the managed default Data Collection Rule created with the Azure Monitor Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

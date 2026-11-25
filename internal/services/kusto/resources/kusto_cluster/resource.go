@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoClusterCreate,
-		Read:   resourceKustoClusterRead,
-		Update: resourceKustoClusterUpdate,
-		Delete: resourceKustoClusterDelete,
+		Description: "Manages a Kusto (also known as Azure Data Explorer) Cluster.",
+		Create:      resourceKustoClusterCreate,
+		Read:        resourceKustoClusterRead,
+		Update:      resourceKustoClusterUpdate,
+		Delete:      resourceKustoClusterDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

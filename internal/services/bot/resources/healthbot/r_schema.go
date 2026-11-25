@@ -14,6 +14,7 @@ import (
 func healthbotSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Healthbot Service resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,14 +26,16 @@ func healthbotSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
+			Description:  "The name which should be used for the SKU of the service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(healthbots.PossibleValuesForSkuName(), false),
 		},
 
 		"bot_management_portal_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The management portal URL.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

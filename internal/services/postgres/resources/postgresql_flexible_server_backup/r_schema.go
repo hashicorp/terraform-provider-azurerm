@@ -19,7 +19,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.FlexibleServerBackupName,
 		},
 
-		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&backupautomaticandondemands.FlexibleServerId{}),
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&backupautomaticandondemands.FlexibleServerId{}, "PostgreSQL Flexible Server"),
 	}
 }
 

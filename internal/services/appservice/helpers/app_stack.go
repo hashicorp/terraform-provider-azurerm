@@ -144,7 +144,7 @@ func WindowsApplicationStackSchema() *pluginsdk.Schema {
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_version",
 					},
-					Description: "Should the application use the embedded web server for the version of Java in use.",
+					Description: "Whether the application should use the embedded web server for the version of Java in use.",
 				},
 
 				"tomcat_version": {

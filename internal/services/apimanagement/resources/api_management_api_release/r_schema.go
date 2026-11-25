@@ -13,6 +13,7 @@ import (
 func apiManagementApiReleaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this API Management API Release.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func apiManagementApiReleaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"api_id": {
+			Description:  "The ID of the API Management API.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func apiManagementApiReleaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"notes": {
+			Description:  "The Release Notes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

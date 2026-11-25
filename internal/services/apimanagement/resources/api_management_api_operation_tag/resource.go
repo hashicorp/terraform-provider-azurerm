@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiOperationTagCreateUpdate,
-		Read:   resourceApiManagementApiOperationTagRead,
-		Update: resourceApiManagementApiOperationTagCreateUpdate,
-		Delete: resourceApiManagementApiOperationTagDelete,
+		Description: "Manages an API Management API Operation Tag.",
+		Create:      resourceApiManagementApiOperationTagCreateUpdate,
+		Read:        resourceApiManagementApiOperationTagRead,
+		Update:      resourceApiManagementApiOperationTagCreateUpdate,
+		Delete:      resourceApiManagementApiOperationTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apioperationtag.ParseOperationTagID(id)

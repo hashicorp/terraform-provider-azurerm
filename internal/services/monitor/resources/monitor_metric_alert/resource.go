@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorMetricAlertCreateUpdate,
-		Read:   resourceMonitorMetricAlertRead,
-		Update: resourceMonitorMetricAlertCreateUpdate,
-		Delete: resourceMonitorMetricAlertDelete,
+		Description: "Manages a Metric Alert within Azure Monitor.",
+		Create:      resourceMonitorMetricAlertCreateUpdate,
+		Read:        resourceMonitorMetricAlertRead,
+		Update:      resourceMonitorMetricAlertCreateUpdate,
+		Delete:      resourceMonitorMetricAlertDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&metricalerts.MetricAlertId{}),
 

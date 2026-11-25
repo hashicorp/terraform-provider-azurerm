@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_virtual_machine_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Microsoft SQL Virtual Machine Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return availabilitygrouplisteners.ValidateSqlVirtualMachineGroupID
 }

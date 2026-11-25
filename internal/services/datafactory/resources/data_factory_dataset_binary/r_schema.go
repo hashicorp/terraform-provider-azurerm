@@ -14,6 +14,7 @@ import (
 func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Binary Dataset. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"linked_service_name": {
+			Description:  "The Data Factory Linked Service name in which to associate the Binary Dataset with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -42,29 +45,34 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"relative_url": {
+						Description:  "The base URL to the web server hosting the file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"path": {
+						Description:  "The folder path to the file on the web server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"filename": {
+						Description:  "The filename of the file on the web server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -78,23 +86,27 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"path": {
+						Description:  "The folder path to the file on the SFTP server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"filename": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The filename of the file on the SFTP server.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 					"dynamic_filename_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -109,70 +121,81 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container": {
+						Description:  "The container on the Azure Blob Storage Account hosting the file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_container_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `container` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"path": {
+						Description:  "The folder path to the file in the blob container.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"filename": {
+						Description:  "The filename of the file in the blob container.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A list of parameters to associate with the Data Factory Binary Dataset.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Dataset.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Binary Dataset.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"folder": {
+			Description:  "The folder that this Dataset is in. If not specified, the Dataset will appear at the root level.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Binary Dataset.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -186,8 +209,9 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					// TarGZip, GZip, ZipDeflate
 					"level": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The level of compression.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Optimal",
 							"Fastest",
@@ -195,8 +219,9 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 					},
 					// SFTP Specific field
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The type of compression used during transport.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							helpers.TypeBasicDatasetCompressionTypeBZip2,
 							helpers.TypeBasicDatasetCompressionTypeDeflate,

@@ -20,10 +20,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorActivityLogAlertCreateUpdate,
-		Read:   resourceMonitorActivityLogAlertRead,
-		Update: resourceMonitorActivityLogAlertCreateUpdate,
-		Delete: resourceMonitorActivityLogAlertDelete,
+		Description: "Manages an Activity Log Alert within Azure Monitor.",
+		Create:      resourceMonitorActivityLogAlertCreateUpdate,
+		Read:        resourceMonitorActivityLogAlertRead,
+		Update:      resourceMonitorActivityLogAlertCreateUpdate,
+		Delete:      resourceMonitorActivityLogAlertDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&activitylogalertsapis.ActivityLogAlertId{}),
 

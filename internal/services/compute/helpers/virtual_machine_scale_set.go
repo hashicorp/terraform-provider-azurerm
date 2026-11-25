@@ -34,10 +34,11 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
 				"ultra_ssd_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-					ForceNew: true,
+					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine Scale Set.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					ForceNew:    true,
 				},
 			},
 		},
@@ -75,6 +76,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The Name which should be used for this Network Interface.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -83,8 +85,9 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"ip_configuration": VirtualMachineScaleSetIPConfigurationSchema(),
 
 				"auxiliary_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// None is not exposed
 						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
@@ -93,8 +96,9 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 
 				"auxiliary_sku": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The SKU used for the network high-performance feature on Network Virtual Appliances (NVAs).",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// None is not exposed
 						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAEight),
@@ -105,32 +109,37 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 
 				"dns_servers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 				"accelerated_networking_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether this Network Interface supports Accelerated Networking.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 				"ip_forwarding_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether this Network Interface supports IP Forwarding.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 				"network_security_group_id": {
+					Description:  "The ID of a Network Security Group which should be assigned to this Network Interface.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 				},
 				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether this is the Primary IP Configuration.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -145,6 +154,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"version_id": {
+					Description:  "The Gallery Application Version resource ID.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -153,6 +163,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
 				"configuration_blob_uri": {
+					Description:  "The URI to an Azure Blob that will replace the default configuration for the package if provided.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -160,6 +171,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 				},
 
 				"order": {
+					Description:  "The order in which the packages have to be installed.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
@@ -169,6 +181,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
 				"tag": {
+					Description:  "A passthrough value for more generic context. This field can be any valid `string` value.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -249,6 +262,7 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"rule": {
+					Description:  "The scale-in policy rule that decides which Virtual Machines are chosen for removal when a Virtual Machine Scale Set is scaled in. For more information about scale in policy, [refer to this doc](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
@@ -256,9 +270,10 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 				},
 
 				"force_deletion_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the Virtual Machines chosen for removal should be force deleted when the Virtual Machine Scale Set is being scaled-in.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -311,13 +326,15 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-					ForceNew: true,
+					Description: "Whether the Spot-Try-Restore feature should be enabled. The Spot-Try-Restore feature will attempt to automatically restore the evicted Spot Virtual Machine Scale Set VM instances opportunistically based on capacity availability and pricing constraints.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					ForceNew:    true,
 				},
 
 				"timeout": {
+					Description:  "The length of time that the Virtual Machine Scale Set should attempt to restore the Spot VM instances which have been evicted. The time duration should be between `15` minutes and `120` minutes (inclusive). The time duration should be specified in the ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT1H",
@@ -449,44 +466,52 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the network interface configuration.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"ip_configuration": VirtualMachineScaleSetIPConfigurationSchemaForDataSource(),
 
 				"auxiliary_mode": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The auxiliary mode for the network interface.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"auxiliary_sku": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The auxiliary SKU for the network interface.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"dns_servers": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "An array of the DNS servers in use.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 				"accelerated_networking_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Whether accelerated networking is enabled.",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 				"ip_forwarding_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Whether IP forwarding is enabled on this NIC.",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 				"network_security_group_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The identifier for the Network Security Group.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 			},
 		},
@@ -500,6 +525,7 @@ func VirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The Name which should be used for this IP Configuration.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -507,15 +533,17 @@ func VirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 
 				// Optional
 				"application_gateway_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Description: "A list of Backend Address Pools ID's from an Application Gateway which this Virtual Machine Scale Set should be connected to.",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:         pluginsdk.HashString,
 				},
 
 				"application_security_group_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
+					Description: "A list of Application Security Group ID's which this Virtual Machine Scale Set should be connected to.",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
@@ -525,34 +553,39 @@ func VirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				},
 
 				"load_balancer_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Description: "A list of Backend Address Pools ID's from a Load Balancer which this Virtual Machine Scale Set should be connected to.",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:         pluginsdk.HashString,
 				},
 
 				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Description: "A list of NAT Rule ID's from a Load Balancer which this Virtual Machine Scale Set should be connected to.",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:         pluginsdk.HashString,
 				},
 
 				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether this is the Primary IP Configuration for this Network Interface.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"public_ip_address": VirtualMachineScaleSetPublicIPAddressSchema(),
 
 				"subnet_id": {
+					Description:  "The ID of the Subnet which this IP Configuration should be connected to.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"version": {
+					Description:  "The Internet Protocol Version which should be used for this IP Configuration.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.IPVersionIPvFour),
@@ -570,52 +603,59 @@ func VirtualMachineScaleSetIPConfigurationSchemaForDataSource() *pluginsdk.Schem
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the IP configuration.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"application_gateway_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "An array of references to backend address pools of Application Gateways.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"application_security_group_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "The Application Security Group IDs to use.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"load_balancer_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "An array of references to backend address pools of load balancers.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "An array of references to inbound NAT pools for load balancers.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
+					Description: "If this ip_configuration is the primary one.",
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
 				},
 
 				"public_ip_address": VirtualMachineScaleSetPublicIPAddressSchemaForDataSource(),
 
 				"subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The identifier of the subnet.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"version": {
@@ -634,17 +674,20 @@ func VirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The Name of the Public IP Address Configuration.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"domain_name_label": {
+					Description:  "The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"idle_timeout_in_minutes": {
+					Description:  "The Idle Timeout in Minutes for the Public IP Address.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -658,12 +701,14 @@ func VirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"tag": {
+								Description:  "The IP Tag associated with the Public IP, such as `SQL` or `Storage`.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
+								Description:  "The Type of IP Tag, such as `FirstPartyUsage`.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
@@ -673,6 +718,7 @@ func VirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					},
 				},
 				"version": {
+					Description:  "The Internet Protocol Version which should be used for this public IP address.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -683,6 +729,7 @@ func VirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 				// $ az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress
 				// $ az provider register -n Microsoft.Network
 				"public_ip_prefix_id": {
+					Description:  "The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -695,23 +742,27 @@ func VirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 
 func VirtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
+		Description: "The Virtual Machines scale set IP Configuration's PublicIPAddress configuration.",
+		Type:        pluginsdk.TypeList,
+		Computed:    true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the public IP address configuration.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"domain_name_label": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The domain name label for the DNS settings.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"idle_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The idle timeout in minutes.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 
 				"ip_tag": {
@@ -720,25 +771,29 @@ func VirtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schem
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"tag": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Description: "The IP Tag associated with the Public IP.",
+								Type:        pluginsdk.TypeString,
+								Computed:    true,
 							},
 							"type": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Description: "The Type of IP Tag.",
+								Type:        pluginsdk.TypeString,
+								Computed:    true,
 							},
 						},
 					},
 				},
 
 				"public_ip_prefix_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The ID of the public IP prefix.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Internet Protocol Version of the public IP address.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -1160,20 +1215,23 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the Data Disk.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"caching": {
+					Description:  "The type of Caching which should be used for this Data Disk.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForCachingTypes(), false),
 				},
 
 				"create_option": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The create option which should be used for this Data Disk. (`FromImage` should only be used if the source image includes data disks).",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 						string(virtualmachinescalesets.DiskCreateOptionTypesFromImage),
@@ -1182,8 +1240,9 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The ID of the Disk Encryption Set which should be used to encrypt this Data Disk.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
@@ -1192,30 +1251,35 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
+					Description:  "The size of the Data Disk which should be created.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
 
 				"lun": {
+					Description:  "The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
 
 				"storage_account_type": {
+					Description:  "The Type of Storage Account which should back this Data Disk.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForStorageAccountTypes(), false),
 				},
 
 				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether Write Accelerator should be enabled for this Data Disk.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"disk_iops_read_write": {
+					Description:  "The Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
@@ -1224,6 +1288,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_mbps_read_write": {
+					Description:  "The bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
@@ -1354,13 +1419,15 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
+					Description:  "The Type of Caching which should be used for the Internal OS Disk.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForCachingTypes(), false),
 				},
 				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The Type of Storage Account which should back the Internal OS Disk.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
@@ -1382,12 +1449,14 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
+								Description:  "The Ephemeral Disk Settings for the OS Disk.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
+								Description:  "Where to store the Ephemeral Disk.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
@@ -1399,8 +1468,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The ID of the Disk Encryption Set which should be used to encrypt this OS Disk.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
@@ -1410,14 +1480,16 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"secure_vm_disk_encryption_set_id": {
+					Description:   "The ID of the Disk Encryption Set which should be used to Encrypt the OS Disk when the Virtual Machine Scale Set is Confidential VMSS.",
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
 					ForceNew:      true,
@@ -1426,9 +1498,10 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"security_encryption_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
+					Description: "Encryption Type when the Virtual Machine Scale Set is Confidential VMSS.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(virtualmachinescalesets.SecurityEncryptionTypesVMGuestStateOnly),
 						string(virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState),
@@ -1436,9 +1509,10 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether Write Accelerator should be Enabled for this OS Disk.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -1487,7 +1561,7 @@ func ExpandVirtualMachineScaleSetOSDisk(input []any, osType virtualmachinescales
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 {
 		if caching != string(virtualmachinescalesets.CachingTypesReadOnly) {
-			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			// Restriction per https://learn.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
 			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
@@ -1578,19 +1652,22 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 
 func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Description: "This can only be specified when `upgrade_mode` is set to either `Automatic` or `Rolling`.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// TODO: should these be optional + defaulted?
 				"automatic_rollback_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
+					Description: "Whether automatic rollbacks are enabled.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
 				},
 				"automatic_os_upgrade_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
+					Description: "Whether to automatically apply OS upgrades in a rolling fashion when a newer version of the OS image becomes available.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
 				},
 			},
 		},
@@ -1632,33 +1709,40 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cross_zone_upgrades_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "Whether the Virtual Machine Scale Set should ignore the Azure Zone boundaries when constructing upgrade batches.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 				"max_batch_instance_percent": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Description: "The maximum percent of total Virtual Machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability.",
+					Type:        pluginsdk.TypeInt,
+					Required:    true,
 				},
 				"max_unhealthy_instance_percent": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Description: "The maximum percentage of the total Virtual Machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the Virtual Machine health checks before the rolling upgrade aborts. This constraint will be checked before starting any batch.",
+					Type:        pluginsdk.TypeInt,
+					Required:    true,
 				},
 				"max_unhealthy_upgraded_instance_percent": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Description: "The maximum percentage of upgraded Virtual Machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts.",
+					Type:        pluginsdk.TypeInt,
+					Required:    true,
 				},
 				"pause_time_between_batches": {
+					Description:  "The wait time between completing the update for all Virtual Machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.ISO8601Duration,
 				},
 				"prioritize_unhealthy_instances_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "Upgrade all unhealthy instances in a scale set before any healthy instances.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 				"maximum_surge_instances_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "Create new Virtual Machines to upgrade the scale set, rather than updating the existing Virtual Machines. Existing Virtual Machines will be deleted once the new Virtual Machines are created for each batch.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 			},
 		},
@@ -1748,10 +1832,12 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
+					Description: "Whether the termination notification should be enabled on this Virtual Machine Scale Set.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
 				},
 				"timeout": {
+					Description:  "Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
@@ -1801,24 +1887,28 @@ func FlattenVirtualMachineScaleSetScheduledEventsProfile(input *virtualmachinesc
 
 func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true, // azignore:AZS007 - pre-existing violation
-		MaxItems: 1,
+		Description: "To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		Computed:    true, // azignore:AZS007 - pre-existing violation
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
+					Description: "Whether the automatic instance repair should be enabled on this Virtual Machine Scale Set.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
 				},
 				"grace_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in `ISO 8601` format (e.g. `PT10M` to `PT90M`).",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 					Computed:     true,
 					ValidateFunc: validation.ISO8601DurationBetween("PT10M", "PT90M"),
 				},
 				"action": {
+					Description:  "The repair action that will be used for repairing unhealthy Virtual Machines in the scale set.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -1871,47 +1961,55 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name for the Virtual Machine Scale Set Extension.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"publisher": {
+					Description:  "The Publisher of the Extension.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type": {
+					Description:  "The Type of the Extension.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type_handler_version": {
+					Description:  "The version of the extension to use, available versions can be found using the Azure CLI.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"auto_upgrade_minor_version": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
+					Description: "Whether the latest version of the Extension should be used at Deployment Time, if one is available. This won't auto-update the extension on existing installation.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     true,
 				},
 
 				"automatic_upgrade_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the Extension should be automatically updated whenever the Publisher releases a new version of this VM Extension.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"force_update_tag": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"protected_settings": {
+					Description:  "A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
@@ -1922,14 +2020,16 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"protected_settings_from_key_vault": ProtectedSettingsFromKeyVaultSchema(false),
 
 				"provision_after_extensions": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "An ordered list of Extension names which this should be provisioned after.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"settings": {
+					Description:      "A JSON String which specifies Settings for the Extension.",
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					ValidateFunc:     validation.StringIsJSON,

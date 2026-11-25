@@ -14,9 +14,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Event Grid Namespace Topic.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
@@ -27,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"eventgrid_namespace_id": {
+			Description:  "The ID of the Event Grid Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +36,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"event_retention_in_days": {
+			Description:  "Event retention for the namespace topic expressed in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      7,

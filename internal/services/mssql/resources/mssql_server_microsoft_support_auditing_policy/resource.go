@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate,
-		Read:   resourceMsSqlServerMicrosoftSupportAuditingPolicyRead,
-		Update: resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate,
-		Delete: resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete,
+		Description: "Manages an MS SQL Server Microsoft Support Auditing Policy.",
+		Create:      resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate,
+		Read:        resourceMsSqlServerMicrosoftSupportAuditingPolicyRead,
+		Update:      resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate,
+		Delete:      resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServerMicrosoftSupportAuditingPolicyID(id)

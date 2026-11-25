@@ -15,9 +15,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataShareDataSetKustoDatabaseCreate,
-		Read:   resourceDataShareDataSetKustoDatabaseRead,
-		Delete: resourceDataShareDataSetKustoDatabaseDelete,
+		Description: "Manages a Data Share Kusto Database Dataset.",
+		Create:      resourceDataShareDataSetKustoDatabaseCreate,
+		Read:        resourceDataShareDataSetKustoDatabaseRead,
+		Delete:      resourceDataShareDataSetKustoDatabaseDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -12,12 +12,14 @@ import (
 func apiManagementGatewayApiSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_id": {
+			Description:  "The Identifier of the API Management API within the API Management Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: api.ValidateApiID,
 		},
 		"gateway_id": {
+			Description:  "The Identifier for the API Management Gateway.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
