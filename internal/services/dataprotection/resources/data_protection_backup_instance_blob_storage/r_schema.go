@@ -46,15 +46,17 @@ func dataProtectionBackupInstanceBlobStorageSchema() map[string]*pluginsdk.Schem
 		},
 
 		"auto_protection_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether all present and future containers of the source Storage Account should be backed up.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"excluded_container_name_prefixes": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MinItems: 1,
+			Description: "A list of container name prefixes to exclude from auto protection. Containers whose names start with one of these prefixes are not backed up.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.All(
