@@ -24,7 +24,7 @@ func TestAccEventgridNamespaceTopic_regressionTest(t *testing.T) {
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regressionTest(data),
 		},
 	}, "")
 }
@@ -133,6 +133,19 @@ resource "azurerm_eventgrid_namespace_topic" "import" {
 }
 
 func (r EventgridNamespaceTopicResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_namespace_topic" "test" {
+  name                    = "acctest-egnt-%d"
+  eventgrid_namespace_id  = azurerm_eventgrid_namespace.test.id
+  event_retention_in_days = 1
+  routing_enabled         = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r EventgridNamespaceTopicResource) regressionTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
