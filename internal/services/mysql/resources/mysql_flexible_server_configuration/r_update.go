@@ -29,7 +29,7 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
 	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
-		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, *id, d.Get("value").(string), nil); err != nil {
+		if err := mysqlFlexibleServerConfigurationUpdateGTIDMode(ctx, client, *id, d.Get("value").(string), nil); err != nil {
 			return fmt.Errorf("updating GTID mode: %v", err)
 		}
 	} else {

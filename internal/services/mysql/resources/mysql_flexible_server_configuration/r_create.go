@@ -33,7 +33,7 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	updateCallback := sdk.SetIDAndIdentityCallback(meta, &id, d)
 
 	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
-		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, id, d.Get("value").(string), updateCallback); err != nil {
+		if err := mysqlFlexibleServerConfigurationUpdateGTIDMode(ctx, client, id, d.Get("value").(string), updateCallback); err != nil {
 			return fmt.Errorf("creating %s: %v", id, err)
 		}
 	} else {

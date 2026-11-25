@@ -14,7 +14,7 @@ import (
 
 // GTID can only be updated in a specific order: OFF -> OFF_PERMISSIVE -> ON_PERMISSIVE -> ON.
 // This function ensures that the GTID mode is updated in the correct order by checking the current value and updating it step by step until it reaches the desired value.
-func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context,
+func mysqlFlexibleServerConfigurationUpdateGTIDMode(ctx context.Context,
 	client *configurations.ConfigurationsClient,
 	id configurations.ConfigurationId,
 	value string,
