@@ -19,6 +19,7 @@ on:  # zizmor: ignore[dangerous-triggers]
       - 'Breaking Schema Changes'
       - 'Preview ARM API Version Linter'
       - 'TeamCity Config Test'
+      - 'Upgrade Guide Check'
     types: [completed]
 
 permissions:
@@ -35,9 +36,15 @@ jobs:
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           run_id: ${{ github.event.workflow_run.id }}
+          # The Upgrade Guide Check deliberately uploads no artifact when the
+          # check itself could not run (as opposed to finding missing entries):
+          # that should not label the PR or fail this workflow. For every other
+          # check a missing artifact is a bug, so it still fails loudly.
+          if_no_artifact_found: ${{ github.event.workflow_run.name == 'Upgrade Guide Check' && 'warn' || 'fail' }}
 
       - name: env_vars
         id: env_vars
+        if: ${{ steps.get_artifact.outputs.found_artifact == 'true' }}
         run: |
           {
             echo "ghrepo=$(cat artifact/ghrepo.txt)"
@@ -45,6 +52,7 @@ jobs:
             echo "prnumber=$(cat artifact/prnumber.txt)"
           } >> "${GITHUB_OUTPUT}"
       - name: Add waiting-response on fail
+        if: ${{ steps.get_artifact.outputs.found_artifact == 'true' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           PR_NUMBER: ${{ steps.env_vars.outputs.prnumber }}
