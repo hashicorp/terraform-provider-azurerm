@@ -169,7 +169,7 @@ func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redisresources.
 	}
 
 	if input.PreferredDataPersistenceAuthMethod != nil {
-		outputs["data_persistence_authentication_method"] = *input.PreferredDataPersistenceAuthMethod
+		outputs["data_persistence_authentication_method"] = normalizeDataPersistenceAuthenticationMethod(*input.PreferredDataPersistenceAuthMethod)
 	}
 
 	if input.MaxfragmentationmemoryReserved != nil {
@@ -261,4 +261,13 @@ func flattenRedisPatchSchedules(schedule redispatchschedules.RedisPatchSchedule)
 	}
 
 	return outputs
+}
+
+// The API returns `preferred-data-persistence-auth-method` as `sas`, normalise it to the casing accepted by the schema.
+func normalizeDataPersistenceAuthenticationMethod(input string) string {
+	if strings.EqualFold(input, "SAS") {
+		return "SAS"
+	}
+
+	return input
 }
