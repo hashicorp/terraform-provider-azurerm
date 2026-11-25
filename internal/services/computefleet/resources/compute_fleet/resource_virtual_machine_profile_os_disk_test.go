@@ -126,7 +126,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   virtual_machine_sizes_profile {
-    name = "Standard_DC4s_v2"
+    name = "Standard_DC4s_v3"
   }
 
   compute_api_version = "2024-03-01"
