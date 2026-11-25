@@ -18,6 +18,10 @@ func (v Resource) ResourceType() string {
 	return "azurerm_arc_machine_automanage_configuration_assignment"
 }
 
+func (v Resource) Description() string {
+	return "Manages an Arc Machine Automanage Configuration Profile Assignment."
+}
+
 func (v Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurationprofilehcrpassignments.ValidateProviders2ConfigurationProfileAssignmentID
 }

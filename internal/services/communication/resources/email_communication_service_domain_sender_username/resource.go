@@ -30,3 +30,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_email_communication_service_domain_sender_username"
 }
+
+func (Resource) Description() string {
+	return "Manages an Email Communication Service Domain Sender Username."
+}

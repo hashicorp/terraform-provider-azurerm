@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBlueprintDefinitionRead,
+		Description: "Use this data source to access information about an existing Azure Blueprint Definition.",
+		Read:        dataSourceBlueprintDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,14 +31,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Blueprint.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DefinitionName,
 			},
 
 			"scope_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The ID of the Subscription or Management Group, as the scope at which the blueprint definition is stored.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
 					mgValidate.ManagementGroupID,
@@ -46,33 +49,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			// Computed
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of the Blueprint Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The display name of the Blueprint Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"last_modified": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The timestamp of when this last modification was saved to the Blueprint Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"target_scope": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The target scope.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"time_created": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The timestamp of when this Blueprint Definition was created.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"versions": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of versions published for this Blueprint Definition.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLighthouseAssignmentCreate,
-		Read:   resourceLighthouseAssignmentRead,
-		Delete: resourceLighthouseAssignmentDelete,
+		Description: "Manages a [Lighthouse](https://learn.microsoft.com/azure/lighthouse) Assignment to a subscription, or to a Resource Group.",
+		Create:      resourceLighthouseAssignmentCreate,
+		Read:        resourceLighthouseAssignmentRead,
+		Delete:      resourceLighthouseAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := registrationassignments.ParseScopedRegistrationAssignmentID(id)

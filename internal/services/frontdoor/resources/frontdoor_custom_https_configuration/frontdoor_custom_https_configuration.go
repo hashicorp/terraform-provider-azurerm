@@ -12,14 +12,16 @@ import (
 func schemaCustomHttpsConfiguration() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"certificate_source": {
+			Description:  "Certificate source to encrypt `HTTPS` traffic with.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(frontdoors.FrontDoorCertificateSourceFrontDoor),
 			ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorCertificateSource(), false),
 		},
 		"minimum_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Minimum client TLS version supported.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
@@ -32,16 +34,19 @@ func schemaCustomHttpsConfiguration() map[string]*pluginsdk.Schema {
 		// NOTE: None of these attributes are valid if
 		//       certificate_source is set to FrontDoor
 		"azure_key_vault_certificate_secret_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The name of the Key Vault Secret representing the full certificate PFX.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 		"azure_key_vault_certificate_secret_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The version of the Key Vault Secret representing the full certificate PFX.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 		"azure_key_vault_certificate_vault_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The ID of the Key Vault containing the SSL certificate.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

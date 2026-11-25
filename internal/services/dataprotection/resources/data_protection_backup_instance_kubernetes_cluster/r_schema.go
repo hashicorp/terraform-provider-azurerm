@@ -15,14 +15,16 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Backup Instance Kubernetes Cluster.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
 
 		"vault_id": {
+			Description:  "The ID of the Backup Vault within which the Backup Instance Kubernetes Cluster should exist.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backup_policy_id": {
+			Description:  "The ID of the Backup Policy.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"kubernetes_cluster_id": {
+			Description:  "The ID of the Kubernetes Cluster.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -53,56 +57,63 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"excluded_namespaces": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
+						Description: "The namespaces to be excluded during backup.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"excluded_resource_types": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
+						Description: "The resource types to be excluded during backup.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"cluster_scoped_resources_enabled": {
-						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to include cluster scope resources during backup.",
+						Type:        pluginsdk.TypeBool,
+						ForceNew:    true,
+						Optional:    true,
+						Default:     false,
 					},
 					"included_namespaces": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
+						Description: "The namespaces to be included during backup.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"included_resource_types": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
+						Description: "The resource types to be included during backup.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"label_selectors": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
+						Description: "The resources with such label selectors to be included during backup.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"volume_snapshot_enabled": {
-						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to take volume snapshots during backup.",
+						Type:        pluginsdk.TypeBool,
+						ForceNew:    true,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -113,8 +124,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The protection state of the Backup Instance Kubernetes Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

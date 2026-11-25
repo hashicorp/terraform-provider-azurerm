@@ -26,10 +26,11 @@ const azureLinuxVirtualMachineResourceName = "azurerm_linux_virtual_machine"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLinuxVirtualMachineCreate,
-		Read:   resourceLinuxVirtualMachineRead,
-		Update: resourceLinuxVirtualMachineUpdate,
-		Delete: resourceLinuxVirtualMachineDelete,
+		Description: "Manages a Linux Virtual Machine.",
+		Create:      resourceLinuxVirtualMachineCreate,
+		Read:        resourceLinuxVirtualMachineRead,
+		Update:      resourceLinuxVirtualMachineUpdate,
+		Delete:      resourceLinuxVirtualMachineDelete,
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachines.VirtualMachineId{}),
 		},

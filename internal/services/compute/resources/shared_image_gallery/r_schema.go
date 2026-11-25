@@ -14,6 +14,7 @@ import (
 func sharedImageGallerySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Shared Image Gallery.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +26,9 @@ func sharedImageGallerySchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for this Shared Image Gallery.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"sharing": {
@@ -37,6 +39,7 @@ func sharedImageGallerySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"permission": {
+						Description:  "The permission of the Shared Image Gallery when sharing.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -51,32 +54,37 @@ func sharedImageGallerySchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"eula": {
+									Description:  "The End User Licence Agreement for the Shared Image Gallery.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"prefix": {
+									Description:  "Prefix of the community public name for the Shared Image Gallery.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validate.SharedImageGalleryPrefix,
 								},
 								"publisher_email": {
+									Description:  "Email of the publisher for the Shared Image Gallery.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"publisher_uri": {
+									Description:  "URI of the publisher for the Shared Image Gallery.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The community public name of the Shared Image Gallery.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -88,8 +96,9 @@ func sharedImageGallerySchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"unique_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Unique Name for this Shared Image Gallery.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

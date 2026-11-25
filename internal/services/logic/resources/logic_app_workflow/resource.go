@@ -14,10 +14,11 @@ var logicAppResourceName = "azurerm_logic_app"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppWorkflowCreate,
-		Read:   resourceLogicAppWorkflowRead,
-		Update: resourceLogicAppWorkflowUpdate,
-		Delete: resourceLogicAppWorkflowDelete,
+		Description: "Manages a Logic App Workflow.",
+		Create:      resourceLogicAppWorkflowCreate,
+		Read:        resourceLogicAppWorkflowRead,
+		Update:      resourceLogicAppWorkflowUpdate,
+		Delete:      resourceLogicAppWorkflowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := workflows.ParseWorkflowID(id)

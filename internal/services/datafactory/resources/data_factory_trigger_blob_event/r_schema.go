@@ -14,6 +14,7 @@ import (
 func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Blob Event Trigger.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The ID of Data Factory in which to associate the Trigger with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The ID of Storage Account in which blob event will be listened.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,9 +38,10 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"events": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Description: "List of events that will fire this trigger.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -53,14 +57,16 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The Data Factory Pipeline name that the trigger will act on.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 					},
 
 					"parameters": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "The Data Factory Pipeline parameters that the trigger will act on.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -70,22 +76,25 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"activated": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Data Factory Blob Event Trigger is activated.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Blob Event Trigger.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Blob Event Trigger.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -93,6 +102,7 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"blob_path_begins_with": {
+			Description:  "The pattern that blob path starts with for trigger to fire.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -100,6 +110,7 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"blob_path_ends_with": {
+			Description:  "The pattern that blob path ends with for trigger to fire.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -107,14 +118,16 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Blob Event Trigger.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"ignore_empty_blobs": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether blobs with zero bytes are ignored.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 	}
 }

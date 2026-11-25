@@ -6,16 +6,17 @@ package cdn_frontdoor_endpoint
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorEndpointCreate,
-		Read:   resourceCdnFrontDoorEndpointRead,
-		Update: resourceCdnFrontDoorEndpointUpdate,
-		Delete: resourceCdnFrontDoorEndpointDelete,
+		Description: "Manages a Front Door (standard/premium) Endpoint.",
+		Create:      resourceCdnFrontDoorEndpointCreate,
+		Read:        resourceCdnFrontDoorEndpointRead,
+		Update:      resourceCdnFrontDoorEndpointUpdate,
+		Delete:      resourceCdnFrontDoorEndpointDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

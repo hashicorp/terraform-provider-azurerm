@@ -20,10 +20,11 @@ import (
 
 func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLFunctionCreate,
-		Read:   resourceCosmosDbSQLFunctionRead,
-		Update: resourceCosmosDbSQLFunctionUpdate,
-		Delete: resourceCosmosDbSQLFunctionDelete,
+		Description: "Manages an SQL User Defined Function.",
+		Create:      resourceCosmosDbSQLFunctionCreate,
+		Read:        resourceCosmosDbSQLFunctionRead,
+		Update:      resourceCosmosDbSQLFunctionUpdate,
+		Delete:      resourceCosmosDbSQLFunctionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,12 +40,14 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name which should be used for this SQL User Defined Function.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"container_id": {
+				Description:  "The ID of the Cosmos DB SQL Container to create the SQL User Defined Function within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -52,6 +55,7 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 			},
 
 			"body": {
+				Description:  "Body of the User Defined Function.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,

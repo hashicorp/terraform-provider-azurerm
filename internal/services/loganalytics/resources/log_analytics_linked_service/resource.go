@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsLinkedServiceCreateUpdate,
-		Read:   resourceLogAnalyticsLinkedServiceRead,
-		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
-		Delete: resourceLogAnalyticsLinkedServiceDelete,
+		Description: "Manages a Log Analytics Linked Service.",
+		Create:      resourceLogAnalyticsLinkedServiceCreateUpdate,
+		Read:        resourceLogAnalyticsLinkedServiceRead,
+		Update:      resourceLogAnalyticsLinkedServiceCreateUpdate,
+		Delete:      resourceLogAnalyticsLinkedServiceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := linkedservices.ParseLinkedServiceID(id)
 			return err

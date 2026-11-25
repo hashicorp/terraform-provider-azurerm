@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDevTestLinuxVirtualMachineCreateUpdate,
-		Read:   resourceArmDevTestLinuxVirtualMachineRead,
-		Update: resourceArmDevTestLinuxVirtualMachineCreateUpdate,
-		Delete: resourceArmDevTestLinuxVirtualMachineDelete,
+		Description: "Manages a Linux Virtual Machine within a Dev Test Lab.",
+		Create:      resourceArmDevTestLinuxVirtualMachineCreateUpdate,
+		Read:        resourceArmDevTestLinuxVirtualMachineRead,
+		Update:      resourceArmDevTestLinuxVirtualMachineCreateUpdate,
+		Delete:      resourceArmDevTestLinuxVirtualMachineDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualmachines.ParseVirtualMachineID(id)
 			return err
