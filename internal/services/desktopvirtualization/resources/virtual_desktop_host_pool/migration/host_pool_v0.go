@@ -72,7 +72,7 @@ func (HostPoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "Preferred App Group type to display",
+			Description: "Preferred App Group type to display.",
 		},
 
 		"registration_info": {

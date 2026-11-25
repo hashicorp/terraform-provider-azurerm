@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelWebChatCreate,
-		Read:   resourceBotChannelWebChatRead,
-		Delete: resourceBotChannelWebChatDelete,
-		Update: resourceBotChannelWebChatUpdate,
+		Description: "Manages a Web Chat integration for a Bot Channel.",
+		Create:      resourceBotChannelWebChatCreate,
+		Read:        resourceBotChannelWebChatRead,
+		Delete:      resourceBotChannelWebChatDelete,
+		Update:      resourceBotChannelWebChatUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

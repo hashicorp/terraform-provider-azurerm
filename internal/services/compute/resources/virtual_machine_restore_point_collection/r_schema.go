@@ -12,9 +12,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name of the Virtual Machine Restore Point Collection.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -22,6 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"source_virtual_machine_id": {
+			Description:  "The ID of the Virtual Machine that will be associated with this Virtual Machine Restore Point Collection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -20,6 +20,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type GiVersionsModel struct {
 	Versions []string `tfschema:"versions"`
 	Location string   `tfschema:"location"`
@@ -34,12 +36,12 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(giversions.PossibleValuesForSystemShapes(), false),
-			Description:  "Filter the versions by system shape. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.",
+			Description:  "Filter the versions by system shape.",
 		},
 		"zone": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Filter the versions by zone",
+			Description: "Filter the versions by zone.",
 		},
 	}
 }

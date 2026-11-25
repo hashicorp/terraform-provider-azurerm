@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDevTestPolicyCreateUpdate,
-		Read:   resourceArmDevTestPolicyRead,
-		Update: resourceArmDevTestPolicyCreateUpdate,
-		Delete: resourceArmDevTestPolicyDelete,
+		Description: "Manages a Policy within a Dev Test Policy Set.",
+		Create:      resourceArmDevTestPolicyCreateUpdate,
+		Read:        resourceArmDevTestPolicyRead,
+		Update:      resourceArmDevTestPolicyCreateUpdate,
+		Delete:      resourceArmDevTestPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := policies.ParsePolicyID(id)
 			return err

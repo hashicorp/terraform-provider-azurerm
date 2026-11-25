@@ -19,6 +19,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`
@@ -57,7 +59,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"zone": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Filter the versions by zone",
+			Description: "Filter the versions by zone.",
 		},
 	}
 }

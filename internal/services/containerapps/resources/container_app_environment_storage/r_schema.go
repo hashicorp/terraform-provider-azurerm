@@ -18,7 +18,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedEnvironmentStorageName,
-			Description:  "The name for this Storage.",
+			Description:  "The name for this Container App Environment Storage.",
 		},
 
 		"container_app_environment_id": {
@@ -60,10 +60,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(managedenvironmentsstorages.PossibleValuesForAccessMode(), false),
-			Description:  "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
+			Description:  "The access mode to connect this storage to the Container App.",
 		},
 
 		"nfs_server_url": {
+			Description:   "The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,

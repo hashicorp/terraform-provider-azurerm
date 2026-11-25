@@ -17,18 +17,20 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The name of the credential set.",
+			Description: "The name which should be used for this Container Registry Credential Set.",
 		},
 		"container_registry_id": {
+			Description:  "The ID of the Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: registries.ValidateRegistryID,
 		},
 		"login_server": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The login server for the Credential Set.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"authentication_credentials": {
 			Type:     pluginsdk.TypeList,
@@ -37,11 +39,13 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"username_secret_id": {
+						Description:  "The URI of the secret containing the username in a Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeSecret),
 					},
 					"password_secret_id": {
+						Description:  "The URI of the secret containing the password in a Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeSecret),

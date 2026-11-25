@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/administratormicrosoftentras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,7 +117,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ds_v5"
   zone                   = "2"
 
   authentication {

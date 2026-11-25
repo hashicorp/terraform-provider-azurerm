@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
-		Read:   resourceKustoAttachedDatabaseConfigurationRead,
-		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
-		Delete: resourceKustoAttachedDatabaseConfigurationDelete,
+		Description: "Manages a Kusto (also known as Azure Data Explorer) Attached Database Configuration.",
+		Create:      resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Read:        resourceKustoAttachedDatabaseConfigurationRead,
+		Update:      resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Delete:      resourceKustoAttachedDatabaseConfigurationDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

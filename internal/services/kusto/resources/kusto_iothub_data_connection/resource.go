@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoIotHubDataConnectionCreate,
-		Read:   resourceKustoIotHubDataConnectionRead,
-		Update: resourceKustoIotHubDataConnectionUpdate,
-		Delete: resourceKustoIotHubDataConnectionDelete,
+		Description: "Manages a Kusto (also known as Azure Data Explorer) IotHub Data Connection.",
+		Create:      resourceKustoIotHubDataConnectionCreate,
+		Read:        resourceKustoIotHubDataConnectionRead,
+		Update:      resourceKustoIotHubDataConnectionUpdate,
+		Delete:      resourceKustoIotHubDataConnectionDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerTumblingWindowCreateUpdate,
-		Read:   resourceDataFactoryTriggerTumblingWindowRead,
-		Update: resourceDataFactoryTriggerTumblingWindowCreateUpdate,
-		Delete: resourceDataFactoryTriggerTumblingWindowDelete,
+		Description: "Manages a Tumbling Window Trigger inside an Azure Data Factory.",
+		Create:      resourceDataFactoryTriggerTumblingWindowCreateUpdate,
+		Read:        resourceDataFactoryTriggerTumblingWindowRead,
+		Update:      resourceDataFactoryTriggerTumblingWindowCreateUpdate,
+		Delete:      resourceDataFactoryTriggerTumblingWindowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)

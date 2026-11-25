@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
-		Read:   resourceDataFactoryIntegrationRuntimeSelfHostedRead,
-		Update: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
-		Delete: resourceDataFactoryIntegrationRuntimeSelfHostedDelete,
+		Description: "Manages a Data Factory Self-hosted Integration Runtime.",
+		Create:      resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
+		Read:        resourceDataFactoryIntegrationRuntimeSelfHostedRead,
+		Update:      resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
+		Delete:      resourceDataFactoryIntegrationRuntimeSelfHostedDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

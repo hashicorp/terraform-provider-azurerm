@@ -12,6 +12,7 @@ import (
 func (a Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name which should be used for the Azure Arc Private Link Scope.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,9 +21,10 @@ func (a Resource) Arguments() map[string]*schema.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
 		"public_network_access_enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether machines associated with the Private Link scope can also use public Azure Arc service endpoints.",
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 		"tags": commonschema.Tags(),
 	}

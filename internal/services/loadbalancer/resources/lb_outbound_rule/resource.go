@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerOutboundRuleCreateUpdate,
-		Read:   resourceArmLoadBalancerOutboundRuleRead,
-		Update: resourceArmLoadBalancerOutboundRuleCreateUpdate,
-		Delete: resourceArmLoadBalancerOutboundRuleDelete,
+		Description: "Manages a Load Balancer Outbound Rule.",
+		Create:      resourceArmLoadBalancerOutboundRuleCreateUpdate,
+		Read:        resourceArmLoadBalancerOutboundRuleRead,
+		Update:      resourceArmLoadBalancerOutboundRuleCreateUpdate,
+		Delete:      resourceArmLoadBalancerOutboundRuleDelete,
 
 		Importer: helpers.LoadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
 			id, err := loadbalancers.ParseOutboundRuleID(input)
