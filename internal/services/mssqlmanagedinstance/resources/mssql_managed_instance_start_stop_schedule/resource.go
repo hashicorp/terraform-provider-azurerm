@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_start_stop_schedule"
 }
 
+func (r Resource) Description() string {
+	return "Manages Start Stop Schedules for an MS SQL Managed Instance."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ManagedInstanceStartStopScheduleID
 }

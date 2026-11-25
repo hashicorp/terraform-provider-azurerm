@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for the Microsoft SQL Virtual Machine Availability Group Listener.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sql_virtual_machine_group_id": {
+			Description:  "The ID of the SQL Virtual Machine Group to create the listener.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,12 +32,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"availability_group_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The name of the Availability Group.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"port": {
+			Description:  "The port of the listener.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -51,6 +55,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"load_balancer_id": {
+						Description:  "The ID of the Load Balancer.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -58,6 +63,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"private_ip_address": {
+						Description:  "The private IP Address of the listener.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -65,6 +71,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"probe_port": {
+						Description:  "The probe port of the listener.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ForceNew:     true,
@@ -72,9 +79,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sql_virtual_machine_ids": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of SQL Virtual Machine IDs.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineID,
@@ -82,6 +90,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the Subnet to create the listener.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -99,6 +108,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"private_ip_address": {
+						Description:  "The private IP Address of the listener.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -106,6 +116,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sql_virtual_machine_id": {
+						Description:  "The ID of the SQL Virtual Machine.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -113,6 +124,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the Subnet to create the listener.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -129,6 +141,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"sql_virtual_machine_id": {
+						Description:  "The ID of the SQL Virtual Machine.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -136,6 +149,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"role": {
+						Description:  "The replica role for the availability group.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -143,6 +157,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"commit": {
+						Description:  "The replica commit mode for the availability group.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -150,6 +165,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"failover_mode": {
+						Description:  "The replica failover mode for the availability group.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -157,6 +173,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"readable_secondary": {
+						Description:  "The replica readable secondary mode for the availability group.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,

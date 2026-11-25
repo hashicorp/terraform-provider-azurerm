@@ -24,9 +24,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
-		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequiredForceNew(&vmmservers.VMmServerId{}),
+		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequiredForceNew(&vmmservers.VMmServerId{}, "System Center Virtual Machine Manager Server"),
 
 		"tags": commonschema.Tags(),
 	}

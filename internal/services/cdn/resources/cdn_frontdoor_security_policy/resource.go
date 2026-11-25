@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorSecurityPolicyCreate,
-		Read:   resourceCdnFrontdoorSecurityPolicyRead,
-		Update: resourceCdnFrontdoorSecurityPolicyUpdate,
-		Delete: resourceCdnFrontdoorSecurityPolicyDelete,
+		Description: "Manages a Front Door (standard/premium) Security Policy.",
+		Create:      resourceCdnFrontdoorSecurityPolicyCreate,
+		Read:        resourceCdnFrontdoorSecurityPolicyRead,
+		Update:      resourceCdnFrontdoorSecurityPolicyUpdate,
+		Delete:      resourceCdnFrontdoorSecurityPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

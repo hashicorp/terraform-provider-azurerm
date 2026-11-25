@@ -23,10 +23,11 @@ import (
 
 func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbCassandraKeyspaceCreate,
-		Read:   resourceCosmosDbCassandraKeyspaceRead,
-		Update: resourceCosmosDbCassandraKeyspaceUpdate,
-		Delete: resourceCosmosDbCassandraKeyspaceDelete,
+		Description: "Manages a Cassandra KeySpace within a Cosmos DB Account.",
+		Create:      resourceCosmosDbCassandraKeyspaceCreate,
+		Read:        resourceCosmosDbCassandraKeyspaceRead,
+		Update:      resourceCosmosDbCassandraKeyspaceUpdate,
+		Delete:      resourceCosmosDbCassandraKeyspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseCassandraKeyspaceID(id)
@@ -47,6 +48,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Cassandra KeySpace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,6 +58,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Cassandra KeySpace to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -63,6 +66,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 			},
 
 			"throughput": {
+				Description:  "The throughput of Cassandra KeySpace (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation

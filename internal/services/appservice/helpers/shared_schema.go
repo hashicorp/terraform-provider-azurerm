@@ -333,7 +333,7 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Are credentials allowed in CORS requests?",
+					Description: "Whether credentials are allowed in CORS requests.",
 				},
 			},
 		},
@@ -358,7 +358,7 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 				"support_credentials": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Are credentials allowed in CORS requests?",
+					Description: "Whether credentials are allowed in CORS requests.",
 				},
 			},
 		},
@@ -479,7 +479,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"enabled": {
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
-					Description: "Should the Authentication / Authorization feature be enabled?",
+					Description: "Whether the Authentication / Authorization feature should be enabled.",
 				},
 
 				"additional_login_parameters": {
@@ -548,7 +548,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows?",
+					Description: "Whether the Windows Web App should durably store platform-specific security tokens that are obtained during login flows.",
 				},
 
 				"unauthenticated_client_action": {
@@ -585,7 +585,7 @@ func AuthSettingsSchemaComputed() *pluginsdk.Schema {
 				"enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the Authentication / Authorization feature enabled?",
+					Description: "Whether the Authentication / Authorization feature is enabled.",
 				},
 
 				"additional_login_parameters": {
@@ -633,7 +633,7 @@ func AuthSettingsSchemaComputed() *pluginsdk.Schema {
 				"token_store_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Are platform-specific security tokens that are obtained during login flows durably stored?",
+					Description: "Whether platform-specific security tokens that are obtained during login flows are durably stored.",
 				},
 
 				"unauthenticated_client_action": {
@@ -896,7 +896,7 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},

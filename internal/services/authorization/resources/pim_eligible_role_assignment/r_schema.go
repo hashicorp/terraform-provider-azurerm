@@ -19,7 +19,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Scope for this eligible Role Assignment, should be a valid resource ID.",
+			Description: "The scope for this eligible Role Assignment, should be a valid resource ID.",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
 				// https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
@@ -38,7 +38,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Role Definition ID for this eligible Role Assignment.",
+			Description: "The Role Definition ID for this eligible Role Assignment.",
 		},
 
 		"principal_id": {
@@ -54,10 +54,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The justification for this eligible Role Assignment.",
+			Description: "The justification of the Role Assignment.",
 		},
 
 		"condition": {
+			Description:  "The condition that limits the resources that the role can be assigned to. See the [official conditions documentation](https://learn.microsoft.com/azure/role-based-access-control/conditions-overview#what-are-role-assignment-conditions) for details.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -66,6 +67,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"condition_version": {
+			Description:  "The version of the condition.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -90,7 +92,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Computed:    true,
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
-						Description: "The start date/time.",
+						Description: "The start date/time of the Role Assignment.",
 					},
 
 					"expiration": { // if none specified, it's a permanent assignment
@@ -108,7 +110,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_hours",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the eligible Role Assignment in days.",
+									Description: "The duration of the Role Assignment in days.",
 								},
 
 								"duration_hours": {
@@ -120,7 +122,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the eligible Role Assignment in hours.",
+									Description: "The duration of the Role Assignment in hours.",
 								},
 
 								"end_date_time": {
@@ -132,7 +134,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.duration_hours",
 									},
-									Description: "The end date/time of the eligible Role Assignment.",
+									Description: "The end date/time of the Role Assignment.",
 								},
 							},
 						},

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelEmailCreate,
-		Read:   resourceBotChannelEmailRead,
-		Delete: resourceBotChannelEmailDelete,
-		Update: resourceBotChannelEmailUpdate,
+		Description: "Manages an Email integration for a Bot Channel.",
+		Create:      resourceBotChannelEmailCreate,
+		Read:        resourceBotChannelEmailRead,
+		Delete:      resourceBotChannelEmailDelete,
+		Update:      resourceBotChannelEmailUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

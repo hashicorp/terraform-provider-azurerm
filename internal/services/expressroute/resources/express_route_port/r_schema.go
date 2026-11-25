@@ -14,6 +14,7 @@ import (
 func expressRoutePortResourceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Express Route Port.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func expressRoutePortResourceSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"peering_location": {
+			Description:  "The name of the peering location that this Express Route Port is physically mapped to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func expressRoutePortResourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"bandwidth_in_gbps": {
+			Description:  "Bandwidth of the Express Route Port in Gbps.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -39,6 +42,7 @@ func expressRoutePortResourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"encapsulation": {
+			Description:  "The encapsulation method used for the Express Route Port.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,6 +52,7 @@ func expressRoutePortResourceSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"billing_type": {
+			Description:  "The billing type of the Express Route Port.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
@@ -59,18 +64,21 @@ func expressRoutePortResourceSchema() map[string]*pluginsdk.Schema {
 		"link2": expressRoutePortSchema,
 
 		"ethertype": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The EtherType of the Express Route Port.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource GUID of the Express Route Port.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"mtu": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The maximum transmission unit of the Express Route Port.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

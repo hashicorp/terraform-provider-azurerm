@@ -336,7 +336,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
-				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
+				Description: "Whether the AzureRM Provider should use Azure AD Authentication when accessing the Storage Data Plane APIs.",
 			},
 		},
 

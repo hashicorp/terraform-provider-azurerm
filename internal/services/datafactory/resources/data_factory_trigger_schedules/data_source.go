@@ -27,6 +27,7 @@ type TriggerSchedulesDataSourceModel struct {
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_factory_id": {
+			Description:  "The ID of the Azure Data Factory to fetch trigger schedules from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: factories.ValidateFactoryID,
@@ -37,8 +38,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"items": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of trigger schedule names available in this Azure Data Factory.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -52,6 +54,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_data_factory_trigger_schedules"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about all existing trigger schedules in Azure Data Factory."
 }
 
 func (d DataSource) Read() sdk.ResourceFunc {

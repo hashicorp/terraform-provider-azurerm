@@ -14,7 +14,7 @@ import (
 
 func storageBlobInventoryPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"storage_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.StorageAccountId{}),
+		"storage_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.StorageAccountId{}, "Storage Account"),
 
 		"rules": {
 			Type:     pluginsdk.TypeSet,

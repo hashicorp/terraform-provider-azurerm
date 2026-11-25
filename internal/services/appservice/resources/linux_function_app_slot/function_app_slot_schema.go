@@ -133,7 +133,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity?",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -180,7 +180,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -227,7 +227,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -243,7 +243,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled?",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -256,14 +256,14 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker?",
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"ftps_state": {
@@ -325,13 +325,13 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled?",
+					Description: "Whether detailed error logging is enabled.",
 				},
 
 				"linux_fx_version": {

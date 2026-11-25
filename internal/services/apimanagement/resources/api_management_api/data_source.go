@@ -61,13 +61,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"is_current": {
-				Description: "Is this the current API Revision?",
+				Description: "Whether this is the current API Revision.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"is_online": {
-				Description: "Is this API Revision online/accessible via the Gateway?",
+				Description: "Whether this API Revision is online/accessible via the Gateway.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -94,7 +94,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"soap_pass_through": {
-				Description: "Should this API expose a SOAP frontend, rather than an HTTP frontend?",
+				Description: "Whether this API exposes a SOAP frontend, rather than an HTTP frontend.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -119,7 +119,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"subscription_required": {
-				Description: "Should this API require a subscription key?",
+				Description: "Whether this API requires a subscription key.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

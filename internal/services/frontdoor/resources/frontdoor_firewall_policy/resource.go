@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorFirewallPolicyCreateUpdate,
-		Read:   resourceFrontDoorFirewallPolicyRead,
-		Update: resourceFrontDoorFirewallPolicyCreateUpdate,
-		Delete: resourceFrontDoorFirewallPolicyDelete,
+		Description: "Manages an Azure Front Door (classic) Web Application Firewall Policy instance.",
+		Create:      resourceFrontDoorFirewallPolicyCreateUpdate,
+		Read:        resourceFrontDoorFirewallPolicyRead,
+		Update:      resourceFrontDoorFirewallPolicyCreateUpdate,
+		Delete:      resourceFrontDoorFirewallPolicyDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

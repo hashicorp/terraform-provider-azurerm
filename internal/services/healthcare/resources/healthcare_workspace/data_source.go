@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceHealthcareWorkspaceRead,
+		Description: "Use this data source to access information about an existing Healthcare Workspace.",
+		Read:        dataSourceHealthcareWorkspaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Healthcare Workspace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.WorkspaceName,

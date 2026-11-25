@@ -20,10 +20,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlDatabaseCreate,
-		Read:   resourceMsSqlDatabaseRead,
-		Update: resourceMsSqlDatabaseUpdate,
-		Delete: resourceMsSqlDatabaseDelete,
+		Description: "Manages an MS SQL Database.",
+		Create:      resourceMsSqlDatabaseCreate,
+		Read:        resourceMsSqlDatabaseRead,
+		Update:      resourceMsSqlDatabaseUpdate,
+		Delete:      resourceMsSqlDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentityThen(&commonids.SqlDatabaseId{}, resourceMsSqlDatabaseImporter),
 

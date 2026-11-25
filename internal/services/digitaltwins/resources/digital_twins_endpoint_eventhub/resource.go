@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDigitalTwinsEndpointEventHubCreateUpdate,
-		Read:   resourceDigitalTwinsEndpointEventHubRead,
-		Update: resourceDigitalTwinsEndpointEventHubCreateUpdate,
-		Delete: resourceDigitalTwinsEndpointEventHubDelete,
+		Description: "Manages a Digital Twins Event Hub Endpoint.",
+		Create:      resourceDigitalTwinsEndpointEventHubCreateUpdate,
+		Read:        resourceDigitalTwinsEndpointEventHubRead,
+		Update:      resourceDigitalTwinsEndpointEventHubCreateUpdate,
+		Delete:      resourceDigitalTwinsEndpointEventHubDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

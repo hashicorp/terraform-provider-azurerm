@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceConfidentialLedgerCreate,
-		Read:   resourceConfidentialLedgerRead,
-		Update: resourceConfidentialLedgerUpdate,
-		Delete: resourceConfidentialLedgerDelete,
+		Description: "Manages a Confidential Ledger.",
+		Create:      resourceConfidentialLedgerCreate,
+		Read:        resourceConfidentialLedgerRead,
+		Update:      resourceConfidentialLedgerUpdate,
+		Delete:      resourceConfidentialLedgerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

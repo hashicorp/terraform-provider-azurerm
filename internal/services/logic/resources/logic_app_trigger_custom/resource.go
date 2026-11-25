@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppTriggerCustomCreateUpdate,
-		Read:   resourceLogicAppTriggerCustomRead,
-		Update: resourceLogicAppTriggerCustomCreateUpdate,
-		Delete: resourceLogicAppTriggerCustomDelete,
+		Description: "Manages a Custom Trigger within a Logic App Workflow.",
+		Create:      resourceLogicAppTriggerCustomCreateUpdate,
+		Read:        resourceLogicAppTriggerCustomRead,
+		Update:      resourceLogicAppTriggerCustomCreateUpdate,
+		Delete:      resourceLogicAppTriggerCustomDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := workflowtriggers.ParseTriggerID(id)

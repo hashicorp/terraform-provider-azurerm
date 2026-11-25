@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Microsoft Azure SQL Failover Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return failovergroups.ValidateFailoverGroupID
 }
