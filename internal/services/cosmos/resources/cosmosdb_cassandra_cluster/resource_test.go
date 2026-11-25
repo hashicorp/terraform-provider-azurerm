@@ -6,6 +6,7 @@ package cosmosdb_cassandra_cluster_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,6 +18,22 @@ import (
 )
 
 type CassandraClusterResource struct{}
+
+func TestAccCassandraCluster_sequential(t *testing.T) {
+	if os.Getenv("CASSANDRA_VERY_EXPENSIVE_TEST_ENABLED") != "true" {
+		t.Skip("Skipping due to massive cost of this resource test.")
+	}
+
+	// NOTE: these run in sequence rather than as separate tests as they all share the same service principal
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"cluster": {
+			"basic":          testAccCassandraCluster_basic,
+			"complete":       testAccCassandraCluster_complete,
+			"update":         testAccCassandraCluster_update,
+			"requiresImport": testAccCassandraCluster_requiresImport,
+		},
+	})
+}
 
 func testAccCassandraCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
