@@ -48,11 +48,13 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Schedule is created. Changing this forces a new resource to be created.
 
-* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Minute`, `Day`, `Hour`, `Week`, or `Month`.
 
 * `description` - (Optional) A description for this Schedule.
 
-* `interval` - (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+* `interval` - (Optional) The number of `frequency`s between runs. Only valid when frequency is `Minute`, `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+
+~> **Note:** `interval` must be set to at least `15` when `frequency` is `Minute`.
 
 * `start_time` - (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 
