@@ -40,9 +40,11 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
-	apiTagId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagDescriptionId)
-
-	d.Set("api_tag_id", apiTagId.ID())
+	apiTagId := d.Get("api_tag_id").(string)
+	if apiTagId == "" {
+		apiTagId = apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagDescriptionId).ID()
+	}
+	d.Set("api_tag_id", apiTagId)
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))

@@ -39,7 +39,7 @@ func TestAccApiManagementApiTagDescription_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("api_tag_id"),
 	})
 }
 
@@ -69,14 +69,14 @@ func TestAccApiManagementApiTagDescription_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("api_tag_id"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("api_tag_id"),
 	})
 }
 
