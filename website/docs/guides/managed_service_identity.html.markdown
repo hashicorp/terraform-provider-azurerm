@@ -90,6 +90,8 @@ export ARM_TENANT_ID=72f988bf-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 export ARM_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary for user assigned identity
 export ARM_MSI_ENDPOINT=$MSI_ENDPOINT # only necessary when the msi endpoint is different than the well-known one
 export ARM_MSI_API_VERSION="2019-08-01" # optional, defaults to 2018-02-01. Some Azure services require a newer API version due to local implementation conditions. e.g. Running in Azure Container Apps requires `2019-08-01`.
+export ARM_MSI_CUSTOM_HEADER_NAME="X-IDENTITY-HEADER" # optional, defaults to `X-IDENTITY-HEADER`. The name of the custom header to send when authenticating using Managed Identity.
+export ARM_MSI_CUSTOM_HEADER_VALUE=$IDENTITY_HEADER # optional, falls back to `IDENTITY_HEADER` if unset. The value of the custom header to send when authenticating using Managed Identity.
 ```
 
 A provider block is _technically_ optional when using environment variables. Even so, we recommend defining provider blocks so that you can pin or constrain the version of the provider being used, and configure other optional settings:

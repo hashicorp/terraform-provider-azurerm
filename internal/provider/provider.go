@@ -266,11 +266,14 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 			},
 
 			"msi_custom_header_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				DefaultFunc:  schema.EnvDefaultFunc("ARM_MSI_CUSTOM_HEADER_NAME", "X-IDENTITY-HEADER"),
-				ValidateFunc: validation.StringIsNotEmpty,
-				Description:  "The name of the custom header to send when authenticating using Managed Service Identity.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_CUSTOM_HEADER_NAME", "X-IDENTITY-HEADER"),
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$"),
+					"must be a valid HTTP header name containing only alphanumeric characters or !#$%&'*+-.^_`|~",
+				),
+				Description: "The name of the custom header to send when authenticating using Managed Service Identity.",
 			},
 
 			"msi_custom_header_value": {

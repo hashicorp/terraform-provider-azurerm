@@ -5,6 +5,7 @@ package framework
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -173,7 +174,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "The name of the custom header to send when authenticating using Managed Service Identity.",
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$"),
+						"must be a valid HTTP header name containing only alphanumeric characters or !#$%&'*+-.^_`|~",
+					),
 				},
 			},
 
