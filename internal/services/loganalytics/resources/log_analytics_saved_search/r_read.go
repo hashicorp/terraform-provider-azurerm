@@ -46,8 +46,8 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta any) er
 		d.Set("function_alias", pointer.From(props.FunctionAlias))
 
 		functionParams := make([]string, 0)
-		if props.FunctionParameters != nil {
-			functionParams = strings.Split(*props.FunctionParameters, ", ")
+		if v := pointer.From(props.FunctionParameters); v != "" {
+			functionParams = strings.Split(v, ", ")
 		}
 		d.Set("function_parameters", functionParams)
 
@@ -58,16 +58,4 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	return nil
-}
-
-func flattenSavedSearchTag(input *[]savedsearches.Tag) map[string]any {
-	results := make(map[string]any)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		results[item.Name] = item.Value
-	}
-	return results
 }

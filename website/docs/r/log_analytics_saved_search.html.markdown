@@ -44,17 +44,17 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace that the Saved Search will be associated with. Changing this forces a new resource to be created.
 
-* `display_name` - (Required) The name that Saved Search will be displayed as. Changing this forces a new resource to be created.
+* `display_name` - (Required) The name that Saved Search will be displayed as.
 
-* `category` - (Required) The category that the Saved Search will be listed under. Changing this forces a new resource to be created.
+* `category` - (Required) The category that the Saved Search will be listed under.
 
-* `query` - (Required) The query expression for the saved search. Changing this forces a new resource to be created.
+* `query` - (Required) The query expression for the saved search.
 
-* `function_alias` - (Optional) The function alias if the query serves as a function. Changing this forces a new resource to be created.
+* `function_alias` - (Optional) The function alias if the query serves as a function.
 
-* `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created. For more examples and proper syntax please refer to [this document](https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions).
+* `function_parameters` - (Optional) The function parameters if the query serves as a function. For more examples and proper syntax please refer to [this document](https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions).
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Logs Analytics Saved Search. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Logs Analytics Saved Search.
 
 ## Attributes Reference
 
@@ -68,6 +68,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Saved Search.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Saved Search.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Saved Search.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Saved Search.
 
 ## Import
