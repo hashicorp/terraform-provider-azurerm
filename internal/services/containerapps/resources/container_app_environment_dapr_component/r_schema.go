@@ -49,14 +49,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      "5s",
 			ValidateFunc: validate.InitTimeout,
-			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`. Defaults to `5s`.",
+			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`.",
 		},
 
 		"ignore_errors": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the Dapr sidecar to continue initialisation if the component fails to load. Defaults to `false`",
+			Description: "Should the Dapr sidecar to continue initialisation if the component fails to load?",
 		},
 
 		"secret": helpers.SecretsSchema(),

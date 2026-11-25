@@ -4,6 +4,7 @@
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
         "aadb2c" to "AAD B2C",
+        "apicenter" to "API Center",
         "apimanagement" to "API Management",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
@@ -65,6 +66,7 @@ var services = mapOf(
         "hdinsight" to "HDInsight",
         "hsm" to "Hardware Security Module",
         "healthcare" to "Health Care",
+        "horizondb" to "HorizonDB",
         "hybridcompute" to "Hybrid Compute",
         "iotcentral" to "IoT Central",
         "iothub" to "IoT Hub",

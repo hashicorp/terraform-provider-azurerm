@@ -12,7 +12,7 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "The desired name of the credential resource",
+			Description:  "The desired name of the credential resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,7 +20,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
-			Description:  "The resource ID of the parent Data Factory",
+			Description:  "The resource ID of the parent Data Factory.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,14 +28,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_id": {
-			Description:  "The Tenant ID of the Service Principal",
+			Description:  "The Tenant ID of the Service Principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"service_principal_id": {
-			Description:  "The Client ID of the Service Principal",
+			Description:  "The Client ID of the Service Principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
@@ -69,14 +69,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Description:  "(Optional) Short text description",
+			Description:  "Short text description.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"annotations": { // this property is not visible in the azure portal
-			Description: "(Optional) List of string annotations.",
+			Description: "List of string annotations.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Elem: &pluginsdk.Schema{

@@ -32,6 +32,11 @@ service/analysis:
   - any-glob-to-any-file:
     - internal/services/analysisservices/**/*
 
+service/api-center:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/apicenter/**/*
+
 service/api-management:
 - changed-files:
   - any-glob-to-any-file:
@@ -298,6 +303,11 @@ service/healthcare:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/healthcare/**/*
+
+service/horizondb:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/horizondb/**/*
 
 service/hsm:
 - changed-files:

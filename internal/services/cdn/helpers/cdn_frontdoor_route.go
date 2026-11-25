@@ -4,8 +4,8 @@
 package helpers
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
 )
 
 func FlattenCdnFrontDoorRouteCustomDomainActivatedResourceArray(input *[]routes.ActivatedResourceReference) ([]any, error) {
