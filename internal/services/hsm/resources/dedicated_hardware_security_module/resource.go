@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDedicatedHardwareSecurityModuleCreate,
-		Read:   resourceDedicatedHardwareSecurityModuleRead,
-		Update: resourceDedicatedHardwareSecurityModuleUpdate,
-		Delete: resourceDedicatedHardwareSecurityModuleDelete,
+		Description: "Manages a Dedicated Hardware Security Module.",
+		Create:      resourceDedicatedHardwareSecurityModuleCreate,
+		Read:        resourceDedicatedHardwareSecurityModuleRead,
+		Update:      resourceDedicatedHardwareSecurityModuleUpdate,
+		Delete:      resourceDedicatedHardwareSecurityModuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

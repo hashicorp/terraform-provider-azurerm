@@ -16,11 +16,12 @@ func apiManagementProductPolicySchema() map[string]*pluginsdk.Schema {
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
-		"product_id": schemaz.SchemaApiManagementChildName(),
+		"product_id": schemaz.SchemaApiManagementChildName("The ID of the API Management Product within the API Management Service."),
 
 		"xml_content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The XML Content for this Policy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 			Computed:         true,
 			ConflictsWith:    []string{"xml_link"},
@@ -28,6 +29,7 @@ func apiManagementProductPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"xml_link": {
+			Description:   "A link to a Policy XML Document, which must be publicly available.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{"xml_content"},

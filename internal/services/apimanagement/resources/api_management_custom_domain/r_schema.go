@@ -12,6 +12,7 @@ import (
 func apiManagementCustomDomainSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_management_id": {
+			Description:  "The ID of the API Management service for which to configure Custom Domains.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

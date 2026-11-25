@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate,
-		Read:   resourceLogicAppIntegrationAccountBatchConfigurationRead,
-		Update: resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate,
-		Delete: resourceLogicAppIntegrationAccountBatchConfigurationDelete,
+		Description: "Manages a Logic App Integration Account Batch Configuration.",
+		Create:      resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate,
+		Read:        resourceLogicAppIntegrationAccountBatchConfigurationRead,
+		Update:      resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate,
+		Delete:      resourceLogicAppIntegrationAccountBatchConfigurationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

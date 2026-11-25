@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_iotcentral_application_network_rule_set"
 }
 
+func (r Resource) Description() string {
+	return "Manages an IoT Central Application Network Rule Set."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return apps.ValidateIotAppID
 }

@@ -14,6 +14,7 @@ import (
 func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Analysis Services Server. Only lowercase Alphanumeric characters allowed, starting with a letter.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +26,9 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "SKU for the Analysis Services Server.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"D1",
 				"B1",
@@ -43,16 +45,18 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"admin_users": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "List of email addresses of admin users.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"power_bi_service_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the Power BI service is allowed to access.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"ipv4_firewall_rule": {
@@ -62,15 +66,18 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the firewall rule.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 					"range_start": {
+						Description:  "Start of the firewall rule range as IPv4 address.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsIPv4Address,
 					},
 					"range_end": {
+						Description:  "End of the firewall rule range as IPv4 address.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsIPv4Address,
@@ -81,6 +88,7 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"querypool_connection_mode": {
+			Description:  "Controls how the read-write server is used in the query pool. If this value is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(servers.ConnectionModeAll),
@@ -88,6 +96,7 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"backup_blob_container_uri": {
+			Description:  "URI and SAS token for a blob container to store backups.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -95,8 +104,9 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"server_full_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The full name of the Analysis Services Server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

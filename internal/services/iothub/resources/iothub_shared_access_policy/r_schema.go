@@ -12,6 +12,7 @@ import (
 func iothubSharedAccessPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the IotHub Shared Access Policy resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func iothubSharedAccessPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"iothub_name": {
+			Description:  "The name of the IoTHub to which this Shared Access Policy belongs.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,51 +30,59 @@ func iothubSharedAccessPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"registry_read": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Adds `RegistryRead` permission to this Shared Access Account. It allows read access to the identity registry.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"registry_write": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Adds `RegistryWrite` permission to this Shared Access Account. It allows write access to the identity registry.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"service_connect": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Adds `ServiceConnect` permission to this Shared Access Account. It allows sending and receiving on the cloud-side endpoints.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"device_connect": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Adds `DeviceConnect` permission to this Shared Access Account. It allows sending and receiving on the device-side endpoints.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The primary key used to create the authentication token.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 
 		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The primary connection string of the Shared Access Policy.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The secondary key used to create the authentication token.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 
 		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The secondary connection string of the Shared Access Policy.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 	}
 }

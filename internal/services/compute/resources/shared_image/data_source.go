@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSharedImageRead,
+		Description: "Use this data source to access information about an existing Shared Image within a Shared Image Gallery.",
+		Read:        dataSourceSharedImageRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,12 +31,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Shared Image.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageName,
 			},
 
 			"gallery_name": {
+				Description:  "The name of the Shared Image Gallery in which the Shared Image exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
@@ -51,18 +54,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of Operating System present in this Shared Image.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"specialized": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Operating System used inside this Image has been specialized (for example, `sysprep` on Windows has been run).",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The generation of HyperV that the Virtual Machine used to create the Shared Image is based on.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identifier": {
@@ -71,34 +77,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"publisher": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Publisher Name for this Gallery Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"offer": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Offer Name for this Shared Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"sku": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Name of the SKU for this Gallery Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of this Shared Image.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"eula": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The End User Licence Agreement for the Shared Image.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"privacy_statement_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URI containing the Privacy Statement for this Shared Image.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"purchase_plan": {
@@ -107,54 +119,64 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Purchase Plan Name for this Shared Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"publisher": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Purchase Plan Publisher for this Gallery Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"product": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Purchase Plan Product for this Gallery Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"release_note_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URI containing the Release Notes for this Shared Image.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"trusted_launch_supported": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether supports creation of both Trusted Launch Virtual Machines and Gen2 Virtual Machines with standard security created from the Shared Image.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"trusted_launch_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Trusted Launch has to be enabled for the Virtual Machine created from the Shared Image.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"confidential_vm_supported": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether supports creation of both Confidential Virtual Machines and Gen2 Virtual Machines with standard security from a compatible Gen2 OS disk VHD or Gen2 Managed image.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"confidential_vm_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Confidential Virtual Machines enabled. It will enable all the features of trusted, with higher confidentiality features for isolate machines or encrypted data. Available for Gen2 machines.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"accelerated_network_support_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Shared Image supports Accelerated Network.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"hibernation_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Shared Image supports hibernation.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

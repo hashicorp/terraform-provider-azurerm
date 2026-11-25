@@ -34,12 +34,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
-			Description:  "The ID of the Container App Environment to host this Container App.",
+			Description:  "The ID of the Container App Environment within which this Container App should exist.",
 		},
 
 		"template": helpers.ContainerTemplateSchema(),
 
 		"revision_mode": {
+			Description:  "The revisions operational mode for the Container App. In `Single` mode, a single revision is in operation at any given time. In `Multiple` mode, more than one revision can be active at a time and can be configured with load distribution via the `traffic_weight` block in the `ingress` configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
@@ -56,12 +57,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"workload_profile_name": {
+			Description:  "The name of the Workload Profile in the Container App Environment to place this Container App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"max_inactive_revisions": {
+			Description:  "The maximum of inactive revisions allowed for this Container App.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(0, 100),
@@ -76,8 +79,9 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of the Public IP Addresses which the Container App uses for outbound network access.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

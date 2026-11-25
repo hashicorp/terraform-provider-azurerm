@@ -17,6 +17,7 @@ import (
 func monitorPrivateLinkScopedServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Azure Monitor Private Link Scoped Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func monitorPrivateLinkScopedServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"scope_name": {
+			Description:  "The name of the Azure Monitor Private Link Scope.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func monitorPrivateLinkScopedServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"linked_resource_id": {
+			Description:      "The ID of the linked resource.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,

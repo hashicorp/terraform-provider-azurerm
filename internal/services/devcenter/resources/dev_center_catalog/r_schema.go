@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Catalog.",
 			Required:     true,
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"dev_center_id": {
+			Description:  "The Dev Center ID within which this Dev Center Catalog should exist.",
 			Required:     true,
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,

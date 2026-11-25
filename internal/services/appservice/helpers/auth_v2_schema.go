@@ -83,7 +83,8 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				"auth_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the AuthV2 Settings be enabled. Defaults to `false`",
+					Default:     false,
+					Description: "Whether the AuthV2 Settings should be enabled.",
 				},
 
 				"runtime_version": {
@@ -91,7 +92,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      `~1`,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`",
+					Description:  "The Runtime Version of the Authentication and Authorisation feature of this App.",
 				},
 
 				"config_file_path": {
@@ -104,7 +105,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				"require_authentication": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the authentication flow be used for all requests.",
+					Description: "Whether the authentication flow should be used for all requests.",
 				},
 
 				"unauthenticated_action": {
@@ -112,7 +113,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientActionV2(), false),
-					Description:  "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
+					Description:  "The action to take for requests made without authentication.",
 				},
 
 				"default_provider": {
@@ -155,7 +156,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should HTTPS be required on connections? Defaults to true.",
+					Description: "Whether HTTPS should be required on connections.",
 				},
 
 				"http_route_api_prefix": {
@@ -163,7 +164,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "/.auth",
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`",
+					Description:  "The prefix that should precede all the authentication and authorisation paths.",
 				},
 
 				"forward_proxy_convention": {
@@ -171,7 +172,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ForwardProxyConventionNoProxy),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
-					Description:  "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+					Description:  "The convention used to determine the URL of the request made.",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -201,7 +202,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"auth_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the AuthV2 Settings be enabled.",
+					Description: "Whether the AuthV2 Settings are enabled.",
 				},
 
 				"runtime_version": {
@@ -219,7 +220,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"require_authentication": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the authentication flow used for all requests.",
+					Description: "Whether the authentication flow is used for all requests.",
 				},
 
 				"unauthenticated_action": {
@@ -265,7 +266,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"require_https": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is HTTPS required on connections?",
+					Description: "Whether HTTPS is required on connections.",
 				},
 
 				"http_route_api_prefix": {
@@ -277,7 +278,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"forward_proxy_convention": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The convention used to determine the url of the request made.",
+					Description: "The convention used to determine the URL of the request made.",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -327,7 +328,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Token Store configuration Enabled. Defaults to `false`",
+					Description: "Whether the Token Store configuration should be enabled.",
 				},
 
 				"token_refresh_extension_time": {
@@ -335,7 +336,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      72,
 					ValidateFunc: validation.FloatAtLeast(0),
-					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 				},
 
 				"token_store_path": {
@@ -362,7 +363,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the fragments from the request be preserved after the login request is made. Defaults to `false`.",
+					Description: "Whether the fragments from the request should be preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -380,7 +381,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.CookieExpirationConventionFixedTime),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForCookieExpirationConvention(), false),
-					Description:  "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
+					Description:  "The method by which cookies expire.",
 				},
 
 				"cookie_expiration_time": {
@@ -388,14 +389,14 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "08:00:00",
 					ValidateFunc: validate.TimeInterval,
-					Description:  "The time after the request is made when the session cookie should expire. Defaults to `08:00:00`.",
+					Description:  "The time after the request is made when the session cookie should expire.",
 				},
 
 				"validate_nonce": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the nonce be validated while completing the login flow. Defaults to `true`.",
+					Description: "Whether the nonce should be validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
@@ -403,7 +404,7 @@ func AuthV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "00:05:00",
 					ValidateFunc: validate.TimeInterval,
-					Description:  "The time after the request is made when the nonce should expire. Defaults to `00:05:00`.",
+					Description:  "The time after the request is made when the nonce should expire.",
 				},
 			},
 		},
@@ -425,7 +426,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				"token_store_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the Token Store configuration Enabled.",
+					Description: "Whether the Token Store configuration is enabled.",
 				},
 
 				"token_refresh_extension_time": {
@@ -449,7 +450,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				"preserve_url_fragments_for_logins": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Are the fragments from the request be preserved after the login request is made.",
+					Description: "Whether the fragments from the request are preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -475,7 +476,7 @@ func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 				"validate_nonce": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the nonce be validated while completing the login flow.",
+					Description: "Whether the nonce is validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
@@ -655,7 +656,7 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},
@@ -790,7 +791,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the www-authenticate provider should be omitted from the request? Defaults to `false`",
+					Default:     false,
+					Description: "Whether the www-authenticate provider should be omitted from the request.",
 				},
 
 				"allowed_groups": {
@@ -838,7 +840,7 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -860,7 +862,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"tenant_auth_endpoint": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`",
+					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
 				},
 
 				"client_secret_setting_name": {
@@ -896,7 +898,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the www-authenticate provider omitted from the request?",
+					Description: "Whether the www-authenticate provider is omitted from the request.",
 				},
 
 				"allowed_groups": {
@@ -937,7 +939,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -1226,7 +1228,7 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
+					Description: "The Client Credential Method used.",
 				},
 
 				"client_secret_setting_name": {
@@ -1305,7 +1307,7 @@ func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`",
+					Description: "The Client Credential Method used.",
 				},
 
 				"client_secret_setting_name": {
@@ -1471,7 +1473,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1508,7 +1510,7 @@ func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1601,7 +1603,7 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1632,7 +1634,7 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1723,7 +1725,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1733,7 +1735,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Login scopes that will be requested as part of Google Sign-In authentication.",
+					Description: "A list of Login scopes that will be requested as part of Google Sign-In authentication.",
 				},
 			},
 		},
@@ -1764,7 +1766,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 
 				"login_scopes": {
@@ -1773,7 +1775,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},
@@ -1870,7 +1872,7 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1910,7 +1912,7 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {

@@ -16,9 +16,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Azure Stack HCI Logical Network.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`),
 				"name must begin and end with an alphanumeric character, be between 2 and 64 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
@@ -30,6 +31,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"custom_location_id": {
+			Description:  "The ID of Custom Location where the Azure Stack HCI Logical Network should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,6 +39,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_switch_name": {
+			Description:  "The name of the virtual switch on the cluster used to associate with the Azure Stack HCI Logical Network. Possible switch names can be retrieved by following this [Azure guide](https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -44,9 +47,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_servers": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+			Description: "A list of IPv4 addresses of DNS servers available to VMs deployed in the Logical Networks.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv4Address,
@@ -61,6 +65,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_allocation_method": {
+						Description:  "The IP address allocation method for the subnet.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -68,6 +73,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"address_prefix": {
+						Description:  "The address prefix in CIDR notation.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -81,12 +87,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"start": {
+									Description:  "The IPv4 address of the start of the IP address pool.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IsIPv4Address,
 								},
 								"end": {
+									Description:  "The IPv4 address of the end of the IP address pool.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -104,6 +112,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"address_prefix": {
+									Description:  "The Address in CIDR notation.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -111,6 +120,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"next_hop_ip_address": {
+									Description:  "The IPv4 address of the next hop.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -118,9 +128,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ForceNew: true,
+									Description: "The name of the route.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									ForceNew:    true,
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
 										"name must be between 2 and 80 characters and can only contain alphanumeric characters, hyphen, dot and underline",
@@ -131,6 +142,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"vlan_id": {
+						Description:  "The VLAN ID for the Logical Network.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ForceNew:     true,

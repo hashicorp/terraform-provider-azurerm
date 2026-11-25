@@ -27,6 +27,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_email_communication_service"
 }
 
+func (Resource) Description() string {
+	return "Manages an Email Communication Service."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return emailservices.ValidateEmailServiceID
 }

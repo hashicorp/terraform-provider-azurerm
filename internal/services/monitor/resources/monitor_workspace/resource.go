@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_monitor_workspace"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Monitor Workspace."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return azuremonitorworkspaces.ValidateAccountID
 }

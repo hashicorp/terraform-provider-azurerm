@@ -13,6 +13,7 @@ import (
 func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"mssql_server_id": {
+			Description:  "The ID of the mssql server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description:  "The name which should be used for this MSSQL Server DNS Alias.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,8 +33,9 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 func (m Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dns_record": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The fully qualified DNS record for alias.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementApiRead,
+		Description: "Use this data source to access information about an existing API Management API.",
+		Read:        dataSourceApiManagementApiRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the API Management API.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ApiManagementApiName,
@@ -40,52 +42,61 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"revision": {
+				Description:  "The Revision of the API Management API.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A description of the API Management API, which may include HTML formatting tags.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The display name of the API.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"is_current": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this is the current API Revision.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"is_online": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this API Revision is online/accessible via the Gateway.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"path": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Path for this API Management API.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"protocols": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of protocols the operations in this API can be invoked.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"service_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Absolute URL of the backend service implementing this API.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"soap_pass_through": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this API exposes a SOAP frontend, rather than an HTTP frontend.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"subscription_key_parameter_names": {
@@ -94,30 +105,35 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"header": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the HTTP Header which should be used for the Subscription Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"query": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the QueryString parameter which should be used for the Subscription Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"subscription_required": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this API requires a subscription key.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Version number of this API, if this API is versioned.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"version_set_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Version Set which this API is associated with.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

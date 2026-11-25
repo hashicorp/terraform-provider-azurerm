@@ -40,7 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-			Description:  "The versionless encryption key url.",
+			Description:  "The versionless encryption key URL.",
 		},
 
 		"federated_client_id": {
@@ -48,7 +48,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
 			RequiredWith: []string{"cross_tenant_key_vault_resource_id"},
-			Description:  "The Client ID of the multi-tenant Entra ID application used to access cross-tenant key vaults.",
+			Description:  "The Client ID of the multi-tenant Entra ID application used to access cross-tenant Key Vaults.",
 		},
 
 		"cross_tenant_key_vault_resource_id": {
@@ -56,7 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
 			RequiredWith: []string{"federated_client_id"},
-			Description:  "The full resource ID of the cross-tenant key vault. Required when using federated_client_id for cross-tenant scenarios.",
+			Description:  "The full resource ID of the cross-tenant Key Vault. Required when using federated_client_id for cross-tenant scenarios.",
 		},
 	}
 }

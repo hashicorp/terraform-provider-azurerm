@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiVersionSetCreateUpdate,
-		Read:   resourceApiManagementApiVersionSetRead,
-		Update: resourceApiManagementApiVersionSetCreateUpdate,
-		Delete: resourceApiManagementApiVersionSetDelete,
+		Description: "Manages an API Version Set within an API Management Service.",
+		Create:      resourceApiManagementApiVersionSetCreateUpdate,
+		Read:        resourceApiManagementApiVersionSetRead,
+		Update:      resourceApiManagementApiVersionSetCreateUpdate,
+		Delete:      resourceApiManagementApiVersionSetDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apiversionset.ParseApiVersionSetID(id)
 			return err

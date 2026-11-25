@@ -17,10 +17,11 @@ var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubSharedAccessPolicyCreateUpdate,
-		Read:   resourceIotHubSharedAccessPolicyRead,
-		Update: resourceIotHubSharedAccessPolicyCreateUpdate,
-		Delete: resourceIotHubSharedAccessPolicyDelete,
+		Description: "Manages an IotHub Shared Access Policy.",
+		Create:      resourceIotHubSharedAccessPolicyCreateUpdate,
+		Read:        resourceIotHubSharedAccessPolicyRead,
+		Update:      resourceIotHubSharedAccessPolicyCreateUpdate,
+		Delete:      resourceIotHubSharedAccessPolicyDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

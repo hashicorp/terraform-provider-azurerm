@@ -15,9 +15,10 @@ import (
 func iothubEnrichmentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"key": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The key of the enrichment.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
 				"Enrichment Key name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
@@ -27,6 +28,7 @@ func iothubEnrichmentSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"iothub_name": {
+			Description:  "The IoTHub name of the enrichment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,14 +36,16 @@ func iothubEnrichmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"value": {
+			Description:  "The value of the enrichment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"endpoint_names": {
-			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
+			Description: "The list of endpoints which will be enriched.",
+			Type:        pluginsdk.TypeList,
+			MaxItems:    100,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

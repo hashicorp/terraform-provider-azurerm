@@ -37,6 +37,10 @@ func (v DataSource) ResourceType() string {
 	return "azurerm_automation_variables"
 }
 
+func (v DataSource) Description() string {
+	return "Use this data source to get all variables in an Automation Account."
+}
+
 func (v DataSource) ModelObject() any {
 	return &AutomationVariablesDataSourceModel{}
 }

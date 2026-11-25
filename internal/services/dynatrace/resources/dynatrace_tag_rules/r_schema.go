@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "Name of the Dynatrace tag rules.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"monitor_id": {
+			Description:  "Name of the Dynatrace monitor.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,37 +29,43 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"log_rule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Set of rules for sending logs for the Monitor resource.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"send_azure_active_directory_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Send Azure Active Directory logs.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"send_activity_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Send Activity logs.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"send_subscription_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Send Subscription logs.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"filtering_tag": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "Filtering tag for the log rule.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Action of the filtering tag.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 										"Exclude",
@@ -65,12 +73,14 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 								},
 
 								"name": {
+									Description:  "Name of the filtering tag.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"value": {
+									Description:  "Value of the filtering tag.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -83,19 +93,22 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"metric_rule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Set of rules for sending metrics for the Monitor resource.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"filtering_tag": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "Filtering tag for the metric rule.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "Action of the filtering tag.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 										"Exclude",
@@ -103,12 +116,14 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 								},
 
 								"name": {
+									Description:  "Name of the filtering tag.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"value": {
+									Description:  "Value of the filtering tag.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -117,9 +132,10 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 						},
 					},
 					"sending_metrics_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "If sending metrics is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},

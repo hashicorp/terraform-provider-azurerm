@@ -299,6 +299,11 @@ service/healthcare:
   - any-glob-to-any-file:
     - internal/services/healthcare/**/*
 
+service/horizondb:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/horizondb/**/*
+
 service/hsm:
 - changed-files:
   - any-glob-to-any-file:
