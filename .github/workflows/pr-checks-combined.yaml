@@ -231,9 +231,12 @@ jobs:
         with:
           persist-credentials: false
       - name: Run ShellCheck
+        id: shellcheck
         run: make shellcheck
+      - name: Test the scripts workflows run
+        run: make test-automation
       - name: Guidance on failure
-        if: failure()
+        if: failure() && steps.shellcheck.outcome == 'failure'
         run: |
           echo "::error::ShellCheck failed."
           echo ""

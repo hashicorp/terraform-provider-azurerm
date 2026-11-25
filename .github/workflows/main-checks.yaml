@@ -166,6 +166,8 @@ jobs:
           persist-credentials: false
       - name: Run ShellCheck
         run: make shellcheck
+      - name: Test the scripts workflows run
+        run: make test-automation
 
   typos:
     runs-on: ubuntu-latest

@@ -253,6 +253,10 @@ test: ## Run the unit tests
 	@TEST=$(TEST) ./scripts/checks/gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/checks/test.sh
 
+test-automation: ## Run the tests for the scripts workflows run (scripts/automation/*.test.sh)
+	@echo "==> Testing automation scripts..."
+	@for t in scripts/automation/*.test.sh; do bash "$$t" || exit 1; done
+
 testacc: ## Run acceptance tests for a package (TEST=./internal/services/<service>)
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
@@ -364,4 +368,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint lint-diff lint-diff-fix actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint lint-diff lint-diff-fix actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test test-automation testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
