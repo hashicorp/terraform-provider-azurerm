@@ -40,7 +40,6 @@ func (r Resource) Read() sdk.ResourceFunc {
 			state := EventGridNamespaceTopicResourceModel{
 				Name:                 id.TopicName,
 				EventgridNamespaceId: namespacetopics.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID(),
-				RoutingEnabled:       false,
 			}
 
 			if model := resp.Model; model != nil {
