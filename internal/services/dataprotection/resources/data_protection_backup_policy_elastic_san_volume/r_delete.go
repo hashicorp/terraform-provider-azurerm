@@ -18,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupPolicyClient20260601
-			id, err := basebackuppolicyresources.ParseBackupPolicyIDInsensitively(metadata.ResourceData.Id())
+			id, err := basebackuppolicyresources.ParseBackupPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
