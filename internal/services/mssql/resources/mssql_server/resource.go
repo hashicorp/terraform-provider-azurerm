@@ -59,6 +59,7 @@ func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.Resour
 		return nil
 	}
 
+	// Disabling AAD-only auth and updating the password in the same apply is allowed.
 	_, newVal := d.GetChange("azuread_administrator.0.azuread_authentication_only")
 	if !newVal.(bool) {
 		return nil
