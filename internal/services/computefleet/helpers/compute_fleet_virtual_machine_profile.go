@@ -167,7 +167,7 @@ func ExtensionSchema() *pluginsdk.Schema {
 								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 							},
 
-							"source_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+							"source_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 						},
 					},
 				},
@@ -265,7 +265,7 @@ func NetworkInterfaceSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"network_security_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&networksecuritygroups.NetworkSecurityGroupId{}),
+				"network_security_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&networksecuritygroups.NetworkSecurityGroupId{}, "Network Security Group"),
 
 				"primary_network_interface_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -539,7 +539,7 @@ func OsProfileSchema() *pluginsdk.Schema {
 								ForceNew: true,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+										"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 										"certificate": {
 											Type:     pluginsdk.TypeSet,
@@ -677,7 +677,7 @@ func OsProfileSchema() *pluginsdk.Schema {
 								ForceNew: true,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+										"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 										"certificate": {
 											Type:     pluginsdk.TypeSet,
