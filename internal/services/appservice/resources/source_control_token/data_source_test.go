@@ -16,6 +16,10 @@ type AppServiceGithubTokenDataSource struct{}
 
 func TestAccSourceControlGitHubTokenDataSource_regressionTest(t *testing.T) {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	if token == "" {
+		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_source_control_token", "test")
 	r := AppServiceGithubTokenDataSource{}
 
