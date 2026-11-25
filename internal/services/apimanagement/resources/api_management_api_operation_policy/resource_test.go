@@ -1,0 +1,221 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package api_management_api_operation_policy_test
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type ApiManagementApiOperationPolicyResource struct{}
+
+func TestAccApiManagementAPIOperationPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
+	r := ApiManagementApiOperationPolicyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
+func TestAccApiManagementAPIOperationPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
+	r := ApiManagementApiOperationPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_link"},
+		},
+	})
+}
+
+func TestAccApiManagementAPIOperationPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
+	r := ApiManagementApiOperationPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementAPIOperationPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
+	r := ApiManagementApiOperationPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("xml_link"),
+		{
+			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.customPolicyXml()+"\n"),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
+		},
+	})
+}
+
+func TestAccApiManagementAPIOperationPolicy_rawXml(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
+	r := ApiManagementApiOperationPolicyResource{}
+
+	policy, err := os.ReadFile("testdata/api_management_api_operation_policy.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rawXml(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(string(policy)),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(string(policy)),
+		},
+	})
+}
+
+func (ApiManagementApiOperationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := apioperationpolicy.ParseOperationID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.ApiManagement.ApiOperationPoliciesClient.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+}
+
+func (r ApiManagementApiOperationPolicyResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_policy" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
+  xml_link            = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/refs/heads/main/internal/services/apimanagement/resources/api_management_api_operation_policy/testdata/api_management_api_operation_policy.xml"
+}
+`, ApiManagementApiOperationResource{}.basic(data))
+}
+
+func (r ApiManagementApiOperationPolicyResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_policy" "import" {
+  api_name            = azurerm_api_management_api_operation_policy.test.api_name
+  api_management_name = azurerm_api_management_api_operation_policy.test.api_management_name
+  resource_group_name = azurerm_api_management_api_operation_policy.test.resource_group_name
+  operation_id        = azurerm_api_management_api_operation_policy.test.operation_id
+  xml_link            = azurerm_api_management_api_operation_policy.test.xml_link
+}
+`, r.basic(data))
+}
+
+func (r ApiManagementApiOperationPolicyResource) updated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_policy" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
+
+  xml_content = <<XML
+%s
+XML
+
+}
+`, ApiManagementApiOperationResource{}.basic(data), r.customPolicyXml())
+}
+
+func (r ApiManagementApiOperationPolicyResource) rawXml(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_policy" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
+
+  xml_content = file("testdata/api_management_api_operation_policy.xml")
+}
+`, ApiManagementApiOperationResource{}.basic(data))
+}
+
+func (ApiManagementApiOperationPolicyResource) customPolicyXml() string {
+	return `<policies>
+  <inbound>
+    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
+    <find-and-replace from="xyz" to="abc" />
+  </inbound>
+</policies>`
+}
+
+func checkImportedPolicyContent(expected string) func([]*pluginsdk.InstanceState) error {
+	return func(states []*pluginsdk.InstanceState) error {
+		if len(states) != 1 {
+			return fmt.Errorf("expected one imported policy, got %d", len(states))
+		}
+
+		importedContent := states[0].Attributes["xml_content"]
+		if !helpers.XmlWithDotNetInterpolationsDiffSuppress("xml_content", expected, importedContent, nil) {
+			return fmt.Errorf("imported xml_content differs from the expected policy: expected %q, got %q", expected, importedContent)
+		}
+
+		return nil
+	}
+}

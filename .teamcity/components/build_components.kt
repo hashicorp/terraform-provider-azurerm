@@ -1,6 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.*
 import java.io.File
-import jetbrains.buildServer.configs.kotlin.buildFeatures.BuildCacheFeature
 import jetbrains.buildServer.configs.kotlin.buildFeatures.GolangFeature
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
@@ -20,14 +19,6 @@ fun BuildFeatures.Golang() {
     }
 }
 
-// Requires the creation of build_config_cache for the project:
-fun BuildFeatures.BuildCacheFeature() {
-        feature(BuildCacheFeature {
-            name = "terraform-provider-azurerm-build-cache"
-            publish = false
-        })
-}
-
 // Ensure that daysOfWeek constraints in the overrides are honoured.
 fun BuildSteps.CheckScheduleConstraints() {
     step(ScriptBuildStep {
@@ -39,7 +30,12 @@ fun BuildSteps.CheckScheduleConstraints() {
 
             # manual/gh trigger should bypass the daysOfWeek overrides.
             if [[ "%env.IS_NIGHTLY_RUN%" == "true" ]]; then
-                if [[ ! ",%DAYS_OF_WEEK%," =~ ",${'$'}{DAY_NUM}," && "%DAYS_OF_WEEK%" != "*" ]]; then
+                if [[ "%DISABLE_TRIGGERS%" == "true" ]]; then
+                    echo "Nightly triggers are disabled for this service."
+                    echo "Skipping test execution for this service."
+                    # Tell TeamCity to skip subsequent steps using a service message
+                    echo "##teamcity[setParameter name='env.SCHEDULE_MATCHES' value='false']"
+                elif [[ ! ",%DAYS_OF_WEEK%," =~ ",${'$'}{DAY_NUM}," && "%DAYS_OF_WEEK%" != "*" ]]; then
                     echo "Today is day ${'$'}{DAY_NUM}. This job is constrained to run only on days: %DAYS_OF_WEEK%."
                     echo "Skipping test execution for this service."
                     # Tell TeamCity to skip subsequent steps using a service message
@@ -103,11 +99,21 @@ fun servicePath(packageName: String) : String {
     return "./internal/services/%s".format(packageName)
 }
 
+// Says what state the agent's Go cache is in and drops what nothing has used lately - see GoCache().
+fun BuildSteps.PrepareGoCache(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Prepare Go Cache"
+        scriptContent = File("scripts/go_cache.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
+    })
+}
+
 fun BuildSteps.RunAcceptanceTests(packageName: String) {
-    var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
         name = "Run Tests"
-        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json | go run ./internal/tools/teamcity-test-reporter"
+        scriptContent = File("scripts/run_tests.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -115,10 +121,9 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
 }
 
 fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
-    var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
         name = "Run Tests"
-        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json | go run ./internal/tools/teamcity-test-reporter"
+        scriptContent = File("scripts/run_tests.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -129,7 +134,6 @@ fun BuildSteps.PostTestResultsToGitHubPullRequest() {
     step(ScriptBuildStep {
         name = "Post Test Results to GitHub Pull Request"
         scriptContent = File("scripts/post_github_comment.sh").readText()
-        workingDir = "%SERVICE_PATH%"
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -182,9 +186,12 @@ fun ParametrizedWithType.BuildStartTime() {
     text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
+// Each agent keeps its own Go caches between builds, so only the first build on an agent compiles everything.
+// They can't live in the agent's work directory: once a build finishes TeamCity deletes everything in there
+// which isn't a checkout directory. Nothing but Go and run_tests.sh touches the persistent cache directory.
 fun ParametrizedWithType.GoCache() {
-    text("env.GOMODCACHE", "%teamcity.agent.work.dir%/go-cache/mod", "The location of the Go Module Cache")
-    text("env.GOCACHE", "%teamcity.agent.work.dir%/go-cache/build", "The location of the Go Cache")
+    text("env.GOMODCACHE", "%system.agent.persistent.cache%/go-cache/mod", "The location of the Go Module Cache")
+    text("env.GOCACHE", "%system.agent.persistent.cache%/go-cache/build", "The location of the Go Cache")
 }
 
 fun ParametrizedWithType.hiddenVariable(name: String, value: String, description: String) {
