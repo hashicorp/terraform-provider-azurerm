@@ -114,9 +114,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			rbacContext, cancel := context.WithTimeout(ctx, 10*time.Minute)
 			defer cancel()
 
-			rbacPollerType := custompollers.NewDataProtectionBackupInstanceRBACPoller(metadata.Client.DataProtection.BackupVaultClient, *vaultId, backupvaultresources.ValidateForBackupRequest{
-				BackupInstance: validationInstance,
-			})
+			rbacPollerType := custompollers.NewDataProtectionBackupInstanceRBACPoller(metadata.Client.DataProtection.BackupVaultClient, *vaultId, validationInstance)
 			rbacPoller := pollers.NewPoller(rbacPollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := rbacPoller.PollUntilDone(rbacContext); err != nil {
 				return fmt.Errorf("waiting for RBAC permissions before creating %s: %+v", id, err)

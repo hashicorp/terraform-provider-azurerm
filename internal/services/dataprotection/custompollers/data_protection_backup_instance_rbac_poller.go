@@ -22,11 +22,13 @@ type dataProtectionBackupInstanceRBACPoller struct {
 	parameters backupvaultresources.ValidateForBackupRequest
 }
 
-func NewDataProtectionBackupInstanceRBACPoller(client *backupvaultresources.BackupVaultResourcesClient, id backupvaultresources.BackupVaultId, parameters backupvaultresources.ValidateForBackupRequest) *dataProtectionBackupInstanceRBACPoller {
+func NewDataProtectionBackupInstanceRBACPoller(client *backupvaultresources.BackupVaultResourcesClient, id backupvaultresources.BackupVaultId, instance backupvaultresources.BackupInstance) *dataProtectionBackupInstanceRBACPoller {
 	return &dataProtectionBackupInstanceRBACPoller{
 		client:     client,
 		id:         id,
-		parameters: parameters,
+		parameters: backupvaultresources.ValidateForBackupRequest{
+			BackupInstance: instance,
+		},
 	}
 }
 
