@@ -24,7 +24,7 @@ func TestAccCommunicationService_regressionTest(t *testing.T) {
 	r := CommunicationServiceResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.regressionTest(data),
+			Config: r.complete(data),
 		},
 	}, "")
 }
@@ -247,22 +247,6 @@ resource "azurerm_communication_service" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CommunicationServiceResource) regressionTest(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_communication_service" "test" {
-  name                = "acctest-CommunicationService-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_location       = "United States"
-
-  tags = {
-    env = "Test"
   }
 }
 `, r.template(data), data.RandomInteger)

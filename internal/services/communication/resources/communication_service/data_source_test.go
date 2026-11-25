@@ -18,7 +18,7 @@ func TestAccCommunicationServiceDataSource_regressionTest(t *testing.T) {
 	r := CommunicationServiceDataSource{}
 	data.DataSourceRegressionTest(t, []acceptance.TestStep{
 		{
-			Config: r.regressionTest(data),
+			Config: r.complete(data),
 		},
 	}, "")
 }
@@ -82,15 +82,4 @@ data "azurerm_communication_service" "test" {
   resource_group_name = azurerm_communication_service.test.resource_group_name
 }
 `, CommunicationServiceResource{}.complete(data))
-}
-
-func (d CommunicationServiceDataSource) regressionTest(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_communication_service" "test" {
-  name                = azurerm_communication_service.test.name
-  resource_group_name = azurerm_communication_service.test.resource_group_name
-}
-`, CommunicationServiceResource{}.regressionTest(data))
 }
