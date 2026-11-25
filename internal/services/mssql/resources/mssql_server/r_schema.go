@@ -175,9 +175,10 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"soft_delete_retention_days": {
-			Description:  "The number of days a deleted server is retained in a soft-deleted state and can be restored. Possible values are between `0` and `7`. Setting this to `0` disables soft delete.",
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Description: "The number of days a deleted server is retained in a soft-deleted state and can be restored. Setting this to `0` disables soft delete.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			// Note: O+C because soft delete can be configured outside of Terraform (e.g. Portal/PowerShell) and Azure may apply a default retention period when not specified
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(0, 7),
 		},
