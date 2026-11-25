@@ -69,7 +69,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 
-					"capacity_reservation_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&capacityreservationgroups.CapacityReservationGroupId{}),
+					"capacity_reservation_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&capacityreservationgroups.CapacityReservationGroupId{}, "Capacity Reservation Group"),
 
 					"data_disk": helpers.StorageProfileDataDiskSchema(),
 
