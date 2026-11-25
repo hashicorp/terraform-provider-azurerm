@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -139,7 +139,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.", // azignore:AZS014 - the default is set by DefaultFunc
 			},
 
 			"metadata_host": {
@@ -168,7 +168,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", nil),
-				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
+				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			"client_certificate_path": {
@@ -182,7 +182,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", nil),
-				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
+				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			// Client Secret specific fields
@@ -205,7 +205,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
-				Description: "Allow OpenID Connect to be used for authentication",
+				Description: "Allow OpenID Connect to be used for authentication.",
 			},
 
 			"ado_pipeline_service_connection_id": {
@@ -336,7 +336,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
-				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
+				Description: "Whether the AzureRM Provider should use Azure AD Authentication when accessing the Storage Data Plane APIs.",
 			},
 		},
 
