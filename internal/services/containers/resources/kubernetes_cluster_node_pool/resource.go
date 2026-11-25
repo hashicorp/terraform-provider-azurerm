@@ -102,6 +102,12 @@ func RegisterResource() *pluginsdk.Resource {
 					return nil
 				}
 
+				// Azure rejects `maxUnavailable` on Gateway pools, and expandAgentPoolUpgradeSettings
+				// always sends it alongside `max_surge`, so the block cannot be used at all here.
+				if strings.EqualFold(d.Get("mode").(string), string(agentpools.AgentPoolModeGateway)) {
+					return errors.New("`upgrade_settings` cannot be configured when `mode` is set to `Gateway`")
+				}
+
 				upgradeSettings := upgradeSettingsRaw[0].(map[string]any)
 				maxSurgeRaw := upgradeSettings["max_surge"].(string)
 				maxUnavailableRaw := upgradeSettings["max_unavailable"].(string)

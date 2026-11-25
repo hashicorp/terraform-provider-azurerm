@@ -358,7 +358,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		}
 
 		if d.HasChange("network_profile.0.static_egress_gateway_profile_enabled") {
-			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = expandStaticEgressGatewayProfile(d.Get("network_profile.0.static_egress_gateway_profile_enabled").(bool))
+			existing.Model.Properties.NetworkProfile.StaticEgressGatewayProfile = &managedclusters.ManagedClusterStaticEgressGatewayProfile{
+				Enabled: pointer.To(d.Get("network_profile.0.static_egress_gateway_profile_enabled").(bool)),
+			}
 		}
 	}
 	if d.HasChange("service_mesh_profile") {

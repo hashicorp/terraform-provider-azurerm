@@ -116,7 +116,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Description: "The size of the public IP prefix used by the Static Egress Gateway.",
 			Type:        pluginsdk.TypeInt,
 			Optional:    true,
-			// NOTE: O+C Azure sets a default value if not specified by the user
+			// NOTE: O+C - Azure picks the prefix size when it is not specified. A static
+			// Default cannot be used: it would apply to every Node Pool, and Azure rejects
+			// a gateway profile on pools whose `mode` is not `Gateway`.
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(28, 31),
 		},

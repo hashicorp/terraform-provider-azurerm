@@ -833,9 +833,3 @@ func expandKubernetesClusterUpgradeOverrideSetting(input []any) *managedclusters
 		},
 	}
 }
-
-func expandStaticEgressGatewayProfile(enabled bool) *managedclusters.ManagedClusterStaticEgressGatewayProfile {
-	return &managedclusters.ManagedClusterStaticEgressGatewayProfile{
-		Enabled: pointer.To(enabled),
-	}
-}

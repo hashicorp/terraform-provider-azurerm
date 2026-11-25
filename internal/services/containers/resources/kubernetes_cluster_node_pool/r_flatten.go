@@ -50,9 +50,7 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 		if props.GatewayProfile != nil {
 			gatewayPublicIPPrefixSize = int(pointer.From(props.GatewayProfile.PublicIPPrefixSize))
 		}
-		if err := d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize); err != nil {
-			return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
-		}
+		d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize)
 
 		if props.CreationData != nil {
 			d.Set("snapshot_id", props.CreationData.SourceResourceId)

@@ -4271,6 +4271,43 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateStaticEgressGatewayConfig(data))
 }
 
+func TestAccKubernetesClusterNodePool_gatewayUpgradeSettingsValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.gatewayUpgradeSettingsValidationConfig(data),
+			ExpectError: regexp.MustCompile("`upgrade_settings` cannot be configured when `mode` is set to `Gateway`"),
+		},
+	})
+}
+
+func (r KubernetesClusterNodePoolResource) gatewayUpgradeSettingsValidationConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 2
+  mode                  = "Gateway"
+  vnet_subnet_id        = azurerm_subnet.test.id
+
+  gateway_public_ip_prefix_size = 30
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateStaticEgressGatewayConfig(data))
+}
+
 func (r KubernetesClusterNodePoolResource) gatewayValidationConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
