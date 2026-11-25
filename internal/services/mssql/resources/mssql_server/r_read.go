@@ -4,7 +4,6 @@
 package mssql_server
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -38,13 +37,4 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
 	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta.(*clients.Client))
-}
-
-func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
-	old, new := d.GetChange("minimum_tls_version")
-	// todo remove `old != "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
-	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
-		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
-	}
-	return
 }

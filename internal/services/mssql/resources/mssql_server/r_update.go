@@ -35,11 +35,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	aadOnlyAuthenticationsEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]any))
-	if _, ok := d.GetOk("administrator_login_password"); ok && aadOnlyAuthenticationsEnabled && d.HasChange("administrator_login_password") {
-		return fmt.Errorf("`administrator_login_password` cannot be changed when `azuread_administrator.0.azuread_authentication_only = true`")
-	}
-
 	id, err := commonids.ParseSqlServerID(d.Id())
 	if err != nil {
 		return err
