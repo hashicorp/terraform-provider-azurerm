@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiTagCreate,
-		Read:   resourceApiManagementApiTagRead,
-		Delete: resourceApiManagementApiTagDelete,
+		Description: "Manages the Assignment of an API Management API Tag to an API.",
+		Create:      resourceApiManagementApiTagCreate,
+		Read:        resourceApiManagementApiTagRead,
+		Delete:      resourceApiManagementApiTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apitag.ParseApiTagID(id)

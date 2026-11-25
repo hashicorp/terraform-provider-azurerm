@@ -13,6 +13,7 @@ import (
 func cosmosdbSqlStoredProcedureSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cosmos DB SQL Stored Procedure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func cosmosdbSqlStoredProcedureSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
+			Description:  "The name of the Cosmos DB Account to create the stored procedure within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,12 +31,14 @@ func cosmosdbSqlStoredProcedureSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"body": {
+			Description:  "The body of the stored procedure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"container_name": {
+			Description:  "The name of the Cosmos DB SQL Container to create the stored procedure within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +46,7 @@ func cosmosdbSqlStoredProcedureSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the Cosmos DB SQL Database to create the stored procedure within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

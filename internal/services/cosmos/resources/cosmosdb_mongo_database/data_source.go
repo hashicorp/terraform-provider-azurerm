@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCosmosDbMongoDatabaseRead,
+		Description: "Use this data source to access information about an existing Cosmos DB Mongo Database.",
+		Read:        dataSourceCosmosDbMongoDatabaseRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,12 +28,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Cosmos DB Mongo Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account where the Mongo Database exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CosmosAccountName,

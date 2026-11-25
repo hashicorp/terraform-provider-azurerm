@@ -14,6 +14,7 @@ import (
 func cosmosdbSqlRoleAssignmentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The GUID as the name of the Cosmos DB SQL Role Assignment - one will be generated if not specified.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -24,6 +25,7 @@ func cosmosdbSqlRoleAssignmentSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
+			Description:  "The name of the Cosmos DB Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func cosmosdbSqlRoleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_id": {
+			Description:  "The ID of the Principal (Client) in Azure Active Directory.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,6 +41,7 @@ func cosmosdbSqlRoleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope": {
+			Description:  "The data plane resource path for which access is being granted through this Cosmos DB SQL Role Assignment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -45,6 +49,7 @@ func cosmosdbSqlRoleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"role_definition_id": {
+			Description:  "The resource ID of the Cosmos DB SQL Role Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: rbacs.ValidateSqlRoleDefinitionID,

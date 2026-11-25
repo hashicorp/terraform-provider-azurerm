@@ -15,6 +15,7 @@ import (
 func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Cassandra Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"delegated_management_subnet_id": {
+			Description:  "The ID of the delegated management subnet for this Cassandra Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"default_admin_password": {
+			Description:  "The initial admin password for this Cassandra Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,9 +44,10 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_method": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(managedcassandras.AuthenticationMethodCassandra),
+			Description: "The authentication method that is used to authenticate clients.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(managedcassandras.AuthenticationMethodCassandra),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedcassandras.AuthenticationMethodNone),
 				string(managedcassandras.AuthenticationMethodCassandra),
@@ -51,8 +55,9 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_pems": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of TLS certificates that is used to authorize client connecting to the Cassandra Cluster.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.IsCert,
@@ -60,8 +65,9 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"external_gossip_certificate_pems": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of TLS certificates that is used to authorize gossip from unmanaged Cassandra Data Center.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.IsCert,
@@ -69,8 +75,9 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"external_seed_node_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of IP Addresses of the seed nodes in the unmanaged Cassandra Data Center which will be added to the seed node lists of all managed nodes.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv4Address,
@@ -78,24 +85,27 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"hours_between_backups": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  24,
+			Description: "The number of hours to wait between taking a backup of the Cassandra Cluster.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     24,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"repair_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the automatic repair is enabled on the Cassandra Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "3.11",
-			ForceNew: true,
+			Description: "The version of Cassandra that the Cluster converges to run.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "3.11",
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"3.11",
 				"4.0",

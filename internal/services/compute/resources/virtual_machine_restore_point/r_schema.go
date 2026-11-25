@@ -12,12 +12,14 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name of the Virtual Machine Restore Point.",
+			ForceNew:    true,
+			Required:    true,
+			Type:        pluginsdk.TypeString,
 		},
 
 		"virtual_machine_restore_point_collection_id": {
+			Description:  "The ID of the Virtual Machine Restore Point Collection the Virtual Machine Restore Point will be associated with.",
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -25,16 +27,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"crash_consistency_mode_enabled": {
-			ForceNew: true,
-			Optional: true,
-			Type:     pluginsdk.TypeBool,
-			Default:  false,
+			Description: "Whether the Consistency Mode of the Virtual Machine Restore Point is set to `CrashConsistent`.",
+			ForceNew:    true,
+			Optional:    true,
+			Type:        pluginsdk.TypeBool,
+			Default:     false,
 		},
 
 		"excluded_disks": {
-			ForceNew: true,
-			Optional: true,
-			Type:     pluginsdk.TypeSet,
+			Description: "A list of disks that will be excluded from the Virtual Machine Restore Point.",
+			ForceNew:    true,
+			Optional:    true,
+			Type:        pluginsdk.TypeSet,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateManagedDiskID,

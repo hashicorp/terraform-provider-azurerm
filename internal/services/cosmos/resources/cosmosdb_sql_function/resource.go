@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLFunctionCreate,
-		Read:   resourceCosmosDbSQLFunctionRead,
-		Update: resourceCosmosDbSQLFunctionUpdate,
-		Delete: resourceCosmosDbSQLFunctionDelete,
+		Description: "Manages an SQL User Defined Function.",
+		Create:      resourceCosmosDbSQLFunctionCreate,
+		Read:        resourceCosmosDbSQLFunctionRead,
+		Update:      resourceCosmosDbSQLFunctionUpdate,
+		Delete:      resourceCosmosDbSQLFunctionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -13,6 +13,7 @@ import (
 func cosmosdbSqlTriggerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this SQL Trigger.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func cosmosdbSqlTriggerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"container_id": {
+			Description:  "The ID of the Cosmos DB SQL Container to create the SQL Trigger within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,18 +29,21 @@ func cosmosdbSqlTriggerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"body": {
+			Description:  "Body of the Trigger.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"operation": {
+			Description:  "The operation the trigger is associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerOperation(), false),
 		},
 
 		"type": {
+			Description:  "Type of the Trigger.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerType(), false),

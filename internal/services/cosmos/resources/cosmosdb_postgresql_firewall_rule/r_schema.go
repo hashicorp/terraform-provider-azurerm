@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for the Azure Cosmos DB for PostgreSQL Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,12 +29,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"end_ip_address": {
+			Description:  "The end IP address of the Azure Cosmos DB for PostgreSQL Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
 
 		"start_ip_address": {
+			Description:  "The start IP address of the Azure Cosmos DB for PostgreSQL Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,

@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_node_configuration"
 }
 
+func (r Resource) Description() string {
+	return "Sets a Node Configuration value on Azure Cosmos DB for PostgreSQL Cluster."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurations.ValidateNodeConfigurationID
 }

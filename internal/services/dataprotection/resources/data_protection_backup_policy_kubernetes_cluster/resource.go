@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_kubernetes_cluster"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backup Policy to back up Kubernetes Cluster."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return basebackuppolicyresources.ValidateBackupPolicyID
 }

@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_role_definition"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Cosmos DB Mongo Role Definition."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return mongorbacs.ValidateMongodbRoleDefinitionID
 }

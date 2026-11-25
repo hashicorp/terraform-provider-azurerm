@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
-		Read:   resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead,
-		Update: resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
-		Delete: resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete,
+		Description: "Manages a Key Vault Managed Storage Account SAS Definition.",
+		Create:      resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
+		Read:        resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead,
+		Update:      resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
+		Delete:      resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SasDefinitionID(id)

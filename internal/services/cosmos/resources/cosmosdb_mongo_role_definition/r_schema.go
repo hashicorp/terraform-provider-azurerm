@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmos_mongo_database_id": {
+			Description:  "The resource ID of the Mongo DB.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"role_name": {
+			Description:  "The user-friendly name for the Mongo Role Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,8 +29,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"inherited_role_names": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of Mongo Roles which are inherited to the Mongo Role Definition.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -41,8 +44,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"actions": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "A list of actions that are allowed.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -56,12 +60,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"collection_name": {
+									Description:  "The name of the Mongo DB Collection that the Role Definition is applied to.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.CosmosEntityName,
 								},
 
 								"db_name": {
+									Description:  "The name of the Mongo DB that the Role Definition is applied to.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.CosmosEntityName,

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLTriggerCreateUpdate,
-		Read:   resourceCosmosDbSQLTriggerRead,
-		Update: resourceCosmosDbSQLTriggerCreateUpdate,
-		Delete: resourceCosmosDbSQLTriggerDelete,
+		Description: "Manages an SQL Trigger.",
+		Create:      resourceCosmosDbSQLTriggerCreateUpdate,
+		Read:        resourceCosmosDbSQLTriggerRead,
+		Update:      resourceCosmosDbSQLTriggerCreateUpdate,
+		Delete:      resourceCosmosDbSQLTriggerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

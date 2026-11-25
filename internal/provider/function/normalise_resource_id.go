@@ -25,13 +25,13 @@ func (a NormaliseResourceIDFunction) Metadata(_ context.Context, _ function.Meta
 func (a NormaliseResourceIDFunction) Definition(_ context.Context, _ function.DefinitionRequest, response *function.DefinitionResponse) {
 	response.Definition = function.Definition{
 		Summary:             "normalise_resource_id",
-		Description:         "Parses and attempts to normalise the casing on an Azure Resource Manager ID into the correct casing for Terraform",
-		MarkdownDescription: "Parses and attempts to normalise the casing on an Azure Resource Manager ID into the correct casing for Terraform",
+		Description:         "Parses and attempts to normalise the casing on an Azure Resource Manager ID into the correct casing for Terraform.",
+		MarkdownDescription: "Parses and attempts to normalise the casing on an Azure Resource Manager ID into the correct casing for Terraform.",
 		Parameters: []function.Parameter{
 			function.StringParameter{
 				Name:                "id",
-				Description:         "Resource ID",
-				MarkdownDescription: "Resource ID",
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
 			},
 		},
 		Return: function.StringReturn{},

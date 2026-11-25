@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_firewall_rule"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Cosmos DB for PostgreSQL Firewall Rule."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewallrules.ValidateFirewallRuleID
 }

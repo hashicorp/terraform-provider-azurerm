@@ -36,6 +36,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_gallery_application_version"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Gallery Application Version."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return galleryapplicationversions.ValidateApplicationVersionID
 }

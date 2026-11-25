@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCassandraDatacenterCreate,
-		Read:   resourceCassandraDatacenterRead,
-		Update: resourceCassandraDatacenterUpdate,
-		Delete: resourceCassandraDatacenterDelete,
+		Description: "Manages a Cassandra Datacenter.",
+		Create:      resourceCassandraDatacenterCreate,
+		Read:        resourceCassandraDatacenterRead,
+		Update:      resourceCassandraDatacenterUpdate,
+		Delete:      resourceCassandraDatacenterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := managedcassandras.ParseDataCenterID(id)

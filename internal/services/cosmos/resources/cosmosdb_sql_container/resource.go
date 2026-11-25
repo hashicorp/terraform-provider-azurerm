@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLContainerCreate,
-		Read:   resourceCosmosDbSQLContainerRead,
-		Update: resourceCosmosDbSQLContainerUpdate,
-		Delete: resourceCosmosDbSQLContainerDelete,
+		Description: "Manages a SQL Container within a Cosmos DB Account.",
+		Create:      resourceCosmosDbSQLContainerCreate,
+		Read:        resourceCosmosDbSQLContainerRead,
+		Update:      resourceCosmosDbSQLContainerUpdate,
+		Delete:      resourceCosmosDbSQLContainerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseContainerID(id)

@@ -21,9 +21,10 @@ import (
 func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[-a-z0-9]{3,50}$"),
 				"Cosmos DB Account name must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
@@ -36,6 +37,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 		// resource fields
 		"offer_type": {
+			Description:  "The Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountOfferType(), false),
@@ -49,6 +51,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"schema_type": {
+						Description:  "The schema type of the Analytical Storage for this Cosmos DB account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForAnalyticalStorageSchemaType(), false),
@@ -65,6 +68,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_throughput_limit": {
+						Description:  "The total throughput limit imposed on this Cosmos DB account (RU/s). `-1` means no limit.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(-1),
@@ -75,15 +79,17 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 		// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
 		"minimal_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+			Description: "The minimal TLS version for the CosmosDB account.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(cosmosdb.MinimalTlsVersionTlsOneTwo),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(cosmosdb.MinimalTlsVersionTlsOneTwo),
 			}, false),
 		},
 
 		"create_mode": {
+			Description:  "The creation mode for the CosmosDB Account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -107,6 +113,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kind": {
+			Description:  "The Kind of CosmosDB to create.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -115,8 +122,9 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_range_filter": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. For example `[\"55.0.1.0/24\", \"55.0.2.0/24\"]`.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
@@ -124,31 +132,36 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"free_tier_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Description: "Enable the Free Tier pricing option for this Cosmos DB account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			ForceNew:    true,
 		},
 
 		"analytical_storage_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Enable Analytical Storage option for this Cosmos DB account. Enabling and then disabling analytical storage forces a new resource to be created.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for this CosmosDB account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"automatic_failover_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Enable automatic failover for this Cosmos DB account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"key_vault_key_id": {
+			Description:  "A versionless Key Vault Key ID for CMK encryption.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -162,6 +175,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"consistency_level": {
+						Description:  "The Consistency Level to use for this CosmosDB Account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDefaultConsistencyLevel(), false),
@@ -169,6 +183,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 					// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
 					"max_interval_in_seconds": {
+						Description:      "When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. The accepted range for this value is `5` - `86400` (1 day).",
 						Type:             pluginsdk.TypeInt,
 						Optional:         true,
 						Default:          5,
@@ -178,6 +193,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 					// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
 					"max_staleness_prefix": {
+						Description:      "When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. The accepted range for this value is `10` - `2147483647`.",
 						Type:             pluginsdk.TypeInt,
 						Optional:         true,
 						Default:          100,
@@ -189,8 +205,9 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_location": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "A `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -201,15 +218,17 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 					"location": commonschema.LocationWithoutForceNew(),
 
 					"failover_priority": {
+						Description:  "The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
 					"zone_redundant": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether zone redundancy should be enabled for this region.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -217,9 +236,10 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"capabilities": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The capabilities which should be enabled for this Cosmos DB account.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -254,9 +274,10 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"is_virtual_network_filter_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Enables Virtual Network filtering for this Cosmos DB account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"virtual_network_rule": {
@@ -265,14 +286,16 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The ID of the Virtual Network subnet.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 					"ignore_missing_vnet_service_endpoint": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "If set to true, the specified subnet will be added as a Virtual Network rule even if its CosmosDB service endpoint is not active.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -280,18 +303,21 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"access_key_metadata_writes_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether write operations on metadata resources (databases, containers, throughput) via account keys are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether local authentication is enabled, when disabled only MSI and AAD can be used exclusively for authentication.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"mongo_server_version": {
+			Description:  "The Server Version of a MongoDB account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -299,35 +325,40 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"multiple_write_locations_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Enable multiple write locations for this Cosmos DB account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"network_acl_bypass_for_azure_services": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "If Azure services can bypass ACLs.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"network_acl_bypass_ids": {
-			Type:     pluginsdk.TypeList,
-			Optional: true, Elem: &pluginsdk.Schema{
+			Description: "The list of resource IDs for Network ACL Bypass for this Cosmos DB account.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true, Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 
 		"partition_merge_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether partition merge on the Cosmos DB account is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"burst_capacity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Enable burst capacity for this Cosmos DB account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"backup": {
@@ -338,6 +369,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
+						Description:  "The type of the `backup`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupPolicyType(), false),
@@ -345,6 +377,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 					// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
 					"tier": {
+						Description:  "The continuous backup tier.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -352,6 +385,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"interval_in_minutes": {
+						Description:  "The interval in minutes between two backups.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -359,6 +393,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"retention_in_hours": {
+						Description:  "The time in hours that each backup is retained.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -366,6 +401,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_redundancy": {
+						Description:  "The storage redundancy is used to indicate the type of backup residency.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -386,6 +422,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"source_cosmosdb_account_id": {
+						Description:  "The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -393,6 +430,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"restore_timestamp_in_utc": {
+						Description:  "The creation time of the database or the collection (Datetime Format `RFC 3339`).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -406,6 +444,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The database name for the restore request.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -413,9 +452,10 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"collection_names": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									ForceNew: true,
+									Description: "A list of the collection names for the restore request.",
+									Type:        pluginsdk.TypeSet,
+									Optional:    true,
+									ForceNew:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -432,6 +472,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The Gremlin Database name for the restore request.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -439,9 +480,10 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"graph_names": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
+									Description: "A list of the Graph names for the restore request.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
+									ForceNew:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validate.CosmosEntityName,
@@ -452,9 +494,10 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"tables_to_restore": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
+						Description: "A list of specific tables available for restore.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.CosmosEntityName,
@@ -466,96 +509,111 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 		// computed
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint used to connect to the CosmosDB account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"read_endpoints": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of read endpoints available for this CosmosDB account.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"write_endpoints": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of write endpoints available for this CosmosDB account.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary key for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary key for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_readonly_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary read-only Key for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_readonly_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary read-only key for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_sql_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Primary SQL connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_sql_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Secondary SQL connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_readonly_sql_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Primary readonly SQL connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_readonly_sql_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Secondary readonly SQL connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_mongodb_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Primary Mongodb connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_mongodb_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Secondary Mongodb connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_readonly_mongodb_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Primary readonly Mongodb connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_readonly_mongodb_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "Secondary readonly Mongodb connection string for the CosmosDB Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.Tags(),

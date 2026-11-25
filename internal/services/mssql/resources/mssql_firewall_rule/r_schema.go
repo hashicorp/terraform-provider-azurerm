@@ -12,12 +12,14 @@ import (
 func mssqlFirewallRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the firewall rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"server_id": {
+			Description:  "The resource ID of the SQL Server on which to create the Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +27,9 @@ func mssqlFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"start_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The starting IP address to allow through the firewall for this rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.IsIPAddress,
 				validation.StringIsNotEmpty,
@@ -34,8 +37,9 @@ func mssqlFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"end_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The ending IP address to allow through the firewall for this rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.IsIPAddress,
 				validation.StringIsNotEmpty,

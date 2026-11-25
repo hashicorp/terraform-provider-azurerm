@@ -19,10 +19,11 @@ var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbAccountCreate,
-		Read:   resourceCosmosDbAccountRead,
-		Update: resourceCosmosDbAccountUpdate,
-		Delete: resourceCosmosDbAccountDelete,
+		Description: "Manages a CosmosDB (formally DocumentDB) Account.",
+		Create:      resourceCosmosDbAccountCreate,
+		Read:        resourceCosmosDbAccountRead,
+		Update:      resourceCosmosDbAccountUpdate,
+		Delete:      resourceCosmosDbAccountDelete,
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("backup.0.type", func(ctx context.Context, old, new, _ any) bool {
 				// backup type can only change from Periodic to Continuous

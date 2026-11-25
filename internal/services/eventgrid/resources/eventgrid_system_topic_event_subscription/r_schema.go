@@ -17,6 +17,7 @@ func eventgridSystemTopicEventSubscriptionSchema() map[string]*pluginsdk.Schema 
 		"name": helpers.EventSubscriptionSchemaEventSubscriptionName(),
 
 		"system_topic": {
+			Description:  "The System Topic where the Event Subscription should be created in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -16,6 +16,7 @@ import (
 func healthcareMedtechServiceFhirDestinationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Healthcare Med Tech Service Fhir Destination.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func healthcareMedtechServiceFhirDestinationSchema() map[string]*pluginsdk.Schem
 		},
 
 		"medtech_service_id": {
+			Description:  "The name of the Healthcare Med Tech Service where the Healthcare Med Tech Service Fhir Destination should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,18 +34,21 @@ func healthcareMedtechServiceFhirDestinationSchema() map[string]*pluginsdk.Schem
 		"location": commonschema.Location(),
 
 		"destination_fhir_service_id": {
+			Description:  "The destination fhir service ID of the Med Tech Service Fhir Destination.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: fhirservices.ValidateFhirServiceID,
 		},
 
 		"destination_identity_resolution_type": {
+			Description:  "The destination identity resolution type where the Healthcare Med Tech Service Fhir Destination should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(iotconnectors.PossibleValuesForIotIdentityResolutionType(), false),
 		},
 
 		"destination_fhir_mapping_json": {
+			Description:      "The destination Fhir mappings of the Med Tech Service Fhir Destination.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			StateFunc:        pluginsdk.NormalizeJson,

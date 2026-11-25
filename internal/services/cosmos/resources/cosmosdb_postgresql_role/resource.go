@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_role"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Cosmos DB for PostgreSQL Role."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return roles.ValidateRoleID
 }

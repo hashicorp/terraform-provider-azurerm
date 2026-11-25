@@ -23,23 +23,27 @@ func DomainVerificationRecordsCommonSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Type of the DNS record. Example: TXT.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Name of the DNS record.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "Value of the DNS record.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 
 				"ttl": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "Represents an expiry time in seconds to represent how long this entry can be cached by the resolver, default = 3600sec.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 			},
 		},

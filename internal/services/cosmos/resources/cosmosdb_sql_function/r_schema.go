@@ -12,12 +12,14 @@ import (
 func cosmosdbSqlFunctionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this SQL User Defined Function.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"container_id": {
+			Description:  "The ID of the Cosmos DB SQL Container to create the SQL User Defined Function within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +27,7 @@ func cosmosdbSqlFunctionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"body": {
+			Description:  "Body of the User Defined Function.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

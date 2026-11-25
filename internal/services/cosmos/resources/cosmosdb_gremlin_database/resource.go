@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosGremlinDatabaseCreate,
-		Update: resourceCosmosGremlinDatabaseUpdate,
-		Read:   resourceCosmosGremlinDatabaseRead,
-		Delete: resourceCosmosGremlinDatabaseDelete,
+		Description: "Manages a Gremlin Database within a Cosmos DB Account.",
+		Create:      resourceCosmosGremlinDatabaseCreate,
+		Update:      resourceCosmosGremlinDatabaseUpdate,
+		Read:        resourceCosmosGremlinDatabaseRead,
+		Delete:      resourceCosmosGremlinDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseGremlinDatabaseID(id)

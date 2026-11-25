@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerRuleCreateUpdate,
-		Read:   resourceArmLoadBalancerRuleRead,
-		Update: resourceArmLoadBalancerRuleCreateUpdate,
-		Delete: resourceArmLoadBalancerRuleDelete,
+		Description: "Manages a Load Balancer Rule.",
+		Create:      resourceArmLoadBalancerRuleCreateUpdate,
+		Read:        resourceArmLoadBalancerRuleRead,
+		Update:      resourceArmLoadBalancerRuleCreateUpdate,
+		Delete:      resourceArmLoadBalancerRuleDelete,
 
 		Importer: helpers.LoadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
 			id, err := loadbalancers.ParseLoadBalancingRuleID(input)

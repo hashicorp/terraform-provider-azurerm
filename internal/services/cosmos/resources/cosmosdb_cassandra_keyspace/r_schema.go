@@ -13,6 +13,7 @@ import (
 func cosmosdbCassandraKeyspaceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cosmos DB Cassandra KeySpace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func cosmosdbCassandraKeyspaceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
+			Description:  "The name of the Cosmos DB Cassandra KeySpace to create the table within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func cosmosdbCassandraKeyspaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"throughput": {
+			Description:  "The throughput of Cassandra KeySpace (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoDatabaseScriptCreateUpdate,
-		Read:   resourceKustoDatabaseScriptRead,
-		Update: resourceKustoDatabaseScriptCreateUpdate,
-		Delete: resourceKustoDatabaseScriptDelete,
+		Description: "Manages a Kusto Script.",
+		Create:      resourceKustoDatabaseScriptCreateUpdate,
+		Read:        resourceKustoDatabaseScriptRead,
+		Update:      resourceKustoDatabaseScriptCreateUpdate,
+		Delete:      resourceKustoDatabaseScriptDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

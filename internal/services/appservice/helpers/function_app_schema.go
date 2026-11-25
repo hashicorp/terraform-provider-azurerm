@@ -76,7 +76,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
+					Description: "If this Linux Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -103,7 +103,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -131,7 +131,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -148,7 +148,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -162,7 +162,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -178,7 +178,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -202,7 +202,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -210,7 +210,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"pre_warmed_instance_count": {
@@ -218,14 +218,14 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -235,13 +235,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -254,14 +254,14 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker.",
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"ftps_state": {
@@ -269,13 +269,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Description:  "State of FTP / FTPS service for this Function App.",
 				},
 
 				"health_check_path": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
+					Description:  "The path to be checked for this Function App health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
@@ -284,7 +284,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -300,7 +300,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -308,7 +308,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"minimum_tls_cipher_suite": {
@@ -324,19 +324,19 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Whether detailed error logging is enabled.",
 				},
 
 				"linux_fx_version": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Linux FX Version",
+					Description: "The Linux FX Version.",
 				},
 			},
 		},
@@ -620,7 +620,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -637,7 +637,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
+					Description: "A list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -651,7 +651,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -667,7 +667,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -691,7 +691,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -699,14 +699,14 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -718,13 +718,13 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 						"VS2019",
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022``",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -737,27 +737,27 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App use a 32-bit worker.",
+					Description: "Whether the Linux Function App should use a 32-bit worker.",
 				},
 
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App route all traffic through the virtual network.",
+					Description: "Whether the Linux Function App should route all traffic through the Virtual Network.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"health_check_path": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
+					Description:  "The path to be checked for this Function App health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
@@ -767,7 +767,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
 
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -783,7 +783,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -791,7 +791,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"cors": CorsSettingsSchema(),
@@ -799,7 +799,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Whether detailed error logging is enabled.",
 				},
 			},
 		},
@@ -858,7 +858,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
+					Description: "If this Windows Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -885,7 +885,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -916,7 +916,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Windows Web App.",
+					Description: "A list of Default Documents for the Windows Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -930,7 +930,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Whether the http2 protocol should be enabled.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -946,7 +946,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also.",
+					Description: "Whether the Windows Function App `ip_restriction` configuration should be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -970,7 +970,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -978,7 +978,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"pre_warmed_instance_count": {
@@ -986,14 +986,14 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Whether Remote Debugging should be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -1003,13 +1003,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Description: "The Remote Debugging Version.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 				},
 
 				"scm_type": {
@@ -1022,14 +1022,14 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker.",
+					Description: "Whether the Windows Web App should use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Whether Web Sockets should be enabled.",
 				},
 
 				"ftps_state": {
@@ -1037,13 +1037,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Description:  "State of FTP / FTPS service for this Function App.",
 				},
 
 				"health_check_path": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
+					Description:  "The path to be checked for this Function App health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
@@ -1052,7 +1052,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -1068,7 +1068,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -1076,7 +1076,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"minimum_tls_cipher_suite": {
@@ -1092,13 +1092,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
+					Description: "Whether detailed error logging is enabled.",
 				},
 
 				"windows_fx_version": {
@@ -1352,7 +1352,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0`, `9.0`, `10.0` and `11.0`",
+					Description: "The version of .Net.",
 				},
 
 				"use_dotnet_isolated_runtime": {
@@ -1367,7 +1367,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
+					Description: "Whether the DotNet process should use an isolated runtime.",
 				},
 
 				"python_version": {
@@ -1392,7 +1392,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Python to use. Possible values include `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, and `3.7`.",
+					Description: "The version of Python to use.",
 				},
 
 				"node_version": {
@@ -1416,7 +1416,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`",
+					Description: "The version of Node to use.",
 				},
 
 				"powershell_core_version": {
@@ -1437,7 +1437,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of PowerShell Core to use. Possibles values are `7`, `7.2`, and `7.4`",
+					Description: "The version of PowerShell Core to use.",
 				},
 
 				"java_version": {
@@ -1459,7 +1459,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `8`, `11`, `17`, `21` and `25`",
+					Description: "The version of Java to use.",
 				},
 
 				"docker": {
@@ -1513,7 +1513,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "A docker block",
+					Description: "A docker block.",
 				},
 
 				"use_custom_runtime": {
@@ -1641,7 +1641,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0`, `v9.0`, `v10.0` and `v11.0`",
+					Description: "The version of .Net.",
 				},
 
 				"use_dotnet_isolated_runtime": {
@@ -1654,7 +1654,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
+					Description: "Whether the DotNet process should use an isolated runtime.",
 				},
 
 				"node_version": {
@@ -1676,7 +1676,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`",
+					Description: "The version of Node to use.",
 				},
 
 				"java_version": {
@@ -1696,7 +1696,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `1.8`, `11`, `17`, `21` and `25`",
+					Description: "The version of Java to use.",
 				},
 
 				"powershell_core_version": {
@@ -1715,7 +1715,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The PowerShell Core version to use. Possible values are `7`, `7.2`, `7.4`, and `7.6`",
+					Description: "The PowerShell Core version to use.",
 				},
 
 				"use_custom_runtime": {
@@ -1729,7 +1729,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Does the Function App use a custom Application Stack?",
+					Description: "Whether the Function App uses a custom Application Stack.",
 				},
 			},
 		},
@@ -1793,13 +1793,13 @@ func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      35,
 					ValidateFunc: validation.IntBetween(25, 100),
-					Description:  "The amount of disk space to use for logs. Valid values are between `25` and `100`.",
+					Description:  "The amount of disk space to use for logs.",
 				},
 				"retention_period_days": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 99999),
-					Description:  "The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).",
+					Description:  "The retention period for logs in days. Defaults to `0` (never delete).", // azignore:AZS014 - the zero value, the schema sets no Default
 				},
 			},
 		},

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLStoredProcedureCreate,
-		Read:   resourceCosmosDbSQLStoredProcedureRead,
-		Update: resourceCosmosDbSQLStoredProcedureUpdate,
-		Delete: resourceCosmosDbSQLStoredProcedureDelete,
+		Description: "Manages a SQL Stored Procedure within a Cosmos DB Account SQL Database.",
+		Create:      resourceCosmosDbSQLStoredProcedureCreate,
+		Read:        resourceCosmosDbSQLStoredProcedureRead,
+		Update:      resourceCosmosDbSQLStoredProcedureUpdate,
+		Delete:      resourceCosmosDbSQLStoredProcedureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseStoredProcedureID(id)

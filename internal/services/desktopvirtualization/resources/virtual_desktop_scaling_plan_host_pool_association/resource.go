@@ -16,10 +16,11 @@ var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopScalingPlanHostPoolAssociationCreate,
-		Read:   resourceVirtualDesktopScalingPlanHostPoolAssociationRead,
-		Update: resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate,
-		Delete: resourceVirtualDesktopScalingPlanHostPoolAssociationDelete,
+		Description: "Manages a Virtual Desktop Scaling Plan Host Pool Association.",
+		Create:      resourceVirtualDesktopScalingPlanHostPoolAssociationCreate,
+		Read:        resourceVirtualDesktopScalingPlanHostPoolAssociationRead,
+		Update:      resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate,
+		Delete:      resourceVirtualDesktopScalingPlanHostPoolAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

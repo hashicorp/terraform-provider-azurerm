@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbGremlinGraphCreate,
-		Read:   resourceCosmosDbGremlinGraphRead,
-		Update: resourceCosmosDbGremlinGraphUpdate,
-		Delete: resourceCosmosDbGremlinGraphDelete,
+		Description: "Manages a Gremlin Graph within a Cosmos DB Account.",
+		Create:      resourceCosmosDbGremlinGraphCreate,
+		Read:        resourceCosmosDbGremlinGraphRead,
+		Update:      resourceCosmosDbGremlinGraphUpdate,
+		Delete:      resourceCosmosDbGremlinGraphDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseGraphID(id)

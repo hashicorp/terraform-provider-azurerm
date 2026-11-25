@@ -127,7 +127,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"storage_key_vault_secret_id": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.",
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String used to connect to the Storage Account for this Function App.",
 		},
 
 		"app_settings": {
@@ -167,7 +167,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"client_certificate_exclusion_paths": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "Paths to exclude when using client certificates, separated by ;",
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
@@ -489,7 +489,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input *
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
 			dockerSettings.RegistryPassword = v
 
-		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
+		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://learn.microsoft.com/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
 			m.SiteConfig[0].AppInsightsInstrumentationKey = v

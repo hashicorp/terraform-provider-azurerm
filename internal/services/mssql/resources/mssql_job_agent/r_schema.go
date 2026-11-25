@@ -14,6 +14,7 @@ import (
 func mssqlJobAgentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Elastic Job Agent.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func mssqlJobAgentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_id": {
+			Description:  "The ID of the database to store metadata for this Elastic Job Agent.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +36,7 @@ func mssqlJobAgentSchema() map[string]*pluginsdk.Schema {
 		// This is a top level argument rather than a block because while Azure accepts input for both sku name and capacity fields,
 		// the capacity must always be equal to the number included in the sku name.
 		"sku": {
+			Description:  "The name of the SKU to use for this Elastic Job Agent.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      SqlJobAgentSkuJA100,

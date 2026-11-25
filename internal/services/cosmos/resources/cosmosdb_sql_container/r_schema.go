@@ -15,6 +15,7 @@ import (
 func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cosmos DB SQL Container.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
+			Description:  "The name of the Cosmos DB Account to create the container within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the Cosmos DB SQL Database to create the container within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,9 +42,10 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 
 		// lintignore:S013
 		"partition_key_paths": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
+			Description: "A list of partition key paths.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -49,10 +53,11 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"partition_key_kind": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(cosmosdb.PartitionKindHash),
+			Description: "Define a partition key kind.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(cosmosdb.PartitionKindHash),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(cosmosdb.PartitionKindHash),
 				string(cosmosdb.PartitionKindMultiHash),
@@ -60,6 +65,7 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"partition_key_version": {
+			Description:  "Define a partition key version. This should be set to `2` to use large partition keys.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 2),
@@ -68,6 +74,7 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 		"conflict_resolution_policy": common.ConflictResolutionPolicy(),
 
 		"throughput": {
+			Description:  "The throughput of SQL container (RU/s). The minimum value is `400`. This must be set upon container creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -77,12 +84,14 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 		"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 		"analytical_storage_ttl": {
+			Description:  "If present and the value is set to `-1`, it is equal to infinity, and items don't expire by default. If present and the value is set to some number `n` - items will expire `n` seconds after their last modified time.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(-1),
 		},
 
 		"default_ttl": {
+			Description:  "If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don't expire by default. If present and the value is set to some number `n` - items will expire `n` seconds after their last modified time.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(-1),
@@ -95,9 +104,10 @@ func cosmosdbSqlContainerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"paths": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						ForceNew: true,
+						Description: "A list of paths to use for this unique key.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,

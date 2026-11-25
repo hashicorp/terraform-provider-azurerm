@@ -29,6 +29,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services Account Deployment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return deployments.ValidateDeploymentID
 }

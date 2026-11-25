@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbMongoDatabaseCreate,
-		Update: resourceCosmosDbMongoDatabaseUpdate,
-		Read:   resourceCosmosDbMongoDatabaseRead,
-		Delete: resourceCosmosDbMongoDatabaseDelete,
+		Description: "Manages a Mongo Database within a Cosmos DB Account.",
+		Create:      resourceCosmosDbMongoDatabaseCreate,
+		Update:      resourceCosmosDbMongoDatabaseUpdate,
+		Read:        resourceCosmosDbMongoDatabaseRead,
+		Delete:      resourceCosmosDbMongoDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseMongodbDatabaseID(id)

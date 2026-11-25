@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster where we want to change configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"value": {
+			Description:  "The value of the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

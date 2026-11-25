@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Cosmos DB for PostgreSQL Role.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"password": {
+			Description:  "The password of the Azure Cosmos DB for PostgreSQL Role.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -14,10 +14,11 @@ var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLRoleAssignmentCreate,
-		Read:   resourceCosmosDbSQLRoleAssignmentRead,
-		Update: resourceCosmosDbSQLRoleAssignmentUpdate,
-		Delete: resourceCosmosDbSQLRoleAssignmentDelete,
+		Description: "Manages a Cosmos DB SQL Role Assignment.",
+		Create:      resourceCosmosDbSQLRoleAssignmentCreate,
+		Read:        resourceCosmosDbSQLRoleAssignmentRead,
+		Update:      resourceCosmosDbSQLRoleAssignmentUpdate,
+		Delete:      resourceCosmosDbSQLRoleAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

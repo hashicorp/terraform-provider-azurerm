@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbCassandraTableCreate,
-		Read:   resourceCosmosDbCassandraTableRead,
-		Update: resourceCosmosDbCassandraTableUpdate,
-		Delete: resourceCosmosDbCassandraTableDelete,
+		Description: "Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.",
+		Create:      resourceCosmosDbCassandraTableCreate,
+		Read:        resourceCosmosDbCassandraTableRead,
+		Update:      resourceCosmosDbCassandraTableUpdate,
+		Delete:      resourceCosmosDbCassandraTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseCassandraKeyspaceTableID(id)

@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cosmosdb_sql_dedicated_gateway"
 }
 
+func (r Resource) Description() string {
+	return "Manages a SQL Dedicated Gateway within a Cosmos DB Account."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sqldedicatedgateway.ValidateServiceID
 }

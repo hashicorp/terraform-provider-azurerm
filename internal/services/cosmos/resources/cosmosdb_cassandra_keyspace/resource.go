@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbCassandraKeyspaceCreate,
-		Read:   resourceCosmosDbCassandraKeyspaceRead,
-		Update: resourceCosmosDbCassandraKeyspaceUpdate,
-		Delete: resourceCosmosDbCassandraKeyspaceDelete,
+		Description: "Manages a Cassandra KeySpace within a Cosmos DB Account.",
+		Create:      resourceCosmosDbCassandraKeyspaceCreate,
+		Read:        resourceCosmosDbCassandraKeyspaceRead,
+		Update:      resourceCosmosDbCassandraKeyspaceUpdate,
+		Delete:      resourceCosmosDbCassandraKeyspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseCassandraKeyspaceID(id)

@@ -25,6 +25,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
 }
 
+func (r Resource) Description() string {
+	return "Sets a Coordinator Configuration value on Azure Cosmos DB for PostgreSQL Cluster."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurations.ValidateCoordinatorConfigurationID
 }

@@ -33,9 +33,14 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_monitor_data_collection_rule"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Data Collection Rule."
+}
+
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Collection Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -50,8 +55,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"data_collection_endpoint_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource ID of the Data Collection Endpoint that this rule can be used with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"data_flow": {
@@ -60,30 +66,35 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"destinations": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of destination names. An `azure_monitor_metrics` data source only allows for stream of kind `Microsoft-InsightsMetrics`.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"streams": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of streams.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"output_stream": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The output stream of the transform. Only required if the data flow changes data to a different stream.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"transform_kql": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The KQL query to transform stream data.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"built_in_transform": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The built-in transform to transform stream data.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -100,12 +111,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Event Hub.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -116,12 +129,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Event Hub.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -132,8 +147,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -144,12 +160,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"workspace_resource_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The ID of a Log Analytic Workspace resource.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -160,12 +178,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"monitor_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Monitor Account.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -176,16 +196,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"container_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Storage Container name.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Storage Account.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -196,16 +219,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"container_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Storage Container name.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Storage Account.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -216,16 +242,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"table_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The Storage Table name.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The resource ID of the Storage Account.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -235,8 +264,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"data_sources": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "This property is optional and can be omitted if the rule is meant to be used via direct calls to the provisioned endpoint.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"data_import": {
@@ -250,16 +280,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"name": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 											"stream": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The stream to collect from Event Hub.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 											"consumer_group": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The Event Hub consumer group name.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 										},
 									},
@@ -273,27 +306,32 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"extension_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name of the VM extension.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"extension_json": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "A JSON String which specifies the extension setting.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"input_data_sources": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of data sources this extension needs data from. An item should be a name of a supported data source which produces only one stream. Supported data sources type: `performance_counter`, `windows_event_log`, and `syslog`.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -307,19 +345,22 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"log_directories": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of absolute paths where the log files are located.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -333,26 +374,30 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"file_patterns": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of file patterns where the log files are located. For example, `C:\\\\JavaLogs\\\\*.log`.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"format": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The data format of the log files.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"settings": {
 									Type:     pluginsdk.TypeList,
@@ -365,8 +410,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"record_start_timestamp_format": {
-															Type:     pluginsdk.TypeString,
-															Computed: true,
+															Description: "The timestamp format of the text log files.",
+															Type:        pluginsdk.TypeString,
+															Computed:    true,
 														},
 													},
 												},
@@ -383,23 +429,27 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"sampling_frequency_in_seconds": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
+									Description: "The number of seconds between consecutive counter measurements (samples).",
+									Type:        pluginsdk.TypeInt,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"counter_specifiers": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of specifier names of the performance counters you want to collect. Use a wildcard `*` to collect counters for all instances. To get a list of performance counters on Windows, run the command `typeperf`.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -413,12 +463,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -432,12 +484,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -448,12 +502,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"label": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The label of the filter. This label should be unique across all `label_include_filter` block.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 											"value": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The value of the filter.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 										},
 									},
@@ -467,26 +523,30 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"facility_names": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of facility names. Use a wildcard `*` to collect logs for all facility names.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"log_levels": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of log levels. Use a wildcard `*` to collect logs for all log levels.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -500,19 +560,22 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 								"x_path_queries": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of Windows Event Log queries in XPath expression.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -526,12 +589,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"streams": {
-									Type:     pluginsdk.TypeList,
-									Computed: true,
+									Description: "A list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.",
+									Type:        pluginsdk.TypeList,
+									Computed:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -544,30 +609,35 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Data Collection Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"immutable_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The immutable ID of the Data Collection Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The kind of the Data Collection Rule. A rule of kind `Linux` does not allow for `windows_event_log` data sources. A rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"logs_ingestion_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint used for ingesting logs.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"metrics_ingestion_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint used for ingesting metrics.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"stream_declaration": {
@@ -576,8 +646,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"stream_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the custom stream. This name should be unique across all `stream_declaration` blocks.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"column": {
 						Type:     pluginsdk.TypeList,
@@ -585,12 +656,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name of the column.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 								"type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The type of the column data.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},

@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmosdb_account_id": {
+			Description:  "The resource ID of the CosmosDB Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"instance_size": {
+			Description:  "The instance size for the CosmosDB SQL Dedicated Gateway.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"instance_count": {
+			Description:  "The instance count for the CosmosDB SQL Dedicated Gateway.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 5),
