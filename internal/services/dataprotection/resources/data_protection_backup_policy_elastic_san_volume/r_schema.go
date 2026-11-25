@@ -25,7 +25,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
+		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(
+			pointer.To(basebackuppolicyresources.BackupVaultId{}),
+			"Data Protection Backup Vault",
+		),
 
 		"daily_backup_schedule": {
 			Type:     pluginsdk.TypeString,
