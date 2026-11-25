@@ -24,8 +24,8 @@ type dataProtectionBackupInstanceRBACPoller struct {
 
 func NewDataProtectionBackupInstanceRBACPoller(client *backupvaultresources.BackupVaultResourcesClient, id backupvaultresources.BackupVaultId, instance backupvaultresources.BackupInstance) *dataProtectionBackupInstanceRBACPoller {
 	return &dataProtectionBackupInstanceRBACPoller{
-		client:     client,
-		id:         id,
+		client: client,
+		id:     id,
 		parameters: backupvaultresources.ValidateForBackupRequest{
 			BackupInstance: instance,
 		},
