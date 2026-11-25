@@ -24,6 +24,7 @@ import (
 func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Windows Virtual Machine Scale Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +36,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"location": commonschema.Location(),
 
 		"admin_username": {
+			Description:  "The username of the local administrator on each Virtual Machine Scale Set instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +44,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"admin_password": {
+			Description:      "The Password which should be used for the local-administrator on this Virtual Machine.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -55,12 +58,14 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"os_disk": helpers.VirtualMachineScaleSetOSDiskSchema(),
 
 		"instances": {
+			Description:  "The number of Virtual Machines in the Scale Set.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"sku": {
+			Description:  "The Virtual Machine SKU for the Scale Set, such as `Standard_D4_v5`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -74,12 +79,19 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"automatic_instance_repair": helpers.VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
+		"automatic_zone_rebalancing_enabled": {
+			Description: "Whether to enable automatic zone balance. Requires `zones` to be set. When set to `true`, a `health_probe_id` or a health extension must be configured.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
 		"boot_diagnostics": helpers.BootDiagnosticsSchema(),
 
 		"capacity_reservation_group_id": {
+			Description:  "The ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"proximity_placement_group_id",
@@ -87,8 +99,9 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"computer_name_prefix": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The prefix which should be used for the name of the Virtual Machines in this Scale Set. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C since we reuse the VM name if one's not specified
 			Computed: true,
 			ForceNew: true,
@@ -101,25 +114,29 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"data_disk": helpers.VirtualMachineScaleSetDataDiskSchema(),
 
 		"do_not_run_extensions_on_overprovisioned_machines": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Virtual Machine Extensions should be run on Overprovisioned Virtual Machines in the Scale Set.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"automatic_updates_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable automatic update for this Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"encryption_at_host_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether all of the disks (including the temp disk) attached to this Virtual Machine should be encrypted by enabling Encryption at Host.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"eviction_policy": {
+			Description: "The eviction policy for Virtual Machines in this Scale Set.",
 			// only applicable when `priority` is set to `Spot`
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -128,15 +145,17 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"extension_operations_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether extension operations should be allowed on the Virtual Machine Scale Set.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			ForceNew:    true,
 		},
 
 		"extension": helpers.VirtualMachineScaleSetExtensionsSchema(),
 
 		"extensions_time_budget": {
+			Description:  "The duration allocated for all extensions to start. The time duration should be between `15` minutes and `120` minutes (inclusive) and should be specified in ISO 8601 format.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H30M",
@@ -146,15 +165,17 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"gallery_application": helpers.VirtualMachineScaleSetGalleryApplicationSchema(),
 
 		"health_probe_id": {
+			Description:  "The ID of a Load Balancer Probe which should be used to determine the health of an instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
 
 		"host_group_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The ID of the Dedicated Host group that the Virtual Machine Scale Set resides in.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
@@ -164,8 +185,9 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"license_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The type of on-premise license (also known as [Azure Hybrid Use Benefit](https://learn.microsoft.com/windows-server/get-started/azure-hybrid-benefit)) which should be used for this Virtual Machine Scale Set.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"None",
 				"Windows_Client",
@@ -181,6 +203,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"max_bid_price": {
+			Description:  "The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      -1,
@@ -188,25 +211,28 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"overprovision": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether Azure should over-provision Virtual Machines in this Scale Set. This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"plan": helpers.PlanSchema(),
 
 		"platform_fault_domain_count": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The number of fault domains that are used by this Linux Virtual Machine Scale Set.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			ForceNew:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"priority": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(virtualmachinescalesets.VirtualMachinePriorityTypesRegular),
+			Description: "The Priority of this Virtual Machine Scale Set.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(virtualmachinescalesets.VirtualMachinePriorityTypesRegular),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualmachinescalesets.VirtualMachinePriorityTypesRegular),
 				string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot),
@@ -214,13 +240,15 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"provision_vm_agent": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			ForceNew:    true,
 		},
 
 		"proximity_placement_group_id": {
+			Description:  "The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -237,20 +265,23 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"secret": helpers.WindowsSecretSchema(),
 
 		"secure_boot_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether Secure Boot and Trusted Launch is enabled for the Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"single_placement_group": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Virtual Machine Scale Set should be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"source_image_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`, `Shared Image ID`, `Shared Image Version ID`, `Community Gallery Image ID`, `Community Gallery Image Version ID`, `Shared Gallery Image ID` and `Shared Gallery Image Version ID`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.Any(
 				images.ValidateImageID,
 				validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
@@ -271,12 +302,14 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"tags": commonschema.Tags(),
 
 		"timezone": {
+			Description:  "The time zone of the Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.VirtualMachineTimeZone(),
 		},
 
 		"upgrade_mode": {
+			Description:  "How Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -285,24 +318,27 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"user_data": {
+			Description:  "The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"vtpm_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether vTPM (Virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"winrm_listener": helpers.WinRmListenerSchema(),
 
 		"zone_balance": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether the Virtual Machines in this Scale Set should be strictly evenly distributed across Availability Zones.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"scale_in": helpers.VirtualMachineScaleSetScaleInPolicySchema(),
@@ -310,15 +346,17 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"spot_restore": helpers.VirtualMachineScaleSetSpotRestorePolicySchema(),
 
 		"resilient_vm_creation_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether `resilient VM creation` is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"resilient_vm_deletion_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether `resilient VM deletion` is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"termination_notification": helpers.VirtualMachineScaleSetTerminationNotificationSchema(),
@@ -326,8 +364,9 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"zones": commonschema.ZonesMultipleOptional(),
 
 		"unique_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Unique ID for this Windows Virtual Machine Scale Set.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

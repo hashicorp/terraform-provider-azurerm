@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/convert"
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -80,8 +80,8 @@ func (a *Action) Schema(ctx context.Context, _ action.SchemaRequest, response *a
 
 			"timeout": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
-				MarkdownDescription: "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
+				Description:         "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
 			},
 		},
 	}

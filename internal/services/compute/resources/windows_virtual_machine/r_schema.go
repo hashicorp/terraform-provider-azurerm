@@ -22,6 +22,7 @@ import (
 func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Windows Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +34,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"admin_password": {
+			Description:      "The Password which should be used for the local-administrator on this Virtual Machine.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
@@ -48,9 +50,10 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"admin_username": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The username of the local administrator used for the Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			RequiredWith: []string{
 				"admin_password",
 			},
@@ -62,9 +65,10 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_interface_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of Network Interface IDs which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateNetworkInterfaceID,
@@ -74,8 +78,9 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"os_disk": helpers.VirtualMachineOSDiskSchema(),
 
 		"os_managed_disk_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The ID of an existing Managed Disk to use as the OS Disk for this Windows Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
 			// disk creation with a VM when an existing disk is not specified here. This is a top-level property
 			// to enable schema validation to guard against any values for `OsProfile` being set, as these are
@@ -91,6 +96,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"size": {
+			Description:  "The SKU which should be used for this Virtual Machine, such as `Standard_D4_v5`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -101,12 +107,14 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"additional_unattend_content": helpers.AdditionalUnattendContentSchemaVM(),
 
 		"allow_extension_operations": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Whether Extension Operations should be allowed on this Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"availability_set_id": {
+			Description:  "The ID of the Availability Set in which the Virtual Machine should exist.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -124,17 +132,19 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"boot_diagnostics": helpers.BootDiagnosticsSchema(),
 
 		"bypass_platform_safety_checks_on_user_schedule_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to skip platform scheduled patching when a user schedule is associated with the VM.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
 		},
 
 		"capacity_reservation_group_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
@@ -146,8 +156,9 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"computer_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Hostname which should be used for this Virtual Machine. If the value of the `name` field is not a valid `computer_name`, then you must specify `computer_name`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C since we reuse the VM name if one's not specified
 			Computed: true,
 			ForceNew: true,
@@ -159,6 +170,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"custom_data": {
+			Description:  "The Base64-Encoded Custom Data which should be used for this Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -170,6 +182,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dedicated_host_id": {
+			Description:  "The ID of a Dedicated Host where this machine should be run on.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateDedicatedHostID,
@@ -182,6 +195,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dedicated_host_group_id": {
+			Description:  "The ID of a Dedicated Host Group that this Windows Virtual Machine should be run within.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateDedicatedHostGroupID,
@@ -194,6 +208,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_controller_type": {
+			Description:  "The Disk Controller Type used for this Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -203,21 +218,24 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"automatic_updates_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+			Description: "Whether Automatic Updates are Enabled for the Windows Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
 		},
 
 		"encryption_at_host_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether all of the disks (including the temp disk) attached to this Virtual Machine should be encrypted by enabling Encryption at Host.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"eviction_policy": {
+			Description: "What should happen when the Virtual Machine is evicted for price reasons when using a Spot instance.",
 			// only applicable when `priority` is set to `Spot`
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -226,6 +244,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"extensions_time_budget": {
+			Description:  "The duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H30M",
@@ -237,8 +256,9 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"license_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The type of on-premise license (also known as [Azure Hybrid Use Benefit](https://learn.microsoft.com/windows-server/get-started/azure-hybrid-benefit)) which should be used for this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"None",
 				"Windows_Client",
@@ -254,6 +274,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"max_bid_price": {
+			Description:  "The maximum price you're willing to pay for this Virtual Machine, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machine will be evicted using the `eviction_policy`.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      -1,
@@ -261,6 +282,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"patch_mode": {
+			Description:  "The mode of in-guest patching to this Windows Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -271,6 +293,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"patch_assessment_mode": {
+			Description:  "The mode of VM Guest Patching for the Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -281,9 +304,10 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"hotpatching_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Whether the VM should be patched without requiring a reboot. For more information about hot patching see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
@@ -292,10 +316,11 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"plan": helpers.PlanSchema(),
 
 		"priority": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(virtualmachines.VirtualMachinePriorityTypesRegular),
+			Description: "The priority of this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(virtualmachines.VirtualMachinePriorityTypesRegular),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualmachines.VirtualMachinePriorityTypesRegular),
 				string(virtualmachines.VirtualMachinePriorityTypesSpot),
@@ -303,16 +328,18 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"provision_vm_agent": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true,
+			Description: "Whether the Azure VM Agent should be provisioned on this Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true,
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
 		},
 
 		"proximity_placement_group_id": {
+			Description:  "The ID of the Proximity Placement Group which the Virtual Machine should be assigned to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
@@ -325,8 +352,9 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"reboot_setting": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The reboot setting for platform scheduled patching.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSettingAlways),
 				string(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
@@ -340,15 +368,17 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"secret": helpers.WindowsSecretSchemaVM(),
 
 		"secure_boot_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether Secure Boot and Trusted Launch is enabled for the Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"source_image_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The ID of the Image which this Virtual Machine should be created from. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				images.ValidateImageID,
 				validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
@@ -374,6 +404,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"termination_notification": helpers.VirtualMachineTerminationNotificationSchema(),
 
 		"timezone": {
+			Description:  "The Time Zone which should be used by the Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -381,8 +412,9 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_scale_set_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ConflictsWith: []string{
 				"availability_set_id",
 			},
@@ -390,6 +422,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"platform_fault_domain": {
+			Description:  "The Platform Fault Domain in which this Windows Virtual Machine should be created.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      -1,
@@ -399,15 +432,17 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"user_data": {
+			Description:  "The Base64-Encoded User Data which should be used for this Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"vtpm_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether vTPM (virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"winrm_listener": helpers.WinRmListenerSchemaVM(),
@@ -416,34 +451,40 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"private_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Primary Private IP Address assigned to this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"private_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Private IP Addresses assigned to this Virtual Machine.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 		"public_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Primary Public IP Address assigned to this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"public_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of the Public IP Addresses assigned to this Virtual Machine.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 		"virtual_machine_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A 128-bit identifier which uniquely identifies this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"vm_agent_platform_updates_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Virtual Machine Agent Platform Updates are `enabled` on this Virtual Machine.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

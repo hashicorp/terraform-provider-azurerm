@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceCosmosDbRead,
-		Update: resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceCosmosDbDelete,
+		Description: "Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using SQL API.",
+		Create:      resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceCosmosDbRead,
+		Update:      resourceDataFactoryLinkedServiceCosmosDbCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceCosmosDbDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

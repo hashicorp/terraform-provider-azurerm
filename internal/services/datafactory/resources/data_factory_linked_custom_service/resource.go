@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedCustomServiceCreateUpdate,
-		Read:   resourceDataFactoryLinkedCustomServiceRead,
-		Update: resourceDataFactoryLinkedCustomServiceCreateUpdate,
-		Delete: resourceDataFactoryLinkedCustomServiceDelete,
+		Description: "Manages a Linked Service (connection) between a resource and Azure Data Factory. This is a generic resource that supports all different Linked Service Types.",
+		Create:      resourceDataFactoryLinkedCustomServiceCreateUpdate,
+		Read:        resourceDataFactoryLinkedCustomServiceRead,
+		Update:      resourceDataFactoryLinkedCustomServiceCreateUpdate,
+		Delete:      resourceDataFactoryLinkedCustomServiceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

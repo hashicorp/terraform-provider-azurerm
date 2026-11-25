@@ -7,9 +7,24 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+func expandAgentPoolSecurityProfile(input []any) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return &agentpools.AgentPoolSecurityProfile{
+			EnableSecureBoot: pointer.To(false),
+			EnableVTPM:       pointer.To(false),
+		}
+	}
+
+	v := input[0].(map[string]any)
+	return &agentpools.AgentPoolSecurityProfile{
+		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
+		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
+	}
+}
 
 func expandAgentPoolKubeletConfig(input []any) *agentpools.KubeletConfig {
 	if len(input) == 0 || input[0] == nil {

@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceEventHubRead,
+		Description: "Use this data source to access information about an existing EventHub.",
+		Read:        dataSourceEventHubRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,26 +26,30 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this EventHub.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"namespace_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the EventHub Namespace where the EventHub exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"partition_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of partitions in the EventHub.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"partition_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The identifiers for the partitions of this EventHub.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 		},
 	}
