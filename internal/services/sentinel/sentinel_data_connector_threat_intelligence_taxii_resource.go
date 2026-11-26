@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -106,7 +106,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_threat_intelligence_taxii"
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) ModelObject() interface{} {
+func (r DataConnectorThreatIntelligenceTAXIIResource) ModelObject() any {
 	return &DataConnectorThreatIntelligenceTAXIIModel{}
 }
 

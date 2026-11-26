@@ -14,8 +14,8 @@ Use this data source to access information about an existing Linux Web App.
 
 ```hcl
 data "azurerm_linux_web_app" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-web-app"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -102,6 +102,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
 
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
+
+* `virtual_network_image_pull_enabled` - Whether image pull traffic is routed through the virtual network integration. 
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 

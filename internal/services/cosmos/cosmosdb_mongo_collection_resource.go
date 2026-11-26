@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,10 +25,11 @@ import (
 
 func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbMongoCollectionCreate,
-		Read:   resourceCosmosDbMongoCollectionRead,
-		Update: resourceCosmosDbMongoCollectionUpdate,
-		Delete: resourceCosmosDbMongoCollectionDelete,
+		Description: "Manages a Mongo Collection within a Cosmos DB Account.",
+		Create:      resourceCosmosDbMongoCollectionCreate,
+		Read:        resourceCosmosDbMongoCollectionRead,
+		Update:      resourceCosmosDbMongoCollectionUpdate,
+		Delete:      resourceCosmosDbMongoCollectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseMongodbDatabaseCollectionID(id)
@@ -50,6 +50,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Mongo Collection.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -59,6 +60,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account in which the Cosmos DB Mongo Collection is created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -66,6 +68,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			},
 
 			"database_name": {
+				Description:  "The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -74,6 +77,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			// SDK/api accepts an array.. but only one is allowed
 			"shard_key": {
+				Description:  "The name of the key to partition on for sharding. There must not be any other unique index keys.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -82,8 +86,9 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
 			"default_ttl_seconds": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Description: "If the value is `-1`, items are not automatically expired.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
 				ValidateFunc: validation.All(
 					validation.IntAtLeast(-1),
 					validation.IntNotInSlice([]int{0}),
@@ -91,12 +96,14 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			},
 
 			"analytical_storage_ttl": {
+				Description:  "If present and the value is set to `-1`, it is equal to infinity, and items don't expire by default. If present and the value is set to some number `n` - items will expire `n` seconds after their last modified time.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"throughput": {
+				Description:  "The throughput of the MongoDB collection (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -111,15 +118,17 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"keys": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "The list of user settable keys for each Cosmos DB Mongo Collection.",
+							Type:        pluginsdk.TypeList,
+							Required:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"unique": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
+							Description: "Whether the index is unique.",
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
 						},
 					},
 				},
@@ -131,14 +140,16 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"keys": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "The list of system keys which are not settable for each Cosmos DB Mongo Collection.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"unique": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Identifies whether the table contains no duplicate values.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -147,7 +158,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -214,7 +225,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +299,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -384,7 +395,7 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -402,15 +413,15 @@ func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*[]cosmosdb.MongoIndex, bool) {
+func expandCosmosMongoCollectionIndex(indexes []any, defaultTtl *int) (*[]cosmosdb.MongoIndex, bool) {
 	results := make([]cosmosdb.MongoIndex, 0)
 
 	hasIdKey := false
 
 	if len(indexes) != 0 {
 		for _, v := range indexes {
-			index := v.(map[string]interface{})
-			keys := index["keys"].([]interface{})
+			index := v.(map[string]any)
+			keys := index["keys"].([]any)
 
 			for _, key := range keys {
 				if strings.EqualFold("_id", key.(string)) {
@@ -420,7 +431,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 
 			results = append(results, cosmosdb.MongoIndex{
 				Key: &cosmosdb.MongoIndexKeys{
-					Keys: helpers.ExpandStringSlice(index["keys"].([]interface{})),
+					Keys: pluginsdk.ExpandStringSlice(index["keys"].([]any)),
 				},
 				Options: &cosmosdb.MongoIndexOptions{
 					Unique: pointer.To(index["unique"].(bool)),
@@ -443,17 +454,17 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 	return &results, hasIdKey
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int64) {
-	indexes := make([]map[string]interface{}, 0)
-	systemIndexes := make([]map[string]interface{}, 0)
+func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]any, *[]map[string]any, *int64) {
+	indexes := make([]map[string]any, 0)
+	systemIndexes := make([]map[string]any, 0)
 	var ttl *int64
 	if input == nil {
 		return &indexes, &systemIndexes, ttl
 	}
 
 	for _, v := range *input {
-		index := map[string]interface{}{}
-		systemIndex := map[string]interface{}{}
+		index := map[string]any{}
+		systemIndex := map[string]any{}
 
 		if v.Key != nil && v.Key.Keys != nil && len(*v.Key.Keys) > 0 {
 			key := (*v.Key.Keys)[0]
@@ -461,21 +472,21 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 			switch key {
 			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
 			case "_id":
-				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
 
 				if accountIsVersion36 {
-					index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+					index["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 					index["unique"] = true
 					indexes = append(indexes, index)
 				}
 
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
-				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
@@ -491,7 +502,7 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 				}
 			default:
 				// The other settable indexes would be set in `index`
-				index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+				index["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {

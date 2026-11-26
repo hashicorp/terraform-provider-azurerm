@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -41,7 +41,7 @@ func (r MachineLearningDataStoreBlobStorage) Attributes() map[string]*schema.Sch
 	return nil
 }
 
-func (r MachineLearningDataStoreBlobStorage) ModelObject() interface{} {
+func (r MachineLearningDataStoreBlobStorage) ModelObject() any {
 	return &MachineLearningDataStoreBlobStorageModel{}
 }
 
@@ -96,9 +96,9 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 		"service_data_auth_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(datastore.ServiceDataAccessAuthIdentityNone),
 			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
-			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
 
 		"account_key": {

@@ -15,12 +15,12 @@ Use this data source to access information about an existing Network Security Pe
 ```hcl
 
 data "azurerm_network_security_perimeter" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-perimeter"
+  resource_group_name = "example-resources"
 }
 
 data "azurerm_network_security_perimeter_profile" "example" {
-  name                          = "existing"
+  name                          = "example-profile"
   network_security_perimeter_id = data.azurerm_network_security_perimeter.example.id
 }
 
@@ -53,4 +53,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -68,7 +68,7 @@ func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.
 	})
 }
 
-func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,7 +116,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 	return resourceServiceBusNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceServiceBusNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -23,10 +23,10 @@ import (
 type ApplicationLoadBalancerSubnetAssociationResource struct{}
 
 type AssociationResourceModel struct {
-	Name                      string                 `tfschema:"name"`
-	ApplicationLoadBalancerId string                 `tfschema:"application_load_balancer_id"`
-	SubnetId                  string                 `tfschema:"subnet_id"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	Name                      string         `tfschema:"name"`
+	ApplicationLoadBalancerId string         `tfschema:"application_load_balancer_id"`
+	SubnetId                  string         `tfschema:"subnet_id"`
+	Tags                      map[string]any `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerSubnetAssociationResource{}
@@ -40,9 +40,9 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Arguments() map[string
 			ValidateFunc: validate.ApplicationLoadBalancerSubnetAssociationName(),
 		},
 
-		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}),
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}, "Application Gateway for Containers"),
 
-		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}, "Subnet"),
 
 		"tags": commonschema.Tags(),
 	}
@@ -52,7 +52,7 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Attributes() map[strin
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() any {
 	return &AssociationResourceModel{}
 }
 

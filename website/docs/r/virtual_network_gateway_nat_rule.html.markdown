@@ -90,9 +90,9 @@ The following arguments are supported:
 
 * `virtual_network_gateway_id` - (Required) The ID of the Virtual Network Gateway that this Virtual Network Gateway Nat Rule belongs to. Changing this forces a new resource to be created.
 
-* `external_mapping` - (Required) One or more `external_mapping` blocks as documented below.
+* `external_mapping` - (Required) One or more `external_mapping` blocks as defined below.
 
-* `internal_mapping` - (Required) One or more `internal_mapping` blocks as documented below.
+* `internal_mapping` - (Required) One or more `internal_mapping` blocks as defined below.
 
 * `ip_configuration_id` - (Optional) The ID of the IP Configuration this Virtual Network Gateway Nat Rule applies to.
 
@@ -145,4 +145,4 @@ terraform import azurerm_virtual_network_gateway_nat_rule.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

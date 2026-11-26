@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -160,7 +160,7 @@ func dataSourceSpringCloudService() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

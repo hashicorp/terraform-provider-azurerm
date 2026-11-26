@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -20,7 +20,8 @@ import (
 
 func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCosmosDbRestorableDatabaseAccountsRead,
+		Description: "Use this data source to access information about Cosmos DB Restorable Database Accounts.",
+		Read:        dataSourceCosmosDbRestorableDatabaseAccountsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Cosmos DB Database Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CosmosAccountName,
@@ -41,23 +43,27 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Cosmos DB Restorable Database Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"api_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The API type of the Cosmos DB Restorable Database Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"creation_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The creation time of the Cosmos DB Restorable Database Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"deletion_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The deletion time of the Cosmos DB Restorable Database Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"restorable_locations": {
@@ -66,23 +72,27 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"creation_time": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The creation time of the regional Cosmos DB Restorable Database Account.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"deletion_time": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The deletion time of the regional Cosmos DB Restorable Database Account.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"location": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The location of the regional Cosmos DB Restorable Database Account.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"regional_database_account_instance_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The instance ID of the regional Cosmos DB Restorable Database Account.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -94,7 +104,7 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RestorablesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -127,8 +137,8 @@ func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDatabaseAccountGetResult, accountName string) []interface{} {
-	result := make([]interface{}, 0)
+func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDatabaseAccountGetResult, accountName string) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
@@ -136,7 +146,7 @@ func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDa
 
 	for _, item := range *input {
 		if props := item.Properties; props != nil && pointer.From(props.AccountName) == accountName {
-			result = append(result, map[string]interface{}{
+			result = append(result, map[string]any{
 				"id":                   pointer.From(item.Id),
 				"api_type":             pointer.From(props.ApiType),
 				"creation_time":        pointer.From(props.CreationTime),
@@ -149,15 +159,15 @@ func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDa
 	return result
 }
 
-func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]restorables.RestorableLocationResource) []interface{} {
-	result := make([]interface{}, 0)
+func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]restorables.RestorableLocationResource) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
 	for _, item := range *input {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"creation_time":                         pointer.From(item.CreationTime),
 			"deletion_time":                         pointer.From(item.DeletionTime),
 			"location":                              pointer.From(item.LocationName),

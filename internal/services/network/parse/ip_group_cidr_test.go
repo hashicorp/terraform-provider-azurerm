@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = IpGroupCidrId{}
 
-func TestIpGroupCidrIDFormatter(t *testing.T) {
+func TestParseIpGroupCidrIDFormatter(t *testing.T) {
 	actual := NewIpGroupCidrID("4fe7b06f-0eb5-489a-b053-f2afbdd8a4f3", "rg-core-hub-networking-ip-groups", "my-ips", "127.0.0.1_32").ID()
 	expected := "/subscriptions/4fe7b06f-0eb5-489a-b053-f2afbdd8a4f3/resourceGroups/rg-core-hub-networking-ip-groups/providers/Microsoft.Network/ipGroups/my-ips/cidrs/127.0.0.1_32"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestIpGroupCidrIDFormatter(t *testing.T) {
 	}
 }
 
-func TestIpGroupCidrID(t *testing.T) {
+func TestParseIpGroupCidrID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
