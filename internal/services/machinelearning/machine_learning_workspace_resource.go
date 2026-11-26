@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -97,11 +97,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  "Default",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Default",
 					"FeatureStore",
 				}, false),
-				Default: "Default",
 			},
 
 			"feature_store": {
@@ -165,7 +165,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+						"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,

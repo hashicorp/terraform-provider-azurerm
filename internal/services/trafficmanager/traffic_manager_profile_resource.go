@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -74,8 +74,8 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"relative_name": {
 							Type:     pluginsdk.TypeString,
-							ForceNew: true,
 							Required: true,
+							ForceNew: true,
 						},
 						"ttl": {
 							Type:         pluginsdk.TypeInt,
@@ -139,22 +139,22 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntInSlice([]int{10, 30}),
 							Default:      30,
+							ValidateFunc: validation.IntInSlice([]int{10, 30}),
 						},
 
 						"timeout_in_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(5, 10),
 							Default:      10,
+							ValidateFunc: validation.IntBetween(5, 10),
 						},
 
 						"tolerated_number_of_failures": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 9),
 							Default:      3,
+							ValidateFunc: validation.IntBetween(0, 9),
 						},
 					},
 				},
