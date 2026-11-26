@@ -1211,7 +1211,6 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"private_cluster_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 			Default:  false,
 		},
 

@@ -182,6 +182,26 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 				return nil
 			},
+
+			pluginsdk.ForceNewIf("private_cluster_enabled", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
+				privateClusterEnabled := d.Get("private_cluster_enabled")
+				if !privateClusterEnabled.(bool) {
+					return true
+				}
+
+				rawProfile := d.GetRawConfig().AsValueMap()["api_server_access_profile"]
+				if !rawProfile.IsKnown() || rawProfile.IsNull() || rawProfile.LengthInt() == 0 {
+					return true
+				}
+
+				profile := rawProfile.AsValueSlice()[0]
+				if !profile.IsKnown() || profile.IsNull() {
+					return true
+				}
+				vnetIntegration := profile.AsValueMap()["virtual_network_integration_enabled"]
+
+				return !vnetIntegration.IsKnown() || vnetIntegration.IsNull() || !vnetIntegration.True()
+			}),
 		),
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
