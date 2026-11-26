@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package hclsyntax
@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"github.com/apparentlymart/go-textseg/v15/textseg"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/internal/unicodeutil"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -234,7 +234,6 @@ func (p *parser) parseSingleAttrBody(end TokenType) (*Body, hcl.Diagnostics) {
 			End:      attr.SrcRange.End,
 		},
 	}, diags
-
 }
 
 func (p *parser) finishParsingBodyAttribute(ident Token, singleLine bool) (Node, hcl.Diagnostics) {
@@ -295,7 +294,7 @@ func (p *parser) finishParsingBodyAttribute(ident Token, singleLine bool) (Node,
 }
 
 func (p *parser) finishParsingBodyBlock(ident Token) (Node, hcl.Diagnostics) {
-	var blockType = string(ident.Bytes)
+	blockType := string(ident.Bytes)
 	var diags hcl.Diagnostics
 	var labels []string
 	var labelRanges []hcl.Range
@@ -359,6 +358,16 @@ Token:
 
 			p.recoverAfterBodyItem()
 
+			// Use the last label range as the CloseBraceRange placeholder so that
+			// Block.Range() covers the full block header including labels.
+			// Without this, the block range only spans the type keyword,
+			// causing position-based lookups like OutermostBlockAtPos to
+			// miss positions within the labels.
+			endRange := ident.Range
+			if len(labelRanges) > 0 {
+				endRange = labelRanges[len(labelRanges)-1]
+			}
+
 			return &Block{
 				Type:   blockType,
 				Labels: labels,
@@ -370,7 +379,7 @@ Token:
 				TypeRange:       ident.Range,
 				LabelRanges:     labelRanges,
 				OpenBraceRange:  ident.Range, // placeholder
-				CloseBraceRange: ident.Range, // placeholder
+				CloseBraceRange: endRange,    // placeholder
 			}, diags
 		}
 	}
@@ -1441,7 +1450,7 @@ func (p *parser) parseObjectCons() (Expression, hcl.Diagnostics) {
 		}
 
 		// Wrapping parens are not explicitly represented in the AST, but
-		// we want to use them here to disambiguate intepreting a mapping
+		// we want to use them here to disambiguate interpreting a mapping
 		// key as a full expression rather than just a name, and so
 		// we'll remember this was present and use it to force the
 		// behavior of our final ObjectConsKeyExpr.
@@ -1521,29 +1530,18 @@ func (p *parser) parseObjectCons() (Expression, hcl.Diagnostics) {
 
 		value, valueDiags := p.ParseExpression()
 		diags = append(diags, valueDiags...)
+		items = append(items, ObjectConsItem{
+			KeyExpr:   key,
+			ValueExpr: value,
+		})
 
 		if p.recovery && valueDiags.HasErrors() {
-			// If the value is an ExprSyntaxError, we can add an item with it, even though we will recover afterwards
-			// This allows downstream consumers to still retrieve this first invalid item, even though following items
-			// won't be parsed. This is useful for supplying completions.
-			if exprSyntaxError, ok := value.(*ExprSyntaxError); ok {
-				items = append(items, ObjectConsItem{
-					KeyExpr:   key,
-					ValueExpr: exprSyntaxError,
-				})
-			}
-
 			// If expression parsing failed then we are probably in a strange
 			// place in the token stream, so we'll bail out and try to reset
 			// to after our closing brace to allow parsing to continue.
 			close = p.recover(TokenCBrace)
 			break
 		}
-
-		items = append(items, ObjectConsItem{
-			KeyExpr:   key,
-			ValueExpr: value,
-		})
 
 		next = p.Peek()
 		if next.Type == TokenCBrace {
@@ -1938,7 +1936,7 @@ Slices:
 		// Advance the end of our range to after our token.
 		b := slice
 		for len(b) > 0 {
-			adv, ch, _ := textseg.ScanGraphemeClusters(b, true)
+			adv, ch, _ := unicodeutil.ScanGraphemeClusters(b, true)
 			rng.End.Byte += adv
 			switch ch[0] {
 			case '\r', '\n':

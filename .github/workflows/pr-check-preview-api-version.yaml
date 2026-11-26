@@ -40,12 +40,14 @@ jobs:
     if: ${{ failure() }}
     uses: $/.github/workflows/pr-comment-failure.yaml
     permissions:
+      issues: write
       pull-requests: write
   comment-outdated-on-pass:
     needs: preview-api-version-linter
     if: ${{ success() }}
     uses: $/.github/workflows/pr-comment-failure-outdated.yaml
     permissions:
+      issues: write
       pull-requests: write
 
   save-artifacts-on-fail:
