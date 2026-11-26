@@ -43,7 +43,7 @@ The following attributes are exported:
 
 * `server_port` - The publicly accessible port of the SignalR service which is designed for customer server side use.
 
-* `cors` - A `cors` block as documented below.
+* `cors` - A `cors` block as defined below.
 
 * `connectivity_logs_enabled` - Specifies if Connectivity Logs are enabled or not.
 
@@ -59,7 +59,7 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the SignalR service.
 
-* `sku` - A `sku` block as documented below.
+* `sku` - A `sku` block as defined below.
 
 * `public_network_access_enabled` - Is public network access enabled for this SignalR service?
 
@@ -73,11 +73,11 @@ The following attributes are exported:
 
 * `service_mode` - Specifies the service mode.
 
-* `upstream_endpoint` - One or more `upstream_endpoint` blocks as documented below.
+* `upstream_endpoint` - One or more `upstream_endpoint` blocks as defined below.
 
 * `live_trace` - A `live_trace` block as defined below.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 ---
 

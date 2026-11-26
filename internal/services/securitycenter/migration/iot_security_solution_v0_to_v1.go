@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -35,10 +35,10 @@ func (s SecurityCenterIotSecuritySolutionV0ToV1) Schema() map[string]*pluginsdk.
 		"iothub_ids": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      set.HashStringIgnoreCase,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: set.HashStringIgnoreCase,
 		},
 
 		"additional_workspace": {
