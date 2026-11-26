@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -61,31 +61,31 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 				Optional: true,
 				// Note: O+C because this defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
 				Computed: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"ip_rules": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.StorageAccountIpRule,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"virtual_network_subnet_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"default_action": {
