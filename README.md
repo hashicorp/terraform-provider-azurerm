@@ -61,4 +61,10 @@ resource "azurerm_virtual_network" "example" {
 
 ## Developing & Contributing to the Provider
 
-The [DEVELOPER.md](DEVELOPER.md) file is a basic outline on how to build and develop the provider while more detailed guides geared towards contributors can be found in the [`/contributing`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory of this repository.
+See [Building the Provider](contributing/topics/building-the-provider.md) for how to build and develop the provider, and the [`/contributing`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory for the full set of contributor guides.
+
+## Privacy Notice
+
+Individuals, including external contributors, who participate in this repository and related project activities may have personal information associated with their GitHub profiles, contributions, and repository activity processed for security, compliance, audit, vulnerability management, and related governance purposes.
+
+For more information about how personal information may be collected, used, shared, retained, and the rights available to individuals, please review the IBM Privacy Statement: [https://www.ibm.com/privacy](https://www.ibm.com/privacy)
