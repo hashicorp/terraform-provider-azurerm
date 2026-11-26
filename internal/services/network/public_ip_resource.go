@@ -75,8 +75,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"ddos_protection_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForDdosSettingsProtectionMode(), false),
 				Default:      string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForDdosSettingsProtectionMode(), false),
 			},
 
 			"ddos_protection_plan_id": {
@@ -90,8 +90,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"ip_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(publicipaddresses.IPVersionIPvFour),
 				ForceNew:     true,
+				Default:      string(publicipaddresses.IPVersionIPvFour),
 				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPVersion(), false),
 			},
 
@@ -107,8 +107,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(publicipaddresses.PublicIPAddressSkuTierRegional),
 				ForceNew:     true,
+				Default:      string(publicipaddresses.PublicIPAddressSkuTierRegional),
 				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForPublicIPAddressSkuTier(), false),
 			},
 

@@ -96,9 +96,9 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 		"service_data_auth_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(datastore.ServiceDataAccessAuthIdentityNone),
 			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
-			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
 
 		"account_key": {

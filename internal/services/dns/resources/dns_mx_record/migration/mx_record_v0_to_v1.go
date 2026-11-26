@@ -42,6 +42,7 @@ func (MXRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"record": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      resourceDnsMxRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"preference": {
@@ -56,7 +57,6 @@ func (MXRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceDnsMxRecordHash,
 		},
 
 		"ttl": {

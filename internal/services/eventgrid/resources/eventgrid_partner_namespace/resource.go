@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_eventgrid_partner_namespace"
 }
 
+func (Resource) Description() string {
+	return "Manages an Event Grid Partner Namespace."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return partnernamespaces.ValidatePartnerNamespaceID
 }

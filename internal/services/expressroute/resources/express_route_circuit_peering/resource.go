@@ -14,10 +14,11 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitPeeringCreate,
-		Read:   resourceExpressRouteCircuitPeeringRead,
-		Update: resourceExpressRouteCircuitPeeringUpdate,
-		Delete: resourceExpressRouteCircuitPeeringDelete,
+		Description: "Manages an ExpressRoute Circuit Peering.",
+		Create:      resourceExpressRouteCircuitPeeringCreate,
+		Read:        resourceExpressRouteCircuitPeeringRead,
+		Update:      resourceExpressRouteCircuitPeeringUpdate,
+		Delete:      resourceExpressRouteCircuitPeeringDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseExpressRouteCircuitPeeringID(id)

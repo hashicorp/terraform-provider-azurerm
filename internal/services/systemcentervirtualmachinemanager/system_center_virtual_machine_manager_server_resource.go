@@ -73,7 +73,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"fqdn": {
 			Type:         pluginsdk.TypeString,

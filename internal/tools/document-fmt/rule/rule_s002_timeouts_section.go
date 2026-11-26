@@ -99,8 +99,8 @@ func (r S002) Run(rd *data.TerraformNodeData, fix bool) []error {
 		start, end := 0, 0
 
 		for idx, line := range content {
-			if strings.Contains(line, "https://www.terraform.io/language/resources/syntax#operation-timeouts") {
-				errs = append(errs, fmt.Errorf("%s: is using an outdated reference (`https://www.terraform.io/language/resources/syntax#operation-timeouts`)", IdAndName(r)))
+			if strings.Contains(line, "https://www.terraform.io/language/resources/syntax#operation-timeouts") { // azignore:AZP007 - the old address is what this rule looks for
+				errs = append(errs, fmt.Errorf("%s: is using an outdated reference (`https://www.terraform.io/language/resources/syntax#operation-timeouts`)", IdAndName(r))) // azignore:AZP007 - the old address is what this rule looks for
 
 				if fix {
 					content[idx] = "The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:"
