@@ -90,19 +90,19 @@ func sentinelAlertRuleNrtSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C The API creates an incident if omitted but overwriting this/reverting to the default can be done without issue so this can remain
 			Computed: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"create_incident_enabled": {
-						Required: true,
 						Type:     pluginsdk.TypeBool,
+						Required: true,
 					},
 					"grouping": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 1,
 						MinItems: 1,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -113,8 +113,8 @@ func sentinelAlertRuleNrtSchema() map[string]*pluginsdk.Schema {
 								"lookback_duration": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.ISO8601Duration,
 									Default:      "PT5M",
+									ValidateFunc: validation.ISO8601Duration,
 								},
 								"reopen_closed_incidents": {
 									Type:     pluginsdk.TypeBool,
@@ -254,8 +254,8 @@ func sentinelAlertRuleNrtSchema() map[string]*pluginsdk.Schema {
 					},
 					"field_mapping": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 3,
 						Required: true,
+						MaxItems: 3,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"identifier": {

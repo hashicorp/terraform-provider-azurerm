@@ -21,8 +21,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"customer_managed_key_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 	}
 }

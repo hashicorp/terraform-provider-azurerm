@@ -59,20 +59,20 @@ func webPubsubSchema() map[string]*pluginsdk.Schema {
 
 					"connectivity_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"messaging_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"http_request_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 				},
 			},

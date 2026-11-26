@@ -134,13 +134,13 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 					"properties": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 							"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+						},
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},

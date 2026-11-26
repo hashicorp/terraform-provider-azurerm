@@ -115,8 +115,8 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 					"is_client_scoped_subscription_shareable": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
 						ForceNew: true,
+						Default:  true,
 					},
 
 					"is_client_scoped_subscription_durable": {

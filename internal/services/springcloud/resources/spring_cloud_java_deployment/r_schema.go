@@ -78,12 +78,12 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 		"runtime_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  appplatform.SupportedRuntimeValueJava8,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(appplatform.SupportedRuntimeValueJava8),
 				string(appplatform.SupportedRuntimeValueJava11),
 				string(appplatform.SupportedRuntimeValueJava17),
 			}, false),
-			Default: appplatform.SupportedRuntimeValueJava8,
 		},
 	}
 }

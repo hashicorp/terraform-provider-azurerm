@@ -33,8 +33,8 @@ func securityCenterAutomationSchema() map[string]*pluginsdk.Schema {
 
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
 			Optional: true,
+			Default:  true,
 		},
 
 		"description": {

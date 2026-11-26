@@ -149,8 +149,8 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		"network_rule_bypass_option": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
 			Default:      string(services.SearchBypassNone),
+			ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),

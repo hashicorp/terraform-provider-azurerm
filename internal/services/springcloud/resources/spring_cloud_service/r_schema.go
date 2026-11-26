@@ -30,8 +30,8 @@ func springCloudServiceSchema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "S0",
 			ForceNew: true,
+			Default:  "S0",
 			ValidateFunc: validation.StringInSlice([]string{
 				"B0",
 				"S0",
@@ -42,8 +42,8 @@ func springCloudServiceSchema() map[string]*pluginsdk.Schema {
 		"sku_tier": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Basic",
 				"Enterprise",

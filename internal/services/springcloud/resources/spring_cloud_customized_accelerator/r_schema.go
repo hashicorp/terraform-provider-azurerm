@@ -92,8 +92,8 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 					"branch": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 					},
 
 					"ca_certificate_id": {
@@ -105,15 +105,15 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 					"commit": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 					},
 
 					"git_tag": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 					},
 
 					"interval_in_seconds": {

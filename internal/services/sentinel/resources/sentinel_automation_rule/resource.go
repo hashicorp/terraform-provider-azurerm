@@ -64,19 +64,19 @@ func RegisterResource() *pluginsdk.Resource {
 		"expiration": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"condition_json": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsJSON,
 			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
 			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 				return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 			},
-			ValidateFunc: validation.StringIsJSON,
 		},
 
 		"action_incident_task": {
@@ -106,8 +106,9 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		"action_incident": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"order": {
@@ -161,16 +162,15 @@ func RegisterResource() *pluginsdk.Resource {
 					},
 				},
 			},
-			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 
 		"action_playbook": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 			Elem: &pluginsdk.Resource{
 				Schema: sentinelAutomationRuleSchema(),
 			},
-			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 	}
 	return &pluginsdk.Resource{

@@ -44,9 +44,9 @@ func servicebusNamespaceSchema() map[string]*pluginsdk.Schema {
 
 		"premium_messaging_partitions": {
 			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			ForceNew:     true,
 			Default:      0,
-			Optional:     true,
 			ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4}),
 		},
 

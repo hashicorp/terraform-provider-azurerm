@@ -20,8 +20,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"confidence": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 100),
 			Default:      -1, // set the default value to -1 to split `nil` and `0`.
+			ValidateFunc: validation.IntBetween(0, 100),
 		},
 
 		"created_by": {

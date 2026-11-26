@@ -37,8 +37,8 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		// lintignore: S013
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
