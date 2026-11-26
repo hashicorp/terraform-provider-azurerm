@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -40,9 +40,9 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Arguments() map[string
 			ValidateFunc: validate.ApplicationLoadBalancerSubnetAssociationName(),
 		},
 
-		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}),
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}, "Application Gateway for Containers"),
 
-		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}, "Subnet"),
 
 		"tags": commonschema.Tags(),
 	}

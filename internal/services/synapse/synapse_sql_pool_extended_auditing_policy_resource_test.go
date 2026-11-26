@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -93,7 +93,7 @@ func TestAccSynapseSqlPoolExtendedAuditingPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccSynapseSqlPoolExtendedAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
+func TestAccSynapseSqlPoolExtendedAuditingPolicy_storageAccountBehindFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_extended_auditing_policy", "test")
 	r := SynapseSqlPoolExtendedAuditingPolicyResource{}
 

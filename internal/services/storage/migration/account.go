@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -338,15 +338,15 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 		"is_hns_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"nfsv3_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"allow_blob_public_access": {
@@ -372,28 +372,28 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"ip_rules": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"virtual_network_subnet_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"default_action": {
@@ -478,8 +478,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"exposed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -487,8 +487,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"allowed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -589,8 +589,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"exposed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -598,8 +598,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"allowed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -753,8 +753,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"exposed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -762,8 +762,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"allowed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -1000,8 +1000,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 
 		"primary_access_key": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_access_key": {
