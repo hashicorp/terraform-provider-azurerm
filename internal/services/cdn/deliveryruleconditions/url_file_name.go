@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -6,7 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,9 +38,10 @@ func URLFileName() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of string values.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -48,8 +49,9 @@ func URLFileName() *pluginsdk.Resource {
 			},
 
 			"transforms": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of transforms.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
@@ -59,11 +61,11 @@ func URLFileName() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionURLFileName(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		requestURICondition := cdn.DeliveryRuleURLFileNameCondition{
 			Name: cdn.NameURLFileName,
@@ -75,7 +77,7 @@ func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []cdn.BasicDe
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -89,13 +91,13 @@ func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []cdn.BasicDe
 	return output
 }
 
-func FlattenArmCdnEndpointConditionURLFileName(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionURLFileName(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleURLFileNameCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file name condition")
 	}
 
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	operator := ""
 	transforms := make([]string, 0)
@@ -117,7 +119,7 @@ func FlattenArmCdnEndpointConditionURLFileName(input cdn.BasicDeliveryRuleCondit
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,
 		"operator":         operator,

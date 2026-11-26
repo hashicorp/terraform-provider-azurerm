@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -63,8 +63,8 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_port_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_port_range": {
@@ -75,8 +75,8 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_port_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"source_address_prefix": {
@@ -87,15 +87,15 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_address_prefixes": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_address_prefix": {
@@ -106,15 +106,15 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_address_prefixes": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"access": {
@@ -140,7 +140,7 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

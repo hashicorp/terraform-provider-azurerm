@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validation
@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func RegExHelper(i interface{}, k, r string) (match bool, errors []error) {
+func RegExHelper(i any, k, r string) (match bool, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return false, []error{fmt.Errorf("expected type of %q to be string", k)}

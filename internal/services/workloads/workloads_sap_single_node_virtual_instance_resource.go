@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads
@@ -106,7 +106,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_single_node_virtual_instance"
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ModelObject() interface{} {
+func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ModelObject() any {
 	return &WorkloadsSAPSingleNodeVirtualInstanceModel{}
 }
 
@@ -339,8 +339,8 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
-									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: validation.StringLenBetween(1, 13),
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 								},
 
 								"network_interface_names": {
@@ -358,16 +358,16 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
-									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: validation.StringLenBetween(1, 80),
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 								},
 
 								"virtual_machine_name": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
-									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: computeValidate.VirtualMachineName,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 								},
 							},
 						},
@@ -432,11 +432,11 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.Resou
 	}
 }
 
-func hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(input []interface{}) bool {
+func hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(input []any) bool {
 	seen := make(map[string]bool)
 
 	for _, v := range input {
-		diskVolume := v.(map[string]interface{})
+		diskVolume := v.(map[string]any)
 		volumeName := diskVolume["volume_name"].(string)
 
 		if seen[volumeName] {
@@ -536,7 +536,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

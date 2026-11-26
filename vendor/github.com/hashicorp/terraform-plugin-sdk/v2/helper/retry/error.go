@@ -41,11 +41,19 @@ type UnexpectedStateError struct {
 }
 
 func (e *UnexpectedStateError) Error() string {
+	if e.LastError != nil {
+		return fmt.Sprintf(
+			"unexpected state '%s', wanted target '%s'. last error: %s",
+			e.State,
+			strings.Join(e.ExpectedState, ", "),
+			e.LastError,
+		)
+	}
+
 	return fmt.Sprintf(
-		"unexpected state '%s', wanted target '%s'. last error: %s",
+		"unexpected state '%s', wanted target '%s'",
 		e.State,
 		strings.Join(e.ExpectedState, ", "),
-		e.LastError,
 	)
 }
 

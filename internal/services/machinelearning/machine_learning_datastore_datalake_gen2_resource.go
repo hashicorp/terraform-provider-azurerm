@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -49,7 +49,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Attributes() map[string]*schema.Sc
 	}
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) ModelObject() interface{} {
+func (r MachineLearningDataStoreDataLakeGen2) ModelObject() any {
 	return &MachineLearningDataStoreDataLakeGen2Model{}
 }
 
@@ -117,9 +117,9 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(datastore.ServiceDataAccessAuthIdentityNone),
 			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
-			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
 
 		"authority_url": {

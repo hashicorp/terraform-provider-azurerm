@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func SkuProfileVMSizeName(input interface{}, key string) (warnings []string, errors []error) {
+func SkuProfileVMSizeName(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected `%s` to be a string", key))

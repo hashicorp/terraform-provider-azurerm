@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -181,7 +181,7 @@ func (s SpringCloudConfigurationServiceResource) Attributes() map[string]*schema
 	return map[string]*schema.Schema{}
 }
 
-func (s SpringCloudConfigurationServiceResource) ModelObject() interface{} {
+func (s SpringCloudConfigurationServiceResource) ModelObject() any {
 	return &SpringCloudConfigurationServiceModel{}
 }
 
