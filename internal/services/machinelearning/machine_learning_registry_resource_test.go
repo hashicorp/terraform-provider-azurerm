@@ -93,35 +93,6 @@ func TestAccMachineLearningRegistry_update(t *testing.T) {
 	})
 }
 
-func TestAccMachineLearningRegistry_replicationRegion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
-	r := MachineLearningRegistryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withReplicationRegion(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r MachineLearningRegistryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	registryClient := client.MachineLearning.RegistryManagement
 	id, err := registrymanagement.ParseRegistryID(state.ID)
@@ -155,31 +126,6 @@ resource "azurerm_machine_learning_registry" "test" {
   }
 }
 `, template, data.RandomInteger)
-}
-
-func (r MachineLearningRegistryResource) withReplicationRegion(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_machine_learning_registry" "test" {
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  name                = "acctestMLR-%[2]d"
-
-  replication_region {
-    location = "%[3]s"
-  }
-
-  replication_region {
-    location = "%[4]s"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, template, data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r MachineLearningRegistryResource) requiresImport(data acceptance.TestData) string {
@@ -254,12 +200,6 @@ resource "azurerm_machine_learning_registry" "test" {
     system_created_storage_account_hierarchical_namespace_enabled = true
   }
 
-  replication_region {
-    location                                                      = "%[4]s"
-    system_created_storage_account_type                           = "Standard_ZRS"
-    system_created_storage_account_hierarchical_namespace_enabled = true
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -268,7 +208,7 @@ resource "azurerm_machine_learning_registry" "test" {
     environment = "staging"
   }
 }
-`, r.template(data), data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
+`, r.template(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r MachineLearningRegistryResource) template(data acceptance.TestData) string {

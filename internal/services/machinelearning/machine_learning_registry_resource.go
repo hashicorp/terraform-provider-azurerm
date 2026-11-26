@@ -267,26 +267,35 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 				oldRegions := oldVal.([]any)
 				newRegions := newVal.([]any)
 
-				newRegionsByLocation := make(map[string]map[string]any)
-				for _, r := range newRegions {
+				oldRegionsByLocation := make(map[string]map[string]any)
+				for _, r := range oldRegions {
 					region := r.(map[string]any)
-					newRegionsByLocation[location.Normalize(region["location"].(string))] = region
+					oldRegionsByLocation[location.Normalize(region["location"].(string))] = region
 				}
 
-				for _, r := range oldRegions {
-					oldRegion := r.(map[string]any)
-					oldLocation := location.Normalize(oldRegion["location"].(string))
-					newRegion, exists := newRegionsByLocation[oldLocation]
+				for i, r := range newRegions {
+					newRegion := r.(map[string]any)
+					oldRegion, exists := oldRegionsByLocation[location.Normalize(newRegion["location"].(string))]
 					if !exists {
 						continue
 					}
 
-					if oldRegion["system_created_storage_account_type"].(string) != newRegion["system_created_storage_account_type"].(string) ||
-						oldRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) != newRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) {
-						if err := metadata.ResourceDiff.ForceNew("replication_region"); err != nil {
-							return err
+					if oldRegion["system_created_storage_account_type"].(string) != newRegion["system_created_storage_account_type"].(string) {
+						key := fmt.Sprintf("replication_region.%d.system_created_storage_account_type", i)
+						if metadata.ResourceDiff.HasChange(key) {
+							if err := metadata.ResourceDiff.ForceNew(key); err != nil {
+								return err
+							}
 						}
-						break
+					}
+
+					if oldRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) != newRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) {
+						key := fmt.Sprintf("replication_region.%d.system_created_storage_account_hierarchical_namespace_enabled", i)
+						if metadata.ResourceDiff.HasChange(key) {
+							if err := metadata.ResourceDiff.ForceNew(key); err != nil {
+								return err
+							}
+						}
 					}
 				}
 			}

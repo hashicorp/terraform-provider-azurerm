@@ -59,7 +59,7 @@ An `identity` block supports the following:
 
 A `replication_region` block supports the following:
 
-* `location` - (Required) The Azure Region where the replicated Machine Learning Registry resources should exist. This must be different from the primary `location` and unique across `replication_region` blocks. Changing this forces a new Machine Learning Registry to be created.
+* `location` - (Required) The Azure Region where the replicated Machine Learning Registry resources should exist. This must be different from the primary `location` and unique across `replication_region` blocks.
 
 * `system_created_storage_account_hierarchical_namespace_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the system-created storage account in this region. Defaults to `false`. Changing this forces a new Machine Learning Registry to be created.
 
