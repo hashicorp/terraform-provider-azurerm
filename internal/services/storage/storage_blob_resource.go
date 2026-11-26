@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -149,8 +149,8 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				// TODO: @tombuildsstuff - a note this only works for Page blobs
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      8,
 				ForceNew:     true,
+				Default:      8,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 

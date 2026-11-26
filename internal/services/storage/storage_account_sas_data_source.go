@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -18,7 +18,7 @@ const (
 	connStringAccountNameKey = "AccountName"
 )
 
-// This is an ACCOUNT SAS : https://docs.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
+// This is an ACCOUNT SAS : https://learn.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 	const sasSignedVersion = "2022-11-02"
@@ -220,7 +220,7 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ any) error {
 	// Create the string to sign with the key...
 
 	// Details on how to do this are here:
-	// https://docs.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
+	// https://learn.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
 	accountName := kvp[connStringAccountNameKey]
 	accountKey := kvp[connStringAccountKeyKey]
 	signedProtocol := "https,http"

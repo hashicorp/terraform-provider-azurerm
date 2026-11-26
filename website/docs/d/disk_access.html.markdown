@@ -14,8 +14,8 @@ Use this data source to access information about an existing Disk Access.
 
 ```hcl
 data "azurerm_disk_access" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-disk-access"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
