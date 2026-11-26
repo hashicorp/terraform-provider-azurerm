@@ -104,7 +104,7 @@ provider "azurerm" {
     }
 
     storage {
-      data_plane_available = false
+      data_plane_available     = false
       skip_storing_access_keys = true
     }
 
