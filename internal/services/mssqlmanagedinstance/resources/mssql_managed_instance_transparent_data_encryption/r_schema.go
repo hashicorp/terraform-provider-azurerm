@@ -24,8 +24,8 @@ func mssqlManagedInstanceTransparentDataEncryptionSchema() map[string]*pluginsdk
 			Description:      "To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: diffSuppressKeyVaultVersionedKey,
 			ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+			DiffSuppressFunc: diffSuppressKeyVaultVersionedKey,
 		},
 
 		"auto_rotation_enabled": {

@@ -43,27 +43,27 @@ type PermissionDataSourceModel struct {
 func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "The Name of either a built-in or custom Role Definition.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Computed:    true, // azignore:AZS007 - pre-existing violation
+			Description:  "The Name of either a built-in or custom Role Definition.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
 			},
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"role_definition_id": {
-			Description: "The ID of the Role Definition as a UUID/GUID.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Computed:    true, // azignore:AZS007 - pre-existing violation
+			Description:  "The ID of the Role Definition as a UUID/GUID.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ValidateFunc: validation.IsUUID,
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
 			},
-			ValidateFunc: validation.IsUUID,
 		},
 
 		"scope": {
@@ -113,19 +113,19 @@ func (a DataSource) Attributes() map[string]*pluginsdk.Schema {
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"condition": {

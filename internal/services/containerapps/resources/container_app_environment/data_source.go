@@ -60,10 +60,10 @@ func (r DataSource) Description() string {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Apps Managed Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty, // There are no meaningful indicators for validation here, seems any non-empty string is valid at the Portal?
-			Description:  "The name of the Container Apps Managed Environment.",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -75,65 +75,65 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"log_analytics_workspace_name": {
+			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.",
 		},
 
 		"infrastructure_subnet_id": {
+			Description: "The ID of the Subnet in use by the Container Apps Control Plane.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The ID of the Subnet in use by the Container Apps Control Plane.",
 		},
 
 		"internal_load_balancer_enabled": {
+			Description: "Whether the Container App Environment operates in Internal Load Balancing Mode.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
-			Description: "Whether the Container App Environment operates in Internal Load Balancing Mode.",
 		},
 
 		"tags": commonschema.TagsDataSource(),
 
 		"custom_domain_verification_id": {
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
 		},
 
 		"default_domain": {
+			Description: "This is generated at creation time to be globally unique.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "This is generated at creation time to be globally unique.",
 		},
 
 		"docker_bridge_cidr": {
+			Description: "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
 		},
 
 		"platform_reserved_cidr": {
+			Description: "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
 		},
 
 		"platform_reserved_dns_ip_address": {
+			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 		},
 
 		"public_network_access": {
+			Description: "The public network access setting for this Container App Environment.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The public network access setting for this Container App Environment.",
 		},
 
 		"static_ip_address": {
+			Description: "The Static IP address of the Environment.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Static IP address of the Environment.",
 		},
 	}
 }

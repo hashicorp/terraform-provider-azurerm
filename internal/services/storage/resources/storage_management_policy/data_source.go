@@ -49,14 +49,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 									"prefix_match": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 
 									"match_blob_index_tag": {

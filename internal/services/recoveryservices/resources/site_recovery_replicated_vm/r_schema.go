@@ -105,15 +105,15 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 
 		"target_network_id": {
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		"test_network_id": {
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
@@ -123,8 +123,8 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			ForceNew:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disk_uri": {
@@ -204,8 +204,8 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 					"target_disk_encryption": {
 						Type:       pluginsdk.TypeList,
 						Optional:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem:       diskEncryptionResource(),
 					},
 				},

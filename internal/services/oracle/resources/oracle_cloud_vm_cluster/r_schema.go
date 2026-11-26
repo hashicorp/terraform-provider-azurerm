@@ -20,8 +20,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.CloudVMClusterName,
 			ForceNew:     true,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -141,8 +141,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"diagnostics_events_enabled": {
@@ -201,16 +201,16 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"scan_listener_port_tcp": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      1521,
 			ForceNew:     true,
+			Default:      1521,
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 
 		"scan_listener_port_tcp_ssl": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      2484,
 			ForceNew:     true,
+			Default:      2484,
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 

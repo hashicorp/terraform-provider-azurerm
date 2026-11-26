@@ -47,8 +47,8 @@ func automationCertificateSchema() map[string]*pluginsdk.Schema {
 		"exportable": {
 			Description: "The is exportable flag of the certificate.",
 			Type:        pluginsdk.TypeBool,
-			Default:     false,
 			Optional:    true,
+			Default:     false,
 		},
 
 		"thumbprint": {

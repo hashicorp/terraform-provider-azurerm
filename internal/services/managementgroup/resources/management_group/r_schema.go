@@ -47,11 +47,11 @@ func managementGroupSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
 			},
-			Set: pluginsdk.HashString,
 		},
 	}
 }

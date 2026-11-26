@@ -97,11 +97,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  "Default",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Default",
 					"FeatureStore",
 				}, false),
-				Default: "Default",
 			},
 
 			"feature_store": {

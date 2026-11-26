@@ -162,22 +162,22 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 						Description:  "ID of the Virtual Network to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 						ValidateFunc: azure.ValidateResourceID,
+						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 					},
 					"subnet_id": {
 						Description:  "ID of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 						ValidateFunc: commonids.ValidateSubnetID,
+						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 					},
 					"subnet_name": {
 						Description:  "Name of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						RequiredWith: []string{"vnet_integration.0.vnet_id"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						RequiredWith: []string{"vnet_integration.0.vnet_id"},
 					},
 					"public_ips": {
 						Description: "Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.",
@@ -294,8 +294,8 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 						Description:  "The version of Azure Powershell installed for the Azure-SSIS Integration Runtime.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 					},
 
 					"command_key": {

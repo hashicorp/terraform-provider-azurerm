@@ -36,8 +36,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Description:  "The Firewall Policy mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
 			Default:      string(webapplicationfirewallpolicies.PolicyModePrevention),
+			ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
 		},
 
 		"redirect_url": {
@@ -69,8 +69,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"custom_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -187,8 +187,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"managed_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -207,8 +207,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"exclusion": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"match_variable": {
@@ -235,8 +235,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"override": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"rule_group_name": {
@@ -248,8 +248,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 								"exclusion": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"match_variable": {
@@ -277,8 +277,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								"rule": {
 									Description: "If none are specified, all of the rules in the group will be disabled.",
 									Type:        pluginsdk.TypeList,
-									MaxItems:    1000,
 									Optional:    true,
+									MaxItems:    1000,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"rule_id": {
@@ -297,8 +297,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 											"exclusion": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 100,
 												Optional: true,
+												MaxItems: 100,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"match_variable": {

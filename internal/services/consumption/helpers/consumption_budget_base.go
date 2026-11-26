@@ -89,9 +89,9 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 		"etag": { // TODO 6.0: this should probably be computed only?
 			Description: "The ETag of the Consumption Budget.",
 			Type:        pluginsdk.TypeString,
-			Computed:    true,
+			Optional:    true,
 			// Note: O+C because Azure will always return a new value for this
-			Optional: true,
+			Computed: true,
 		},
 
 		"amount": {
@@ -131,8 +131,8 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 								"values": {
 									Description: "A list of values for the column.",
 									Type:        pluginsdk.TypeList,
-									MinItems:    1,
 									Required:    true,
+									MinItems:    1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -249,8 +249,8 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 			Description:  "The time covered by a budget. Tracking of the amount will be reset based on the time grain.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(budgets.TimeGrainTypeMonthly),
 			ForceNew:     true,
+			Default:      string(budgets.TimeGrainTypeMonthly),
 			ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForTimeGrainType(), false),
 		},
 
@@ -265,8 +265,8 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 						Description:  "The start date for the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should be selected within the timegrain period.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.ConsumptionBudgetTimePeriodStartDate,
 						ForceNew:     true,
+						ValidateFunc: validate.ConsumptionBudgetTimePeriodStartDate,
 					},
 					"end_date": {
 						Description:  "The end date for the budget. If not set this will be 10 years after the start date.",

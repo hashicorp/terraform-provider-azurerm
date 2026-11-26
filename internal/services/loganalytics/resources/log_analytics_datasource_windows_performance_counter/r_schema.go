@@ -30,8 +30,8 @@ func logAnalyticsDatasourceWindowsPerformanceCounterSchema() map[string]*plugins
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validate.LogAnalyticsWorkspaceName,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"counter_name": {

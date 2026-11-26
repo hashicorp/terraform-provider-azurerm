@@ -56,8 +56,8 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Description: "Whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		"automatic_upgrade_enabled": {

@@ -29,8 +29,8 @@ func recoveryServicesVaultSchema() map[string]*pluginsdk.Schema {
 		"encryption": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			RequiredWith: []string{"identity"},
 			MaxItems:     1,
+			RequiredWith: []string{"identity"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_id": {

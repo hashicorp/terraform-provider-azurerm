@@ -38,10 +38,11 @@ func cdnEndpointCustomDomainSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"cdn_managed_https": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MinItems:      1,
+			MaxItems:      1,
+			ConflictsWith: []string{"user_managed_https"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"certificate_type": {
@@ -60,31 +61,31 @@ func cdnEndpointCustomDomainSchema() map[string]*pluginsdk.Schema {
 						Description: "The minimum TLS protocol version that is used for HTTPS.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
+						Default:     string(cdn.MinimumTLSVersionTLS12),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(cdn.MinimumTLSVersionTLS12),
 						}, false),
-						Default: string(cdn.MinimumTLSVersionTLS12),
 					},
 				},
 			},
-			ConflictsWith: []string{"user_managed_https"},
 		},
 
 		"user_managed_https": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MinItems:      1,
+			MaxItems:      1,
+			ConflictsWith: []string{"cdn_managed_https"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tls_version": {
 						Description: "The minimum TLS protocol version that is used for HTTPS.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
+						Default:     string(cdn.MinimumTLSVersionTLS12),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(cdn.MinimumTLSVersionTLS12),
 						}, false),
-						Default: string(cdn.MinimumTLSVersionTLS12),
 					},
 
 					"key_vault_secret_id": {
@@ -95,7 +96,6 @@ func cdnEndpointCustomDomainSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"cdn_managed_https"},
 		},
 	}
 }

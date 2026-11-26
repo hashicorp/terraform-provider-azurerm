@@ -40,9 +40,9 @@ func dataFactoryLinkedServiceAzureFunctionSchema() map[string]*pluginsdk.Schema 
 			Description:  "The system key of the Azure Function.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"key", "key_vault_key"},
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{"key", "key_vault_key"},
 		},
 
 		"description": {
@@ -56,8 +56,8 @@ func dataFactoryLinkedServiceAzureFunctionSchema() map[string]*pluginsdk.Schema 
 			Description:  "Use this Argument to store the system key of the Azure Function in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ExactlyOneOf: []string{"key", "key_vault_key"},
 			MaxItems:     1,
+			ExactlyOneOf: []string{"key", "key_vault_key"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {

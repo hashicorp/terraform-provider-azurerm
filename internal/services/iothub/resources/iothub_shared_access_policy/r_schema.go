@@ -60,29 +60,29 @@ func iothubSharedAccessPolicySchema() map[string]*pluginsdk.Schema {
 		"primary_key": {
 			Description: "The primary key used to create the authentication token.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_connection_string": {
 			Description: "The primary connection string of the Shared Access Policy.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_key": {
 			Description: "The secondary key used to create the authentication token.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_connection_string": {
 			Description: "The secondary connection string of the Shared Access Policy.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

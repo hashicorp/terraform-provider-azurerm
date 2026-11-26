@@ -62,9 +62,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"docker_step": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"file_step", "encoded_step"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"dockerfile_path": {
@@ -131,12 +132,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"file_step", "encoded_step"},
 		},
 		"file_step": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"docker_step", "encoded_step"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"task_file_path": {
@@ -183,12 +184,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"docker_step", "encoded_step"},
 		},
 		"encoded_step": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"docker_step", "file_step"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"task_content": {
@@ -237,7 +238,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"docker_step", "file_step"},
 		},
 		"base_image_trigger": {
 			Type:     pluginsdk.TypeList,
@@ -400,9 +400,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"source": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						MaxItems:     1,
+						AtLeastOneOf: []string{"registry_credential.0.source", "registry_credential.0.custom"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"login_mode": {
@@ -413,12 +414,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"registry_credential.0.source", "registry_credential.0.custom"},
 					},
 					"custom": {
-						Type:      pluginsdk.TypeSet,
-						Sensitive: true,
-						Optional:  true,
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						Sensitive:    true,
+						AtLeastOneOf: []string{"registry_credential.0.source", "registry_credential.0.custom"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"login_server": {
@@ -451,15 +452,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"registry_credential.0.source", "registry_credential.0.custom"},
 					},
 				},
 			},
 		},
 		"agent_setting": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"agent_pool_name"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cpu": {
@@ -470,7 +471,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"agent_pool_name"},
 		},
 		"agent_pool_name": {
 			Description:   "The name of the dedicated Container Registry Agent Pool for this Container Registry Task.",
@@ -502,8 +502,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(300, 28800),
 			Default:      3600,
+			ValidateFunc: validation.IntBetween(300, 28800),
 		},
 		"tags": commonschema.Tags(),
 	}

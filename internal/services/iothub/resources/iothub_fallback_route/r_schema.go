@@ -27,6 +27,7 @@ func iothubFallbackRouteSchema() map[string]*pluginsdk.Schema {
 			Description: "The source that the routing rule is to be applied to.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Default:     devices.RoutingSourceDeviceMessages,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(devices.RoutingSourceDeviceConnectionStateEvents),
 				string(devices.RoutingSourceDeviceJobLifecycleEvents),
@@ -36,7 +37,6 @@ func iothubFallbackRouteSchema() map[string]*pluginsdk.Schema {
 				string(devices.RoutingSourceInvalid),
 				string(devices.RoutingSourceTwinChangeEvents),
 			}, false),
-			Default: devices.RoutingSourceDeviceMessages,
 		},
 
 		"condition": {

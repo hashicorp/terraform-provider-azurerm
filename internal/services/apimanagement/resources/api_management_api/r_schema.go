@@ -306,9 +306,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		"version": {
 			Description: "The Version number of this API, if this API is versioned.",
 			Type:        pluginsdk.TypeString,
-			Computed:    true,
+			Optional:    true,
 			// Note: O+C because the API assigns a version identifier when not explicitly set
-			Optional: true,
+			Computed: true,
 		},
 
 		"version_description": {
@@ -321,9 +321,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		"version_set_id": {
 			Description: "The ID of the Version Set which this API is associated with.",
 			Type:        pluginsdk.TypeString,
-			Computed:    true,
+			Optional:    true,
 			// Note: O+C because the API assigns a version set ID when not explicitly set
-			Optional: true,
+			Computed: true,
 		},
 	}
 }

@@ -23,8 +23,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "Time used to validate the authorization expiration time for each authorized partner.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 365),
 			Default:      7,
+			ValidateFunc: validation.IntBetween(1, 365),
 		},
 		"partner_authorization": &schema.Schema{
 			Type:     pluginsdk.TypeList,

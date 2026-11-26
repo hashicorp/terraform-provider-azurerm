@@ -37,8 +37,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"sku": {
 			Description:  "SKU of the IoT Hub Device Update Account.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      deviceupdates.SKUStandard,
 			ValidateFunc: validation.StringInSlice(deviceupdates.PossibleValuesForSKU(), false),
 		},

@@ -25,9 +25,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"soa_record": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -124,8 +124,8 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 			Description: "A list of values that make up the NS record for the zone.",
 			Type:        pluginsdk.TypeSet,
 			Computed:    true,
-			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:         pluginsdk.HashString,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 	}
 }

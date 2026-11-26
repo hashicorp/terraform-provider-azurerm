@@ -302,8 +302,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"ultra_ssd_enabled": {
 			Description: "Used to specify whether the UltraSSD is enabled in the Node Pool. See [the documentation](https://learn.microsoft.com/azure/aks/use-ultra-disks) for more information.",
 			Type:        pluginsdk.TypeBool,
-			Default:     false,
 			Optional:    true,
+			Default:     false,
 		},
 
 		"vnet_subnet_id": {

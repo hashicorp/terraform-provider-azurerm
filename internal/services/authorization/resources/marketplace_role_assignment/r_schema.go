@@ -31,8 +31,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
-			ConflictsWith: []string{"role_definition_name"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"role_definition_name"},
 		},
 
 		"role_definition_name": {
@@ -40,8 +40,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
-			ConflictsWith: []string{"role_definition_id"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"role_definition_id"},
 		},
 
 		"skip_service_principal_aad_check": {
@@ -73,20 +73,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"condition_version"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"condition_version"},
 		},
 
 		"condition_version": {
-			Description:  "The version of the condition.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"condition"},
+			Description: "The version of the condition.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"1.0",
 				"2.0",
 			}, false),
+			RequiredWith: []string{"condition"},
 		},
 	}
 }

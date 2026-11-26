@@ -45,8 +45,8 @@ func SchemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 				"exposed_headers": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
-					MaxItems: 64,
 					MinItems: 1,
+					MaxItems: 64,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -54,8 +54,8 @@ func SchemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 				"allowed_headers": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
-					MaxItems: 64,
 					MinItems: 1,
+					MaxItems: 64,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},

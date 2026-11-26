@@ -16,8 +16,8 @@ func lighthouseAssignmentSchema() map[string]*pluginsdk.Schema {
 			Description:  "A unique UUID/GUID which identifies this lighthouse assignment- one will be generated if not specified.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 

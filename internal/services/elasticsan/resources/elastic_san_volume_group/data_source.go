@@ -72,28 +72,28 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
 						Description: "The Key Vault Key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"user_assigned_identity_id": {
 						Description: "The ID of the User Assigned Identity used by this Elastic SAN Volume Group.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"current_versioned_key_expiration_timestamp": {
 						Description: "The timestamp of the expiration time for the current version of the Customer Managed Key.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"current_versioned_key_id": {
 						Description: "The ID of the current versioned Key Vault Key in use.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"last_key_rotation_timestamp": {
 						Description: "The timestamp of the last rotation of the Key Vault Key.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -106,13 +106,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
 						Description: "The ID of the Subnet from which access to this Elastic SAN Volume Group is allowed.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"action": {
 						Description: "The action to take when an access attempt to this Elastic SAN Volume Group from this Subnet is made.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},

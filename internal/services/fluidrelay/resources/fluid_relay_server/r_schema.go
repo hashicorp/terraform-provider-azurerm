@@ -39,8 +39,8 @@ func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {

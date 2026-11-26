@@ -30,8 +30,8 @@ func privateDnsARecordSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MaxItems: 20,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:      pluginsdk.HashString,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {
