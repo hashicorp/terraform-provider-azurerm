@@ -657,6 +657,30 @@ func TestAccBackupProtectionPolicyVM_updateBackupTime(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyVM_updateBackupTimeKeepsInstantRestoreRetentionV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dailyMinimumRetentionV2(data, "23:00"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("instant_restore_retention_days").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dailyMinimumRetentionV2(data, "23:30"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("instant_restore_retention_days").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -1180,4 +1204,28 @@ resource "azurerm_backup_policy_vm" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) dailyMinimumRetentionV2(data acceptance.TestData, time string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  policy_type         = "V2"
+
+  instant_restore_retention_days = 2
+
+  backup {
+    frequency = "Daily"
+    time      = "%[3]s"
+  }
+
+  retention_daily {
+    count = 7
+  }
+}
+`, r.template(data), data.RandomInteger, time)
 }
