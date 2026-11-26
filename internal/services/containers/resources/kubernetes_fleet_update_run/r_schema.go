@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_fleet_update_run
@@ -14,28 +14,30 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name which should be used for this Kubernetes Fleet Update Run.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
-		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KubernetesFleetId{}),
+		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KubernetesFleetId{}, "Kubernetes Fleet Manager"),
 
 		"managed_cluster_update": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"upgrade": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
+									Description: "The type of upgrade to perform.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(updateruns.ManagedClusterUpgradeTypeFull),
 										string(updateruns.ManagedClusterUpgradeTypeNodeImageOnly),
@@ -43,8 +45,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"kubernetes_version": {
-									Optional:     true,
+									Description:  "The Kubernetes version to upgrade the member clusters to.",
 									Type:         pluginsdk.TypeString,
+									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
@@ -52,14 +55,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"node_image_selection": {
-						Optional: true,
 						Type:     pluginsdk.TypeList,
+						Optional: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
+									Description: "The node image upgrade type.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(updateruns.NodeImageSelectionTypeConsistent),
 										string(updateruns.NodeImageSelectionTypeLatest),
@@ -73,32 +77,35 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"fleet_update_strategy_id": {
-			Optional:      true,
+			Description:   "The ID of the Fleet Update Strategy.",
 			Type:          pluginsdk.TypeString,
+			Optional:      true,
 			ConflictsWith: []string{"stage"},
 		},
 
 		"stage": {
-			Optional:      true,
 			Type:          pluginsdk.TypeList,
+			Optional:      true,
 			ConflictsWith: []string{"fleet_update_strategy_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
+						Description:  "The name which should be used for this stage.",
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"group": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Required:     true,
+									Description:  "The name which should be used for this group.",
 									Type:         pluginsdk.TypeString,
+									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
@@ -106,8 +113,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"after_stage_wait_in_seconds": {
-						Optional: true,
-						Type:     pluginsdk.TypeInt,
+						Description: "The time in seconds to wait at the end of this stage before starting the next one.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 					},
 				},
 			},

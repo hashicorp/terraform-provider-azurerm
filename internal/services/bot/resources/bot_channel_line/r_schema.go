@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_line
@@ -17,6 +17,7 @@ func botChannelLineSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +30,7 @@ func botChannelLineSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"access_token": {
+						Description:  "The access token which is used to call the Line Channel API.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -36,6 +38,7 @@ func botChannelLineSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"secret": {
+						Description:  "The secret which is used to access the Line Channel.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,

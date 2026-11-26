@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_deployment
@@ -19,6 +19,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Services Account Deployment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_account_id": {
+			Description:  "The ID of the Cognitive Services Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,8 +35,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dynamic_throttling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether dynamic throttling is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"model": {
@@ -45,6 +48,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"format": {
+						Description:  "The format of the Cognitive Services Account Deployment model.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -52,6 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"name": {
+						Description:  "The name of the Cognitive Services Account Deployment model.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -59,8 +64,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The version of Cognitive Services Account Deployment model. If `version` is not specified, the default version of the model at the time will be assigned.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 				},
 			},
@@ -73,9 +79,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The name of the SKU.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard",
 							"DataZoneBatch",
@@ -89,6 +96,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tier": {
+						Description:  "This property is required only when multiple tiers are available with the SKU name.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -96,18 +104,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"size": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 
 					"family": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "If the service has different generations of hardware, for the same SKU, then that can be captured here.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 
 					"capacity": {
+						Description:  "Tokens-per-Minute (TPM). The unit of measure for this field is in the thousands of Tokens-per-Minute. If the resources SKU supports scale in/out then the capacity field should be included in the resources' configuration. If the scale in/out is not supported by the resources SKU then this field can be safely omitted. For more information about TPM see the [product documentation](https://learn.microsoft.com/azure/ai-services/openai/how-to/quota?tabs=rest).",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -118,20 +129,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"rai_policy_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The name of RAI policy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C `raiPolicyName` has default value when `rai_policy_name` is not set. So, `O+C` is required otherwise it will incur difference.
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"spillover_deployment_name": {
+			Description:  "The name of the deployment that should serve requests when this deployment would have otherwise been throttled due to reaching its throughput limit.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"version_upgrade_option": {
+			Description:  "Deployment model version upgrade option.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),

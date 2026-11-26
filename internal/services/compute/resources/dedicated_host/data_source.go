@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dedicated_host
@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDedicatedHostRead,
+		Description: "Use this data source to access information about an existing Dedicated Host.",
+		Read:        dataSourceDedicatedHostRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,12 +30,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Dedicated Host.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DedicatedHostName(),
 			},
 
 			"dedicated_host_group_name": {
+				Description:  "The name of the Dedicated Host Group the Dedicated Host is located in.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DedicatedHostGroupName(),

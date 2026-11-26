@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_fleet_update_run
@@ -22,4 +22,8 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_fleet_update_run"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Kubernetes Fleet Update Run."
 }

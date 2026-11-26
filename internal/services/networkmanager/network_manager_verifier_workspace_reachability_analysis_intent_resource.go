@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -67,7 +67,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 			),
 		},
 
-		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}),
+		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}, "Network Manager Verifier Workspace"),
 
 		"source_resource_id": {
 			Type:     pluginsdk.TypeString,

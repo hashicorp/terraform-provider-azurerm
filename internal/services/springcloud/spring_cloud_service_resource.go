@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -73,8 +73,8 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "S0",
 				ForceNew: true,
+				Default:  "S0",
 				ValidateFunc: validation.StringInSlice([]string{
 					"B0",
 					"S0",
@@ -85,8 +85,8 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true, // azignore:AZS007 - pre-existing violation
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Basic",
 					"Enterprise",

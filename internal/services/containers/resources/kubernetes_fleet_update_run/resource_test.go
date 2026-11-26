@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_fleet_update_run_test
@@ -18,6 +18,17 @@ import (
 )
 
 type KubernetesFleetUpdateRunTestResource struct{}
+
+func TestAccKubernetesFleetUpdateRun_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")
+	r := KubernetesFleetUpdateRunTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccKubernetesFleetUpdateRun_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_run", "test")

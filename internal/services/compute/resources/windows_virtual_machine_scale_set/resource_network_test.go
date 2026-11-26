@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine_scale_set_test
@@ -1249,13 +1249,34 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
 func (r WindowsVirtualMachineScaleSetResource) networkMultipleIPConfigurationsIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-VMSS-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24", "ace:cab:deca::/64"]
+}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
+  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_D2s_v3"
+  sku                 = "Standard_D2s_v5"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -1284,12 +1305,13 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
 
     ip_configuration {
-      name    = "second"
-      version = "IPv6"
+      name      = "second"
+      subnet_id = azurerm_subnet.test.id
+      version   = "IPv6"
     }
   }
 }
-`, r.template(data))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, r.vmName(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) networkMultipleNICs(data acceptance.TestData) string {

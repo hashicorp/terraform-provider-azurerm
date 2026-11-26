@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_token
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryTokenCreate,
-		Read:   resourceContainerRegistryTokenRead,
-		Update: resourceContainerRegistryTokenUpdate,
-		Delete: resourceContainerRegistryTokenDelete,
+		Description: "Manages an Azure Container Registry token associated to a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/azure/container-registry/container-registry-repository-scoped-permissions).",
+		Create:      resourceContainerRegistryTokenCreate,
+		Read:        resourceContainerRegistryTokenRead,
+		Update:      resourceContainerRegistryTokenUpdate,
+		Delete:      resourceContainerRegistryTokenDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := tokens.ParseTokenID(id)

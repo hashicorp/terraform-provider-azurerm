@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_redis_access_policy_assignment
@@ -30,12 +30,14 @@ type ManagedRedisAccessPolicyAssignmentDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"object_id": {
+			Description:  "The object ID of the Azure Active Directory user, group, Service Principal, or Managed Identity.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"managed_redis_name": {
+			Description:  "The name of the Managed Redis instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ManagedRedisClusterName,
@@ -55,6 +57,10 @@ func (r DataSource) ModelObject() any {
 
 func (r DataSource) ResourceType() string {
 	return "azurerm_managed_redis_access_policy_assignment"
+}
+
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Managed Redis Access Policy Assignment."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

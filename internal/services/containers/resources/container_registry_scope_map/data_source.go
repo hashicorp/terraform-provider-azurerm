@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_scope_map
@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceContainerRegistryScopeMapRead,
+		Description: "Use this data source to access information about an existing Container Registry scope map.",
+		Read:        dataSourceContainerRegistryScopeMapRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,10 +28,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Container Registry token.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 			"container_registry_name": {
+				Description:  "The Name of the Container Registry where the token exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ContainerRegistryName,
@@ -41,8 +44,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"actions": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The actions for the Scope Map.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

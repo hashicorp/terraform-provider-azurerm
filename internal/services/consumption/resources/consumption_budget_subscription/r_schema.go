@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package consumption_budget_subscription
@@ -12,12 +12,14 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Subscription Consumption Budget.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ConsumptionBudgetName(),
 		},
 		"subscription_id": {
+			Description:  "The ID of the Subscription for which to create a Consumption Budget.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package availability_set
@@ -15,9 +15,10 @@ import (
 func availabilitySetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Availability Set.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$"),
 				"The Availability set name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin a letter or number and end with a letter, number or underscore.",
@@ -29,32 +30,36 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"platform_update_domain_count": {
+			Description:  "The number of update domains that are used.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      5,
 			ForceNew:     true,
+			Default:      5,
 			ValidateFunc: validation.IntBetween(1, 20),
 		},
 
 		"platform_fault_domain_count": {
+			Description:  "The number of fault domains that are used.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      3,
 			ForceNew:     true,
+			Default:      3,
 			ValidateFunc: validation.IntBetween(1, 3),
 		},
 
 		"managed": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether the Availability Set is managed.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     true,
 		},
 
 		"proximity_placement_group_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The ID of the Proximity Placement Group to which this Virtual Machine should be assigned.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 
 			// We have to ignore case due to incorrect capitalisation of resource group name in
 			// proximity placement group ID in the response we get from the API request

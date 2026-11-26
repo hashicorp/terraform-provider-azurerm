@@ -6,6 +6,7 @@ package oracle
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
+	"strings"
 )
 
 type ExascaleDatabaseDataCollectionModel struct {
@@ -67,4 +68,14 @@ func flattenNetworkSecurityGroupCidr(input *[]exadbvmclusters.NsgCidr) []Network
 	}
 
 	return output
+}
+
+// removeHostnameSuffix is a copy of the cloud VM cluster helper, which now lives in that resource's own package.
+func removeHostnameSuffix(hostnameActual string) string {
+	suffixIndex := strings.LastIndex(hostnameActual, "-")
+	if suffixIndex != -1 {
+		return hostnameActual[:suffixIndex]
+	}
+
+	return hostnameActual
 }

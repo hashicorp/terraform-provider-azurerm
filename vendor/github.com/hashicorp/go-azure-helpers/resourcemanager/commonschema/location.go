@@ -9,7 +9,12 @@ import (
 )
 
 func Location() *schema.Schema {
+	return LocationWithDescription("The Azure Region in which to provision the resource.")
+}
+
+func LocationWithDescription(description string) *schema.Schema {
 	return &schema.Schema{
+		Description:      description,
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
@@ -20,7 +25,12 @@ func Location() *schema.Schema {
 }
 
 func LocationOptional() *schema.Schema {
+	return LocationOptionalWithDescription("The Azure Region in which to provision the resource.")
+}
+
+func LocationOptionalWithDescription(description string) *schema.Schema {
 	return &schema.Schema{
+		Description:      description,
 		Type:             schema.TypeString,
 		Optional:         true,
 		ForceNew:         true,
@@ -30,14 +40,24 @@ func LocationOptional() *schema.Schema {
 }
 
 func LocationComputed() *schema.Schema {
+	return LocationComputedWithDescription("The Azure Region in which the resource exists.")
+}
+
+func LocationComputedWithDescription(description string) *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeString,
-		Computed: true,
+		Description: description,
+		Type:        schema.TypeString,
+		Computed:    true,
 	}
 }
 
 func LocationWithoutForceNew() *schema.Schema {
+	return LocationWithoutForceNewWithDescription("The Azure Region in which to provision the resource.")
+}
+
+func LocationWithoutForceNewWithDescription(description string) *schema.Schema {
 	return &schema.Schema{
+		Description:      description,
 		Type:             schema.TypeString,
 		Required:         true,
 		ValidateFunc:     location.EnhancedValidate,

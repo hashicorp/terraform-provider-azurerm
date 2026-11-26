@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_token_password_test
@@ -20,6 +20,17 @@ import (
 
 type ContainerRegistryTokenPasswordResource struct {
 	Expiry time.Time
+}
+
+func TestAccContainerRegistryTokenPassword_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
+	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func TestAccContainerRegistryTokenPassword_basic(t *testing.T) {

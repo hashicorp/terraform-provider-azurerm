@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package advisor_suppression
@@ -12,22 +12,26 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Name which should be used for this Advisor suppression.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"recommendation_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The ID of the Advisor recommendation to suppress.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"resource_id": {
+			Description:  "The ID of the Resource to suppress the Advisor recommendation for.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
 		"ttl": {
+			Description:  "An optional time to live value. If omitted, the suppression will not expire.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -39,8 +43,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"suppression_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The GUID of the suppression.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

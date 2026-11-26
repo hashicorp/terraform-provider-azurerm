@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_implicit_data_disk_from_source
@@ -37,6 +37,10 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_virtual_machine_implicit_data_disk_from_source"
+}
+
+func (r Resource) Description() string {
+	return "Manages an implicit Data Disk of a Virtual Machine."
 }
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {

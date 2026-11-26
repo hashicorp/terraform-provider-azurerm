@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package marketplace_agreement
@@ -20,9 +20,10 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMarketplaceAgreementCreate,
-		Read:   resourceMarketplaceAgreementRead,
-		Delete: resourceMarketplaceAgreementDelete,
+		Description: "Allows accepting the Legal Terms for a Marketplace Image.",
+		Create:      resourceMarketplaceAgreementCreate,
+		Read:        resourceMarketplaceAgreementRead,
+		Delete:      resourceMarketplaceAgreementDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := agreements.ParsePlanID(id)
 			return err

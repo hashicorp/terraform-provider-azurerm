@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -35,19 +35,18 @@ func (NetworkSecurityPerimeterAssociationResource) Arguments() map[string]*plugi
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
 				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
 			),
-
-			ForceNew: true,
 		},
 
 		"resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: azure.ValidateResourceID,
 			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
 		},
 
 		"network_security_perimeter_profile_id": {
