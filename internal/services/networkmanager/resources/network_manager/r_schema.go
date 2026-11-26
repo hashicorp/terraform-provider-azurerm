@@ -34,22 +34,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"management_group_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ManagementGroupID,
 						},
-						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 					},
 					"subscription_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidateSubscriptionID,
 						},
-						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 					},
 				},
 			},

@@ -25,9 +25,9 @@ func networkSecurityGroupSchema() map[string]*pluginsdk.Schema {
 
 		"security_rule": {
 			Type:       pluginsdk.TypeSet,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Set:        hashNetworkSecurityRule,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -56,8 +56,8 @@ func networkSecurityGroupSchema() map[string]*pluginsdk.Schema {
 					"source_port_ranges": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"destination_port_range": {
@@ -68,8 +68,8 @@ func networkSecurityGroupSchema() map[string]*pluginsdk.Schema {
 					"destination_port_ranges": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"source_address_prefix": {
@@ -80,8 +80,8 @@ func networkSecurityGroupSchema() map[string]*pluginsdk.Schema {
 					"source_address_prefixes": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"destination_address_prefix": {
@@ -92,28 +92,28 @@ func networkSecurityGroupSchema() map[string]*pluginsdk.Schema {
 					"destination_address_prefixes": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"destination_application_security_group_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashStringInsensitively,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
-						Set: pluginsdk.HashStringInsensitively,
 					},
 
 					"source_application_security_group_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashStringInsensitively,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
-						Set: pluginsdk.HashStringInsensitively,
 					},
 
 					"access": {

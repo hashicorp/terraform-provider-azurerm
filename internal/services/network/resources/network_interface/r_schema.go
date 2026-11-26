@@ -39,8 +39,8 @@ func networkInterfaceSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     commonids.ValidateSubnetID,
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"private_ip_address": {

@@ -40,11 +40,11 @@ func ipGroupSchema() map[string]*pluginsdk.Schema {
 		"cidrs": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"tags": commonschema.Tags(),

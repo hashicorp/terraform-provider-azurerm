@@ -39,8 +39,8 @@ func bastionHostSchema() map[string]*pluginsdk.Schema {
 
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -81,8 +81,8 @@ func bastionHostSchema() map[string]*pluginsdk.Schema {
 		"scale_units": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(2, 50),
 			Default:      2,
+			ValidateFunc: validation.IntBetween(2, 50),
 		},
 
 		"shareable_link_enabled": {
@@ -94,8 +94,8 @@ func bastionHostSchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(bastionhosts.PossibleValuesForBastionHostSkuName(), false),
 			Default:      string(bastionhosts.BastionHostSkuNameBasic),
+			ValidateFunc: validation.StringInSlice(bastionhosts.PossibleValuesForBastionHostSkuName(), false),
 		},
 
 		"tunneling_enabled": {

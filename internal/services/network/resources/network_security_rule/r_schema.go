@@ -49,9 +49,9 @@ func networkSecurityRuleSchema() map[string]*pluginsdk.Schema {
 		"source_port_ranges": {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
-			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:           pluginsdk.HashString,
 			ConflictsWith: []string{"source_port_range"},
+			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"destination_port_range": {
@@ -63,9 +63,9 @@ func networkSecurityRuleSchema() map[string]*pluginsdk.Schema {
 		"destination_port_ranges": {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
-			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:           pluginsdk.HashString,
 			ConflictsWith: []string{"destination_port_range"},
+			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"source_address_prefix": {
@@ -77,9 +77,9 @@ func networkSecurityRuleSchema() map[string]*pluginsdk.Schema {
 		"source_address_prefixes": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:          pluginsdk.HashString,
 			ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
+			Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"destination_address_prefix": {
@@ -91,35 +91,35 @@ func networkSecurityRuleSchema() map[string]*pluginsdk.Schema {
 		"destination_address_prefixes": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:          pluginsdk.HashString,
 			ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
+			Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		// lintignore:S018
 		"source_application_security_group_ids": {
 			Type:         pluginsdk.TypeSet,
-			MaxItems:     10,
 			Optional:     true,
+			MaxItems:     10,
+			Set:          pluginsdk.HashStringInsensitively,
 			ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:             pluginsdk.TypeString,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			Set: pluginsdk.HashStringInsensitively,
 		},
 
 		// lintignore:S018
 		"destination_application_security_group_ids": {
 			Type:         pluginsdk.TypeSet,
-			MaxItems:     10,
 			Optional:     true,
+			MaxItems:     10,
+			Set:          pluginsdk.HashStringInsensitively,
 			ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:             pluginsdk.TypeString,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			Set: pluginsdk.HashStringInsensitively,
 		},
 
 		"access": {
