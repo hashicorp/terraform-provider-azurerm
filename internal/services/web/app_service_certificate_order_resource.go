@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -59,8 +59,8 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 
 			"auto_renew": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Default:  true,
 			},
 
 			"certificates": {

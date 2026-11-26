@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -101,8 +101,8 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 			"peer_complete_virtual_networks_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"remote_subnet_names": {
