@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -6,7 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,9 +38,10 @@ func QueryString() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of string values.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -48,8 +49,9 @@ func QueryString() *pluginsdk.Resource {
 			},
 
 			"transforms": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of transforms.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),

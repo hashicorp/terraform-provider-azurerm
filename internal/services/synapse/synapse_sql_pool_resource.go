@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -107,8 +107,8 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  DefaultCreateMode,
 				ForceNew: true,
+				Default:  DefaultCreateMode,
 				ValidateFunc: validation.StringInSlice([]string{
 					DefaultCreateMode,
 					RecoveryCreateMode,
@@ -126,22 +126,22 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 
 			"recovery_database_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"restore"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
 					validate.SqlPoolRecoverableDatabaseID,
 					commonids.ValidateSqlDatabaseID,
 					mssqlValidate.RecoverableDatabaseID,
 				),
+				ConflictsWith: []string{"restore"},
 			},
 
 			"restore": {
 				Type:          pluginsdk.TypeList,
-				ForceNew:      true,
 				Optional:      true,
+				ForceNew:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"recovery_database_id"},
 				Elem: &pluginsdk.Resource{
@@ -173,8 +173,8 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 
 			"geo_backup_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),

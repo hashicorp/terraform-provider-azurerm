@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,21 +16,24 @@ func URLRewrite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_pattern": {
+				Description:  "This value must start with a `/` and can't be longer than 260 characters.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteSourcePattern(),
 			},
 
 			"destination": {
+				Description:  "This value must start with a `/` and can't be longer than 260 characters.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteDestination(),
 			},
 
 			"preserve_unmatched_path": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Whether preserve an unmatched path.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 		},
 	}

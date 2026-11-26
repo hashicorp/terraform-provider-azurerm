@@ -366,7 +366,7 @@ A `volume` block supports the following:
 
 * `snapshot_directory_visible` - (Required) Specifies whether the .snapshot (NFS clients) path of a volume is visible. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
+* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes. Possible values are between `50` and `102400`.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new Application Volume Group to be created and data will be lost.
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,17 +6,18 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/secrets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -24,6 +25,7 @@ import (
 type Client struct {
 	AFDCustomDomainsClient          *afddomains.AFDDomainsClient
 	AFDEndpointsClient              *afdendpoints.AFDEndpointsClient
+	EdgeActionsClient               *edgeactions.EdgeActionsClient
 	FrontDoorFirewallPoliciesClient *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 	FrontDoorOriginGroupsClient     *afdorigingroups.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *afdorigins.AFDOriginsClient
@@ -53,6 +55,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Azure Front Door Endpoints Client: %+v", err)
 	}
 	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
+
+	edgeActionsClient, err := edgeactions.NewEdgeActionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Edge Actions Client: %+v", err)
+	}
+	o.Configure(edgeActionsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorFirewallPoliciesClient := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&frontDoorFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -117,6 +125,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	client := Client{
 		AFDCustomDomainsClient:          afdCustomDomainsClient,
 		AFDEndpointsClient:              afdEndpointsClient,
+		EdgeActionsClient:               edgeActionsClient,
 		FrontDoorFirewallPoliciesClient: &frontDoorFirewallPoliciesClient,
 		FrontDoorOriginGroupsClient:     frontDoorOriginGroupsClient,
 		FrontDoorOriginsClient:          frontDoorOriginsClient,

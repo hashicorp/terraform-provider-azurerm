@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -16,14 +16,16 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
+				Description:  "The behaviour of the cache key for query strings.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringBehaviorValues(), false),
 			},
 
 			"parameters": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "Comma separated list of parameter values.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 		},
 	}
