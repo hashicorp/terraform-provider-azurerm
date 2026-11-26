@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_cluster
@@ -31,6 +31,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_stack_hci_cluster"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Azure Stack HCI Cluster instance."
+}
+
 func (r DataSource) ModelObject() any {
 	return &StackHCIClusterDataSourceModel{}
 }
@@ -52,6 +56,7 @@ type StackHCIClusterDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name of the Azure Stack HCI Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringLenBetween(1, 260),
@@ -66,33 +71,39 @@ func (r DataSource) Attributes() map[string]*schema.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"client_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Client ID of the Azure Active Directory used by the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tenant_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Tenant ID of the Azure Active Directory used by the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"automanage_configuration_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Automanage Configuration assigned to the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"cloud_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "An immutable UUID for the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"service_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The region specific Data Path Endpoint of the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_provider_object_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The object ID of the Resource Provider Service Principal.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityComputed(),

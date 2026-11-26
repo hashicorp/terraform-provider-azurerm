@@ -59,6 +59,7 @@ func (m Resource) CustomizeDiff() sdk.ResourceFunc {
 func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name for the Automation Runtime Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -68,6 +69,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"automation_account_id": {
+			Description:  "The ID of the Automation Account in which the Automation Runtime Environment is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -75,9 +77,10 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"runtime_language": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The programming language used by the Automation Runtime Environment.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Python",
 				"PowerShell",
@@ -85,6 +88,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"runtime_version": {
+			Description:  "The version of the runtime environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -92,19 +96,22 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "A description of the Automation Runtime Environment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"runtime_default_packages": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Description: "A mapping of default packages to be installed in the Automation Runtime Environment. Removing packages will force a new Automation Runtime Environment, adding new packages will update the existing Automation Runtime Environment.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"tags": {
+			Description:  "A mapping of tags which should be assigned to the Automation Runtime Environment.",
 			Type:         pluginsdk.TypeMap,
 			Optional:     true,
 			ForceNew:     true,

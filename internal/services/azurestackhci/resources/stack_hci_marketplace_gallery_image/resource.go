@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_marketplace_gallery_image
@@ -22,4 +22,8 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (Resource) ResourceType() string {
 	return "azurerm_stack_hci_marketplace_gallery_image"
+}
+
+func (Resource) Description() string {
+	return "Manages an Azure Stack HCI Marketplace Gallery Image."
 }

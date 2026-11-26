@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_endpoint_custom_domain
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/customdomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -67,7 +67,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta an
 	var params cdn.BasicCustomDomainHTTPSParameters
 	if v, ok := d.GetOk("user_managed_https"); ok {
 		// User managed certificate is only available for Azure CDN from Microsoft and Azure CDN from Verizon profiles.
-		// https://docs.microsoft.com/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
+		// https://learn.microsoft.com/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
 		pfClient := meta.(*clients.Client).Cdn.ProfilesClient
 		cdnEndpointResp, err := pfClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {

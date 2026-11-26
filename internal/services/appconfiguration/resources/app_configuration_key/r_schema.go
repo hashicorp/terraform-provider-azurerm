@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package app_configuration_key
@@ -19,13 +19,13 @@ import (
 func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 			// User-specified segments are lowercased in the API response
 			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -41,9 +41,9 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
+			Computed: true,
 		},
 		"label": {
 			Type:     pluginsdk.TypeString,
@@ -53,12 +53,12 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 		"value": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ConflictsWith: []string{
-				"vault_key_reference",
-			},
 			// if `type` is set to `vault`, then `value` will be set by `vault_key_reference`
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				return d.Get("type").(string) == KeyTypeVault && d.Get("vault_key_reference").(string) != "" && old != "" && new == ""
+			},
+			ConflictsWith: []string{
+				"vault_key_reference",
 			},
 		},
 		"locked": {

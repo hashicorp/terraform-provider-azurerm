@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtualwan
@@ -100,8 +100,8 @@ func resourceVpnSite() *pluginsdk.Resource {
 						"speed_in_mbps": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
 							Default:      0,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"ip_address": {
 							Type:         pluginsdk.TypeString,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_extension
@@ -23,11 +23,12 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceVirtualMachineExtensionsCreateUpdate,
-		Read:     resourceVirtualMachineExtensionsRead,
-		Update:   resourceVirtualMachineExtensionsCreateUpdate,
-		Delete:   resourceVirtualMachineExtensionsDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&virtualmachineextensions.ExtensionId{}),
+		Description: "Manages a Virtual Machine Extension to provide post deployment configuration and run automated tasks.",
+		Create:      resourceVirtualMachineExtensionsCreateUpdate,
+		Read:        resourceVirtualMachineExtensionsRead,
+		Update:      resourceVirtualMachineExtensionsCreateUpdate,
+		Delete:      resourceVirtualMachineExtensionsDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&virtualmachineextensions.ExtensionId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachineextensions.ExtensionId{}),

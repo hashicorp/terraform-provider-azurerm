@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_variable_datetime
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableDateTimeCreate,
-		Read:   resourceAutomationVariableDateTimeRead,
-		Update: resourceAutomationVariableDateTimeUpdate,
-		Delete: resourceAutomationVariableDateTimeDelete,
+		Description: "Manages a DateTime variable in Azure Automation.",
+		Create:      resourceAutomationVariableDateTimeCreate,
+		Read:        resourceAutomationVariableDateTimeRead,
+		Update:      resourceAutomationVariableDateTimeUpdate,
+		Delete:      resourceAutomationVariableDateTimeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := variable.ParseVariableID(id)

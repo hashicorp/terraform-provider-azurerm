@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package snapshot
@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSnapshotRead,
+		Description: "Use this data source to access information about an existing Snapshot.",
+		Read:        dataSourceSnapshotRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,8 +27,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Snapshot.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -38,8 +40,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The size of the Snapshotted Disk in GB.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 			"time_created": {
 				Type:     pluginsdk.TypeString,
@@ -50,16 +53,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"source_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URI to a Managed or Unmanaged Disk.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"source_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The reference to an existing snapshot.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of a Storage Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"encryption_settings": {
 				Type:     pluginsdk.TypeList,
@@ -110,8 +116,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"trusted_launch_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Trusted Launch is enabled for the Snapshot.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 		},
 	}

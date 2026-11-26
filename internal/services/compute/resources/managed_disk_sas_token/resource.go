@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_disk_sas_token
@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedDiskSasTokenCreate,
-		Read:   resourceManagedDiskSasTokenRead,
-		Delete: resourceManagedDiskSasTokenDelete,
+		Description: "Manages a Disk SAS Token.",
+		Create:      resourceManagedDiskSasTokenCreate,
+		Read:        resourceManagedDiskSasTokenRead,
+		Delete:      resourceManagedDiskSasTokenDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

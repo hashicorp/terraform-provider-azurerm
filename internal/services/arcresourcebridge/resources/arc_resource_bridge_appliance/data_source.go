@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package arc_resource_bridge_appliance
@@ -40,6 +40,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_arc_resource_bridge_appliance"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Arc Resource Bridge Appliance."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ApplianceDataSourceModel{}
 }
@@ -47,8 +51,9 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Arc Resource Bridge Appliance.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 260),
 				validation.StringMatch(regexp.MustCompile(`[^+#%&'?/,%\\]+$`), "any of '+', '#', '%', '&', ''', '?', '/', ',', '%', '&', '\\', are not allowed"),
@@ -64,20 +69,23 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"distro": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Fabric/Infrastructure for this Arc Resource Bridge Appliance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"infrastructure_provider": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The infrastructure provider about the connected Arc Resource Bridge Appliance.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_key_base64": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "RSA public key in PKCS1 format encoded in base64.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
