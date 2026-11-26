@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -80,8 +80,8 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.TagsForceNew(),

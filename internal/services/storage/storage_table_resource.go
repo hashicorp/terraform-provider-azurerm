@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -103,9 +103,9 @@ func resourceStorageTable() *pluginsdk.Resource {
 			},
 
 			"resource_manager_id": {
+				Description: "The Resource Manager ID of this Storage Table.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The Resource Manager ID of this Storage Table.",
 			},
 		},
 	}
