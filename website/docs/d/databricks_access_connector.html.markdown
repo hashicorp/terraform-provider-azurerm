@@ -14,8 +14,8 @@ Use this data source to access information about an existing Databricks Access C
 
 ```hcl
 data "azurerm_databricks_access_connector" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-access-connector"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
