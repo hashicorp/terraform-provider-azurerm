@@ -14,8 +14,8 @@ Use this data source to access information about an existing Service Plan.
 
 ```hcl
 data "azurerm_service_plan" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-service-plan"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -50,6 +50,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `os_type` - The O/S type for the App Services hosted in this plan.
 
 * `per_site_scaling_enabled` - Is Per Site Scaling be enabled?
+
+* `premium_plan_auto_scale_enabled` - Is premium plan autoscale enabled.
 
 * `reserved` - Whether this is a reserved Service Plan Type. `true` if `os_type` is `Linux`, otherwise `false`.
 

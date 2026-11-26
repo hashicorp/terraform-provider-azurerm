@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -88,7 +88,7 @@ var (
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceResource struct{}
 
-func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerVirtualMachineInstanceModel{}
 }
 
@@ -109,7 +109,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			ValidateFunc: machines.ValidateMachineID,
 		},
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"infrastructure": {
 			Type:     pluginsdk.TypeList,
@@ -928,9 +928,9 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 		result = append(result, NetworkInterface{
 			Name:             pointer.From(v.Name),
 			VirtualNetworkId: pointer.From(v.VirtualNetworkId),
-			Ipv4AddressType:  string(pointer.From(v.IPv4AddressType)),
-			Ipv6AddressType:  string(pointer.From(v.IPv6AddressType)),
-			MacAddressType:   string(pointer.From(v.MacAddressType)),
+			Ipv4AddressType:  pointer.FromEnum(v.IPv4AddressType),
+			Ipv6AddressType:  pointer.FromEnum(v.IPv6AddressType),
+			MacAddressType:   pointer.FromEnum(v.MacAddressType),
 		})
 	}
 

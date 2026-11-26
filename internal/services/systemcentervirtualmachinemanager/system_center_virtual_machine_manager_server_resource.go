@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -44,7 +44,7 @@ var (
 
 type SystemCenterVirtualMachineManagerServerResource struct{}
 
-func (r SystemCenterVirtualMachineManagerServerResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerServerResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerServerModel{}
 }
 
@@ -73,7 +73,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"fqdn": {
 			Type:         pluginsdk.TypeString,
@@ -294,7 +294,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Delete() sdk.ResourceFu
 }
 
 func systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx context.Context, metadata sdk.ResourceMetaData, id vmmservers.VMmServerId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		client := metadata.Client.SystemCenterVirtualMachineManager.InventoryItems
 		scvmmServerId := inventoryitems.NewVMmServerID(id.SubscriptionId, id.ResourceGroupName, id.VmmServerName)
 		checkTimes := 10
