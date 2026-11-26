@@ -176,7 +176,7 @@ func firewallSchema() map[string]*pluginsdk.Schema {
 						Description:  "The number of public IPs to assign to the Firewall.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(1),
+						ValidateFunc: validation.IntAtLeast(0),
 						Default:      1,
 					},
 					"public_ip_addresses": {
