@@ -14,8 +14,8 @@ Use this data source to access information about an existing Databricks Access C
 
 ```hcl
 data "azurerm_databricks_access_connector" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-access-connector"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -57,7 +57,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Access Connector.
 
@@ -65,4 +65,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Databricks`: 2022-10-01-preview
+* `Microsoft.Databricks` - 2026-01-01

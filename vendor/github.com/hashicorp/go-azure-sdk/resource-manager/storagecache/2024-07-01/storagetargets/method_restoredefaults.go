@@ -57,9 +57,20 @@ func (c StorageTargetsClient) RestoreDefaults(ctx context.Context, id StorageTar
 
 // RestoreDefaultsThenPoll performs RestoreDefaults then polls until it's completed
 func (c StorageTargetsClient) RestoreDefaultsThenPoll(ctx context.Context, id StorageTargetId) error {
+	return c.RestoreDefaultsCallbackThenPoll(ctx, id, nil)
+}
+
+// RestoreDefaultsCallbackThenPoll performs RestoreDefaults, runs the optional callback function, then polls until it's completed
+func (c StorageTargetsClient) RestoreDefaultsCallbackThenPoll(ctx context.Context, id StorageTargetId, callback func() error) error {
 	result, err := c.RestoreDefaults(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RestoreDefaults: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

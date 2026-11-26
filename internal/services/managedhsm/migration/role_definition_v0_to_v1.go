@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -59,19 +59,19 @@ func (m ManagedHSMRoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 				},
 			},
@@ -95,7 +95,7 @@ func (m ManagedHSMRoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (m ManagedHSMRoleDefinitionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := parseLegacyV0RoleDefinitionId(oldIdRaw)
 		if err != nil {

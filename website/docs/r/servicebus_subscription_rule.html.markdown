@@ -97,7 +97,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `sql_filter` - (Optional) Represents a filter written in SQL language-based syntax that to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `SqlFilter`.
 
-* `correlation_filter` - (Optional) A `correlation_filter` block as documented below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
+* `correlation_filter` - (Optional) A `correlation_filter` block as defined below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
 
 * `action` - (Optional) Represents set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.
 
@@ -145,7 +145,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Subscription Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription Rule.
@@ -164,4 +164,4 @@ terraform import azurerm_servicebus_subscription_rule.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus`: 2021-06-01-preview
+* `Microsoft.ServiceBus` - 2026-01-01

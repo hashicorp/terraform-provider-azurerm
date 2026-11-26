@@ -22,12 +22,12 @@ data "azurerm_key_vault_managed_hardware_security_module_key" "example" {
   name           = azurerm_key_vault_managed_hardware_security_module_key.example.name
 }
 
-output "hsm-key-vesrion" {
+output "hsm-key-version" {
   value = data.azurerm_key_vault_managed_hardware_security_module_key.example.version
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,6 +59,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Hardware Security Module Key.

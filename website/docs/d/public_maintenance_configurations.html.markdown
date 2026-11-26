@@ -13,18 +13,18 @@ Use this data source to access information about existing Public Maintenance Con
 ## Example Usage
 
 ```hcl
-data "azurerm_public_maintenance_configurations" "existing" {
+data "azurerm_public_maintenance_configurations" "example" {
   location    = "West Europe"
   scope       = "SQLManagedInstance"
   recur_every = "Monday-Thursday"
 }
 
 output "name" {
-  value = data.azurerm_public_maintenance_configurations.existing.configs[0].name
+  value = data.azurerm_public_maintenance_configurations.example.configs[0].name
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - The Azure location to filter the list of Public Maintenance Configurations against.
 
@@ -60,7 +60,7 @@ A `configs` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public Maintenance Configuration.
 
@@ -68,4 +68,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Maintenance`: 2023-04-01
+* `Microsoft.Maintenance` - 2023-04-01

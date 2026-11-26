@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -24,95 +25,6 @@ type RoleAssignmentId struct {
 	TenantId                 string
 	IsSubscriptionLevel      bool
 	IsSubscriptionAliasLevel bool
-}
-
-func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId, subscriptionAlias string, isSubLevel bool, isSubAliasLevel bool) (*RoleAssignmentId, error) {
-	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel && !isSubAliasLevel {
-		return nil, errors.New("one of subscriptionId, resourceGroup, managementGroup, isSubscriptionLevel or isSubscriptionAliasLevel must be provided")
-	}
-
-	if managementGroup != "" {
-		if subscriptionId != "" || resourceGroup != "" || isSubLevel {
-			return nil, errors.New("cannot provide subscriptionId, resourceGroup or isSubscriptionLevel when managementGroup is provided")
-		}
-	}
-
-	if isSubLevel {
-		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
-			return nil, errors.New("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionLevel is provided")
-		}
-	}
-
-	if isSubAliasLevel {
-		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
-			return nil, errors.New("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionAliasLevel is provided")
-		}
-	}
-
-	if resourceGroup != "" {
-		if subscriptionId == "" {
-			return nil, errors.New("subscriptionId must not be empty when resourceGroup is provided")
-		}
-	}
-
-	return &RoleAssignmentId{
-		SubscriptionID:           subscriptionId,
-		ResourceGroup:            resourceGroup,
-		ResourceProvider:         resourceProvider,
-		ResourceScope:            resourceScope,
-		ManagementGroup:          managementGroup,
-		SubscriptionAlias:        subscriptionAlias,
-		Name:                     name,
-		TenantId:                 tenantId,
-		IsSubscriptionLevel:      isSubLevel,
-		IsSubscriptionAliasLevel: isSubAliasLevel,
-	}, nil
-}
-
-// in general case, the id format does not change
-// for cross tenant scenario, add the tenantId info
-func (id RoleAssignmentId) AzureResourceID() string {
-	if id.ResourceScope != "" {
-		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/%s/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.ResourceProvider, id.ResourceScope, id.Name)
-	}
-
-	if id.ManagementGroup != "" {
-		fmtString := "/providers/Microsoft.Management/managementGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.ManagementGroup, id.Name)
-	}
-
-	if id.ResourceGroup != "" {
-		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.Name)
-	}
-
-	if id.IsSubscriptionAliasLevel {
-		fmtString := "/providers/Microsoft.Subscription/aliases/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionAlias, id.Name)
-	}
-
-	if id.IsSubscriptionLevel {
-		fmtString := "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.Name)
-	}
-
-	if id.SubscriptionID != "" {
-		fmtString := "/subscriptions/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.Name)
-	}
-
-	if id.ResourceProvider != "" {
-		fmtString := "/providers/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.ResourceProvider, id.Name)
-	}
-
-	fmtString := "/providers/Microsoft.Authorization/roleAssignments/%s"
-	return fmt.Sprintf(fmtString, id.Name)
-}
-
-func (id RoleAssignmentId) ID() string {
-	return ConstructRoleAssignmentId(id.AzureResourceID(), id.TenantId)
 }
 
 func ConstructRoleAssignmentId(azureResourceId, tenantId string) string {
@@ -132,7 +44,7 @@ func DestructRoleAssignmentId(id string) (string, string) {
 
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("Role Assignment ID is empty string")
+		return nil, errors.New("the Role Assignment ID is an empty string")
 	}
 
 	roleAssignmentId := RoleAssignmentId{}
@@ -171,8 +83,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if strings.Contains(input, "/aliases/") {
 			roleAssignmentId.IsSubscriptionAliasLevel = true
 			aliasParts := strings.Split(idParts[0], "/")
-			alias := aliasParts[len(aliasParts)-1]
-			roleAssignmentId.SubscriptionAlias = alias
+			roleAssignmentId.SubscriptionAlias = aliasParts[len(aliasParts)-1]
 		} else {
 			roleAssignmentId.IsSubscriptionLevel = true
 		}
@@ -211,4 +122,27 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	}
 
 	return &roleAssignmentId, nil
+}
+
+func RoleAssignmentName(scope string, principalId string, roleDefinitionId string) (string, error) {
+	namespace := uuid.Must(uuid.FromString("11fb06fb-712d-4ddd-98c7-e71bbd588830"))
+
+	normalizedScope := strings.ToLower(scope)
+	if normalizedScope != "/" {
+		normalizedScope = strings.TrimSuffix(normalizedScope, "/")
+	}
+
+	normalizedPrincipalId := strings.ToLower(principalId)
+
+	// Get the UUID part of RoleDefinitionId
+	normalizedRoleDefinitionId := strings.Trim(strings.ToLower(roleDefinitionId), " /")
+	parts := strings.Split(normalizedRoleDefinitionId, "/")
+	normalizedRoleDefinitionId = parts[len(parts)-1]
+	if _, err := uuid.FromString(normalizedRoleDefinitionId); err != nil {
+		return "", fmt.Errorf("parsing role definition ID %q: %+v", roleDefinitionId, err)
+	}
+
+	str := fmt.Sprintf("%s-%s-%s", normalizedScope, normalizedPrincipalId, normalizedRoleDefinitionId)
+
+	return uuid.NewV5(namespace, str).String(), nil
 }

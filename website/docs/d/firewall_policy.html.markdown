@@ -14,8 +14,8 @@ Use this data source to access information about an existing Firewall Policy.
 
 ```hcl
 data "azurerm_firewall_policy" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-firewall-policy"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Policy.
 
@@ -49,4 +49,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-07-01

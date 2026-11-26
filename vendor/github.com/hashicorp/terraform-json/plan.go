@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfjson
@@ -92,6 +92,8 @@ type Plan struct {
 	// Timestamp contains the static timestamp that Terraform considers to be
 	// the time this plan executed, in UTC.
 	Timestamp string `json:"timestamp,omitempty"`
+
+	ActionInvocations []*ActionInvocation `json:"action_invocations,omitempty"`
 }
 
 // ResourceAttribute describes a full path to a resource attribute
@@ -140,15 +142,10 @@ func (p *Plan) Validate() error {
 	return nil
 }
 
-func isStringInSlice(slice []string, s string) bool {
-	for _, el := range slice {
-		if el == s {
-			return true
-		}
-	}
-	return false
-}
-
+// UnmarshalJSON implements json.Unmarshaler for Plan.
+//
+// As per established convention this method should only ever
+// be invoked *indirectly* via [encoding/json] library.
 func (p *Plan) UnmarshalJSON(b []byte) error {
 	type rawPlan Plan
 	var plan rawPlan
@@ -211,7 +208,84 @@ type ResourceChange struct {
 
 	// The data describing the change that will be made to this object.
 	Change *Change `json:"change,omitempty"`
+
+	// ActionReason is an optional keyword providing extra context for why the
+	// actions in Change.Actions were chosen, for example that a resource must
+	// be replaced because its existing object was tainted. It is empty when
+	// Terraform did not report a reason. This detail is for display purposes
+	// only and should not be used to make decisions.
+	ActionReason ActionReason `json:"action_reason,omitempty"`
 }
+
+// ActionReason is a keyword representing the optional reason Terraform reports
+// for the actions proposed in a ResourceChange. The set of possible values may
+// grow in future Terraform versions, so consumers should treat unrecognized
+// values as equivalent to ActionReasonNone.
+//
+// The canonical list of reason keywords is defined by Terraform in
+// internal/command/jsonplan/plan.go (the ResourceInstance* constants):
+// https://github.com/hashicorp/terraform/blob/main/internal/command/jsonplan/plan.go
+type ActionReason string
+
+const (
+	// ActionReasonNone is the absence of any specific reason; Terraform omits
+	// the action_reason property in this case.
+	ActionReasonNone ActionReason = ""
+
+	// ActionReasonReplaceBecauseCannotUpdate indicates a resource must be
+	// replaced because the requested change is not possible without doing so.
+	ActionReasonReplaceBecauseCannotUpdate ActionReason = "replace_because_cannot_update"
+
+	// ActionReasonReplaceBecauseTainted indicates a resource must be replaced
+	// because its existing object was marked as tainted.
+	ActionReasonReplaceBecauseTainted ActionReason = "replace_because_tainted"
+
+	// ActionReasonReplaceByRequest indicates a resource must be replaced because
+	// the user explicitly requested it (e.g. "terraform plan -replace=...").
+	ActionReasonReplaceByRequest ActionReason = "replace_by_request"
+
+	// ActionReasonReplaceByTriggers indicates a resource must be replaced
+	// because of a change in a value referenced by its replace_triggered_by.
+	ActionReasonReplaceByTriggers ActionReason = "replace_by_triggers"
+
+	// ActionReasonDeleteBecauseNoResourceConfig indicates a resource will be
+	// destroyed because it has no matching configuration block.
+	ActionReasonDeleteBecauseNoResourceConfig ActionReason = "delete_because_no_resource_config"
+
+	// ActionReasonDeleteBecauseWrongRepetition indicates a resource instance
+	// will be destroyed because its instance key does not match the resource's
+	// count/for_each repetition mode.
+	ActionReasonDeleteBecauseWrongRepetition ActionReason = "delete_because_wrong_repetition"
+
+	// ActionReasonDeleteBecauseCountIndex indicates a resource instance will be
+	// destroyed because its index is out of range for the count value.
+	ActionReasonDeleteBecauseCountIndex ActionReason = "delete_because_count_index"
+
+	// ActionReasonDeleteBecauseEachKey indicates a resource instance will be
+	// destroyed because its key is not present in the for_each value.
+	ActionReasonDeleteBecauseEachKey ActionReason = "delete_because_each_key"
+
+	// ActionReasonDeleteBecauseNoModule indicates a resource instance will be
+	// destroyed because its containing module instance is no longer declared.
+	ActionReasonDeleteBecauseNoModule ActionReason = "delete_because_no_module"
+
+	// ActionReasonDeleteBecauseNoMoveTarget indicates a resource was moved to an
+	// address that has no configuration, so it will be destroyed.
+	ActionReasonDeleteBecauseNoMoveTarget ActionReason = "delete_because_no_move_target"
+
+	// ActionReasonReadBecauseConfigUnknown indicates a data resource will be
+	// read during apply because its configuration contains unknown values.
+	ActionReasonReadBecauseConfigUnknown ActionReason = "read_because_config_unknown"
+
+	// ActionReasonReadBecauseDependencyPending indicates a data resource will be
+	// read during apply because it depends on a resource or module with changes
+	// pending.
+	ActionReasonReadBecauseDependencyPending ActionReason = "read_because_dependency_pending"
+
+	// ActionReasonReadBecauseCheckNested indicates a data resource nested within
+	// a check block will be read during apply.
+	ActionReasonReadBecauseCheckNested ActionReason = "read_because_check_nested"
+)
 
 // Change is the representation of a proposed change for an object.
 type Change struct {
@@ -305,3 +379,35 @@ type DeferredResourceChange struct {
 	// Change contains any information we have about the deferred change.
 	ResourceChange *ResourceChange `json:"resource_change,omitempty"`
 }
+
+type ActionInvocation struct {
+	// Address is the absolute action address
+	Address string `json:"address,omitempty"`
+	// Type is the type of the action
+	Type string `json:"type,omitempty"`
+	// Name is the name of the action
+	Name string `json:"name,omitempty"`
+
+	// ConfigValues is the JSON representation of the values in the config block of the action
+	ConfigValues    interface{} `json:"config_values,omitempty"`
+	ConfigSensitive interface{} `json:"config_sensitive,omitempty"`
+	ConfigUnknown   interface{} `json:"config_unknown,omitempty"`
+
+	// ProviderName allows the property "type" to be interpreted unambiguously
+	// in the unusual situation where a provider offers a type whose
+	// name does not start with its own name, such as the "googlebeta" provider
+	// offering "google_compute_instance".
+	ProviderName string `json:"provider_name,omitempty"`
+
+	LifecycleActionTrigger *LifecycleActionTrigger `json:"lifecycle_action_trigger,omitempty"`
+	InvokeActionTrigger    *InvokeActionTrigger    `json:"invoke_action_trigger,omitempty"`
+}
+
+type LifecycleActionTrigger struct {
+	TriggeringResourceAddress string `json:"triggering_resource_address,omitempty"`
+	ActionTriggerEvent        string `json:"action_trigger_event,omitempty"`
+	ActionTriggerBlockIndex   int    `json:"action_trigger_block_index"`
+	ActionsListIndex          int    `json:"actions_list_index"`
+}
+
+type InvokeActionTrigger struct{}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualNetwork() *pluginsdk.Resource {
@@ -42,6 +42,14 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"address_space": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"advertised_gateway_prefixes": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -88,7 +96,7 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVnetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -112,14 +120,22 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props := model.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 
+			advertisedGatewayPrefixes := make([]string, 0)
+			if props.SummarizedGatewayPrefixes != nil {
+				advertisedGatewayPrefixes = pointer.From(props.SummarizedGatewayPrefixes.AddressPrefixes)
+			}
+			if err := d.Set("advertised_gateway_prefixes", advertisedGatewayPrefixes); err != nil {
+				return fmt.Errorf("setting `advertised_gateway_prefixes`: %+v", err)
+			}
+
 			if as := props.AddressSpace; as != nil {
-				if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
+				if err := d.Set("address_space", pluginsdk.FlattenSlice(as.AddressPrefixes)); err != nil {
 					return fmt.Errorf("setting `address_space`: %v", err)
 				}
 			}
 
 			if options := props.DhcpOptions; options != nil {
-				if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DnsServers)); err != nil {
+				if err := d.Set("dns_servers", pluginsdk.FlattenSlice(options.DnsServers)); err != nil {
 					return fmt.Errorf("setting `dns_servers`: %v", err)
 				}
 			}
@@ -142,8 +158,8 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []interface{} {
-	subnets := make([]interface{}, 0)
+func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []any {
+	subnets := make([]any, 0)
 
 	if mysubnets := input; mysubnets != nil {
 		for _, subnet := range *mysubnets {
@@ -155,8 +171,8 @@ func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []interface{} {
 	return subnets
 }
 
-func flattenVnetPeerings(input *[]virtualnetworks.VirtualNetworkPeering) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenVnetPeerings(input *[]virtualnetworks.VirtualNetworkPeering) map[string]any {
+	output := make(map[string]any)
 
 	if peerings := input; peerings != nil {
 		for _, vnetPeering := range *peerings {

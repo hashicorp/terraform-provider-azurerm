@@ -1,16 +1,24 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/resources/iotcentral_application"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/resources/iotcentral_application_network_rule_set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/resources/iotcentral_organization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/iot-central"
@@ -29,7 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_iotcentral_application": resourceIotCentralApplication(),
+		"azurerm_iotcentral_application": iotcentral_application.RegisterResource(),
 	}
 }
 
@@ -39,8 +47,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		IotCentralApplicationNetworkRuleSetResource{},
-		IotCentralOrganizationResource{},
+		iotcentral_application_network_rule_set.Resource{},
+		iotcentral_organization.Resource{},
 	}
 }
 
@@ -49,4 +57,24 @@ func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"IoT Central",
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

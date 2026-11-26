@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -9,12 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_coordinator_configuration -properties "name" -compare-values "subscription_id:cluster_id,resource_group_name:cluster_id,server_groups_v2_name:cluster_id" -test-params "on"
 
 type CosmosDbPostgreSQLCoordinatorConfigurationModel struct {
 	Name      string `tfschema:"name"`
@@ -24,13 +27,20 @@ type CosmosDbPostgreSQLCoordinatorConfigurationModel struct {
 
 type CosmosDbPostgreSQLCoordinatorConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+var (
+	_ sdk.ResourceWithIdentity = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+	_ sdk.ResourceWithUpdate   = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+)
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
 }
 
-func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Description() string {
+	return "Sets a Coordinator Configuration value on Azure Cosmos DB for PostgreSQL Cluster."
+}
+
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() any {
 	return &CosmosDbPostgreSQLCoordinatorConfigurationResource{}
 }
 
@@ -38,9 +48,14 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) IDValidationFunc() p
 	return configurations.ValidateCoordinatorConfigurationID
 }
 
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Identity() resourceids.ResourceId {
+	return new(configurations.CoordinatorConfigurationId)
+}
+
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Coordinator Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,6 +63,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[stri
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster where we want to change configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -55,6 +71,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[stri
 		},
 
 		"value": {
+			Description:  "The value of the Coordinator Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -91,12 +108,12 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 					Value: model.Value,
 				},
 			}
-			if err := client.UpdateOnCoordinatorThenPoll(ctx, id, parameters); err != nil {
+			if err := client.UpdateOnCoordinatorCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -166,6 +183,10 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Read() sdk.ResourceF
 				if props := model.Properties; props != nil {
 					state.Value = props.Value
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

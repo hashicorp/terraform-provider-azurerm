@@ -14,8 +14,8 @@ Use this data source to access information about an existing Enrollment Account 
 
 ```hcl
 data "azurerm_billing_enrollment_account_scope" "example" {
-  billing_account_name    = "existing"
-  enrollment_account_name = "existing"
+  billing_account_name    = "example-billing-account"
+  enrollment_account_name = "example-enrollment-account"
 }
 
 output "id" {
@@ -39,6 +39,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Enrollment Account Billing Scope.

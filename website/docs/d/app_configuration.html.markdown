@@ -14,8 +14,8 @@ Use this data source to access information about an existing App Configuration.
 
 ```hcl
 data "azurerm_app_configuration" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-app-configuration"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -125,7 +125,7 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
 
@@ -133,4 +133,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.AppConfiguration`: 2024-05-01
+* `Microsoft.AppConfiguration` - 2024-05-01

@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
 
 import "strings"
 
-func trimURLScheme(input string) string {
+func TrimURLScheme(input string) string {
 	schemes := []string{
 		"https://",
 		"http://",

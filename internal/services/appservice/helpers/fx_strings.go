@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -23,18 +22,17 @@ const (
 	FxStringPrefixPhp            FxStringPrefix = "PHP"
 	FxStringPrefixPowerShell     FxStringPrefix = "POWERSHELL"
 	FxStringPrefixPython         FxStringPrefix = "PYTHON"
-	FxStringPrefixRuby           FxStringPrefix = "RUBY"
 	FxStringPrefixTomcat         FxStringPrefix = "TOMCAT"
 )
 
 type FxStringPrefix string
 
-var urlSchemes = []string{
+var UrlSchemes = []string{
 	"https://",
 	"http://",
 }
 
-func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
+func DecodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
 	if len(parts) != 2 {
@@ -66,6 +64,9 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 		if strings.HasPrefix(javaParts[0], "21") {
 			result.JavaVersion = "21"
 		}
+		if strings.HasPrefix(javaParts[0], "25") {
+			result.JavaVersion = "25"
+		}
 		result.JavaServerVersion = javaParts[0]
 
 	case FxStringPrefixTomcat:
@@ -93,9 +94,6 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	case FxStringPrefixPython:
 		result.PythonVersion = parts[1]
-
-	case FxStringPrefixRuby:
-		result.RubyVersion = parts[1]
 	}
 
 	return result
@@ -103,7 +101,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *string {
 	if len(input) == 0 || input[0].CustomHandler {
-		return utils.String("")
+		return pointer.To("")
 	}
 
 	appStack := input[0]
@@ -148,7 +146,7 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 		}
 	}
 
-	return utils.String(fmt.Sprintf("%s|%s", appType, appString))
+	return pointer.To(fmt.Sprintf("%s|%s", appType, appString))
 }
 
 func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunctionApp, error) {
@@ -212,9 +210,9 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	}
 
 	dockerUrl := partial.RegistryURL
-	for _, prefix := range urlSchemes {
-		if strings.HasPrefix(dockerUrl, prefix) {
-			dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+	for _, prefix := range UrlSchemes {
+		if after, ok := strings.CutPrefix(dockerUrl, prefix); ok {
+			dockerUrl = after
 			continue
 		}
 	}
@@ -297,6 +295,22 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 		default:
 			return pointer.To(fmt.Sprintf("%s|%s-java21", javaServer, javaServerVersion)), nil
 		}
+	case "25":
+		switch javaServer {
+		case LinuxJavaServerJava:
+			if len(strings.Split(javaServerVersion, ".")) == 3 {
+				return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|25.0.1"
+			} else {
+				return pointer.To(fmt.Sprintf("%s|%s-java25", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|25-25"
+			}
+
+		case LinuxJavaServerTomcat:
+			return pointer.To(fmt.Sprintf("%s|%s-java25", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java25 / TOMCAT|10.0.20-java25
+		case LinuxJavaServerJboss:
+			return nil, fmt.Errorf("java 25 is not supported on %s", LinuxJavaServerJboss)
+		default:
+			return pointer.To(fmt.Sprintf("%s|%s-java25", javaServer, javaServerVersion)), nil
+		}
 
 	default:
 		return pointer.To(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)), nil
@@ -307,7 +321,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 func EncodeDockerFxString(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 
-	registryUrl = trimURLScheme(registryUrl)
+	registryUrl = TrimURLScheme(strings.TrimSuffix(registryUrl, "/"))
 
 	return fmt.Sprintf(template, registryUrl, image)
 }
@@ -316,7 +330,7 @@ func EncodeDockerFxStringWindows(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 	dockerHubTemplate := "DOCKER|%s"
 
-	registryUrl = trimURLScheme(registryUrl)
+	registryUrl = TrimURLScheme(registryUrl)
 
 	// Windows App Services fail to auth if the index portion of the image ref is `index.docker.io` so it must not be included.
 	if strings.EqualFold(registryUrl, "index.docker.io") {

@@ -8,3 +8,7 @@ const defaultApiVersion = "2019-10-17-preview"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/privatelinkscopedresources/2019-10-17-preview"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

@@ -58,7 +58,7 @@ resource "azurerm_network_profile" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 
-* `container_network_interface` - (Required) A `container_network_interface` block as documented below.
+* `container_network_interface` - (Required) A `container_network_interface` block as defined below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -78,7 +78,7 @@ A `container_network_interface` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
-* `ip_configuration` - (Required) One or more `ip_configuration` blocks as documented below.
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
 ---
 
@@ -98,7 +98,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Profile.
@@ -117,4 +117,4 @@ terraform import azurerm_network_profile.example /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-07-01

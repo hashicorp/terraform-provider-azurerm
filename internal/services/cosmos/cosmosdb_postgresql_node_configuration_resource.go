@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -30,7 +30,11 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_node_configuration"
 }
 
-func (r CosmosDbPostgreSQLNodeConfigurationResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLNodeConfigurationResource) Description() string {
+	return "Sets a Node Configuration value on Azure Cosmos DB for PostgreSQL Cluster."
+}
+
+func (r CosmosDbPostgreSQLNodeConfigurationResource) ModelObject() any {
 	return &CosmosDbPostgreSQLNodeConfigurationResource{}
 }
 
@@ -41,6 +45,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) IDValidationFunc() pluginsd
 func (r CosmosDbPostgreSQLNodeConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,6 +53,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Arguments() map[string]*plu
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster where we want to change configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -55,6 +61,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Arguments() map[string]*plu
 		},
 
 		"value": {
+			Description:  "The value of the Node Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -75,6 +82,8 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			// TODO: add import check?
+
 			client := metadata.Client.Cosmos.ConfigurationsClient
 			clusterId, err := configurations.ParseServerGroupsv2ID(model.ClusterId)
 			if err != nil {
@@ -92,7 +101,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.UpdateOnNodeThenPoll(ctx, id, parameters); err != nil {
+			if err := client.UpdateOnNodeCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

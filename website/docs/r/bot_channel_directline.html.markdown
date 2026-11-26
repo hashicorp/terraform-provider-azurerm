@@ -40,7 +40,7 @@ resource "azurerm_bot_channel_directline" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -70,7 +70,7 @@ A `site` block has the following properties:
 
 * `v3_allowed` - (Optional) Enables v3 of the Directline protocol for this site. Defaults to `true`.
 
-* `enhanced_authentication_enabled` - (Optional) Enables additional security measures for this site, see [Enhanced Directline Authentication Features](https://blog.botframework.com/2018/09/25/enhanced-direct-line-authentication-features). Disabled by default.
+* `enhanced_authentication_enabled` - (Optional) Enables additional security measures for this site, see [Direct Line enhanced authentication](https://learn.microsoft.com/azure/bot-service/bot-builder-security-enhanced?view=azure-bot-service-4.0). Disabled by default.
 
 * `trusted_origins` - (Optional) This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.
 
@@ -79,6 +79,10 @@ A `site` block has the following properties:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Bot Channel ID.
+
+* `extension_key_1` - The first key for Directline App Service Extension.
+
+* `extension_key_2` - The second key for Directline App Service Extension.
 
 ---
 
@@ -92,7 +96,7 @@ A `site` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.

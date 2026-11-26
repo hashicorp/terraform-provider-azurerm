@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -9,11 +9,10 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -48,6 +47,7 @@ type SiteConfigLinux struct {
 	ApplicationStack              []ApplicationStackLinux `tfschema:"application_stack"`
 	MinTlsVersion                 string                  `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                  `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                  `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
@@ -56,7 +56,7 @@ type SiteConfigLinux struct {
 }
 
 func SiteConfigSchemaLinux() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -71,7 +71,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.ApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 				},
 
 				"api_definition_url": {
@@ -85,9 +85,9 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"application_stack": linuxApplicationStackSchema(),
+				"application_stack": LinuxApplicationStackSchema(),
 
-				"auto_heal_setting": autoHealSettingSchemaLinux(),
+				"auto_heal_setting": AutoHealSettingSchemaLinux(),
 
 				"container_registry_use_managed_identity": {
 					Type:     pluginsdk.TypeBool,
@@ -104,7 +104,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -161,13 +161,10 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ManagedPipelineModeIntegrated),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ManagedPipelineModeClassic),
-						string(webapps.ManagedPipelineModeIntegrated),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ManagedPipelineModeIntegrated),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
 				},
 
 				"remote_debugging_enabled": {
@@ -179,7 +176,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -203,14 +200,10 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.FtpsStateDisabled),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.FtpsStateDisabled),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
 				},
 
 				"health_check_path": {
@@ -220,17 +213,17 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"health_check_eviction_time_in_min": {
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -248,13 +241,20 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
 				},
 
+				"minimum_tls_cipher_suite": {
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
 				"detailed_error_logging_enabled": {
@@ -264,179 +264,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"linux_fx_version": {
 					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-	}
-
-	return s
-}
-
-func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"api_management_api_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"api_definition_url": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"app_command_line": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"application_stack": linuxApplicationStackSchemaComputed(),
-
-				"auto_heal_setting": autoHealSettingSchemaLinuxComputed(),
-
-				"container_registry_use_managed_identity": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"container_registry_managed_identity_client_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"http2_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"ip_restriction": IpRestrictionSchemaComputed(),
-
-				"ip_restriction_default_action": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"scm_ip_restriction": IpRestrictionSchemaComputed(),
-
-				"scm_ip_restriction_default_action": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"local_mysql_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"load_balancing_mode": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"managed_pipeline_mode": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"remote_debugging_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"scm_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"use_32_bit_worker": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"websockets_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"health_check_eviction_time_in_min": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
-
-				"worker_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
-
-				"minimum_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"scm_minimum_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"cors": CorsSettingsSchemaComputed(),
-
-				"detailed_error_logging_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},
@@ -461,36 +288,22 @@ type AutoHealActionLinux struct {
 	MinimumProcessTime string `tfschema:"minimum_process_execution_time"` // Minimum uptime for process before action will trigger
 }
 
-func autoHealSettingSchemaLinux() *pluginsdk.Schema {
+func AutoHealSettingSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaLinux(),
+				"trigger": AutoHealTriggerSchemaLinux(),
 
-				"action": autoHealActionSchemaLinux(),
+				"action": AutoHealActionSchemaLinux(),
 			},
 		},
 	}
 }
 
-func autoHealSettingSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaLinuxComputed(),
-
-				"action": autoHealActionSchemaLinuxComputed(),
-			},
-		},
-	}
-}
-
-func autoHealActionSchemaLinux() *pluginsdk.Schema {
+func AutoHealActionSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -508,7 +321,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 				"minimum_process_execution_time": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},
@@ -516,28 +329,8 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 	}
 }
 
-func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"action_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"minimum_process_execution_time": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
-func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
+func AutoHealTriggerSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -618,13 +411,13 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"time_taken": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"count": {
@@ -644,13 +437,13 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"time_taken": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"count": {
@@ -672,123 +465,6 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 	}
 }
 
-func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"requests": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"count": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-
-							"interval": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-
-				"status_code": {
-					Type:     pluginsdk.TypeSet,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"status_code_range": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"count": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-
-							"interval": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"sub_status": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-
-							"win32_status_code": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-
-							"path": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-
-				"slow_request": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"interval": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"count": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-						},
-					},
-				},
-
-				"slow_request_with_path": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"interval": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
-							"count": {
-								Type:     pluginsdk.TypeInt,
-								Computed: true,
-							},
-
-							"path": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := &webapps.SiteConfig{}
 
@@ -797,18 +473,19 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
-	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
-	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+	expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
+	expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
-	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
-	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+	expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
+	expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
+	expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	expanded.AutoHealEnabled = pointer.To(false)
+	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
-	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -842,10 +519,6 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 
 		if linuxAppStack.NodeVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixNode, linuxAppStack.NodeVersion))
-		}
-
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixRuby, linuxAppStack.RubyVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {
@@ -917,7 +590,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 
 	if len(s.AutoHealSettings) == 1 {
 		expanded.AutoHealEnabled = pointer.To(true)
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
 	return expanded, nil
@@ -970,10 +643,6 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
-		}
-
 		if linuxAppStack.PythonVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 		}
@@ -1018,7 +687,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -1030,15 +699,15 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
@@ -1046,7 +715,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
+		expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -1058,11 +727,15 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -1080,7 +753,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		if len(s.AutoHealSettings) != 0 {
 			expanded.AutoHealEnabled = pointer.To(true)
 		}
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
 	return &expanded, nil
@@ -1090,32 +763,33 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 	if appSiteConfig != nil {
 		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
 		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
-		s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
+		s.AutoHealSettings = FlattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
 		s.ContainerRegistryMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
 		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
 		s.DefaultDocuments = pointer.From(appSiteConfig.DefaultDocuments)
 		s.Http2Enabled = pointer.From(appSiteConfig.HTTP20Enabled)
 		s.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
-		s.ManagedPipelineMode = string(pointer.From(appSiteConfig.ManagedPipelineMode))
-		s.ScmType = string(pointer.From(appSiteConfig.ScmType))
-		s.FtpsState = string(pointer.From(appSiteConfig.FtpsState))
+		s.ManagedPipelineMode = pointer.FromEnum(appSiteConfig.ManagedPipelineMode)
+		s.ScmType = pointer.FromEnum(appSiteConfig.ScmType)
+		s.FtpsState = pointer.FromEnum(appSiteConfig.FtpsState)
 		s.HealthCheckPath = pointer.From(appSiteConfig.HealthCheckPath)
-		s.LoadBalancing = string(pointer.From(appSiteConfig.LoadBalancing))
+		s.LoadBalancing = pointer.FromEnum(appSiteConfig.LoadBalancing)
 		s.LocalMysql = pointer.From(appSiteConfig.LocalMySqlEnabled)
-		s.MinTlsVersion = string(pointer.From(appSiteConfig.MinTlsVersion))
+		s.MinTlsVersion = pointer.FromEnum(appSiteConfig.MinTlsVersion)
 		s.NumberOfWorkers = pointer.From(appSiteConfig.NumberOfWorkers)
 		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
 		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
-		s.ScmMinTlsVersion = string(pointer.From(appSiteConfig.ScmMinTlsVersion))
+		s.ScmMinTlsVersion = pointer.FromEnum(appSiteConfig.ScmMinTlsVersion)
+		s.MinTlsCipherSuite = pointer.FromEnum(appSiteConfig.MinTlsCipherSuite)
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
-		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
-		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
+		s.IpRestrictionDefaultAction = pointer.FromEnum(appSiteConfig.IPSecurityRestrictionsDefaultAction)
+		s.ScmIpRestrictionDefaultAction = pointer.FromEnum(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction)
 
 		if appSiteConfig.ApiManagementConfig != nil {
 			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
@@ -1129,7 +803,7 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 			var linuxAppStack ApplicationStackLinux
 			s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
 
-			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+			linuxAppStack = DecodeApplicationStackLinux(s.LinuxFxVersion)
 			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 		}
 	}
@@ -1161,14 +835,14 @@ func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
 		applicationStack.DockerRegistryPassword = v
 	}
 
-	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	registryHost := TrimURLScheme(strings.TrimSuffix(applicationStack.DockerRegistryUrl, "/"))
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
-func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webapps.AutoHealRules {
+func ExpandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
 		return nil
 	}
@@ -1182,7 +856,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
+		result.Actions.ActionType = pointer.ToEnum[webapps.AutoHealActionType](action.ActionType)
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 	}
 
@@ -1261,7 +935,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 	return result
 }
 
-func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHealSettingLinux {
+func FlattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHealSettingLinux {
 	if autoHealRules == nil {
 		return []AutoHealSettingLinux{}
 	}
@@ -1358,7 +1032,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 		actions := *autoHealRules.Actions
 
 		result.Actions = []AutoHealActionLinux{{
-			ActionType:         string(pointer.From(actions.ActionType)),
+			ActionType:         pointer.FromEnum(actions.ActionType),
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}}
 	}
@@ -1367,5 +1041,5 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 		return []AutoHealSettingLinux{result}
 	}
 
-	return nil
+	return []AutoHealSettingLinux{}
 }

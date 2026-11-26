@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_app_mysql_association"
 description: |-
-  Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
+  Associates a [Spring Cloud Application](spring_cloud_app.html) with a MySQL Database.
 ---
 
 # azurerm_spring_cloud_app_mysql_association
 
-Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
+Associates a [Spring Cloud Application](spring_cloud_app.html) with a MySQL Database.
 
 !> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
@@ -60,7 +60,7 @@ resource "azurerm_spring_cloud_app_mysql_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,7 +84,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application MySQL Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application MySQL Association.

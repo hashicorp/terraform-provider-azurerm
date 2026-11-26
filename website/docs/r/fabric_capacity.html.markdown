@@ -60,7 +60,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU to use for the Fabric Capacity. Possible values are `F2`, `F4`, `F8`, `F16`, `F32`, `F64`, `F128`, `F256`, `F512`, `F1024`, `F2048`.
+* `name` - (Required) The name of the SKU to use for the Fabric Capacity. Possible values are `F0`, `F2`, `F4`, `F8`, `F16`, `F32`, `F64`, `F128`, `F256`, `F512`, `F1024`, `F2048`, `F4096`, `F8192`.
 
 * `tier` - (Required) The tier of the SKU to use for the Fabric Capacity. The only possible value is `Fabric`.
 
@@ -72,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Fabric Capacity.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Fabric Capacity.
@@ -91,4 +91,4 @@ terraform import azurerm_fabric_capacity.example /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Fabric`: 2023-11-01
+* `Microsoft.Fabric` - 2023-11-01

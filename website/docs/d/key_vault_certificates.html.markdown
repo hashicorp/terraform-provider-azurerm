@@ -14,18 +14,18 @@ Use this data source to retrieve a list of certificate names from an existing Ke
 
 ```hcl
 data "azurerm_key_vault_certificates" "example" {
-  key_vault_id = data.azurerm_key_vault.existing.id
+  key_vault_id = data.azurerm_key_vault.example.id
 }
 
 data "azurerm_key_vault_certificate" "example" {
   for_each     = toset(data.azurerm_key_vault_certificates.example.names)
   name         = each.key
-  key_vault_id = data.azurerm_key_vault.existing.id
+  key_vault_id = data.azurerm_key_vault.example.id
 }
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,6 +59,6 @@ A `certificates` block supports following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificates.

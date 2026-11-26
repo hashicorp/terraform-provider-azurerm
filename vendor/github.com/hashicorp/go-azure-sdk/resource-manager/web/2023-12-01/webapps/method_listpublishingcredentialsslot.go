@@ -57,9 +57,20 @@ func (c WebAppsClient) ListPublishingCredentialsSlot(ctx context.Context, id Slo
 
 // ListPublishingCredentialsSlotThenPoll performs ListPublishingCredentialsSlot then polls until it's completed
 func (c WebAppsClient) ListPublishingCredentialsSlotThenPoll(ctx context.Context, id SlotId) error {
+	return c.ListPublishingCredentialsSlotCallbackThenPoll(ctx, id, nil)
+}
+
+// ListPublishingCredentialsSlotCallbackThenPoll performs ListPublishingCredentialsSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) ListPublishingCredentialsSlotCallbackThenPoll(ctx context.Context, id SlotId, callback func() error) error {
 	result, err := c.ListPublishingCredentialsSlot(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ListPublishingCredentialsSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

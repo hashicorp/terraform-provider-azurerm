@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `batch_group_name` - (Required) The batch group name of the Logic App Integration Batch Configuration. Changing this forces a new resource to be created.
 
-* `release_criteria` - (Required) A `release_criteria` block as documented below, which is used to select the criteria to meet before processing each batch.
+* `release_criteria` - (Required) A `release_criteria` block as defined below, which is used to select the criteria to meet before processing each batch.
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Logic App Integration Account Batch Configuration.
 
@@ -61,7 +61,7 @@ A `release_criteria` block exports the following:
 
 * `message_count` - (Optional) The message count for the Logic App Integration Batch Configuration.
 
-* `recurrence` - (Optional) A `recurrence` block as documented below.
+* `recurrence` - (Optional) A `recurrence` block as defined below.
 
 ---
 
@@ -73,7 +73,7 @@ A `recurrence` block exports the following:
 
 * `end_time` - (Optional) The end time of the schedule, formatted as an RFC3339 string.
 
-* `schedule` - (Optional) A `schedule` block as documented below.
+* `schedule` - (Optional) A `schedule` block as defined below.
 
 * `start_time` - (Optional) The start time of the schedule, formatted as an RFC3339 string.
 
@@ -89,7 +89,7 @@ A `schedule` block exports the following:
 
 * `month_days` - (Optional) A list of days of the month that the job should execute on.
 
-* `monthly` - (Optional) A `monthly` block as documented below.
+* `monthly` - (Optional) A `monthly` block as defined below.
 
 * `week_days` - (Optional) A list of days of the week that the job should execute on. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
@@ -109,7 +109,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Integration Account Batch Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Integration Account Batch Configuration.
@@ -128,4 +128,4 @@ terraform import azurerm_logic_app_integration_account_batch_configuration.examp
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Logic`: 2019-05-01
+* `Microsoft.Logic` - 2019-05-01

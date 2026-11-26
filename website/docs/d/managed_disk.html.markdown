@@ -13,17 +13,17 @@ Use this data source to access information about an existing Managed Disk.
 ## Example Usage
 
 ```hcl
-data "azurerm_managed_disk" "existing" {
+data "azurerm_managed_disk" "example" {
   name                = "example-datadisk"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = data.azurerm_managed_disk.existing.id
+  value = data.azurerm_managed_disk.example.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Managed Disk.
 
@@ -89,7 +89,7 @@ The `key_encryption_key` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Disk.
 
@@ -97,4 +97,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2023-04-02
+* `Microsoft.Compute` - 2023-04-02

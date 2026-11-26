@@ -14,8 +14,8 @@ Use this data source to access information about an existing Azure Data Factory 
 
 ```hcl
 data "azurerm_data_factory" "example" {
-  name                = "existing-adf"
-  resource_group_name = "existing-rg"
+  name                = "example-data-factory"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -59,6 +59,8 @@ A `github_configuration` block exports the following:
 
 - `git_url` - The GitHub repository url.
 
+- `last_commit_id` - The last commit ID of the repository.
+
 - `repository_name` - The name of the git repository.
 
 - `root_folder` - The root folder within the repository.
@@ -93,7 +95,7 @@ A `vsts_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Data Factory.
 
@@ -101,4 +103,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DataFactory`: 2018-06-01
+* `Microsoft.DataFactory` - 2018-06-01

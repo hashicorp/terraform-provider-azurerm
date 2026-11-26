@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -8,8 +8,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
@@ -24,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
@@ -45,6 +48,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
@@ -54,6 +58,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
@@ -62,6 +67,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
@@ -77,12 +83,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
@@ -91,11 +97,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
@@ -108,7 +115,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
@@ -130,8 +136,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads"
 )
@@ -141,7 +147,9 @@ import (
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	services := []sdk.TypedServiceRegistration{
 		aadb2c.Registration{},
+		apicenter.Registration{},
 		apimanagement.Registration{},
+		appgateway.Registration{},
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
@@ -154,10 +162,12 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cdn.Registration{},
 		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		connections.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
 		cosmos.Registration{},
@@ -176,9 +186,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		expressroute.Registration{},
 		fabric.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
+		horizondb.Registration{},
 		hybridcompute.Registration{},
 		iotcentral.Registration{},
 		iothub.Registration{},
@@ -187,10 +199,12 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		loadtestservice.Registration{},
 		loganalytics.Registration{},
+		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
+		manageddevopspools.Registration{},
 		managedhsm.Registration{},
-		mobilenetwork.Registration{},
+		managedredis.Registration{},
 		mongocluster.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
@@ -199,10 +213,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		netapp.Registration{},
 		network.Registration{},
 		networkfunction.Registration{},
+		networkgateway.Registration{},
+		networkmanager.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
 		oracle.Registration{},
-		orbital.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		postgres.Registration{},
@@ -211,6 +226,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
+		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
@@ -228,8 +244,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		subscription.Registration{},
 		systemcentervirtualmachinemanager.Registration{},
 		videoindexer.Registration{},
+		virtualwan.Registration{},
 		vmware.Registration{},
-		voiceservices.Registration{},
 		web.Registration{},
 		workloads.Registration{},
 	}
@@ -239,10 +255,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	return func() []sdk.UntypedServiceRegistration {
-		out := []sdk.UntypedServiceRegistration{
+		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
 			apimanagement.Registration{},
+			appgateway.Registration{},
 			appconfiguration.Registration{},
 			applicationinsights.Registration{},
 			arckubernetes.Registration{},
@@ -279,6 +296,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			elastic.Registration{},
 			eventgrid.Registration{},
 			eventhub.Registration{},
+			expressroute.Registration{},
 			firewall.Registration{},
 			frontdoor.Registration{},
 			hdinsight.Registration{},
@@ -300,13 +318,14 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			managedidentity.Registration{},
 			managementgroup.Registration{},
 			maps.Registration{},
-			mixedreality.Registration{},
 			monitor.Registration{},
 			mssql.Registration{},
 			mssqlmanagedinstance.Registration{},
 			mysql.Registration{},
 			netapp.Registration{},
 			network.Registration{},
+			networkgateway.Registration{},
+			networkmanager.Registration{},
 			notificationhub.Registration{},
 			policy.Registration{},
 			portal.Registration{},
@@ -316,7 +335,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			purview.Registration{},
 			recoveryservices.Registration{},
 			redis.Registration{},
-			redisenterprise.Registration{},
 			relay.Registration{},
 			resource.Registration{},
 			search.Registration{},
@@ -332,20 +350,150 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			subscription.Registration{},
 			synapse.Registration{},
 			trafficmanager.Registration{},
+			virtualwan.Registration{},
 			vmware.Registration{},
 			web.Registration{},
 		}
-		return out
 	}()
 }
 
-func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
-	services := []sdk.FrameworkTypedServiceRegistration{
+func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
+	return []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		aadb2c.Registration{},
+		advisor.Registration{},
+		analysisservices.Registration{},
+		apicenter.Registration{},
+		apimanagement.Registration{},
+		appgateway.Registration{},
+		appconfiguration.Registration{},
+		applicationinsights.Registration{},
+		appservice.Registration{},
+		arckubernetes.Registration{},
+		arcresourcebridge.Registration{},
+		attestation.Registration{},
+		authorization.Registration{},
+		automanage.Registration{},
+		automation.Registration{},
+		azurestackhci.Registration{},
+		batch.Registration{},
+		billing.Registration{},
+		blueprints.Registration{},
+		bot.Registration{},
+		cdn.Registration{},
+		chaosstudio.Registration{},
+		codesigning.Registration{},
+		cognitive.Registration{},
+		communication.Registration{},
+		compute.Registration{},
+		confidentialledger.Registration{},
+		connections.Registration{},
+		consumption.Registration{},
+		containerapps.Registration{},
+		containers.Registration{},
+		cosmos.Registration{},
+		costmanagement.Registration{},
+		customproviders.Registration{},
+		dashboard.Registration{},
+		databasemigration.Registration{},
+		databoxedge.Registration{},
+		databricks.Registration{},
+		datadog.Registration{},
+		datafactory.Registration{},
+		dataprotection.Registration{},
+		fabric.Registration{},
+		firewall.Registration{},
+		fluidrelay.Registration{},
+		frontdoor.Registration{},
+		graphservices.Registration{},
+		hdinsight.Registration{},
+		healthcare.Registration{},
+		horizondb.Registration{},
+		hsm.Registration{},
+		hybridcompute.Registration{},
+		iotcentral.Registration{},
+		iothub.Registration{},
+		datashare.Registration{},
+		desktopvirtualization.Registration{},
+		devcenter.Registration{},
+		devtestlabs.Registration{},
+		digitaltwins.Registration{},
+		dns.Registration{},
+		domainservices.Registration{},
+		dynatrace.Registration{},
+		elastic.Registration{},
+		elasticsan.Registration{},
+		eventgrid.Registration{},
+		eventhub.Registration{},
+		extendedlocation.Registration{},
+		expressroute.Registration{},
 		keyvault.Registration{},
+		legacy.Registration{},
+		lighthouse.Registration{},
+		loadbalancer.Registration{},
+		loadtestservice.Registration{},
+		loganalytics.Registration{},
+		logic.Registration{},
+		machinelearning.Registration{},
+		maintenance.Registration{},
+		managedapplications.Registration{},
+		managedhsm.Registration{},
+		managedidentity.Registration{},
+		managedredis.Registration{},
+		managementgroup.Registration{},
+		maps.Registration{},
+		mongocluster.Registration{},
+		monitor.Registration{},
+		mssql.Registration{},
+		mssqlmanagedinstance.Registration{},
+		mysql.Registration{},
+		netapp.Registration{},
+		network.Registration{},
+		networkfunction.Registration{},
+		networkgateway.Registration{},
+		networkmanager.Registration{},
+		newrelic.Registration{},
+		nginx.Registration{},
+		notificationhub.Registration{},
+		oracle.Registration{},
+		paloalto.Registration{},
+		policy.Registration{},
+		portal.Registration{},
+		postgres.Registration{},
+		powerbi.Registration{},
+		privatedns.Registration{},
+		privatednsresolver.Registration{},
+		purview.Registration{},
+		qumulo.Registration{},
+		recoveryservices.Registration{},
+		redhatopenshift.Registration{},
+		redis.Registration{},
+		relay.Registration{},
+		resource.Registration{},
+		search.Registration{},
+		securitycenter.Registration{},
+		sentinel.Registration{},
+		servicebus.Registration{},
+		serviceconnector.Registration{},
+		servicefabric.Registration{},
+		servicefabricmanaged.Registration{},
+		servicenetworking.Registration{},
+		signalr.Registration{},
+		springcloud.Registration{},
+		storage.Registration{},
+		storagecache.Registration{},
+		storagemover.Registration{},
+		streamanalytics.Registration{},
+		subscription.Registration{},
+		synapse.Registration{},
+		systemcentervirtualmachinemanager.Registration{},
+		trafficmanager.Registration{},
+		videoindexer.Registration{},
+		virtualwan.Registration{},
+		vmware.Registration{},
+		web.Registration{},
+		workloads.Registration{},
 	}
-
-	return services
 }

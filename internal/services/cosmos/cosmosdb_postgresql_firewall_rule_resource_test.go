@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -8,18 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosDbPostgreSQLFirewallRuleResource struct{}
 
-func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}
 
@@ -34,7 +34,7 @@ func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
+func TestAccCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}
 	startIPAddress := "10.0.17.62"
@@ -53,7 +53,7 @@ func TestCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLFirewallRule_update(t *testing.T) {
+func TestAccCosmosDbPostgreSQLFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}
 
@@ -85,11 +85,11 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Exists(ctx context.Context, clie
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CosmosDbPostgreSQLFirewallRuleResource) template(data acceptance.TestData) string {

@@ -13,17 +13,17 @@ Use this data source to access information about an existing Disk Encryption Set
 ## Example Usage
 
 ```hcl
-data "azurerm_disk_encryption_set" "existing" {
+data "azurerm_disk_encryption_set" "example" {
   name                = "example-des"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = data.azurerm_disk_encryption_set.existing.id
+  value = data.azurerm_disk_encryption_set.example.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.
 
@@ -73,4 +73,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2022-03-02
+* `Microsoft.Compute` - 2022-03-02

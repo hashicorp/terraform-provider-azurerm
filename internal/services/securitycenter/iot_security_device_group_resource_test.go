@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DeviceSecurityGroupResource struct{}
 
-func TestIotSecurityDeviceGroup_basic(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -33,7 +33,7 @@ func TestIotSecurityDeviceGroup_basic(t *testing.T) {
 	})
 }
 
-func TestIotSecurityDeviceGroup_requiresImport(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -48,7 +48,7 @@ func TestIotSecurityDeviceGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestIotSecurityDeviceGroup_complete(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -63,7 +63,7 @@ func TestIotSecurityDeviceGroup_complete(t *testing.T) {
 	})
 }
 
-func TestIotSecurityDeviceGroup_update(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -103,7 +103,7 @@ func (DeviceSecurityGroupResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("reading Iot Security Device Group %q: %+v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.DeviceSecurityGroupProperties != nil), nil
+	return pointer.To(resp.DeviceSecurityGroupProperties != nil), nil
 }
 
 func (r DeviceSecurityGroupResource) basic(data acceptance.TestData) string {

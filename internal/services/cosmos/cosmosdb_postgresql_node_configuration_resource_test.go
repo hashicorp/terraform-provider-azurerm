@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -8,18 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosDbPostgreSQLNodeConfigurationResource struct{}
 
-func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
 	r := CosmosDbPostgreSQLNodeConfigurationResource{}
 
@@ -34,7 +34,7 @@ func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLNodeConfiguration_update(t *testing.T) {
+func TestAccCosmosDbPostgreSQLNodeConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
 	r := CosmosDbPostgreSQLNodeConfigurationResource{}
 
@@ -66,11 +66,11 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Exists(ctx context.Context,
 	resp, err := client.GetNode(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CosmosDbPostgreSQLNodeConfigurationResource) template(data acceptance.TestData) string {

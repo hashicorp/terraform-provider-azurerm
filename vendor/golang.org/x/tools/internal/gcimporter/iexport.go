@@ -242,7 +242,7 @@ import (
 	"strings"
 
 	"golang.org/x/tools/go/types/objectpath"
-	"golang.org/x/tools/internal/aliases"
+	// This package is dependency-restricted; see x/tools/go/gcexportdata.TestDeps.
 )
 
 // IExportShallow encodes "shallow" export data for the specified package.
@@ -282,9 +282,9 @@ func IExportShallow(fset *token.FileSet, pkg *types.Package, reportf ReportFunc)
 	// fact iexportCommon doesn't even check for I/O errors.
 	// TODO(adonovan): handle I/O errors properly.
 	// TODO(adonovan): use byte slices throughout, avoiding copying.
-	const bundle, shallow = false, true
+	const shallow = true
 	var out bytes.Buffer
-	err := iexportCommon(&out, fset, bundle, shallow, iexportVersion, []*types.Package{pkg}, reportf)
+	err := iexportCommon(&out, fset, shallow, iexportVersion, []*types.Package{pkg}, reportf)
 	return out.Bytes(), err
 }
 
@@ -301,9 +301,8 @@ func IExportShallow(fset *token.FileSet, pkg *types.Package, reportf ReportFunc)
 // TODO(rfindley): remove reportf when we are confident enough in the new
 // objectpath encoding.
 func IImportShallow(fset *token.FileSet, getPackages GetPackagesFunc, data []byte, path string, reportf ReportFunc) (*types.Package, error) {
-	const bundle = false
 	const shallow = true
-	pkgs, err := iimportCommon(fset, getPackages, data, bundle, path, shallow, reportf)
+	pkgs, err := iimportCommon(fset, getPackages, data, path, shallow, reportf)
 	if err != nil {
 		return nil, err
 	}
@@ -313,27 +312,17 @@ func IImportShallow(fset *token.FileSet, getPackages GetPackagesFunc, data []byt
 // ReportFunc is the type of a function used to report formatted bugs.
 type ReportFunc = func(string, ...any)
 
-// Current bundled export format version. Increase with each format change.
-// 0: initial implementation
-const bundleVersion = 0
-
 // IExportData writes indexed export data for pkg to out.
 //
 // If no file set is provided, position info will be missing.
 // The package path of the top-level package will not be recorded,
 // so that calls to IImportData can override with a provided package path.
 func IExportData(out io.Writer, fset *token.FileSet, pkg *types.Package) error {
-	const bundle, shallow = false, false
-	return iexportCommon(out, fset, bundle, shallow, iexportVersion, []*types.Package{pkg}, nil)
+	const shallow = false
+	return iexportCommon(out, fset, shallow, iexportVersion, []*types.Package{pkg}, nil)
 }
 
-// IExportBundle writes an indexed export bundle for pkgs to out.
-func IExportBundle(out io.Writer, fset *token.FileSet, pkgs []*types.Package) error {
-	const bundle, shallow = true, false
-	return iexportCommon(out, fset, bundle, shallow, iexportVersion, pkgs, nil)
-}
-
-func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, version int, pkgs []*types.Package, reportf ReportFunc) (err error) {
+func iexportCommon(out io.Writer, fset *token.FileSet, shallow bool, version int, pkgs []*types.Package, reportf ReportFunc) (err error) {
 	if !debug {
 		defer func() {
 			if e := recover(); e != nil {
@@ -363,9 +352,7 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, ver
 		declIndex:   map[types.Object]uint64{},
 		tparamNames: map[types.Object]string{},
 		typIndex:    map[types.Type]uint64{},
-	}
-	if !bundle {
-		p.localpkg = pkgs[0]
+		localpkg:    pkgs[0],
 	}
 
 	for i, pt := range predeclared() {
@@ -381,14 +368,6 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, ver
 		for _, name := range scope.Names() {
 			if token.IsExported(name) {
 				p.pushDecl(scope.Lookup(name))
-			}
-		}
-
-		if bundle {
-			// Ensure pkg and its imports are included in the index.
-			p.allPkgs[pkg] = true
-			for _, imp := range pkg.Imports() {
-				p.allPkgs[imp] = true
 			}
 		}
 	}
@@ -413,25 +392,10 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, ver
 	dataLen := uint64(p.data0.Len())
 	w := p.newWriter()
 	w.writeIndex(p.declIndex)
-
-	if bundle {
-		w.uint64(uint64(len(pkgs)))
-		for _, pkg := range pkgs {
-			w.pkg(pkg)
-			imps := pkg.Imports()
-			w.uint64(uint64(len(imps)))
-			for _, imp := range imps {
-				w.pkg(imp)
-			}
-		}
-	}
 	w.flush()
 
 	// Assemble header.
 	var hdr intWriter
-	if bundle {
-		hdr.uint64(bundleVersion)
-	}
 	hdr.uint64(uint64(p.version))
 	hdr.uint64(uint64(p.strings.Len()))
 	if p.shallow {
@@ -569,12 +533,11 @@ func (p *iexporter) exportName(obj types.Object) (res string) {
 
 type iexporter struct {
 	fset    *token.FileSet
-	out     *bytes.Buffer
 	version int
 
 	shallow    bool                // don't put types from other packages in the index
 	objEncoder *objectpath.Encoder // encodes objects from other packages in shallow mode; lazily allocated
-	localpkg   *types.Package      // (nil in bundle mode)
+	localpkg   *types.Package
 
 	// allPkgs tracks all packages that have been referenced by
 	// the export data, so we can ensure to include them in the
@@ -714,7 +677,7 @@ func (p *iexporter) doDecl(obj types.Object) {
 		w.typ(obj.Type(), obj.Pkg())
 
 	case *types.Func:
-		sig, _ := obj.Type().(*types.Signature)
+		sig := obj.Type().(*types.Signature)
 		if sig.Recv() != nil {
 			// We shouldn't see methods in the package scope,
 			// but the type checker may repair "func () F() {}"
@@ -747,7 +710,7 @@ func (p *iexporter) doDecl(obj types.Object) {
 	case *types.Const:
 		w.tag(constTag)
 		w.pos(obj.Pos())
-		w.value(obj.Type(), obj.Val())
+		w.value(obj.Type(), obj.Val(), obj.Pkg())
 
 	case *types.TypeName:
 		t := obj.Type()
@@ -768,11 +731,11 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}
 
 		if obj.IsAlias() {
-			alias, materialized := t.(*types.Alias) // may fail when aliases are not enabled
+			alias, materialized := t.(*types.Alias) // perhaps false for certain built-ins?
 
 			var tparams *types.TypeParamList
 			if materialized {
-				tparams = aliases.TypeParams(alias)
+				tparams = alias.TypeParams()
 			}
 			if tparams.Len() == 0 {
 				w.tag(aliasTag)
@@ -786,7 +749,7 @@ func (p *iexporter) doDecl(obj types.Object) {
 			if materialized {
 				// Preserve materialized aliases,
 				// even of non-exported types.
-				t = aliases.Rhs(alias)
+				t = alias.Rhs()
 			}
 			w.typ(t, obj.Pkg())
 			break
@@ -824,14 +787,16 @@ func (p *iexporter) doDecl(obj types.Object) {
 			m := named.Method(i)
 			w.pos(m.Pos())
 			w.string(m.Name())
-			sig, _ := m.Type().(*types.Signature)
+			sig := m.Type().(*types.Signature)
+			if w.p.version >= iexportVersionGenericMethods && w.bool(sig.TypeParams().Len() > 0) {
+				w.tparamList(obj.Name()+"."+m.Name(), sig.TypeParams(), obj.Pkg())
+			}
 
 			// Receiver type parameters are type arguments of the receiver type, so
 			// their name must be qualified before exporting recv.
 			if rparams := sig.RecvTypeParams(); rparams.Len() > 0 {
 				prefix := obj.Name() + "." + m.Name()
-				for i := 0; i < rparams.Len(); i++ {
-					rparam := rparams.At(i)
+				for rparam := range rparams.TypeParams() {
 					name := tparamExportName(prefix, rparam)
 					w.p.tparamNames[rparam.Obj()] = name
 				}
@@ -945,6 +910,13 @@ func (w *exportWriter) posV0(pos token.Pos) {
 }
 
 func (w *exportWriter) pkg(pkg *types.Package) {
+	if pkg == nil {
+		// [exportWriter.typ] accepts a nil pkg only for types
+		// of constants, which cannot contain named objects
+		// such as fields or methods and thus should never
+		// reach this method (#76222).
+		panic("nil package")
+	}
 	// Ensure any referenced packages are declared in the main index.
 	w.p.allPkgs[pkg] = true
 
@@ -960,10 +932,14 @@ func (w *exportWriter) qualifiedType(obj *types.TypeName) {
 	w.pkg(obj.Pkg())
 }
 
-// TODO(rfindley): what does 'pkg' even mean here? It would be better to pass
-// it in explicitly into signatures and structs that may use it for
-// constructing fields.
+// typ emits the specified type.
+//
+// Objects within the type (struct fields and interface methods) are
+// qualified by pkg.
 func (w *exportWriter) typ(t types.Type, pkg *types.Package) {
+	if pkg == nil {
+		pkg = w.p.localpkg
+	}
 	w.data.uint64(w.p.typOff(t, pkg))
 }
 
@@ -992,6 +968,7 @@ func (w *exportWriter) startType(k itag) {
 	w.data.uint64(uint64(k))
 }
 
+// doTyp is the implementation of [exportWriter.typ].
 func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 	if trace {
 		w.p.trace("exporting type %s (%T)", t, t)
@@ -1003,11 +980,11 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 	}
 	switch t := t.(type) {
 	case *types.Alias:
-		if targs := aliases.TypeArgs(t); targs.Len() > 0 {
+		if targs := t.TypeArgs(); targs.Len() > 0 {
 			w.startType(instanceType)
 			w.pos(t.Obj().Pos())
 			w.typeList(targs, pkg)
-			w.typ(aliases.Origin(t), pkg)
+			w.typ(t.Origin(), pkg)
 			return
 		}
 		w.startType(aliasType)
@@ -1065,7 +1042,7 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 
 	case *types.Signature:
 		w.startType(signatureType)
-		w.pkg(pkg)
+		w.pkg(pkg) // qualifies param/result vars
 		w.signature(t)
 
 	case *types.Struct:
@@ -1111,19 +1088,19 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 
 	case *types.Interface:
 		w.startType(interfaceType)
-		w.pkg(pkg)
+		w.pkg(pkg) // qualifies unexported method funcs
 
 		n := t.NumEmbeddeds()
 		w.uint64(uint64(n))
 		for i := 0; i < n; i++ {
 			ft := t.EmbeddedType(i)
-			tPkg := pkg
 			if named, _ := types.Unalias(ft).(*types.Named); named != nil {
 				w.pos(named.Obj().Pos())
 			} else {
+				// e.g. ~int
 				w.pos(token.NoPos)
 			}
-			w.typ(ft, tPkg)
+			w.typ(ft, pkg)
 		}
 
 		// See comment for struct fields. In shallow mode we change the encoding
@@ -1138,7 +1115,7 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 			}
 			w.pos(m.Pos())
 			w.string(m.Name())
-			sig, _ := m.Type().(*types.Signature)
+			sig := m.Type().(*types.Signature)
 			w.signature(sig)
 		}
 
@@ -1224,20 +1201,19 @@ func (w *exportWriter) signature(sig *types.Signature) {
 
 func (w *exportWriter) typeList(ts *types.TypeList, pkg *types.Package) {
 	w.uint64(uint64(ts.Len()))
-	for i := 0; i < ts.Len(); i++ {
-		w.typ(ts.At(i), pkg)
+	for t := range ts.Types() {
+		w.typ(t, pkg)
 	}
 }
 
 func (w *exportWriter) tparamList(prefix string, list *types.TypeParamList, pkg *types.Package) {
 	ll := uint64(list.Len())
 	w.uint64(ll)
-	for i := 0; i < list.Len(); i++ {
-		tparam := list.At(i)
+	for tparam := range list.TypeParams() {
 		// Set the type parameter exportName before exporting its type.
 		exportName := tparamExportName(prefix, tparam)
 		w.p.tparamNames[tparam.Obj()] = exportName
-		w.typ(list.At(i), pkg)
+		w.typ(tparam, pkg)
 	}
 }
 
@@ -1286,8 +1262,12 @@ func (w *exportWriter) param(obj types.Object) {
 	w.typ(obj.Type(), obj.Pkg())
 }
 
-func (w *exportWriter) value(typ types.Type, v constant.Value) {
-	w.typ(typ, nil)
+// only called for constants
+func (w *exportWriter) value(typ types.Type, v constant.Value, pkg *types.Package) {
+	if pkg == nil {
+		pkg = w.p.localpkg
+	}
+	w.typ(typ, pkg)
 	if w.p.version >= iexportVersionGo1_18 {
 		w.int64(int64(v.Kind()))
 	}

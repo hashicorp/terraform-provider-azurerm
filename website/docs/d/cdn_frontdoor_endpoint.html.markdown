@@ -14,13 +14,13 @@ Use this data source to access information about an existing Front Door (standar
 
 ```hcl
 data "azurerm_cdn_frontdoor_endpoint" "example" {
-  name                = "existing-endpoint"
-  profile_name        = "existing-cdn-profile"
-  resource_group_name = "existing-resources"
+  name                = "example-endpoint"
+  profile_name        = "example-cdn-profile"
+  resource_group_name = "example-resources"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,6 +44,12 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Endpoint.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2026-10-01

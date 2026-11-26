@@ -62,9 +62,20 @@ func (c WebAppsClient) RestoreFromBackupBlob(ctx context.Context, id commonids.A
 
 // RestoreFromBackupBlobThenPoll performs RestoreFromBackupBlob then polls until it's completed
 func (c WebAppsClient) RestoreFromBackupBlobThenPoll(ctx context.Context, id commonids.AppServiceId, input RestoreRequest) error {
+	return c.RestoreFromBackupBlobCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreFromBackupBlobCallbackThenPoll performs RestoreFromBackupBlob, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) RestoreFromBackupBlobCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, input RestoreRequest, callback func() error) error {
 	result, err := c.RestoreFromBackupBlob(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreFromBackupBlob: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

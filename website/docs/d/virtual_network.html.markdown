@@ -23,7 +23,7 @@ output "virtual_network_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
@@ -33,6 +33,7 @@ output "virtual_network_id" {
 * `id` - The ID of the virtual network.
 * `location` - Location of the virtual network.
 * `address_space` - The list of address spaces used by the virtual network.
+* `advertised_gateway_prefixes` - The list of CIDR prefixes that Azure gateways advertise to on-premises networks.
 * `dns_servers` - The list of DNS servers used by the virtual network.
 * `guid` - The GUID of the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
@@ -42,7 +43,7 @@ output "virtual_network_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.
 
@@ -50,4 +51,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-07-01

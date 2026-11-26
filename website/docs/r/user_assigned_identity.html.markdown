@@ -36,6 +36,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this User Assigned Identity should exist. Changing this forces a new User Assigned Identity to be created.
 
+* `isolation_scope` - (Optional) The isolation scope for the User Assigned Identity. The only possible value is `Regional`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the User Assigned Identity.
 
 ## Attributes Reference
@@ -56,12 +58,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this User Assigned Identity.
-* `delete` - (Defaults to 30 minutes) Used when deleting this User Assigned Identity.
-* `read` - (Defaults to 5 minutes) Used when retrieving this User Assigned Identity.
-* `update` - (Defaults to 30 minutes) Used when updating this User Assigned Identity.
+* `create` - (Defaults to 30 minutes) Used when creating the User Assigned Identity.
+* `read` - (Defaults to 5 minutes) Used when retrieving the User Assigned Identity.
+* `update` - (Defaults to 30 minutes) Used when updating the User Assigned Identity.
+* `delete` - (Defaults to 30 minutes) Used when deleting the User Assigned Identity.
 
 ## Import
 
@@ -74,3 +76,9 @@ terraform import azurerm_user_assigned_identity.example /subscriptions/{subscrip
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the User Assigned Identity exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this User Assigned Identity exists. For example `example-resource-group`.
 * Where `{userAssignedIdentityName}` is the name of the User Assigned Identity. For example `userAssignedIdentityValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ManagedIdentity` - 2024-11-30

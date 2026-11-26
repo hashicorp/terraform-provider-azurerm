@@ -14,8 +14,8 @@ Use this data source to access information about an existing Resource Group Temp
 
 ```hcl
 data "azurerm_resource_group_template_deployment" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-deployment"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -45,6 +45,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group Template Deployment.

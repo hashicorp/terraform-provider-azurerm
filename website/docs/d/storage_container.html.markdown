@@ -24,17 +24,13 @@ data "azurerm_storage_container" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - The name of the Container.
 
-* `storage_account_name` - (Optional) The name of the Storage Account where the Container exists. This property is deprecated in favour of `storage_account_id`.
-
-* `storage_account_id` - (Optional) The id of the Storage Account where the Container exists. This property will become Required in version 5.0 of the Provider.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) The ID of the Storage Account where the Container exists.
 
 ## Attributes Reference
 
@@ -52,9 +48,11 @@ The following arguments are supported:
 
 * `id` - The Resource Manager ID of this Storage Container.
 
+* `url` - The data plane URL of the Storage Container in the format of `<storage blob endpoint>/<container name>`. E.g. `https://example.blob.core.windows.net/mycontainer`.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container.
 
@@ -62,4 +60,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

@@ -14,8 +14,8 @@ Use this data source to access information about an existing VPN Gateway within 
 
 ```hcl
 data "azurerm_vpn_gateway" "example" {
-  name                = "existing-local-vpn_gateway"
-  resource_group_name = "existing-vpn_gateway"
+  name                = "example-vpn-gateway"
+  resource_group_name = "example-resources"
 }
 
 output "azurerm_vpn_gateway_id" {
@@ -23,7 +23,7 @@ output "azurerm_vpn_gateway_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The Name of the VPN Gateway.
 
@@ -97,7 +97,7 @@ An `ip_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway.
 
@@ -105,4 +105,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-07-01

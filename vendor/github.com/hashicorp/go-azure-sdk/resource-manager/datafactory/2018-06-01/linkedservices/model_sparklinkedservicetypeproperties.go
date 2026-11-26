@@ -9,20 +9,20 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SparkLinkedServiceTypeProperties struct {
-	AllowHostNameCNMismatch           *bool                         `json:"allowHostNameCNMismatch,omitempty"`
-	AllowSelfSignedServerCert         *bool                         `json:"allowSelfSignedServerCert,omitempty"`
+	AllowHostNameCNMismatch           *interface{}                  `json:"allowHostNameCNMismatch,omitempty"`
+	AllowSelfSignedServerCert         *interface{}                  `json:"allowSelfSignedServerCert,omitempty"`
 	AuthenticationType                SparkAuthenticationType       `json:"authenticationType"`
-	EnableServerCertificateValidation *bool                         `json:"enableServerCertificateValidation,omitempty"`
-	EnableSsl                         *bool                         `json:"enableSsl,omitempty"`
+	EnableServerCertificateValidation *interface{}                  `json:"enableServerCertificateValidation,omitempty"`
+	EnableSsl                         *interface{}                  `json:"enableSsl,omitempty"`
 	EncryptedCredential               *string                       `json:"encryptedCredential,omitempty"`
 	HTTPPath                          *interface{}                  `json:"httpPath,omitempty"`
 	Host                              interface{}                   `json:"host"`
 	Password                          SecretBase                    `json:"password"`
-	Port                              int64                         `json:"port"`
+	Port                              interface{}                   `json:"port"`
 	ServerType                        *SparkServerType              `json:"serverType,omitempty"`
 	ThriftTransportProtocol           *SparkThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
 	TrustedCertPath                   *interface{}                  `json:"trustedCertPath,omitempty"`
-	UseSystemTrustStore               *bool                         `json:"useSystemTrustStore,omitempty"`
+	UseSystemTrustStore               *interface{}                  `json:"useSystemTrustStore,omitempty"`
 	Username                          *interface{}                  `json:"username,omitempty"`
 }
 
@@ -30,19 +30,19 @@ var _ json.Unmarshaler = &SparkLinkedServiceTypeProperties{}
 
 func (s *SparkLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AllowHostNameCNMismatch           *bool                         `json:"allowHostNameCNMismatch,omitempty"`
-		AllowSelfSignedServerCert         *bool                         `json:"allowSelfSignedServerCert,omitempty"`
+		AllowHostNameCNMismatch           *interface{}                  `json:"allowHostNameCNMismatch,omitempty"`
+		AllowSelfSignedServerCert         *interface{}                  `json:"allowSelfSignedServerCert,omitempty"`
 		AuthenticationType                SparkAuthenticationType       `json:"authenticationType"`
-		EnableServerCertificateValidation *bool                         `json:"enableServerCertificateValidation,omitempty"`
-		EnableSsl                         *bool                         `json:"enableSsl,omitempty"`
+		EnableServerCertificateValidation *interface{}                  `json:"enableServerCertificateValidation,omitempty"`
+		EnableSsl                         *interface{}                  `json:"enableSsl,omitempty"`
 		EncryptedCredential               *string                       `json:"encryptedCredential,omitempty"`
 		HTTPPath                          *interface{}                  `json:"httpPath,omitempty"`
 		Host                              interface{}                   `json:"host"`
-		Port                              int64                         `json:"port"`
+		Port                              interface{}                   `json:"port"`
 		ServerType                        *SparkServerType              `json:"serverType,omitempty"`
 		ThriftTransportProtocol           *SparkThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
 		TrustedCertPath                   *interface{}                  `json:"trustedCertPath,omitempty"`
-		UseSystemTrustStore               *bool                         `json:"useSystemTrustStore,omitempty"`
+		UseSystemTrustStore               *interface{}                  `json:"useSystemTrustStore,omitempty"`
 		Username                          *interface{}                  `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

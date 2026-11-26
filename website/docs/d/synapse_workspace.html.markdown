@@ -14,7 +14,7 @@ Use this data source to access information about an existing Synapse Workspace.
 
 ```hcl
 data "azurerm_synapse_workspace" "example" {
-  name                = "existing"
+  name                = "example-synapse-workspace"
   resource_group_name = "example-resource-group"
 }
 
@@ -57,6 +57,6 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Workspace.

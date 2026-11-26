@@ -4,5 +4,5 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzurePostgreSqlSinkUpsertSettings struct {
-	Keys *[]string `json:"keys,omitempty"`
+	Keys *interface{} `json:"keys,omitempty"`
 }

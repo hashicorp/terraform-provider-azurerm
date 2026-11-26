@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -13,8 +13,9 @@ import (
 // ZonesMultipleRequired returns the schema used when multiple Zones must be specified
 func ZonesMultipleRequired() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Required: true,
+		Description: "A set of availability zones to deploy to.",
+		Type:        schema.TypeSet,
+		Required:    true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -25,9 +26,10 @@ func ZonesMultipleRequired() *schema.Schema {
 // ZonesMultipleRequiredForceNew returns the schema used when multiple Zones must be specified but cannot be changed
 func ZonesMultipleRequiredForceNew() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Required: true,
-		ForceNew: true,
+		Description: "A set of availability zones to deploy to.",
+		Type:        schema.TypeSet,
+		Required:    true,
+		ForceNew:    true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -38,8 +40,9 @@ func ZonesMultipleRequiredForceNew() *schema.Schema {
 // ZonesMultipleOptional returns the schema used when multiple Zones can be specified
 func ZonesMultipleOptional() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
+		Description: "A set of availability zones to deploy to.",
+		Type:        schema.TypeSet,
+		Optional:    true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -50,9 +53,10 @@ func ZonesMultipleOptional() *schema.Schema {
 // ZonesMultipleOptionalForceNew returns the schema used when multiple Zones can be specified but cannot be changed
 func ZonesMultipleOptionalForceNew() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
-		ForceNew: true,
+		Description: "A set of availability zones to deploy to.",
+		Type:        schema.TypeSet,
+		Optional:    true,
+		ForceNew:    true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -63,8 +67,9 @@ func ZonesMultipleOptionalForceNew() *schema.Schema {
 // ZonesMultipleComputed returns the schema used when multiple Zones can be returned
 func ZonesMultipleComputed() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
+		Description: "A list of availability zones the resource is deployed to.",
+		Type:        schema.TypeList,
+		Computed:    true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,

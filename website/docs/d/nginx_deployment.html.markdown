@@ -14,8 +14,8 @@ Use this data source to access information about an existing NGINX Deployment.
 
 ```hcl
 data "azurerm_nginx_deployment" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-nginx-deployment"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -40,8 +40,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `capacity` - The number of NGINX capacity units for this NGINX Deployment.
 
 * `auto_scale_profile` - An `auto_scale_profile` block as defined below.
-
-* `diagnose_support_enabled` - Whether metrics are exported to Azure Monitor.
 
 * `email` - Preferred email associated with the NGINX Deployment.
 
@@ -131,7 +129,7 @@ A `web_application_firewall.status` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Deployment.
 
@@ -139,4 +137,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Nginx.NginxPlus`: 2024-11-01-preview
+* `Nginx.NginxPlus` - 2024-11-01-preview

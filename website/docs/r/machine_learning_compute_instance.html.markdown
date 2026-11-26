@@ -30,12 +30,13 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example-kv"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "example-kv"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_storage_account" "example" {
@@ -118,7 +119,11 @@ The following arguments are supported:
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
 
-* `node_public_ip_enabled` - (Optional) Whether the compute instance will have a public ip. To set this to false a `subnet_resource_id` needs to be set. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+~> **Note:** The property `subnet_resource_id` can be set only if the instance's workspace is not using Azure-managed networking.
+
+* `node_public_ip_enabled` - (Optional) Whether the compute instance will have a public ip. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+~> **Note:** The property `subnet_resource_id` becomes required if `node_public_ip_enabled` is set to `false`, and the instance's workspace is not using a managed network (i.e. the workspace's outbound isolation mode is `Disabled`).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
@@ -173,7 +178,7 @@ A `ssh` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Compute Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Compute Instance.
@@ -191,4 +196,4 @@ terraform import azurerm_machine_learning_compute_instance.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

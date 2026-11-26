@@ -14,8 +14,8 @@ Use this data source to access information about an existing Route Filter.
 
 ```hcl
 data "azurerm_route_filter" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-route-filter"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -57,7 +57,7 @@ A `rule` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Route Filter.
 
@@ -65,4 +65,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-07-01

@@ -47,7 +47,7 @@ resource "azurerm_signalr_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,9 +57,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the SignalR service exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku` - (Required) A `sku` block as defined below.
 
-* `cors` - (Optional) A `cors` block as documented below.
+* `cors` - (Optional) A `cors` block as defined below.
 
 * `connectivity_logs_enabled` - (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `service_mode` - (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
-* `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
+* `upstream_endpoint` - (Optional) An `upstream_endpoint` block as defined below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
 
@@ -167,7 +167,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SignalR Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SignalR Service.
@@ -186,4 +186,4 @@ terraform import azurerm_signalr_service.example /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.SignalRService`: 2024-03-01
+* `Microsoft.SignalRService` - 2024-03-01

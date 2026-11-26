@@ -1,16 +1,26 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_active_directory_administrator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_backup"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_database"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_firewall_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_virtual_endpoint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
 var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
@@ -34,35 +44,51 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_server":          dataSourcePostgreSqlServer(),
-		"azurerm_postgresql_flexible_server": dataSourcePostgresqlFlexibleServer(),
+		"azurerm_postgresql_flexible_server": postgresql_flexible_server.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_configuration":                                  resourcePostgreSQLConfiguration(),
-		"azurerm_postgresql_database":                                       resourcePostgreSQLDatabase(),
-		"azurerm_postgresql_firewall_rule":                                  resourcePostgreSQLFirewallRule(),
-		"azurerm_postgresql_server":                                         resourcePostgreSQLServer(),
-		"azurerm_postgresql_server_key":                                     resourcePostgreSQLServerKey(),
-		"azurerm_postgresql_virtual_network_rule":                           resourcePostgreSQLVirtualNetworkRule(),
-		"azurerm_postgresql_active_directory_administrator":                 resourcePostgreSQLAdministrator(),
-		"azurerm_postgresql_flexible_server":                                resourcePostgresqlFlexibleServer(),
-		"azurerm_postgresql_flexible_server_firewall_rule":                  resourcePostgresqlFlexibleServerFirewallRule(),
-		"azurerm_postgresql_flexible_server_configuration":                  resourcePostgresqlFlexibleServerConfiguration(),
-		"azurerm_postgresql_flexible_server_database":                       resourcePostgresqlFlexibleServerDatabase(),
-		"azurerm_postgresql_flexible_server_active_directory_administrator": resourcePostgresqlFlexibleServerAdministrator(),
+		"azurerm_postgresql_flexible_server":                                postgresql_flexible_server.RegisterResource(),
+		"azurerm_postgresql_flexible_server_active_directory_administrator": postgresql_flexible_server_active_directory_administrator.RegisterResource(),
+		"azurerm_postgresql_flexible_server_configuration":                  postgresql_flexible_server_configuration.RegisterResource(),
+		"azurerm_postgresql_flexible_server_database":                       postgresql_flexible_server_database.RegisterResource(),
+		"azurerm_postgresql_flexible_server_firewall_rule":                  postgresql_flexible_server_firewall_rule.RegisterResource(),
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		PostgresqlFlexibleServerVirtualEndpointResource{},
+		postgresql_flexible_server_backup.Resource{},
+		postgresql_flexible_server_virtual_endpoint.Resource{},
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		postgresql_flexible_server_configuration.ListResource{},
+		postgresql_flexible_server_firewall_rule.ListResource{},
+	}
 }

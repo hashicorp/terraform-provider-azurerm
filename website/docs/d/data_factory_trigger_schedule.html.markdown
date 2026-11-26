@@ -69,7 +69,7 @@ A `schedule` block exports the following:
 
 * `minutes` - Minutes of the hour on which the trigger is scheduled.
 
-* `monthly` - A `monthly` block as documented below, which specifies the days of the month on which the trigger is scheduled.
+* `monthly` - A `monthly` block as defined below, which specifies the days of the month on which the trigger is scheduled.
 
 ---
 
@@ -81,6 +81,6 @@ A `monthly` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Data Factory trigger schedule.

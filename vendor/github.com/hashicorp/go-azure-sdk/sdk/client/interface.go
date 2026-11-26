@@ -41,6 +41,9 @@ type BaseClient interface {
 
 	// ClearResponseMiddlewares removes all response middleware functions for the client
 	ClearResponseMiddlewares()
+
+	// SetTransport configures the transport to be used by the client
+	SetTransport(http.RoundTripper)
 }
 
 // RequestRetryFunc is a function that determines whether an HTTP request has failed due to eventual consistency and should be retried

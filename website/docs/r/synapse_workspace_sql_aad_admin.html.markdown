@@ -36,12 +36,13 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "example"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "deployer" {
@@ -97,17 +98,23 @@ resource "azurerm_synapse_workspace_sql_aad_admin" "example" {
 
 The following arguments are supported:
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD Administrator should be configured.
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD SQL Administrator should be configured.
 
-* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace.
+* `login` - (Required) The login name of the Azure AD SQL Administrator of this Synapse Workspace.
 
-* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
+* `object_id` - (Required) The object id of the Azure AD SQL Administrator of this Synapse Workspace.
 
-* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
+* `tenant_id` - (Required) The tenant id of the Azure AD SQL Administrator of this Synapse Workspace.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Synapse Workspace Azure AD SQL Administrator.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Workspace.
@@ -116,7 +123,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Synapse Workspace Azure AD Administrator can be imported using the `resource id`, e.g.
+Synapse Workspace Azure AD SQL Administrator can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_synapse_workspace_sql_aad_admin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlAdministrators/activeDirectory

@@ -11,7 +11,7 @@ description: |-
 
 Manages an EventGrid Topic
 
-~> **Note:** at this time EventGrid Topic's are only available in a limited number of regions.
+~> **Note:** at this time EventGrid Topics are only available in a limited number of regions.
 
 ## Example Usage
 
@@ -32,13 +32,15 @@ resource "azurerm_eventgrid_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventGrid Topic resource. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventGrid Topic exists. Changing this forces a new resource to be created.
+
+* `data_residency_boundary` - (Optional) Specifies the data residency boundary. Possible values are `WithinGeopair`, `WithinRegion`.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -55,6 +57,8 @@ The following arguments are supported:
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Topic. Defaults to `true`.
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
+
+* `minimum_tls_version` - (Optional) The minimum supported TLS version. Possible values are `1.0`, `1.1`, `1.2`. Default is `1.2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -130,7 +134,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Topic.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Topic.
@@ -149,4 +153,4 @@ terraform import azurerm_eventgrid_topic.topic1 /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid`: 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15

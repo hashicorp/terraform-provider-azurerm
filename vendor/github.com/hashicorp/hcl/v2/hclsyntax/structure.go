@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hclsyntax
@@ -42,7 +42,7 @@ type Body struct {
 }
 
 // Assert that *Body implements hcl.Body
-var assertBodyImplBody hcl.Body = &Body{}
+var _ hcl.Body = &Body{}
 
 func (b *Body) walkChildNodes(w internalWalkFunc) {
 	w(b.Attributes)

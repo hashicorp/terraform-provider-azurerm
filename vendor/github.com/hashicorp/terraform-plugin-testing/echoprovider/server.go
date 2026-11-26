@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package echoprovider
@@ -421,4 +421,8 @@ func (e *echoProviderServer) UpgradeResourceIdentity(context.Context, *tfprotov6
 			},
 		},
 	}, nil
+}
+
+func (e *echoProviderServer) GenerateResourceConfig(ctx context.Context, request *tfprotov6.GenerateResourceConfigRequest) (*tfprotov6.GenerateResourceConfigResponse, error) {
+	return &tfprotov6.GenerateResourceConfigResponse{}, nil
 }

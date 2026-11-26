@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -14,6 +14,9 @@ const (
 	// Attribute path representation, which is typically in flatmap form such
 	// as parent.0.child in this project.
 	KeyAttributePath = "tf_attribute_path"
+
+	// The type of action being operated on, such as "examplecloud_do_thing"
+	KeyActionType = "tf_action_type"
 
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
@@ -36,6 +39,12 @@ const (
 
 	// The type of resource being operated on, such as "random_pet"
 	KeyResourceType = "tf_resource_type"
+
+	// The type of list resource being operated on, such as "random_pet"
+	KeyListResourceType = "tf_list_resource_type"
+
+	// The type of state store in use, such as "examplecloud_fs"
+	KeyStateStoreType = "tf_state_store_type"
 
 	// The type of value being operated on, such as "JSONStringValue".
 	KeyValueType = "tf_value_type"

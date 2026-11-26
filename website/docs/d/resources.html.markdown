@@ -48,7 +48,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 ~> **Note:** At least one of `name`, `resource_group_name` or `type` must be specified.
 
@@ -56,7 +56,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 
 * `resource_group_name` - (Optional) The name of the Resource group where the Resources are located.
 
-* `type` - (Optional) The Resource Type of the Resources you want to list (e.g. `Microsoft.Network/virtualNetworks`). A resource type's name follows the format: `{resource-provider}/{resource-type}`. The resource type for a key vault is `Microsoft.KeyVault/vaults`. A full list of available Resource Providers can be found [here](https://docs.microsoft.com/azure/azure-resource-manager/azure-services-resource-providers). A full list of Resources Types can be found [here](https://learn.microsoft.com/en-us/azure/templates/#find-resources).
+* `type` - (Optional) The Resource Type of the Resources you want to list (e.g. `Microsoft.Network/virtualNetworks`). A resource type's name follows the format: `{resource-provider}/{resource-type}`. The resource type for a key vault is `Microsoft.KeyVault/vaults`. A full list of available Resource Providers can be found [here](https://docs.microsoft.com/azure/azure-resource-manager/azure-services-resource-providers). A full list of Resources Types can be found [here](https://learn.microsoft.com/azure/templates/#find-resources).
 
 * `required_tags` - (Optional) A mapping of tags which the resource has to have in order to be included in the result.
 
@@ -82,6 +82,6 @@ The `resource` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resources.

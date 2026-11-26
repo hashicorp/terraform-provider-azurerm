@@ -21,9 +21,13 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             steps {
                 var packageName = "\"%SERVICES%\""
 
+                SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTestsForPullRequest(packageName)
+                PostTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -39,14 +43,18 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()
+                TerraformProviderMirror()
                 ReadOnlySettings()
+                GoCache()
+                BuildStartTime()
 
                 text("SERVICES", "portal")
+                text("env.SCHEDULE_MATCHES", "true")
             }
         }
     }
 
     fun uniqueID(provider : String) : String {
-        return "%s_PR_%s".format(provider.toUpperCase(), environment.toUpperCase())
+        return "%s_PR_%s".format(provider.uppercase(), environment.uppercase())
     }
 }

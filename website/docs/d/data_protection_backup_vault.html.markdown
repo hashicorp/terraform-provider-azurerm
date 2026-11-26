@@ -14,8 +14,8 @@ Use this data source to access information about an existing Backup Vault.
 
 ```hcl
 data "azurerm_data_protection_backup_vault" "example" {
-  name                = "existing-backup-vault"
-  resource_group_name = "existing-resource-group"
+  name                = "example-backup-vault"
+  resource_group_name = "example-resources"
 }
 
 output "azurerm_data_protection_backup_vault_id" {
@@ -57,9 +57,11 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Backup Vault.
 
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Backup Vault.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Vault.
 
@@ -67,4 +69,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DataProtection`: 2024-04-01
+* `Microsoft.DataProtection` - 2025-07-01

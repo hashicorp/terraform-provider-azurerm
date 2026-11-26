@@ -14,7 +14,7 @@ Use this data source to access information about an existing Service Bus Disaste
 
 ```hcl
 data "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
-  name         = "existing"
+  name         = "example-alias"
   namespace_id = "example-namespace-id"
 }
 
@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Disaster Recovery Config.
 
@@ -61,4 +61,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus`: 2021-06-01-preview
+* `Microsoft.ServiceBus` - 2026-01-01

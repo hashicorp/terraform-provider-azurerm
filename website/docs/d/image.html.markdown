@@ -24,7 +24,7 @@ output "image_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Optional) The name of the Image.
 * `name_regex` - (Optional) Regex pattern of the image to match.
@@ -33,7 +33,7 @@ output "image_id" {
 
 ## Attributes Reference
 
-* `data_disk` - a collection of `data_disk` blocks as defined below.
+* `data_disk` - One or more `data_disk` blocks as defined below.
 * `name` - the name of the Image.
 * `location` - the Azure Location where this Image exists.
 * `os_disk` - a `os_disk` block as defined below.
@@ -59,7 +59,7 @@ output "image_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Image.
 
@@ -67,4 +67,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2022-03-01
+* `Microsoft.Compute` - 2022-03-01

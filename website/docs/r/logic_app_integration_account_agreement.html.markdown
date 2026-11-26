@@ -82,11 +82,11 @@ The following arguments are supported:
 
 * `content` - (Required) The content of the Logic App Integration Account Agreement.
 
-* `guest_identity` - (Required) A `guest_identity` block as documented below.
+* `guest_identity` - (Required) A `guest_identity` block as defined below.
 
 * `guest_partner_name` - (Required) The name of the guest Logic App Integration Account Partner.
 
-* `host_identity` - (Required) A `host_identity` block as documented below.
+* `host_identity` - (Required) A `host_identity` block as defined below.
 
 * `host_partner_name` - (Required) The name of the host Logic App Integration Account Partner.
 
@@ -116,7 +116,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Integration Account Agreement.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Integration Account Agreement.
@@ -135,4 +135,4 @@ terraform import azurerm_logic_app_integration_account_agreement.example /subscr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Logic`: 2019-05-01
+* `Microsoft.Logic` - 2019-05-01

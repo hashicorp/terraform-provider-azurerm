@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -10,6 +10,7 @@ import (
 
 func ResourceGroupName() *schema.Schema {
 	return &schema.Schema{
+		Description:  "The name of the resource group in which to create the resource.",
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -19,6 +20,7 @@ func ResourceGroupName() *schema.Schema {
 
 func ResourceGroupNameDeprecated() *schema.Schema {
 	return &schema.Schema{
+		Description:  "The name of the resource group in which to create the resource.",
 		Type:         schema.TypeString,
 		Optional:     true,
 		ValidateFunc: resourcegroups.ValidateName,
@@ -28,6 +30,7 @@ func ResourceGroupNameDeprecated() *schema.Schema {
 
 func ResourceGroupNameDeprecatedComputed() *schema.Schema {
 	return &schema.Schema{
+		Description:  "The name of the resource group in which to create the resource.",
 		Type:         schema.TypeString,
 		Optional:     true,
 		Computed:     true,
@@ -38,6 +41,7 @@ func ResourceGroupNameDeprecatedComputed() *schema.Schema {
 
 func ResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
+		Description:  "The name of the resource group in which the resource is located.",
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: resourcegroups.ValidateName,
@@ -46,6 +50,7 @@ func ResourceGroupNameForDataSource() *schema.Schema {
 
 func ResourceGroupNameOptionalComputed() *schema.Schema {
 	return &schema.Schema{
+		Description:  "The name of the resource group in which to create the resource.",
 		Type:         schema.TypeString,
 		ForceNew:     true,
 		Optional:     true,
@@ -56,16 +61,18 @@ func ResourceGroupNameOptionalComputed() *schema.Schema {
 
 func ResourceGroupNameOptional() *schema.Schema {
 	return &schema.Schema{
+		Description:  "The name of the resource group in which to create the resource.",
 		Type:         schema.TypeString,
 		Optional:     true,
 		ValidateFunc: resourcegroups.ValidateName,
 	}
 }
 
-func ResourceGroupNameSetOptional() *schema.Schema {
+func ResourceGroupNameSetOptional(description string) *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
+		Description: description,
+		Type:        schema.TypeSet,
+		Optional:    true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
 			ValidateFunc: resourcegroups.ValidateName,

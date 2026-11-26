@@ -14,8 +14,8 @@ Use this data source to access information about an existing Service Bus Topic.
 
 ```hcl
 data "azurerm_servicebus_topic" "example" {
-  name         = "existing"
-  namespace_id = "existing"
+  name         = "example-topic"
+  namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ServiceBus/namespaces/example-namespace"
 }
 
 output "id" {
@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `partitioning_enabled` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
 
+* `maximum_message_size_in_kb` - Integer value which controls the maximum size of a message allowed on the topic for Premium SKU.
+
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - Boolean flag which controls whether the Topic requires duplicate detection.
@@ -59,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Topic.
 
@@ -67,4 +69,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus`: 2022-10-01-preview, 2021-06-01-preview
+* `Microsoft.ServiceBus` - 2026-01-01

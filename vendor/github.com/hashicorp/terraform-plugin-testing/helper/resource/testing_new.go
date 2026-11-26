@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -62,8 +62,17 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		protov6: c.ProtoV6ProviderFactories,
 	}
 
+	// If any of the test steps used the StateStore mode and tested an error, make sure we don't execute any more commands with an invalid state store
+	var initializationErrorOccurred bool
+
 	defer func() {
 		t.Helper()
+
+		// We can't retrieve the state because the backend/state store isn't fully initialized.
+		if initializationErrorOccurred {
+			wd.Close()
+			return
+		}
 
 		var statePreDestroy *terraform.State
 		var err error
@@ -131,7 +140,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 	// use this to track last step successfully applied
 	// acts as default for import tests
-	var appliedCfg string
+	var appliedCfg teststep.Config
 	var stepNumber int
 
 	for stepIndex, step := range c.Steps {
@@ -254,7 +263,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 			testStepConfig = teststep.Configuration(confRequest)
 
-			err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			if !step.Query {
+				err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			}
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -356,6 +367,88 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			continue
 		}
 
+		if step.Query {
+			logging.HelperResourceTrace(ctx, "TestStep is Query mode")
+
+			err := testStepNewQuery(ctx, t, wd, step, providers)
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running query: expected an error but got none")
+					t.Fatalf("Step %d/%d error running query: expected an error but got none", stepNumber, len(c.Steps))
+				}
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running query: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running query",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query checks: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+
+		if step.StateStore {
+			logging.HelperResourceTrace(ctx, "TestStep is StateStore mode")
+
+			err := testStepNewStateStore(ctx, t, wd, step, providers, cfg)
+			if err == nil && step.VerifyStateStoreLock {
+				logging.HelperResourceTrace(ctx, "TestStep is running VerifyStateStoreLock logic")
+				err = testStepVerifyStateStoreLock(ctx, t, step, providers, cfg, helper)
+			}
+
+			if err != nil {
+				// Ensure the TestStep doesn't run any Terraform commands that expect the backend/state store to be initialized
+				initializationErrorOccurred = true
+			}
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running state store tests: expected an error but got none")
+					t.Fatalf("Step %d/%d error running state store tests: expected an error but got none", stepNumber, len(c.Steps))
+				}
+
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running state store tests: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running state store tests, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running state store tests",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running state store tests: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+
 		if cfg != nil {
 			logging.HelperResourceTrace(ctx, "TestStep is Config mode")
 
@@ -418,7 +511,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				}
 			}
 
-			appliedCfg, err = step.mergedConfig(ctx, c, hasTerraformBlock, hasProviderBlock, helper.TerraformVersion())
+			mergedConfig, err := step.mergedConfig(ctx, c, hasTerraformBlock, hasProviderBlock, helper.TerraformVersion())
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -427,6 +520,19 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				)
 				t.Fatalf("Error generating merged configuration: %s", err)
 			}
+
+			// Preserve the step config for future test steps to use (import state)
+			confRequest := teststep.PrepareConfigurationRequest{
+				Directory: step.ConfigDirectory,
+				File:      step.ConfigFile,
+				Raw:       mergedConfig,
+				TestStepConfigRequest: config.TestStepConfigRequest{
+					StepNumber: stepNumber,
+					TestName:   t.Name(),
+				},
+			}.Exec()
+
+			appliedCfg = teststep.Configuration(confRequest)
 
 			logging.HelperResourceDebug(ctx, "Finished TestStep")
 
@@ -633,7 +739,7 @@ func copyWorkingDir(ctx context.Context, t testing.T, stepNumber int, wd *plugin
 	dest := filepath.Join(workingDir, fmt.Sprintf("%s%s", "step_", strconv.Itoa(stepNumber)))
 
 	baseDir := wd.BaseDir()
-	rootBaseDir := strings.TrimLeft(baseDir, workingDir)
+	rootBaseDir := strings.TrimPrefix(baseDir, workingDir)
 
 	err := plugintest.CopyDir(workingDir, dest, rootBaseDir)
 	if err != nil {

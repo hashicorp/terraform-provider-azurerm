@@ -61,9 +61,20 @@ func (c WebAppsClient) CreateMSDeployOperationSlot(ctx context.Context, id SlotI
 
 // CreateMSDeployOperationSlotThenPoll performs CreateMSDeployOperationSlot then polls until it's completed
 func (c WebAppsClient) CreateMSDeployOperationSlotThenPoll(ctx context.Context, id SlotId, input MSDeploy) error {
+	return c.CreateMSDeployOperationSlotCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateMSDeployOperationSlotCallbackThenPoll performs CreateMSDeployOperationSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) CreateMSDeployOperationSlotCallbackThenPoll(ctx context.Context, id SlotId, input MSDeploy, callback func() error) error {
 	result, err := c.CreateMSDeployOperationSlot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateMSDeployOperationSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

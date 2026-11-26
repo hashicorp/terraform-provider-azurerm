@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package teststep
@@ -54,6 +54,20 @@ func (c configurationString) Write(ctx context.Context, dest string) error {
 
 	err := os.WriteFile(outFilename, bCfg, 0700)
 
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WriteQuery creates a file and writes c.raw into it.
+func (c configurationString) WriteQuery(ctx context.Context, dest string) error {
+	outFilename := filepath.Join(dest, rawQueryConfigFileName)
+
+	bCfg := []byte(c.raw)
+
+	err := os.WriteFile(outFilename, bCfg, 0700)
 	if err != nil {
 		return err
 	}

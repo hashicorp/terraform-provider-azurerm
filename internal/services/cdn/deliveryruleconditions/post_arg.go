@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -6,16 +6,17 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func PostArg() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"selector": {
+				Description:  "Name of the post arg.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -44,9 +45,10 @@ func PostArg() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of string values.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -54,38 +56,36 @@ func PostArg() *pluginsdk.Resource {
 			},
 
 			"transforms": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of transforms.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},
 	}
 }
 
-func ExpandArmCdnEndpointConditionPostArg(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionPostArg(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		condition := cdn.DeliveryRulePostArgsCondition{
 			Name: cdn.NameCookies,
 			Parameters: &cdn.PostArgsMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRulePostArgsConditionParameters"),
-				Selector:        utils.String(item["selector"].(string)),
+				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRulePostArgsConditionParameters"),
+				Selector:        pointer.To(item["selector"].(string)),
 				Operator:        cdn.PostArgsOperator(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+				MatchValues:     pluginsdk.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -99,14 +99,14 @@ func ExpandArmCdnEndpointConditionPostArg(input []interface{}) []cdn.BasicDelive
 	return output
 }
 
-func FlattenArmCdnEndpointConditionPostArg(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionPostArg(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRulePostArgsCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule post args condition")
 	}
 
 	operator := ""
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	selector := ""
 	transforms := make([]string, 0)
@@ -123,7 +123,7 @@ func FlattenArmCdnEndpointConditionPostArg(input cdn.BasicDeliveryRuleCondition)
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = pluginsdk.FlattenSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
@@ -133,7 +133,7 @@ func FlattenArmCdnEndpointConditionPostArg(input cdn.BasicDeliveryRuleCondition)
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"operator":         operator,
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,

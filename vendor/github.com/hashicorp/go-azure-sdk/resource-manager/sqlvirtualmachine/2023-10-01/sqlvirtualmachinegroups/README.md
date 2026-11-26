@@ -100,6 +100,23 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `SqlVirtualMachineGroupsClient.SqlVirtualMachinesListBySqlVMGroup`
+
+```go
+ctx := context.TODO()
+id := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName")
+
+// alternatively `client.SqlVirtualMachinesListBySqlVMGroup(ctx, id)` can be used to do batched pagination
+items, err := client.SqlVirtualMachinesListBySqlVMGroupComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
 ### Example Usage: `SqlVirtualMachineGroupsClient.Update`
 
 ```go

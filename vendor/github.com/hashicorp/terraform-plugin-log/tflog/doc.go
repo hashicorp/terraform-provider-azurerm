@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2021, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 // Package tflog provides helper functions for writing log output and creating
 // loggers for Terraform plugins.
 //

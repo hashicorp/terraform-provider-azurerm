@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 )
@@ -24,7 +24,7 @@ func (f *File) Save(filename string) error {
 	if err := f.Render(buf); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(filename, buf.Bytes(), 0644); err != nil {
+	if err := os.WriteFile(filename, buf.Bytes(), 0644); err != nil {
 		return err
 	}
 	return nil

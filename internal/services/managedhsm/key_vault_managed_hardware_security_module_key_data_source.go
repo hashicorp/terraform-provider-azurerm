@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -18,17 +19,17 @@ import (
 )
 
 type KeyVaultMHSMKeyDataSourceModel struct {
-	ManagedHSMID   string                 `tfschema:"managed_hsm_id"`
-	Name           string                 `tfschema:"name"`
-	KeyType        string                 `tfschema:"key_type"`
-	KeyOpts        []string               `tfschema:"key_opts"`
-	KeySize        int64                  `tfschema:"key_size"`
-	Curve          string                 `tfschema:"curve"`
-	NotBeforeDate  string                 `tfschema:"not_before_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Tags           map[string]interface{} `tfschema:"tags"`
-	VersionedId    string                 `tfschema:"versioned_id"`
-	Version        string                 `tfschema:"version"`
+	ManagedHSMID   string         `tfschema:"managed_hsm_id"`
+	Name           string         `tfschema:"name"`
+	KeyType        string         `tfschema:"key_type"`
+	KeyOpts        []string       `tfschema:"key_opts"`
+	KeySize        int64          `tfschema:"key_size"`
+	Curve          string         `tfschema:"curve"`
+	NotBeforeDate  string         `tfschema:"not_before_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Tags           map[string]any `tfschema:"tags"`
+	VersionedId    string         `tfschema:"versioned_id"`
+	Version        string         `tfschema:"version"`
 }
 
 type KeyvaultMHSMKeyDataSource struct{}
@@ -37,14 +38,14 @@ type KeyvaultMHSMKeyDataSource struct{}
 func (k KeyvaultMHSMKeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
 		},
 	}
@@ -92,15 +93,15 @@ func (k KeyvaultMHSMKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"versioned_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
-func (k KeyvaultMHSMKeyDataSource) ModelObject() interface{} {
+func (k KeyvaultMHSMKeyDataSource) ModelObject() any {
 	return &KeyVaultMHSMKeyDataSourceModel{}
 }
 

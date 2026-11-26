@@ -46,7 +46,7 @@ resource "azurerm_app_service_slot_custom_hostname_binding" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -72,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Custom Hostname Binding.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Custom Hostname Binding.
@@ -85,3 +85,9 @@ App Service Custom Hostname Bindings can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_app_service_slot_custom_hostname_binding.mywebsite /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/staging/hostNameBindings/mywebsite.com
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

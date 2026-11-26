@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwschemadata
@@ -11,6 +11,10 @@ const (
 	// DataDescriptionPlan is used for Data that represents
 	// a plan-based value.
 	DataDescriptionPlan DataDescription = "plan"
+
+	// DataDescriptionResource is used for Data that represents
+	// a resource value.
+	DataDescriptionResource DataDescription = "resource"
 
 	// DataDescriptionState is used for Data that represents
 	// a state-based value.

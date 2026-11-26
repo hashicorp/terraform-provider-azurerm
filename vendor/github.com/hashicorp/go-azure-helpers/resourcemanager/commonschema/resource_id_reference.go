@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -11,8 +11,10 @@ import (
 )
 
 // ResourceIDReferenceOptional returns the schema for a Resource ID Reference which is Optional.
-func ResourceIDReferenceOptional(id resourceids.ResourceId) *schema.Schema {
+func ResourceIDReferenceOptional(id resourceids.ResourceId, idDescriptor string) *schema.Schema {
 	return &schema.Schema{
+		// E.g. `The ID of the Route Table.`
+		Description:  "The ID of the " + idDescriptor + ".",
 		Type:         schema.TypeString,
 		Optional:     true,
 		ValidateFunc: validationFunctionForResourceID(id),
@@ -29,8 +31,9 @@ func ResourceIDReferenceElem(id resourceids.ResourceId) *schema.Schema {
 
 // ResourceIDReferenceOptionalForceNew returns the schema for a Resource ID Reference
 // which is both Optional and ForceNew.
-func ResourceIDReferenceOptionalForceNew(id resourceids.ResourceId) *schema.Schema {
+func ResourceIDReferenceOptionalForceNew(id resourceids.ResourceId, idDescriptor string) *schema.Schema {
 	return &schema.Schema{
+		Description:  "The ID of the " + idDescriptor + ".",
 		Type:         schema.TypeString,
 		Optional:     true,
 		ForceNew:     true,
@@ -39,8 +42,9 @@ func ResourceIDReferenceOptionalForceNew(id resourceids.ResourceId) *schema.Sche
 }
 
 // ResourceIDReferenceRequired returns the schema for a Resource ID Reference which is Required.
-func ResourceIDReferenceRequired(id resourceids.ResourceId) *schema.Schema {
+func ResourceIDReferenceRequired(id resourceids.ResourceId, idDescriptor string) *schema.Schema {
 	return &schema.Schema{
+		Description:  "The ID of the " + idDescriptor + ".",
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validationFunctionForResourceID(id),
@@ -49,8 +53,9 @@ func ResourceIDReferenceRequired(id resourceids.ResourceId) *schema.Schema {
 
 // ResourceIDReferenceRequiredForceNew returns the schema for a Resource ID Reference
 // which is both Required and ForceNew.
-func ResourceIDReferenceRequiredForceNew(id resourceids.ResourceId) *schema.Schema {
+func ResourceIDReferenceRequiredForceNew(id resourceids.ResourceId, idDescriptor string) *schema.Schema {
 	return &schema.Schema{
+		Description:  "The ID of the " + idDescriptor + ".",
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,

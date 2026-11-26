@@ -37,7 +37,7 @@ resource "azurerm_api_management" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `BasicV2`, `Standard`, `StandardV2`, `Premium` and `PremiumV2`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ~> **Note:** Premium SKUs are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
@@ -151,15 +151,15 @@ A `delegation` block supports the following:
 
 A `hostname_configuration` block supports the following:
 
-* `management` - (Optional) One or more `management` blocks as documented below.
+* `management` - (Optional) One or more `management` blocks as defined below.
 
-* `portal` - (Optional) One or more `portal` blocks as documented below.
+* `portal` - (Optional) One or more `portal` blocks as defined below.
 
-* `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
+* `developer_portal` - (Optional) One or more `developer_portal` blocks as defined below.
 
-* `proxy` - (Optional) One or more `proxy` blocks as documented below.
+* `proxy` - (Optional) One or more `proxy` blocks as defined below.
 
-* `scm` - (Optional) One or more `scm` blocks as documented below.
+* `scm` - (Optional) One or more `scm` blocks as defined below.
 
 ---
 
@@ -335,7 +335,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the API Management Service.
 
-* `additional_location` - Zero or more `additional_location` blocks as documented below.
+* `additional_location` - Zero or more `additional_location` blocks as defined below.
 
 * `gateway_url` - The URL of the Gateway for the API Management Service.
 
@@ -357,7 +357,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
-* `tenant_access` - The `tenant_access` block as documented below.
+* `tenant_access` - The `tenant_access` block as defined below.
 
 ---
 
@@ -413,7 +413,7 @@ The `proxy` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the API Management Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
@@ -432,4 +432,4 @@ terraform import azurerm_api_management.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement` - 2024-05-01, 2022-08-01

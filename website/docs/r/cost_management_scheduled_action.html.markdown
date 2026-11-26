@@ -36,11 +36,9 @@ The following arguments are supported:
 
 * `display_name` - (Required) User visible input name of the Cost Management Scheduled Action.
 
-* `email_address_sender` - (Required) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
-
 * `email_addresses` - (Required) Specifies a list of email addresses that will receive the Scheduled Action.
 
-* `email_subject` - (Required) Subject of the email. Length is limited to 70 characters.
+* `email_subject` - (Required) Subject of the email. Length is limited to 50 characters.
 
 * `end_date` - (Required) The end date and time of the Scheduled Action (UTC).
 
@@ -53,6 +51,10 @@ The following arguments are supported:
 * `view_id` - (Required) The ID of the Cost Management View that is used by the Scheduled Action. Changing this forces a new resource to be created.
 
 ---
+
+* `email_address_sender` - (Optional) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
+
+~> **Note:** This attribute is only optional when you use a user principal to run `terraform`, which the API will fallback to using your user's email address (from your profile). If you use a service principal, this attribute is mandatory to specify.
 
 * `day_of_month` - (Optional) UTC day on which cost analysis data will be emailed. Must be between `1` and `31`. This property is applicable when `frequency` is `Monthly`.
 
@@ -72,7 +74,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Cost Management Scheduled Action.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Cost Management Scheduled Action.
@@ -91,4 +93,4 @@ terraform import azurerm_cost_management_scheduled_action.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement`: 2023-08-01
+* `Microsoft.CostManagement` - 2025-03-01

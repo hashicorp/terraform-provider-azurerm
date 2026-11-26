@@ -30,7 +30,7 @@ resource "azurerm_eventgrid_domain" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
+* `data_residency_boundary` - (Optional) Specifies the data residency boundary. Possible values are `WithinGeopair`, `WithinRegion`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Domain. Defaults to `true`.
@@ -57,6 +59,8 @@ The following arguments are supported:
 * `auto_delete_topic_with_last_subscription` - (Optional) Whether to delete the domain topic when the last event subscription at the scope of the domain topic is deleted. Defaults to `true`.
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
+
+* `minimum_tls_version` - (Optional) The minimum TLS version that clients can use. Possible values are `1.0`, `1.1`, `1.2`. Default is `1.2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -132,7 +136,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Domain.
@@ -151,4 +155,4 @@ terraform import azurerm_eventgrid_domain.domain1 /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid`: 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15

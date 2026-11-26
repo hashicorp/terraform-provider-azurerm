@@ -14,8 +14,8 @@ Use this data source to access information about an existing Load Balancer Outbo
 
 ```hcl
 data "azurerm_lb_outbound_rule" "example" {
-  name            = "existing_lb_outbound_rule"
-  loadbalancer_id = "existing_load_balancer_id"
+  name            = "example-outbound-rule"
+  loadbalancer_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.Network/loadBalancers/example-lb"
 }
 
 output "id" {
@@ -59,7 +59,7 @@ A `frontend_ip_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer Outbound Rule.
 
@@ -67,4 +67,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2023-09-01
+* `Microsoft.Network` - 2025-07-01

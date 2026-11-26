@@ -14,8 +14,8 @@ Use this data source to access information about an existing Windows Web App.
 
 ```hcl
 data "azurerm_windows_web_app" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-web-app"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -761,7 +761,7 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.
 
@@ -769,4 +769,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01
+* `Microsoft.Web` - 2023-12-01

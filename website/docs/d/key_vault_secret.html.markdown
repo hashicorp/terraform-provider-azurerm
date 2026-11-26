@@ -18,7 +18,7 @@ Use this data source to access information about an existing Key Vault Secret.
 ```hcl
 data "azurerm_key_vault_secret" "example" {
   name         = "secret-sauce"
-  key_vault_id = data.azurerm_key_vault.existing.id
+  key_vault_id = data.azurerm_key_vault.example.id
 }
 
 output "secret_value" {
@@ -63,6 +63,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Secret.

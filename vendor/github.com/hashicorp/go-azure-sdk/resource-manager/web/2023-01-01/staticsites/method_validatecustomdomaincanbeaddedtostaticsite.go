@@ -61,9 +61,20 @@ func (c StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSite(ctx contex
 
 // ValidateCustomDomainCanBeAddedToStaticSiteThenPoll performs ValidateCustomDomainCanBeAddedToStaticSite then polls until it's completed
 func (c StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSiteThenPoll(ctx context.Context, id CustomDomainId, input StaticSiteCustomDomainRequestPropertiesARMResource) error {
+	return c.ValidateCustomDomainCanBeAddedToStaticSiteCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateCustomDomainCanBeAddedToStaticSiteCallbackThenPoll performs ValidateCustomDomainCanBeAddedToStaticSite, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSiteCallbackThenPoll(ctx context.Context, id CustomDomainId, input StaticSiteCustomDomainRequestPropertiesARMResource, callback func() error) error {
 	result, err := c.ValidateCustomDomainCanBeAddedToStaticSite(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateCustomDomainCanBeAddedToStaticSite: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

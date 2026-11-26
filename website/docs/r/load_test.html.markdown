@@ -6,8 +6,6 @@ description: |-
   Manages a Load Test.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_load_test
 
 Manages a Load Test Service.
@@ -35,17 +33,17 @@ resource "azurerm_load_test" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Load Test should exist. Changing this forces a new Load Test to be created.
-
 * `name` - (Required) Specifies the name of this Load Test. Changing this forces a new Load Test to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Load Test should exist. Changing this forces a new Load Test to be created.
 
+* `location` - (Required) The Azure Region where the Load Test should exist. Changing this forces a new Load Test to be created.
+
 * `description` - (Optional) Description of the resource.
 
-* `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
-
 * `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new Load Test to be created.
+
+* `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Load Test.
 
@@ -60,7 +58,7 @@ The `identity` block supports the following arguments:
 In addition to the arguments defined above, the `identity` block exports the following attributes:
 
 * `principal_id` - The Principal ID for the System-Assigned Managed Identity assigned to this Load Test.
-* 
+
 * `tenant_id` - The Tenant ID for the System-Assigned Managed Identity assigned to this Load Test.
 
 ---
@@ -79,6 +77,8 @@ The `identity` block for `encryption` supports the following arguments:
 
 * `identity_id` - (Required) The User Assigned Identity ID that should be assigned to this Load Test Encryption. Changing this forces a new Load Test to be created.
 
+~> **Note:** The User Assigned Identity ID specified here must also exist in `identity.identity_ids`.
+
 
 ## Attributes Reference
 
@@ -90,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Test.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Test.
@@ -113,4 +113,4 @@ terraform import azurerm_load_test.example /subscriptions/{subscriptionId}/resou
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.LoadTestService`: 2022-12-01
+* `Microsoft.LoadTestService` - 2022-12-01

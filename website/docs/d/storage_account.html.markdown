@@ -24,9 +24,10 @@ output "storage_account_tier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Storage Account
+
 * `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
 
 ## Attributes Reference
@@ -35,7 +36,7 @@ output "storage_account_tier" {
 
 * `location` - The Azure location where the Storage Account exists
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 * `account_kind` - The Kind of account.
 
@@ -57,11 +58,13 @@ output "storage_account_tier" {
 
 * `nfsv3_enabled` - Is NFSv3 protocol enabled?
 
-* `custom_domain` - A `custom_domain` block as documented below.
+* `custom_domain` - A `custom_domain` block as defined below.
 
 * `tags` - A mapping of tags to assigned to the resource.
 
 * `primary_location` - The primary location of the Storage Account.
+
+* `public_network_access` - The public network access setting of the Storage Account.
 
 * `secondary_location` - The secondary location of the Storage Account.
 
@@ -214,7 +217,9 @@ output "storage_account_tier" {
 * `infrastructure_encryption_enabled` - Is infrastructure encryption enabled? See [here](https://docs.microsoft.com/azure/storage/common/infrastructure-encryption-enable/)
     for more information.
 
-* `azure_files_authentication` - A `azure_files_authentication` block as documented below.
+* `azure_files_authentication` - A `azure_files_authentication` block as defined below.
+
+* `smb_oauth_enabled` - Whether managed identities can access SMB Azure file shares using OAuth.
 
 ---
 
@@ -240,7 +245,7 @@ output "storage_account_tier" {
 
 * `directory_type` - The directory service used for this Storage Account.
 
-* `active_directory` - An `active_directory` block as documented below.
+* `active_directory` - An `active_directory` block as defined below.
 
 * `default_share_level_permission` - The default share level permissions applied to all users.
 
@@ -262,7 +267,7 @@ output "storage_account_tier" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
 
@@ -270,4 +275,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

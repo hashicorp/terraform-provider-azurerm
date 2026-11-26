@@ -1,8 +1,0 @@
-<!--
- Copyright (c) HashiCorp, Inc.
- SPDX-License-Identifier: MPL-2.0
--->
-
-<fragment>
-  <set-variable name="var" value="@("user id:" + context.User?.Id)" />
-</fragment>

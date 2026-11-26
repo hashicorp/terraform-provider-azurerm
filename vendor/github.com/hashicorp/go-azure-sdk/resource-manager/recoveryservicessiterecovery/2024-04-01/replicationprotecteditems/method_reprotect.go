@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) Reprotect(ctx context.Context, id Repli
 
 // ReprotectThenPoll performs Reprotect then polls until it's completed
 func (c ReplicationProtectedItemsClient) ReprotectThenPoll(ctx context.Context, id ReplicationProtectedItemId, input ReverseReplicationInput) error {
+	return c.ReprotectCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReprotectCallbackThenPoll performs Reprotect, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) ReprotectCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input ReverseReplicationInput, callback func() error) error {
 	result, err := c.Reprotect(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Reprotect: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

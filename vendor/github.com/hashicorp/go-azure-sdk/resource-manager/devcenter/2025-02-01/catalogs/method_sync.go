@@ -56,9 +56,20 @@ func (c CatalogsClient) Sync(ctx context.Context, id DevCenterCatalogId) (result
 
 // SyncThenPoll performs Sync then polls until it's completed
 func (c CatalogsClient) SyncThenPoll(ctx context.Context, id DevCenterCatalogId) error {
+	return c.SyncCallbackThenPoll(ctx, id, nil)
+}
+
+// SyncCallbackThenPoll performs Sync, runs the optional callback function, then polls until it's completed
+func (c CatalogsClient) SyncCallbackThenPoll(ctx context.Context, id DevCenterCatalogId, callback func() error) error {
 	result, err := c.Sync(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Sync: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

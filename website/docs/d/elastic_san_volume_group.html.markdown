@@ -14,12 +14,12 @@ Use this data source to access information about an existing Elastic SAN Volume 
 
 ```hcl
 data "azurerm_elastic_san" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-elastic-san"
+  resource_group_name = "example-resources"
 }
 
 data "azurerm_elastic_san_volume_group" "example" {
-  name           = "existing"
+  name           = "example-volume-group"
   elastic_san_id = data.azurerm_elastic_san.example.id
 }
 
@@ -88,7 +88,7 @@ A `network_rule` block exports the following arguments:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume Group.
 
@@ -96,4 +96,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ElasticSan`: 2023-01-01
+* `Microsoft.ElasticSan` - 2023-01-01

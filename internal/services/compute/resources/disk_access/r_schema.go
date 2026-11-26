@@ -1,0 +1,26 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package disk_access
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+func diskAccessSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description: "The name which should be used for this Disk Access.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
+
+		"tags": commonschema.Tags(),
+	}
+}

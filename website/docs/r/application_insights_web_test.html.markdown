@@ -10,6 +10,8 @@ description: |-
 
 Manages an Application Insights WebTest.
 
+~> **Note:** Despite the discrepancy in its name, this Terraform resource corresponds to the Azure resource 'Application Insights Classic Web Test'. Azure changed the name, but we retained the original name in Terraform to avoid disruption and ensure backward compatibility.
+
 ## Example Usage
 
 ```hcl
@@ -55,7 +57,7 @@ output "webtests_synthetic_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -87,9 +89,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Application Insights Web Test.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Web Test.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Web Test.
@@ -108,4 +116,4 @@ terraform import azurerm_application_insights_web_test.my_test /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2022-06-15
+* `Microsoft.Insights` - 2022-06-15

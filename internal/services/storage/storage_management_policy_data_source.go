@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -49,14 +49,14 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 									"prefix_match": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 
 									"match_blob_index_tag": {
@@ -219,7 +219,7 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

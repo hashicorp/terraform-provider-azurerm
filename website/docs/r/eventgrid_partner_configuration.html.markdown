@@ -52,9 +52,11 @@ The following arguments are supported:
 
 A `partner_authorization` block supports the following:
 
-* `partner_name` - (Required) The partner name.
+* `partner_name` - (Optional) The name of a verified partner.
 
-* `partner_registration_id` - (Required) The immutable id of the corresponding partner registration.
+* `partner_registration_id` - (Optional) The immutable id of the corresponding partner registration.
+
+~> **Note:** At least one of `partner_name` or `partner_registration_id` must be provided in each `partner_authorization` block.
 
 * `authorization_expiration_time_in_utc` - (Optional) Expiration time of the partner authorization. Value should be in RFC 3339 format in UTC time zone, for example: "2025-02-04T00:00:00Z".
 
@@ -68,7 +70,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Event Grid Partner Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid Partner Configuration.
@@ -87,4 +89,4 @@ terraform import azurerm_eventgrid_partner_configuration.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid`: 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15

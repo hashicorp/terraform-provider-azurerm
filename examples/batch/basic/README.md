@@ -5,9 +5,9 @@ This example provisions the following Resources:
 ## Creates
 
 1. A Resource Group
-2. A [Storage Account](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#azure-storage-account)
-3. A [Batch Account](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#account)
-4. Two [Batch pools](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#pool): one with fixed scale and the other with auto-scale
+2. A [Storage Account](https://docs.microsoft.com/azure/batch/batch-api-basics#azure-storage-account)
+3. A [Batch Account](https://docs.microsoft.com/azure/batch/batch-api-basics#account)
+4. Two [Batch pools](https://docs.microsoft.com/azure/batch/batch-api-basics#pool): one with fixed scale and the other with auto-scale
 
 ## Usage
 
@@ -17,7 +17,7 @@ This example provisions the following Resources:
 
 ## Example Usage with User Subscription mode
 
-It's also possible to deploy Azure Batch Account in User Subscription mode. In this mode, all the machines that will be created by batch pools will be created in the user Azure subscription. In this mode, you need to specify a reference to an Azure Key Vault that will be used by Azure Batch to store and retrieve sensitive information. You can read more about User Subscription mode in Azure Batch on [this page](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#account).
+It's also possible to deploy Azure Batch Account in User Subscription mode. In this mode, all the machines that will be created by batch pools will be created in the user Azure subscription. In this mode, you need to specify a reference to an Azure Key Vault that will be used by Azure Batch to store and retrieve sensitive information. You can read more about User Subscription mode in Azure Batch on [this page](https://docs.microsoft.com/azure/batch/batch-api-basics#account).
 
 ~> **NOTE:** the script below uses the also the [AzureAD provider](https://www.terraform.io/docs/providers/azuread/) to retrieve the "Microsoft Azure Batch" service principal information.
 
@@ -37,6 +37,7 @@ resource "azurerm_key_vault" "example" {
   name                            = "batchkv"
   location                        = "${azurerm_resource_group.example.location}"
   resource_group_name             = "${azurerm_resource_group.example.name}"
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true

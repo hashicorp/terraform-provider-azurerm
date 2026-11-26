@@ -57,9 +57,20 @@ func (c IntegrationRuntimesClient) Stop(ctx context.Context, id IntegrationRunti
 
 // StopThenPoll performs Stop then polls until it's completed
 func (c IntegrationRuntimesClient) StopThenPoll(ctx context.Context, id IntegrationRuntimeId) error {
+	return c.StopCallbackThenPoll(ctx, id, nil)
+}
+
+// StopCallbackThenPoll performs Stop, runs the optional callback function, then polls until it's completed
+func (c IntegrationRuntimesClient) StopCallbackThenPoll(ctx context.Context, id IntegrationRuntimeId, callback func() error) error {
 	result, err := c.Stop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Stop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

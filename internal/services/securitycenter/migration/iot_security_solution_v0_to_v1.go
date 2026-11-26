@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 )
@@ -36,10 +35,10 @@ func (s SecurityCenterIotSecuritySolutionV0ToV1) Schema() map[string]*pluginsdk.
 		"iothub_ids": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      set.HashStringIgnoreCase,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: set.HashStringIgnoreCase,
 		},
 
 		"additional_workspace": {
@@ -217,12 +216,12 @@ func (s SecurityCenterIotSecuritySolutionV0ToV1) Schema() map[string]*pluginsdk.
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
 func (s SecurityCenterIotSecuritySolutionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		newId, err := parse.IotSecuritySolutionIDInsensitively(oldId)
 		if err != nil {

@@ -62,9 +62,20 @@ func (c DeploymentsClient) CreateOrUpdateAtManagementGroupScope(ctx context.Cont
 
 // CreateOrUpdateAtManagementGroupScopeThenPoll performs CreateOrUpdateAtManagementGroupScope then polls until it's completed
 func (c DeploymentsClient) CreateOrUpdateAtManagementGroupScopeThenPoll(ctx context.Context, id Providers2DeploymentId, input ScopedDeployment) error {
+	return c.CreateOrUpdateAtManagementGroupScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateAtManagementGroupScopeCallbackThenPoll performs CreateOrUpdateAtManagementGroupScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) CreateOrUpdateAtManagementGroupScopeCallbackThenPoll(ctx context.Context, id Providers2DeploymentId, input ScopedDeployment, callback func() error) error {
 	result, err := c.CreateOrUpdateAtManagementGroupScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateAtManagementGroupScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

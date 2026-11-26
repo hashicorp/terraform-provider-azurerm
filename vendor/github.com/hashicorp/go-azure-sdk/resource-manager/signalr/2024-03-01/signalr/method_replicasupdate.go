@@ -62,9 +62,20 @@ func (c SignalRClient) ReplicasUpdate(ctx context.Context, id ReplicaId, input R
 
 // ReplicasUpdateThenPoll performs ReplicasUpdate then polls until it's completed
 func (c SignalRClient) ReplicasUpdateThenPoll(ctx context.Context, id ReplicaId, input Replica) error {
+	return c.ReplicasUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReplicasUpdateCallbackThenPoll performs ReplicasUpdate, runs the optional callback function, then polls until it's completed
+func (c SignalRClient) ReplicasUpdateCallbackThenPoll(ctx context.Context, id ReplicaId, input Replica, callback func() error) error {
 	result, err := c.ReplicasUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReplicasUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

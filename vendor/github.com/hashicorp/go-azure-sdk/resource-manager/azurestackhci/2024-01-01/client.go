@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/offers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/publishers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/securitysettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/skuses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/skus"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/storagecontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updates"
@@ -48,7 +48,7 @@ type Client struct {
 	Offers                   *offers.OffersClient
 	Publishers               *publishers.PublishersClient
 	SecuritySettings         *securitysettings.SecuritySettingsClient
-	Skuses                   *skuses.SkusesClient
+	Skus                     *skus.SkusClient
 	StorageContainers        *storagecontainers.StorageContainersClient
 	UpdateRuns               *updateruns.UpdateRunsClient
 	UpdateSummaries          *updatesummaries.UpdateSummariesClient
@@ -148,11 +148,11 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 	}
 	configureFunc(securitySettingsClient.Client)
 
-	skusesClient, err := skuses.NewSkusesClientWithBaseURI(sdkApi)
+	skusClient, err := skus.NewSkusClientWithBaseURI(sdkApi)
 	if err != nil {
-		return nil, fmt.Errorf("building Skuses client: %+v", err)
+		return nil, fmt.Errorf("building Skus client: %+v", err)
 	}
-	configureFunc(skusesClient.Client)
+	configureFunc(skusClient.Client)
 
 	storageContainersClient, err := storagecontainers.NewStorageContainersClientWithBaseURI(sdkApi)
 	if err != nil {
@@ -206,7 +206,7 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 		Offers:                   offersClient,
 		Publishers:               publishersClient,
 		SecuritySettings:         securitySettingsClient,
-		Skuses:                   skusesClient,
+		Skus:                     skusClient,
 		StorageContainers:        storageContainersClient,
 		UpdateRuns:               updateRunsClient,
 		UpdateSummaries:          updateSummariesClient,

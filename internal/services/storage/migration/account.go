@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -19,7 +19,7 @@ func (AccountV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (AccountV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// this should have been applied from pre-0.12 migration system; backporting just in-case
 		accountType := rawState["account_type"].(string)
 		split := strings.Split(accountType, "_")
@@ -39,7 +39,7 @@ func (AccountV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 func (AccountV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		rawState["account_encryption_source"] = "Microsoft.Storage"
 		return rawState, nil
 	}
@@ -338,15 +338,15 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 		"is_hns_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"nfsv3_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"allow_blob_public_access": {
@@ -372,28 +372,28 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"ip_rules": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"virtual_network_subnet_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"default_action": {
@@ -478,8 +478,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"exposed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -487,8 +487,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"allowed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -589,8 +589,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"exposed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -598,8 +598,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"allowed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -753,8 +753,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"exposed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -762,8 +762,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 								"allowed_headers": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
-									MaxItems: 64,
 									MinItems: 1,
+									MaxItems: 64,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -1000,8 +1000,8 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 
 		"primary_access_key": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_access_key": {
@@ -1051,7 +1051,7 @@ func (AccountV2ToV3) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (AccountV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		x, ok := rawState["allow_blob_public_access"]
 		if ok {
 			rawState["allow_nested_items_to_be_public"] = x

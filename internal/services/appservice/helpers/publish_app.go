@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -15,12 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 const (
-	zipDeployError    = 3
-	zipDeployComplete = 4
+	ZipDeployError    = 3
+	ZipDeployComplete = 4
 )
 
 func GetCredentialsAndPublish(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId, sourceFile string) error {
@@ -114,6 +116,12 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	publishEndpoint := fmt.Sprintf("%s/api/zipdeploy?isAsync=true", host)
 	statusEndpoint := fmt.Sprintf("%s/api/deployments/latest", host)
 
+	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
+	// poll the deployment service status endpoint until it is available.
+	if err := PollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
+		return fmt.Errorf("checking deployment service status: %+v", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, publishEndpoint, f)
 	if err != nil {
 		return fmt.Errorf("preparing publish request: %+v", err)
@@ -131,7 +139,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
+			return fmt.Errorf("publishing Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
 		}
 		return fmt.Errorf("publishing failed with status code %s", resp.Status)
 	}
@@ -153,7 +161,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 		PollInterval: 10 * time.Second,
 		Delay:        10 * time.Second,
 		Timeout:      time.Until(deadline),
-		Refresh:      checkZipDeploymentStatusRefresh(statusReq),
+		Refresh:      CheckZipDeploymentStatusRefresh(statusReq),
 	}
 
 	if _, err := deployWait.WaitForStateContext(ctx); err != nil {
@@ -163,8 +171,8 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	return nil
 }
 
-func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func CheckZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		resp, err := http.DefaultClient.Do(r)
 		if err != nil {
 			return nil, "", err
@@ -178,18 +186,17 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
 		}
 
-		body := make(map[string]interface{})
-		err = json.Unmarshal(respBody, &body)
-		if err != nil {
+		body := make(map[string]any)
+		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}
 
 		if statusRaw, ok := body["status"]; ok && statusRaw != nil {
 			if status, ok := statusRaw.(float64); ok {
 				switch status {
-				case zipDeployError:
+				case ZipDeployError:
 					return nil, "", fmt.Errorf("zip deployment failed")
-				case zipDeployComplete:
+				case ZipDeployComplete:
 					return status, "complete", nil
 				default:
 					return status, "pending", nil
@@ -199,4 +206,24 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 
 		return nil, "", fmt.Errorf("could not determine status from deployment response")
 	}
+}
+
+func PollDeploymentServiceStatus(ctx context.Context, host string, user string, passwd string) error {
+	warmupEndpoint := fmt.Sprintf("%s/deployments?warmup=true", host)
+
+	statusReq, err := http.NewRequestWithContext(ctx, http.MethodGet, warmupEndpoint, http.NoBody)
+	if err != nil {
+		return err
+	}
+
+	statusReq.SetBasicAuth(user, passwd)
+
+	pollerType := custompollers.NewAppServiceDeploymentServicePoller(statusReq)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for deployment service to be ready: %+v", err)
+	}
+
+	return nil
 }

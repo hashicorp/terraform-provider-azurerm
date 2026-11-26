@@ -36,11 +36,11 @@ resource "azurerm_storage_queue" "example" {
 }
 
 resource "azurerm_eventgrid_system_topic" "example" {
-  name                   = "example-system-topic"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.example.name
-  source_arm_resource_id = azurerm_resource_group.example.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "example-system-topic"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.example.name
+  source_resource_id  = azurerm_resource_group.example.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
@@ -71,27 +71,31 @@ The following arguments are supported:
 
 * `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
 
-* `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
+* `eventhub_id` - (Optional) Specifies the id where the Event Hub is located.
 
-* `hybrid_connection_endpoint_id` - (Optional) Specifies the id where the Hybrid Connection is located.
+* `hybrid_connection_id` - (Optional) Specifies the id where the Hybrid Connection is located.
 
-* `service_bus_queue_endpoint_id` - (Optional) Specifies the id where the Service Bus Queue is located.
+* `service_bus_queue_id` - (Optional) Specifies the id where the Service Bus Queue is located.
 
-* `service_bus_topic_endpoint_id` - (Optional) Specifies the id where the Service Bus Topic is located.
+* `service_bus_topic_id` - (Optional) Specifies the id where the Service Bus Topic is located.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **Note:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **Note:** One of `azure_function_endpoint`, `eventhub_id`, `hybrid_connection_endpoint`, `hybrid_connection_id`, `service_bus_queue_id`, `service_bus_topic_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
+
+-> **Note:** Event types must be specified using their full name, e.g. `Microsoft.Storage.BlobCreated` rather than `BlobCreated`, and the event types that are available depend on the `topic_type` of the System Topic. When not specified, all event types for the System Topic are included. See the [official documentation](https://learn.microsoft.com/azure/event-grid/system-topics#azure-services-that-support-system-topics) for the event types supported by each topic type, or list them using `az eventgrid topic-type list-event-types --name Microsoft.Storage.StorageAccounts`.
 
 * `subject_filter` - (Optional) A `subject_filter` block as defined below.
 
 * `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
+
+~> **Note:** The Managed Service Identity used for `delivery_identity` or `dead_letter_identity` must be configured on the System Topic via the `identity` block of the `azurerm_eventgrid_system_topic` resource, and must be granted the appropriate role on the destination (e.g. `Storage Queue Data Message Sender` for a `storage_queue_endpoint`, or `Storage Blob Data Contributor` for a `storage_blob_dead_letter_destination`) before the Event Subscription is created. As Terraform cannot infer this dependency, a `depends_on` reference to the `azurerm_role_assignment` resources may be required. See the [official documentation](https://learn.microsoft.com/azure/event-grid/add-identity-roles) for the roles required by each destination type.
 
 * `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 
@@ -201,7 +205,7 @@ A `delivery_identity` block supports the following:
 
 A `delivery_property` block supports the following:
 
-~> **Note:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
+~> **Note:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_id`, `hybrid_connection_id`, `service_bus_topic_id`, or `webhook_endpoint` endpoint specification.
 
 * `header_name` - (Required) The name of the header to send on to the destination.
 
@@ -245,7 +249,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Messaging.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Messaging.
@@ -264,4 +268,4 @@ terraform import azurerm_eventgrid_system_topic_event_subscription.example /subs
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid`: 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15

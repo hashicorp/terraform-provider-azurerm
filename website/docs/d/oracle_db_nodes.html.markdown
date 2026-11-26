@@ -14,7 +14,7 @@ Lists the database nodes for the specified Cloud VM Cluster.
 
 ```hcl
 data "azurerm_oracle_db_nodes" "example" {
-  cloud_vm_cluster_id = "existing"
+  cloud_vm_cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Oracle.Database/cloudVmClusters/example-cloud-vm-cluster"
 }
 
 output "example" {
@@ -82,7 +82,7 @@ A `db_nodes` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the DB Node.
 
@@ -90,4 +90,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database` - 2025-09-01

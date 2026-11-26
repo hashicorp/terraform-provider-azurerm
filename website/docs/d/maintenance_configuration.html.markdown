@@ -13,17 +13,17 @@ Use this data source to access information about an existing Maintenance Configu
 ## Example Usage
 
 ```hcl
-data "azurerm_maintenance_configuration" "existing" {
+data "azurerm_maintenance_configuration" "example" {
   name                = "example-mc"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = azurerm_maintenance_configuration.existing.id
+  value = data.azurerm_maintenance_configuration.example.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Maintenance Configuration.
 
@@ -98,7 +98,7 @@ A `windows` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maintenance Configuration.
 
@@ -106,4 +106,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Maintenance`: 2023-04-01
+* `Microsoft.Maintenance` - 2023-04-01

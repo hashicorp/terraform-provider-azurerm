@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -82,7 +82,7 @@ type VirtualDirectory struct {
 	PhysicalPath string `tfschema:"physical_path"`
 }
 
-func virtualApplicationsSchema() *pluginsdk.Schema {
+func VirtualApplicationsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
@@ -129,7 +129,7 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 	}
 }
 
-func virtualApplicationsSchemaComputed() *pluginsdk.Schema {
+func VirtualApplicationsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -340,25 +340,25 @@ func BackupSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name which should be used for this Backup.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name which should be used for this Backup.",
 				},
 
 				"storage_account_url": {
+					Description:  "The SAS URL to the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.IsURLWithHTTPS,
-					Description:  "The SAS URL to the container.",
 				},
 
 				"enabled": {
+					Description: "Whether this backup job should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should this backup job be enabled?",
 				},
 
 				"schedule": {
@@ -368,49 +368,49 @@ func BackupSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"frequency_interval": {
+								Description:  "How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).",
 								Type:         pluginsdk.TypeInt,
 								Required:     true,
 								ValidateFunc: validation.IntBetween(0, 1000),
-								Description:  "How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).",
 							},
 
 							"frequency_unit": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The unit of time for how often the backup should take place.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Day",
 									"Hour",
 								}, false),
-								Description: "The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.",
 							},
 
 							"keep_at_least_one_backup": {
+								Description: "Whether the service should keep at least one backup, regardless of age of backup.",
 								Type:        pluginsdk.TypeBool,
 								Optional:    true,
 								Default:     false,
-								Description: "Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.",
 							},
 
 							"retention_period_days": {
+								Description:  "After how many days backups should be deleted.",
 								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								Default:      30,
 								ValidateFunc: validation.IntBetween(0, 9999999),
-								Description:  "After how many days backups should be deleted.",
 							},
 
 							"start_time": {
+								Description:  "When the schedule should start working in RFC-3339 format.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								Computed:     true,
-								Description:  "When the schedule should start working in RFC-3339 format.",
+								Computed:     true, // azignore:AZS007 - pre-existing violation
 								ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"last_execution_time": {
+								Description: "The time the backup was last attempted.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The time the backup was last attempted.",
 							},
 						},
 					},
@@ -427,22 +427,22 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of this Backup.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of this Backup.",
 				},
 
 				"storage_account_url": {
+					Description: "The SAS URL to the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Sensitive:   true,
-					Description: "The SAS URL to the container.",
 				},
 
 				"enabled": {
+					Description: "Whether this backup job is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is this backup job enabled?",
 				},
 
 				"schedule": {
@@ -451,39 +451,39 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"frequency_interval": {
+								Description: "How often the backup should is executed in multiples of the `frequency_unit`.",
 								Type:        pluginsdk.TypeInt,
 								Computed:    true,
-								Description: "How often the backup should is executed in multiples of the `frequency_unit`.",
 							},
 
 							"frequency_unit": {
+								Description: "The unit of time for how often the backup takes place.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The unit of time for how often the backup takes place.",
 							},
 
 							"keep_at_least_one_backup": {
+								Description: "Whether the service keeps at least one backup, regardless of age of backup.",
 								Type:        pluginsdk.TypeBool,
 								Computed:    true,
-								Description: "Does the service keep at least one backup, regardless of age of backup.",
 							},
 
 							"retention_period_days": {
+								Description: "After how many days are backups deleted.",
 								Type:        pluginsdk.TypeInt,
 								Computed:    true,
-								Description: "After how many days are backups deleted.",
 							},
 
 							"start_time": {
+								Description: "When the schedule should start working in RFC-3339 format.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "When the schedule should start working in RFC-3339 format.",
 							},
 
 							"last_execution_time": {
+								Description: "The time the backup was last attempted.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The time the backup was last attempted.",
 							},
 						},
 					},
@@ -506,24 +506,24 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name which should be used for this Connection.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name which should be used for this Connection.",
 				},
 
 				"type": {
+					Description:  "Type of database.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
-					Description:  "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
 				},
 
 				"value": {
+					Description: "The connection string value.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
 					Sensitive:   true,
-					Description: "The connection string value.",
 				},
 			},
 		},
@@ -537,22 +537,22 @@ func ConnectionStringSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of this Connection.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of this Connection.",
 				},
 
 				"type": {
+					Description: "The type of database.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The type of database.",
 				},
 
 				"value": {
+					Description: "The connection string value.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Sensitive:   true,
-					Description: "The connection string value.",
 				},
 			},
 		},
@@ -599,9 +599,9 @@ func LogsConfigSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"application_logs": applicationLogSchema(),
+				"application_logs": ApplicationLogSchema(),
 
-				"http_logs": httpLogSchema(),
+				"http_logs": HttpLogSchema(),
 
 				"failed_request_tracing": {
 					Type:     pluginsdk.TypeBool,
@@ -625,9 +625,9 @@ func LogsConfigSchemaComputed() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"application_logs": applicationLogSchemaComputed(),
+				"application_logs": ApplicationLogSchemaComputed(),
 
-				"http_logs": httpLogSchemaComputed(),
+				"http_logs": HttpLogSchemaComputed(),
 
 				"failed_request_tracing": {
 					Type:     pluginsdk.TypeBool,
@@ -643,46 +643,29 @@ func LogsConfigSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func applicationLogSchema() *pluginsdk.Schema {
+func ApplicationLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"file_system_level": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
-						string(webapps.LogLevelError),
-						string(webapps.LogLevelOff),
-						string(webapps.LogLevelInformation),
-						string(webapps.LogLevelVerbose),
-						string(webapps.LogLevelWarning),
-					}, false),
-				},
-
-				"azure_blob_storage": appLogBlobStorageSchema(),
-			},
-		},
 		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
 			stateLogs, planLogs := d.GetChange("logs.0.application_logs")
 			if stateLogs == nil || planLogs == nil {
 				return false
 			}
-			stateAttrs := stateLogs.([]interface{})
-			planAttrs := planLogs.([]interface{})
+			stateAttrs := stateLogs.([]any)
+			planAttrs := planLogs.([]any)
 
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 				newFileSystemLevel, ok := planAttr["file_system_level"].(string)
 				if !ok {
 					return false
 				}
 
 				// if something is in `azure_blob_storage`, then we don't suppress the diff as we don't allow the default values for `azure_blob_storage` to be passed in
-				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]interface{})
+				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]any)
 				if !ok || len(newAzureBlobStorage) != 0 {
 					return false
 				}
@@ -694,10 +677,21 @@ func applicationLogSchema() *pluginsdk.Schema {
 
 			return false
 		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"file_system_level": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
+				},
+
+				"azure_blob_storage": AppLogBlobStorageSchema(),
+			},
+		},
 	}
 }
 
-func applicationLogSchemaComputed() *pluginsdk.Schema {
+func ApplicationLogSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -708,13 +702,13 @@ func applicationLogSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"azure_blob_storage": appLogBlobStorageSchemaComputed(),
+				"azure_blob_storage": AppLogBlobStorageSchemaComputed(),
 			},
 		},
 	}
 }
 
-func appLogBlobStorageSchema() *pluginsdk.Schema {
+func AppLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -745,7 +739,7 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 	}
 }
 
-func appLogBlobStorageSchemaComputed() *pluginsdk.Schema {
+func AppLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -769,36 +763,36 @@ func appLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func httpLogSchema() *pluginsdk.Schema {
+func HttpLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"file_system": httpLogFileSystemSchema(),
+				"file_system": HttpLogFileSystemSchema(),
 
-				"azure_blob_storage": httpLogBlobStorageSchema(),
+				"azure_blob_storage": HttpLogBlobStorageSchema(),
 			},
 		},
 	}
 }
 
-func httpLogSchemaComputed() *pluginsdk.Schema {
+func HttpLogSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"file_system": httpLogFileSystemSchemaComputed(),
+				"file_system": HttpLogFileSystemSchemaComputed(),
 
-				"azure_blob_storage": httpLogBlobStorageSchemaComputed(),
+				"azure_blob_storage": HttpLogBlobStorageSchemaComputed(),
 			},
 		},
 	}
 }
 
-func httpLogFileSystemSchema() *pluginsdk.Schema {
+func HttpLogFileSystemSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
@@ -822,7 +816,7 @@ func httpLogFileSystemSchema() *pluginsdk.Schema {
 	}
 }
 
-func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
+func HttpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -842,7 +836,7 @@ func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func httpLogBlobStorageSchema() *pluginsdk.Schema {
+func HttpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
@@ -866,7 +860,7 @@ func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	}
 }
 
-func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
+func HttpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -900,13 +894,13 @@ func ExpandLogsConfig(config []LogsConfig) *webapps.SiteLogsConfig {
 		appLogs := logsConfig.ApplicationLogs[0]
 		result.Properties.ApplicationLogs = &webapps.ApplicationLogsConfig{
 			FileSystem: &webapps.FileSystemApplicationLogsConfig{
-				Level: pointer.To(webapps.LogLevel(appLogs.FileSystemLevel)),
+				Level: pointer.ToEnum[webapps.LogLevel](appLogs.FileSystemLevel),
 			},
 		}
 		if len(appLogs.AzureBlobStorage) == 1 {
 			appLogsBlobs := appLogs.AzureBlobStorage[0]
 			result.Properties.ApplicationLogs.AzureBlobStorage = &webapps.AzureBlobStorageApplicationLogsConfig{
-				Level:           pointer.To(webapps.LogLevel(appLogsBlobs.Level)),
+				Level:           pointer.ToEnum[webapps.LogLevel](appLogsBlobs.Level),
 				SasURL:          pointer.To(appLogsBlobs.SasURL),
 				RetentionInDays: pointer.To(appLogsBlobs.RetentionInDays),
 			}
@@ -988,7 +982,7 @@ func ExpandStorageConfig(storageConfigs []StorageAccount) *webapps.AzureStorageP
 
 	for _, v := range storageConfigs {
 		storageAccounts[v.Name] = webapps.AzureStorageInfoValue{
-			Type:        pointer.To(webapps.AzureStorageType(v.Type)),
+			Type:        pointer.ToEnum[webapps.AzureStorageType](v.Type),
 			AccountName: pointer.To(v.AccountName),
 			ShareName:   pointer.To(v.ShareName),
 			AccessKey:   pointer.To(v.AccessKey),
@@ -1019,7 +1013,7 @@ func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *webapp
 	return result
 }
 
-func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+func ExpandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
 	if len(handlerMapping) == 0 {
 		return nil
 	}
@@ -1043,7 +1037,7 @@ func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMa
 	return &result
 }
 
-func expandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+func ExpandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
 	result := make([]webapps.HandlerMapping, 0)
 	if len(handlerMapping) == 0 {
 		return &result
@@ -1066,7 +1060,7 @@ func expandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.
 	return &result
 }
 
-func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
+func ExpandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
 	if len(virtualApplicationConfig) == 0 {
 		return nil
 	}
@@ -1095,7 +1089,7 @@ func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[
 	return &result
 }
 
-func expandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
+func ExpandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
 	if len(virtualApplicationConfig) == 0 {
 		// to remove this block from the config we need to give the service the original default back, sending an empty struct leaves the previous config in place
 		return &[]webapps.VirtualApplication{
@@ -1182,8 +1176,8 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		return []LogsConfig{}
 	}
 	props := *logsConfig.Properties
-	if onlyDefaultLoggingConfig(props) {
-		return nil
+	if OnlyDefaultLoggingConfig(props) {
+		return []LogsConfig{}
 	}
 
 	logs := LogsConfig{}
@@ -1193,10 +1187,10 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		applicationLog := ApplicationLog{}
 
 		if appLogs.FileSystem != nil {
-			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
+			applicationLog.FileSystemLevel = pointer.FromEnum(appLogs.FileSystem.Level)
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
-					Level: string(pointer.From(appLogs.AzureBlobStorage.Level)),
+					Level: pointer.FromEnum(appLogs.AzureBlobStorage.Level),
 				}
 
 				blobStorage.SasURL = pointer.From(appLogs.AzureBlobStorage.SasURL)
@@ -1219,7 +1213,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 					}
 				},
 			*/
-			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) && len(applicationLog.AzureBlobStorage) > 0 {
+			if !strings.EqualFold(pointer.FromEnum(appLogs.FileSystem.Level), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
 				logs.ApplicationLogs = []ApplicationLog{applicationLog}
 			}
 		}
@@ -1275,7 +1269,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	return []LogsConfig{logs}
 }
 
-func onlyDefaultLoggingConfig(props webapps.SiteLogsConfigProperties) bool {
+func OnlyDefaultLoggingConfig(props webapps.SiteLogsConfigProperties) bool {
 	if props.ApplicationLogs == nil || props.HTTPLogs == nil || props.FailedRequestsTracing == nil || props.DetailedErrorMessages == nil {
 		return false
 	}
@@ -1309,7 +1303,7 @@ func FlattenStorageAccounts(appStorageAccounts *webapps.AzureStoragePropertyDict
 	for k, v := range *appStorageAccounts.Properties {
 		storageAccount := StorageAccount{
 			Name: k,
-			Type: string(pointer.From(v.Type)),
+			Type: pointer.FromEnum(v.Type),
 		}
 		if v.AccountName != nil {
 			storageAccount.AccountName = *v.AccountName
@@ -1401,36 +1395,14 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 	}
 
-	for _, v := range unmanagedSettings { //nolint:typecheck
+	for _, v := range unmanagedSettings {
 		delete(input, v)
 	}
 
 	return input
 }
 
-// FilterManagedAppSettingsDeprecated removes app_settings values from the state that are controlled directly be
-// schema properties when the deprecated docker settings are used. This function should be removed in 4.0
-func FilterManagedAppSettingsDeprecated(input map[string]string) map[string]string {
-	unmanagedSettings := []string{
-		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
-		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
-		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
-		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
-		"WEBSITE_VNET_ROUTE_ALL",
-		"spring.datasource.password",
-		"spring.datasource.url",
-		"spring.datasource.username",
-		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
-	}
-
-	for _, v := range unmanagedSettings { //nolint:typecheck
-		delete(input, v)
-	}
-
-	return input
-}
-
-func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []HandlerMappings {
+func FlattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []HandlerMappings {
 	if appHandlerMappings == nil {
 		return []HandlerMappings{}
 	}
@@ -1448,8 +1420,8 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 	return handlerMappings
 }
 
-func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication, alwaysOn bool) []VirtualApplication {
-	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications, alwaysOn) {
+func FlattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication, alwaysOn bool) []VirtualApplication {
+	if appVirtualApplications == nil || OnlyDefaultVirtualApplication(*appVirtualApplications, alwaysOn) {
 		return []VirtualApplication{}
 	}
 
@@ -1479,7 +1451,7 @@ func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplica
 	return virtualApplications
 }
 
-func onlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn bool) bool {
+func OnlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn bool) bool {
 	if len(input) > 1 {
 		return false
 	}
@@ -1529,12 +1501,12 @@ func DisabledLogsConfig() *webapps.SiteLogsConfig {
 
 func IsFreeOrSharedServicePlan(inputSKU string) bool {
 	result := false
-	for _, sku := range freeSkus {
+	for _, sku := range FreeSkus {
 		if inputSKU == sku {
 			result = true
 		}
 	}
-	for _, sku := range sharedSkus {
+	for _, sku := range SharedSkus {
 		if inputSKU == sku {
 			result = true
 		}

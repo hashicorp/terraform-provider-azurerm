@@ -1,13 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package helpers_test
+package helpers
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestPlanIsConsumption(t *testing.T) {
@@ -16,25 +15,25 @@ func TestPlanIsConsumption(t *testing.T) {
 		isConsumption bool
 	}{
 		{
-			name:          utils.String(""),
+			name:          pointer.To(""),
 			isConsumption: false,
 		},
 		{
-			name:          utils.String("Y1"),
+			name:          pointer.To("Y1"),
 			isConsumption: true,
 		},
 		{
-			name:          utils.String("EP1"),
+			name:          pointer.To("EP1"),
 			isConsumption: false,
 		},
 		{
-			name:          utils.String("S1"),
+			name:          pointer.To("S1"),
 			isConsumption: false,
 		},
 	}
 
 	for _, v := range input {
-		if actual := helpers.PlanIsConsumption(v.name); actual != v.isConsumption {
+		if actual := PlanIsConsumption(v.name); actual != v.isConsumption {
 			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isConsumption, actual)
 		}
 	}
@@ -46,25 +45,25 @@ func TestPlanIsElastic(t *testing.T) {
 		isElastic bool
 	}{
 		{
-			name:      utils.String(""),
+			name:      pointer.To(""),
 			isElastic: false,
 		},
 		{
-			name:      utils.String("Y1"),
+			name:      pointer.To("Y1"),
 			isElastic: false,
 		},
 		{
-			name:      utils.String("EP1"),
+			name:      pointer.To("EP1"),
 			isElastic: true,
 		},
 		{
-			name:      utils.String("S1"),
+			name:      pointer.To("S1"),
 			isElastic: false,
 		},
 	}
 
 	for _, v := range input {
-		if actual := helpers.PlanIsElastic(v.name); actual != v.isElastic {
+		if actual := PlanIsElastic(v.name); actual != v.isElastic {
 			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isElastic, actual)
 		}
 	}
@@ -76,33 +75,33 @@ func TestPlanIsIsolated(t *testing.T) {
 		isIsolated bool
 	}{
 		{
-			name:       utils.String(""),
+			name:       pointer.To(""),
 			isIsolated: false,
 		},
 		{
-			name:       utils.String("Y1"),
+			name:       pointer.To("Y1"),
 			isIsolated: false,
 		},
 		{
-			name:       utils.String("EP1"),
+			name:       pointer.To("EP1"),
 			isIsolated: false,
 		},
 		{
-			name:       utils.String("S1"),
+			name:       pointer.To("S1"),
 			isIsolated: false,
 		},
 		{
-			name:       utils.String("I1"),
+			name:       pointer.To("I1"),
 			isIsolated: true,
 		},
 		{
-			name:       utils.String("I1v2"),
+			name:       pointer.To("I1v2"),
 			isIsolated: true,
 		},
 	}
 
 	for _, v := range input {
-		if actual := helpers.PlanIsIsolated(v.name); actual != v.isIsolated {
+		if actual := PlanIsIsolated(v.name); actual != v.isIsolated {
 			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isIsolated, actual)
 		}
 	}
@@ -114,41 +113,41 @@ func TestPlanIsAppPlan(t *testing.T) {
 		isAppPlan bool
 	}{
 		{
-			name:      utils.String(""),
+			name:      pointer.To(""),
 			isAppPlan: false,
 		},
 		{
-			name:      utils.String("Y1"),
+			name:      pointer.To("Y1"),
 			isAppPlan: false,
 		},
 		{
-			name:      utils.String("EP1"),
+			name:      pointer.To("EP1"),
 			isAppPlan: false,
 		},
 		{
-			name:      utils.String("B1"),
+			name:      pointer.To("B1"),
 			isAppPlan: true,
 		},
 		{
-			name:      utils.String("S1"),
+			name:      pointer.To("S1"),
 			isAppPlan: true,
 		},
 		{
-			name:      utils.String("P1v3"),
-			isAppPlan: true,
-		},
-		{
-			name:      utils.String("I1"),
+			name:      pointer.To("P1v3"),
 			isAppPlan: false,
 		},
 		{
-			name:      utils.String("I1v2"),
+			name:      pointer.To("I1"),
+			isAppPlan: false,
+		},
+		{
+			name:      pointer.To("I1v2"),
 			isAppPlan: false,
 		},
 	}
 
 	for _, v := range input {
-		if actual := helpers.PlanIsAppPlan(v.name); actual != v.isAppPlan {
+		if actual := PlanIsAppPlan(v.name); actual != v.isAppPlan {
 			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isAppPlan, actual)
 		}
 	}
@@ -181,7 +180,7 @@ func TestPlanTypeFromSku(t *testing.T) {
 		},
 		{
 			name:     "P1v3",
-			expected: "app",
+			expected: "premium",
 		},
 		{
 			name:     "I1",
@@ -194,7 +193,7 @@ func TestPlanTypeFromSku(t *testing.T) {
 	}
 
 	for _, v := range input {
-		if actual := helpers.PlanTypeFromSku(v.name); actual != v.expected {
+		if actual := PlanTypeFromSku(v.name); actual != v.expected {
 			t.Fatalf("expected %s to be %s, got %s", v.name, v.expected, actual)
 		}
 	}

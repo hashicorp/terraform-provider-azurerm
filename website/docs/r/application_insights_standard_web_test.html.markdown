@@ -105,7 +105,7 @@ A `request` block supports the following:
 
 * `http_verb` - (Optional) Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', and 'OPTIONS'. Defaults to `GET`.
 
-* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependend requests be enabled? Defaults to `true`.
+* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependent requests be enabled? Defaults to `true`.
 
 ---
 
@@ -119,6 +119,11 @@ A `validation_rules` block supports the following:
 
 * `ssl_check_enabled` - (Optional) Should the SSL check be enabled?
 
+* `ignore_status_code` - (Optional) Should status code of the response be ignored? Defaults to `false`.
+* 
+
+-> **Note:** When `ignore_status_code` is set, the `expected_status_code`  will be ignored.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -129,7 +134,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Standard WebTest.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Standard WebTest.
@@ -148,4 +153,4 @@ terraform import azurerm_application_insights_standard_web_test.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2022-06-15
+* `Microsoft.Insights` - 2022-06-15

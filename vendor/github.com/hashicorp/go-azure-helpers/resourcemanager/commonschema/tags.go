@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonschema
@@ -10,8 +10,9 @@ import (
 
 func TagsDataSource() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeMap,
-		Computed: true,
+		Description: "A mapping of tags assigned to the resource.",
+		Type:        schema.TypeMap,
+		Computed:    true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 		},
@@ -20,6 +21,7 @@ func TagsDataSource() *schema.Schema {
 
 func TagsForceNew() *schema.Schema {
 	return &schema.Schema{
+		Description:  "A mapping of tags which should be assigned to the resource.",
 		Type:         schema.TypeMap,
 		Optional:     true,
 		ForceNew:     true,
@@ -32,6 +34,7 @@ func TagsForceNew() *schema.Schema {
 
 func Tags() *schema.Schema {
 	return &schema.Schema{
+		Description:  "A mapping of tags which should be assigned to the resource.",
 		Type:         schema.TypeMap,
 		Optional:     true,
 		ValidateFunc: tags.Validate,
@@ -41,8 +44,21 @@ func Tags() *schema.Schema {
 	}
 }
 
+func TagsWithMaximumElements(m int) *schema.Schema {
+	return &schema.Schema{
+		Description:  "A mapping of tags which should be assigned to the resource.",
+		Type:         schema.TypeMap,
+		Optional:     true,
+		ValidateFunc: tags.ValidateWithMaximumElements(m),
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
 func TagsWithLowerCaseKeys() *schema.Schema {
 	return &schema.Schema{
+		Description:  "A mapping of tags which should be assigned to the resource.",
 		Type:         schema.TypeMap,
 		Optional:     true,
 		ValidateFunc: tags.ValidateHasLowerCaseKeys,

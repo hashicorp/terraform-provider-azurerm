@@ -144,6 +144,10 @@ The following arguments are supported:
 
 * `log_client_ip` - (Optional) Log client IP address.
 
+* `metrics_enabled` - (Optional) Whether custom metrics emitted via the `emit-metric` policy are sent to Application Insights.
+
+~> **Note:** `metrics_enabled` can only be set when `identifier` is set to `applicationinsights`.
+
 * `sampling_percentage` - (Optional) Sampling (%). For high traffic APIs, please read this [documentation](https://docs.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling. Valid values are between `0.0` and `100.0`.
 
 * `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.
@@ -152,7 +156,37 @@ The following arguments are supported:
 
 ---
 
-A `backend_request`, `backend_response`, `frontend_request` or `frontend_response` block supports the following:
+A `backend_request` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `backend_response` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `frontend_request` block supports the following:
+
+* `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
+
+* `headers_to_log` - (Optional) Specifies a list of headers to log.
+
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `frontend_response` block supports the following:
 
 * `body_bytes` - (Optional) Number of payload bytes to log (up to 8192).
 
@@ -170,11 +204,21 @@ A `data_masking` block supports the following:
 
 ---
 
-The `query_params` and `headers` blocks support the following:
+The `query_params` block support the following:
 
 * `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
 
 * `value` - (Required) The name of the header or the query parameter to mask.
+
+---
+
+The `headers` block support the following:
+
+* `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
+
+* `value` - (Required) The name of the header or the query parameter to mask.
+
+---
 
 ## Attributes Reference
 
@@ -184,7 +228,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Service API Diagnostics Logs.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service API Diagnostics Logs.
@@ -203,4 +247,4 @@ terraform import azurerm_api_management_api_diagnostic.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement` - 2022-08-01

@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `vpn_gateway_id` - (Required) The ID of the VPN Gateway that this VPN Gateway NAT Rule belongs to. Changing this forces a new resource to be created.
 
-* `external_mapping` - (Optional) One or more `external_mapping` blocks as documented below.
+* `external_mapping` - (Optional) One or more `external_mapping` blocks as defined below.
 
-* `internal_mapping` - (Optional) One or more `internal_mapping` blocks as documented below.
+* `internal_mapping` - (Optional) One or more `internal_mapping` blocks as defined below.
 
 * `ip_configuration_id` - (Optional) The ID of the IP Configuration this VPN Gateway NAT Rule applies to. Possible values are `Instance0` and `Instance1`.
 
@@ -99,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VPN Gateway NAT Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway NAT Rule.
@@ -118,4 +118,4 @@ terraform import azurerm_vpn_gateway_nat_rule.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-07-01

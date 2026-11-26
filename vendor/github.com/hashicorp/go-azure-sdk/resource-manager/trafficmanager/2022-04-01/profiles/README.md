@@ -21,47 +21,6 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ProfilesClient.CheckTrafficManagerNameAvailabilityV2`
-
-```go
-ctx := context.TODO()
-id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-payload := profiles.CheckTrafficManagerRelativeDnsNameAvailabilityParameters{
-	// ...
-}
-
-
-read, err := client.CheckTrafficManagerNameAvailabilityV2(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `ProfilesClient.CheckTrafficManagerRelativeDnsNameAvailability`
-
-```go
-ctx := context.TODO()
-
-payload := profiles.CheckTrafficManagerRelativeDnsNameAvailabilityParameters{
-	// ...
-}
-
-
-read, err := client.CheckTrafficManagerRelativeDnsNameAvailability(ctx, payload)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `ProfilesClient.CreateOrUpdate`
 
 ```go
@@ -121,12 +80,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-read, err := client.ListByResourceGroup(ctx, id)
+// alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -137,12 +97,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.ListBySubscription(ctx, id)
+// alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
+items, err := client.ListBySubscriptionComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

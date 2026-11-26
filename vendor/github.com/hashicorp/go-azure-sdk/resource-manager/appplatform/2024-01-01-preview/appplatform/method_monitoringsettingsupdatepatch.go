@@ -63,9 +63,20 @@ func (c AppPlatformClient) MonitoringSettingsUpdatePatch(ctx context.Context, id
 
 // MonitoringSettingsUpdatePatchThenPoll performs MonitoringSettingsUpdatePatch then polls until it's completed
 func (c AppPlatformClient) MonitoringSettingsUpdatePatchThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input MonitoringSettingResource) error {
+	return c.MonitoringSettingsUpdatePatchCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MonitoringSettingsUpdatePatchCallbackThenPoll performs MonitoringSettingsUpdatePatch, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) MonitoringSettingsUpdatePatchCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input MonitoringSettingResource, callback func() error) error {
 	result, err := c.MonitoringSettingsUpdatePatch(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MonitoringSettingsUpdatePatch: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

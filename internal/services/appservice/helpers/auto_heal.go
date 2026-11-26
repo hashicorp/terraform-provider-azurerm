@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -65,36 +65,36 @@ type AutoHealCustomAction struct {
 	Parameters string `tfschema:"parameters"`
 }
 
-func autoHealSettingSchemaWindows() *pluginsdk.Schema {
+func AutoHealSettingSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaWindows(),
+				"trigger": AutoHealTriggerSchemaWindows(),
 
-				"action": autoHealActionSchemaWindows(),
+				"action": AutoHealActionSchemaWindows(),
 			},
 		},
 	}
 }
 
-func autoHealSettingSchemaWindowsComputed() *pluginsdk.Schema {
+func AutoHealSettingSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaWindowsComputed(),
+				"trigger": AutoHealTriggerSchemaWindowsComputed(),
 
-				"action": autoHealActionSchemaWindowsComputed(),
+				"action": AutoHealActionSchemaWindowsComputed(),
 			},
 		},
 	}
 }
 
-func autoHealActionSchemaWindows() *pluginsdk.Schema {
+func AutoHealActionSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -131,7 +131,7 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 				"minimum_process_execution_time": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},
@@ -139,7 +139,7 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
-func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
+func AutoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -178,7 +178,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 }
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
-func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
+func AutoHealTriggerSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -317,7 +317,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
-func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
+func AutoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -439,7 +439,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
+func ExpandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
 		return &webapps.AutoHealRules{}
 	}
@@ -519,7 +519,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 					statusCodeTrigger.SubStatus = pointer.To(s.SubStatus)
 				}
 				if s.Win32Status != 0 {
-					statusCodeTrigger.Win32Status = pointer.To((s.Win32Status))
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
@@ -530,7 +530,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
+		result.Actions.ActionType = pointer.ToEnum[webapps.AutoHealActionType](action.ActionType)
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 		if len(action.CustomAction) != 0 {
 			customAction := action.CustomAction[0]
@@ -543,7 +543,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	return result
 }
 
-func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []AutoHealSettingWindows {
+func FlattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []AutoHealSettingWindows {
 	if autoHealRules == nil {
 		return []AutoHealSettingWindows{}
 	}
@@ -647,7 +647,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 		}
 
 		resultActions := AutoHealActionWindows{
-			ActionType:         string(pointer.From(actions.ActionType)),
+			ActionType:         pointer.FromEnum(actions.ActionType),
 			CustomAction:       customActions,
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}
@@ -658,5 +658,5 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 		return []AutoHealSettingWindows{result}
 	}
 
-	return nil
+	return []AutoHealSettingWindows{}
 }

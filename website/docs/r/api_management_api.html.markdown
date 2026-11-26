@@ -43,7 +43,7 @@ resource "azurerm_api_management_api" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -67,25 +67,25 @@ The following arguments are supported:
 
 -> **Note:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
 
-* `contact` - (Optional) A `contact` block as documented below.
+* `contact` - (Optional) A `contact` block as defined below.
 
 * `description` - (Optional) A description of the API Management API, which may include HTML formatting tags.
 
-* `import` - (Optional) A `import` block as documented below.
+* `import` - (Optional) A `import` block as defined below.
 
 -> **Note:** The `display_name`, `description`, `contact`, and `license` fields can be imported by the `import` block, which might cause a drift if these fields are set along with the `import` block.
 
-* `license` - (Optional) A `license` block as documented below.
+* `license` - (Optional) A `license` block as defined below.
 
-* `oauth2_authorization` - (Optional) An `oauth2_authorization` block as documented below.
+* `oauth2_authorization` - (Optional) An `oauth2_authorization` block as defined below.
 
-* `openid_authentication` - (Optional) An `openid_authentication` block as documented below.
+* `openid_authentication` - (Optional) An `openid_authentication` block as defined below.
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 -> **Note:** The `service_url` is required when `api_type` is specified as `websocket`.
 
-* `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
+* `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as defined below.
 
 * `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
 
@@ -179,7 +179,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.
@@ -198,4 +198,4 @@ terraform import azurerm_api_management_api.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement` - 2022-08-01

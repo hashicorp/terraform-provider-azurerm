@@ -10,10 +10,10 @@ import (
 
 type DeleteActivityTypeProperties struct {
 	Dataset                  DatasetReference    `json:"dataset"`
-	EnableLogging            *bool               `json:"enableLogging,omitempty"`
+	EnableLogging            *interface{}        `json:"enableLogging,omitempty"`
 	LogStorageSettings       *LogStorageSettings `json:"logStorageSettings,omitempty"`
 	MaxConcurrentConnections *int64              `json:"maxConcurrentConnections,omitempty"`
-	Recursive                *bool               `json:"recursive,omitempty"`
+	Recursive                *interface{}        `json:"recursive,omitempty"`
 	StoreSettings            StoreReadSettings   `json:"storeSettings"`
 }
 
@@ -22,10 +22,10 @@ var _ json.Unmarshaler = &DeleteActivityTypeProperties{}
 func (s *DeleteActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Dataset                  DatasetReference    `json:"dataset"`
-		EnableLogging            *bool               `json:"enableLogging,omitempty"`
+		EnableLogging            *interface{}        `json:"enableLogging,omitempty"`
 		LogStorageSettings       *LogStorageSettings `json:"logStorageSettings,omitempty"`
 		MaxConcurrentConnections *int64              `json:"maxConcurrentConnections,omitempty"`
-		Recursive                *bool               `json:"recursive,omitempty"`
+		Recursive                *interface{}        `json:"recursive,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
