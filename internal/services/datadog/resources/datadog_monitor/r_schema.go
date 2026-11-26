@@ -13,6 +13,7 @@ import (
 func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the user that will be associated with the Datadog Monitor.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,43 +36,49 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"api_key": {
-						Type:      pluginsdk.TypeString,
-						Required:  true,
-						ForceNew:  true,
-						Sensitive: true,
+						Description: "API key associated to the Datadog organization.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
+						Sensitive:   true,
 					},
 
 					"application_key": {
-						Type:      pluginsdk.TypeString,
-						Required:  true,
-						ForceNew:  true,
-						Sensitive: true,
+						Description: "Application key associated to the Datadog organization.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
+						Sensitive:   true,
 					},
 
 					"enterprise_app_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "The ID of the enterprise_app.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 
 					"linking_auth_code": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						ForceNew:  true,
-						Sensitive: true,
+						Description: "The auth code used to linking to an existing Datadog organization.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Sensitive:   true,
 					},
 
 					"linking_client_id": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						ForceNew:  true,
-						Sensitive: true,
+						Description: "The ID of the linking_client.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Sensitive:   true,
 					},
 
 					"redirect_uri": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Description: "The redirect URI for linking.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 
 					"id": {
@@ -85,6 +92,7 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"sku_name": {
+			Description:      "The name which should be used for this SKU.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: SkuNameDiffSuppress,
@@ -97,6 +105,7 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this user_info.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -104,6 +113,7 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"email": {
+						Description:  "Email of the user used by Datadog for contacting them if needed.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -111,6 +121,7 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"phone_number": {
+						Description:  "Phone number of the user used by Datadog for contacting them if needed.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -121,14 +132,16 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"monitoring_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether monitoring is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"marketplace_subscription_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

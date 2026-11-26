@@ -120,8 +120,8 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		"soft_delete_retention_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      7,
 			ForceNew:     true,
+			Default:      7,
 			ValidateFunc: validation.IntBetween(1, 7),
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 				return old == "0"

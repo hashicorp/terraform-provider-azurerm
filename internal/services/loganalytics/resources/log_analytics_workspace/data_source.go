@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceLogAnalyticsWorkspaceRead,
+		Description: "Use this data source to access information about an existing Log Analytics (formally Operational Insights) Workspace.",
+		Read:        dataSourceLogAnalyticsWorkspaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,8 +30,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -38,45 +40,53 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"retention_in_days": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The workspace data retention in days.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"daily_quota_gb": {
-				Type:     pluginsdk.TypeFloat,
-				Computed: true,
+				Description: "The workspace daily quota for ingestion in GB.",
+				Type:        pluginsdk.TypeFloat,
+				Computed:    true,
 			},
 
 			"internet_ingestion_access_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The public network access type for ingestion into the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"internet_query_access_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The public network access type for querying the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"workspace_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Workspace (or Customer) ID for the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"primary_shared_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary shared key for the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_shared_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary shared key for the Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

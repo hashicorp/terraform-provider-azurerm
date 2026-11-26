@@ -79,8 +79,8 @@ func (BotChannelDirectlineV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 					"enhanced_authentication_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  false,
 						Optional: true,
+						Default:  false,
 					},
 
 					"trusted_origins": {

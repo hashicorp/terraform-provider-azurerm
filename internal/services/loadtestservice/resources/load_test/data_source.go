@@ -42,11 +42,16 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_load_test"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about a Load Test Service."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the Load Test Service.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -56,15 +61,17 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_plane_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Resource data plane URI.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Description of the resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -75,8 +82,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"key_url": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URI specifying the Key Vault and key to be used to encrypt data in this resource.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"identity": {
 						Type:     pluginsdk.TypeList,

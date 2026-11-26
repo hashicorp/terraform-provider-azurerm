@@ -14,6 +14,7 @@ import (
 func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The display name for your managed Active Directory Domain Service resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"domain_name": {
+			Description:  "The Active Directory domain to use. See [official documentation](https://learn.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,39 +34,45 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"initial_replica_set": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
-			MaxItems: 1,
+			Description: "The initial replica set inherits the same location as the Domain Service resource.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"domain_controller_ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of subnet IP addresses for the domain controllers in the initial replica set, typically two.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"external_access_ip_address": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The publicly routable IP address for the domain controllers in the initial replica set.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A unique ID for the replica set.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					// location is computed here
 					"location": commonschema.LocationComputed(),
 
 					"service_status": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The current service status for the initial replica set.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the subnet in which to place the initial replica set.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -75,8 +83,9 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The SKU to use when provisioning the Domain Service resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
 				"Enterprise",
@@ -85,9 +94,10 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"filtered_sync_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable group-based filtered sync (also called scoped synchronisation).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"notifications": {
@@ -98,8 +108,9 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"additional_recipients": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "A list of additional email addresses to notify when there are alerts in the managed domain.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -107,15 +118,17 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"notify_dc_admins": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to notify members of the _AAD DC Administrators_ group when there are alerts in the managed domain.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"notify_global_admins": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to notify all Global Administrators when there are alerts in the managed domain.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -129,17 +142,20 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether to enable secure LDAP for the managed domain. For more information, see [official documentation on enabling LDAPS](https://learn.microsoft.com/azure/active-directory-domain-services/tutorial-configure-ldaps), paying particular attention to the section on network security to avoid unnecessarily exposing your service to Internet-borne bruteforce attacks.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 
 					"external_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to enable external access to LDAPS over the Internet.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"pfx_certificate": {
+						Description:  "The certificate/private key to use for LDAPS, as a base64-encoded TripleDES-SHA1 encrypted PKCS#12 bundle (PFX file).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -147,24 +163,28 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"pfx_certificate_password": {
-						Type:      pluginsdk.TypeString,
-						Required:  true,
-						Sensitive: true,
+						Description: "The password to use for decrypting the PKCS#12 bundle (PFX file).",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						Sensitive:   true,
 					},
 
 					"certificate_expiry": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The expiry time of the certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"certificate_thumbprint": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The thumbprint of the certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"public_certificate": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The public certificate.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -178,54 +198,62 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"kerberos_armoring_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to enable Kerberos Armoring.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"kerberos_rc4_encryption_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to enable Kerberos RC4 Encryption.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"ntlm_v1_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to enable legacy NTLM v1 support.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"sync_kerberos_passwords": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to synchronize Kerberos password hashes to the managed domain.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"sync_ntlm_passwords": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to synchronize NTLM password hashes to the managed domain.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"sync_on_prem_passwords": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to synchronize on-premises password hashes to the managed domain.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"tls_v1_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to enable legacy TLS v1 support.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
 		},
 
 		"domain_configuration_type": {
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
-			Optional: true,
+			Description: "The configuration type of this Active Directory Domain.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"FullySynced",
 				"ResourceTrusting",
@@ -235,13 +263,15 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"deployment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A unique ID for the managed domain deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure resource ID for the domain service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"sync_owner": {

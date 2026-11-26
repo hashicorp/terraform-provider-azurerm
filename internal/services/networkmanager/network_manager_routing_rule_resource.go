@@ -78,7 +78,7 @@ func (ManagerRoutingRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"rule_collection_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrules.RuleCollectionId{}),
+		"rule_collection_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrules.RuleCollectionId{}, "Network Manager Routing Rule Collection"),
 
 		"destination": {
 			Type:     pluginsdk.TypeList,

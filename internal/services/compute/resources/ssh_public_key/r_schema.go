@@ -15,9 +15,10 @@ import (
 func sshPublicKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this SSH Public Key.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[-a-zA-Z0-9(_).]{1,128}$`),
 				"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, dots and hyphens (but the first and last character must be a letter or number).",
@@ -29,6 +30,7 @@ func sshPublicKeySchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"public_key": {
+			Description:  "SSH public key used to authenticate to a Virtual Machine through SSH. The provided public key needs to be at least 2048-bit and in ssh-rsa format.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.SSHKey,

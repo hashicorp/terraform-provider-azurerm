@@ -8,16 +8,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorProfileCreate,
-		Read:   resourceCdnFrontDoorProfileRead,
-		Update: resourceCdnFrontDoorProfileUpdate,
-		Delete: resourceCdnFrontDoorProfileDelete,
+		Description: "Manages a Front Door (standard/premium) Profile which contains a collection of endpoints and origin groups.",
+		Create:      resourceCdnFrontDoorProfileCreate,
+		Read:        resourceCdnFrontDoorProfileRead,
+		Update:      resourceCdnFrontDoorProfileUpdate,
+		Delete:      resourceCdnFrontDoorProfileDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
