@@ -31,6 +31,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_cosmosdb_account"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Data Protection (Backup Vault) Backup Policy for Cosmos DB Database Accounts."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return basebackuppolicyresources.ValidateBackupPolicyID
 }

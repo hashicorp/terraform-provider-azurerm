@@ -71,10 +71,10 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 			"email_addresses": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"retention_days": {

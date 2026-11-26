@@ -37,8 +37,8 @@ func (SavedSearchV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"category": {
 			Type:     pluginsdk.TypeString,
-			ForceNew: true,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"display_name": {

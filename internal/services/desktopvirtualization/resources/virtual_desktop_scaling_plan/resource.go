@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopScalingPlanCreate,
-		Read:   resourceVirtualDesktopScalingPlanRead,
-		Update: resourceVirtualDesktopScalingPlanUpdate,
-		Delete: resourceVirtualDesktopScalingPlanDelete,
+		Description: "Manages a Virtual Desktop Scaling Plan.",
+		Create:      resourceVirtualDesktopScalingPlanCreate,
+		Read:        resourceVirtualDesktopScalingPlanRead,
+		Update:      resourceVirtualDesktopScalingPlanUpdate,
+		Delete:      resourceVirtualDesktopScalingPlanDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

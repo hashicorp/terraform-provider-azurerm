@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
-		Read:   resourceLogAnalyticsDataSourceWindowsEventRead,
-		Update: resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
-		Delete: resourceLogAnalyticsDataSourceWindowsEventDelete,
+		Description: "Manages a Log Analytics Windows Event DataSource.",
+		Create:      resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
+		Read:        resourceLogAnalyticsDataSourceWindowsEventRead,
+		Update:      resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
+		Delete:      resourceLogAnalyticsDataSourceWindowsEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := datasources.ParseDataSourceID(id)

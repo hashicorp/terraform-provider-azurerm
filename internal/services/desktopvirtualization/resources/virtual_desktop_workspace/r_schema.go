@@ -13,6 +13,7 @@ import (
 func virtualDesktopWorkspaceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Virtual Desktop Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,21 +25,24 @@ func virtualDesktopWorkspaceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"friendly_name": {
+			Description:  "A friendly name for the Virtual Desktop Workspace.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 64),
 		},
 
 		"description": {
+			Description:  "A description for the Virtual Desktop Workspace.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 512),
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for this Virtual Desktop Workspace.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tags": commonschema.Tags(),

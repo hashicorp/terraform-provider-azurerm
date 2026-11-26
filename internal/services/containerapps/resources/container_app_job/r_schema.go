@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container App Job resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,17 +27,19 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"container_app_environment_id": commonschema.ResourceIDReferenceRequiredForceNew(&certificates.ManagedEnvironmentId{}),
+		"container_app_environment_id": commonschema.ResourceIDReferenceRequiredForceNew(&certificates.ManagedEnvironmentId{}, "Container App Environment"),
 
 		"replica_timeout_in_seconds": {
+			Description:  "The maximum number of seconds a replica is allowed to run.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"workload_profile_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The name of the workload profile to use for the Container App Job.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because Azure defaults to Consumption in workload profiles environments but returns null in Consumption-only environments.
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -47,6 +50,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		"secret": helpers.SecretsSchema(),
 
 		"replica_retry_limit": {
+			Description:  "The maximum number of times a replica is allowed to retry.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(0),
@@ -67,6 +71,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"parallelism": {
+						Description:  "Number of parallel replicas of a job that can run at a given time.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -74,6 +79,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 					},
 
 					"replica_completion_count": {
+						Description:  "Minimum number of successful replica completions before overall job completion.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -98,12 +104,14 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cron_expression": {
+						Description:  "Cron formatted repeating schedule of a Cron Job.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"parallelism": {
+						Description:  "Number of parallel replicas of a job that can run at a given time.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -111,6 +119,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 					},
 
 					"replica_completion_count": {
+						Description:  "Minimum number of successful replica completions before overall job completion.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -133,6 +142,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"parallelism": {
+						Description:  "Number of parallel replicas of a job that can run at a given time.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -140,6 +150,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 					},
 
 					"replica_completion_count": {
+						Description:  "Minimum number of successful replica completions before overall job completion.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -158,16 +169,18 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 func (r Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of the Public IP Addresses which the Container App uses for outbound network access.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"event_stream_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint for the Container App Job event stream.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

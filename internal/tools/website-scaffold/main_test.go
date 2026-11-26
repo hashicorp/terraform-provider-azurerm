@@ -104,8 +104,8 @@ A 'block3' block supports the following:
 						// lintignore:XS003
 						"block1": {
 							Type:     schema.TypeList,
-							MaxItems: 1,
 							Required: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"nest_attr1": {
@@ -118,8 +118,8 @@ A 'block3' block supports the following:
 						// lintignore:XS003
 						"block3": {
 							Type:     schema.TypeList,
-							MinItems: 1,
 							Required: true,
+							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"nest_attr3": {

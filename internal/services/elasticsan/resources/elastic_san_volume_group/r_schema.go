@@ -21,19 +21,21 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Elastic SAN Volume Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ElasticSanVolumeGroupName,
 		},
 
-		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumegroups.ElasticSanId{}),
+		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumegroups.ElasticSanId{}, "Elastic SAN"),
 
 		"encryption_type": {
+			Description:  "The type of the key used to encrypt the data of the disk.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEncryptionType(), false),
 			Default:      string(volumegroups.EncryptionTypeEncryptionAtRestWithPlatformKey),
+			ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEncryptionType(), false),
 		},
 
 		"encryption": {
@@ -43,26 +45,31 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Required:     true,
+						Description:  "The Key Vault Key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.",
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 					},
 					"user_assigned_identity_id": {
-						Optional:     true,
+						Description:  "The ID of the User Assigned Identity used by this Elastic SAN Volume Group.",
 						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 					"current_versioned_key_expiration_timestamp": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The timestamp of the expiration time for the current version of the customer managed key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"current_versioned_key_id": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The ID of the current versioned Key Vault Key in use.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"last_key_rotation_timestamp": {
-						Computed: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The timestamp of the last rotation of the Key Vault Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -75,13 +82,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Required:     true,
+						Description:  "The ID of the Subnet which should be allowed to access this Elastic SAN Volume Group.",
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"action": {
-						Optional:     true,
+						Description:  "The action to take when the Subnet attempts to access this Elastic SAN Volume Group.",
 						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						Default:      string(volumegroups.ActionAllow),
 						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForAction(), false),
 					},
@@ -90,13 +99,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The type of the storage target.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(volumegroups.StorageTargetTypeIscsi),
 			ValidateFunc: validation.StringInSlice([]string{
 				// None is not a valid value and service team will consider removing it in future versions.
 				string(volumegroups.StorageTargetTypeIscsi),
 			}, false),
-			Default: string(volumegroups.StorageTargetTypeIscsi),
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),

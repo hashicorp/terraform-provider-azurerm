@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryCustomDatasetCreateUpdate,
-		Read:   resourceDataFactoryCustomDatasetRead,
-		Update: resourceDataFactoryCustomDatasetCreateUpdate,
-		Delete: resourceDataFactoryCustomDatasetDelete,
+		Description: "Manages a Dataset inside an Azure Data Factory. This is a generic resource that supports all different Dataset Types.",
+		Create:      resourceDataFactoryCustomDatasetCreateUpdate,
+		Read:        resourceDataFactoryCustomDatasetRead,
+		Update:      resourceDataFactoryCustomDatasetCreateUpdate,
+		Delete:      resourceDataFactoryCustomDatasetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

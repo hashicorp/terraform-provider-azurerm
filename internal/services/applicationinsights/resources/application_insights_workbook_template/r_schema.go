@@ -56,15 +56,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"resource_type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Default:      "Azure Monitor",
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Default:      "workbook",
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
