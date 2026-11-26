@@ -373,10 +373,9 @@ func expandSecurityCenterAutomationScopes(scopePathsRaw []any) *[]automations.Au
 
 	for _, scopePathRaw := range scopePathsRaw {
 		if path, ok := scopePathRaw.(string); ok {
-			desc := "scope for " + path
 			scope := automations.AutomationScope{
 				ScopePath:   &path,
-				Description: &desc,
+				Description: pointer.To("scope for " + path),
 			}
 			scopes = append(scopes, scope)
 		}

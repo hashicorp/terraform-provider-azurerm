@@ -257,17 +257,17 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// handles "GallerieName" and `DataFactoriesName`
 				if before, ok := strings.CutSuffix(key, "ies"); ok {
 					key = before
-					key = key + "y"
+					key += "y"
 				}
 				switch {
 				case strings.HasSuffix(key, "sses"):
 					// handles `PublicIPAddressesName`
 					key = strings.TrimSuffix(key, "sses")
-					key = key + "ss"
+					key += "ss"
 				case strings.HasSuffix(key, "xes"):
 					// handles `CustomIPPrefixeName`
 					key = strings.TrimSuffix(key, "xes")
-					key = key + "x"
+					key += "x"
 				default:
 					key = strings.TrimSuffix(key, "s")
 				}
