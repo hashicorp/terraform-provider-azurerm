@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import "testing"
 func TestSkuProfileVMSizeName(t *testing.T) {
 	testCases := []struct {
 		name        string
-		input       interface{}
+		input       any
 		shouldError bool
 	}{
 		{

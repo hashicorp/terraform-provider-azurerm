@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -76,7 +76,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

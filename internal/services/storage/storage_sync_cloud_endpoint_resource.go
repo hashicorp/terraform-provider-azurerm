@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -83,7 +83,7 @@ func resourceStorageSyncCloudEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncCloudEndpointsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceStorageSyncCloudEndpointRead(d, meta)
 }
 
-func resourceStorageSyncCloudEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncCloudEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncCloudEndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceStorageSyncCloudEndpointRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceStorageSyncCloudEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncCloudEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncCloudEndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -21,7 +21,7 @@ type SqlResourcesDeleteSqlRoleAssignmentOperationResponse struct {
 }
 
 // SqlResourcesDeleteSqlRoleAssignment ...
-func (c RbacsClient) SqlResourcesDeleteSqlRoleAssignment(ctx context.Context, id AccountId) (result SqlResourcesDeleteSqlRoleAssignmentOperationResponse, err error) {
+func (c RbacsClient) SqlResourcesDeleteSqlRoleAssignment(ctx context.Context, id SqlRoleAssignmentId) (result SqlResourcesDeleteSqlRoleAssignmentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -57,7 +57,7 @@ func (c RbacsClient) SqlResourcesDeleteSqlRoleAssignment(ctx context.Context, id
 }
 
 // SqlResourcesDeleteSqlRoleAssignmentThenPoll performs SqlResourcesDeleteSqlRoleAssignment then polls until it's completed
-func (c RbacsClient) SqlResourcesDeleteSqlRoleAssignmentThenPoll(ctx context.Context, id AccountId) error {
+func (c RbacsClient) SqlResourcesDeleteSqlRoleAssignmentThenPoll(ctx context.Context, id SqlRoleAssignmentId) error {
 	result, err := c.SqlResourcesDeleteSqlRoleAssignment(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesDeleteSqlRoleAssignment: %+v", err)
