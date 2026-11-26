@@ -4,9 +4,10 @@
 package oracle
 
 import (
+	"strings"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
-	"strings"
 )
 
 type ExascaleDatabaseDataCollectionModel struct {
