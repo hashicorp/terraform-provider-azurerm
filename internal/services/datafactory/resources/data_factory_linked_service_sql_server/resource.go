@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceSQLServerCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceSQLServerRead,
-		Update: resourceDataFactoryLinkedServiceSQLServerCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceSQLServerDelete,
+		Description: "Manages a Linked Service (connection) between a SQL Server and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceSQLServerCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceSQLServerRead,
+		Update:      resourceDataFactoryLinkedServiceSQLServerCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceSQLServerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

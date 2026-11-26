@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -58,23 +58,23 @@ func (Resource) Read() sdk.ResourceFunc {
 
 					if verificationRecords := props.VerificationRecords; verificationRecords != nil {
 						if record := verificationRecords.DKIM; record != nil {
-							domainVerificationRecords.DKIM = helper.DomainVerificationRecordsToModel(record)
+							domainVerificationRecords.DKIM = helpers.DomainVerificationRecordsToModel(record)
 						}
 
 						if record := verificationRecords.DKIM2; record != nil {
-							domainVerificationRecords.DKIM2 = helper.DomainVerificationRecordsToModel(record)
+							domainVerificationRecords.DKIM2 = helpers.DomainVerificationRecordsToModel(record)
 						}
 
 						if record := verificationRecords.DMARC; record != nil {
-							domainVerificationRecords.DMARC = helper.DomainVerificationRecordsToModel(record)
+							domainVerificationRecords.DMARC = helpers.DomainVerificationRecordsToModel(record)
 						}
 
 						if record := verificationRecords.Domain; record != nil {
-							domainVerificationRecords.Domain = helper.DomainVerificationRecordsToModel(record)
+							domainVerificationRecords.Domain = helpers.DomainVerificationRecordsToModel(record)
 						}
 
 						if record := verificationRecords.SPF; record != nil {
-							domainVerificationRecords.SPF = helper.DomainVerificationRecordsToModel(record)
+							domainVerificationRecords.SPF = helpers.DomainVerificationRecordsToModel(record)
 						}
 					}
 
@@ -94,9 +94,9 @@ func (Resource) Read() sdk.ResourceFunc {
 }
 
 type EmailDomainVerificationRecords struct {
-	Domain []helper.DomainVerificationRecords `tfschema:"domain"`
-	SPF    []helper.DomainVerificationRecords `tfschema:"spf"`
-	DMARC  []helper.DomainVerificationRecords `tfschema:"dmarc"`
-	DKIM   []helper.DomainVerificationRecords `tfschema:"dkim"`
-	DKIM2  []helper.DomainVerificationRecords `tfschema:"dkim2"`
+	Domain []helpers.DomainVerificationRecords `tfschema:"domain"`
+	SPF    []helpers.DomainVerificationRecords `tfschema:"spf"`
+	DMARC  []helpers.DomainVerificationRecords `tfschema:"dmarc"`
+	DKIM   []helpers.DomainVerificationRecords `tfschema:"dkim"`
+	DKIM2  []helpers.DomainVerificationRecords `tfschema:"dkim2"`
 }

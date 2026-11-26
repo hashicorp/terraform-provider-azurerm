@@ -22,11 +22,11 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Apps Managed Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedEnvironmentName,
-			Description:  "The name of the Container Apps Managed Environment.",
 		},
 
 		"location": commonschema.Location(),
@@ -34,72 +34,73 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"dapr_application_insights_connection_string": {
+			Description:  "Application Insights connection string used by Dapr to export Service to Service communication telemetry.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "Application Insights connection string used by Dapr to export Service to Service communication telemetry.",
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
-			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
 		},
 
 		"logs_destination": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  LogsDestinationNone,
+			Description: "Where the application logs will be saved for this Container Apps Managed Environment. Omitting this value will result in logs being streamed only.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     LogsDestinationNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				LogsDestinationAzureMonitor,
 				LogsDestinationLogAnalytics,
 			}, false),
-			Description: "The destination for the application logs. Possible values include `log-analytics` and `azure-monitor`.  Omitting this value will result in logs being streamed only.",
 		},
 
 		"infrastructure_resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Name of the platform-managed Resource Group created for the Managed Environment to host infrastructure resources.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C - value is computed by Azure when `infrastructure_resource_group_name` is not configured
 			Computed:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"workload_profile"},
 			ValidateFunc: resourcegroups.ValidateName,
-			Description:  "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+			RequiredWith: []string{"workload_profile"},
 		},
 
 		"infrastructure_subnet_id": {
+			Description:  "The existing Subnet to use for the Container Apps Control Plane.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
-			Description:  "The existing Subnet to use for the Container Apps Control Plane. **NOTE:** The Subnet must have a `/21` or larger address space.",
 		},
 
 		"internal_load_balancer_enabled": {
+			Description:  "Whether the Container Environment should operate in Internal Load Balancing Mode.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
-			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
 		},
 
 		"public_network_access": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The public network access setting for the Container App Environment.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because Azure sets a different value depending on whether the CAE is provisioned with its own virtual network.
 			Computed:     true,
-			Description:  "The public network access setting for the Container App Environment.",
 			ValidateFunc: validation.StringInSlice(managedenvironments.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
 		"workload_profile": WorkloadProfileSchema(),
 
 		"zone_redundancy_enabled": {
+			Description:  "Whether the Container App Environment should be created with Zone Redundancy enabled.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,
@@ -108,7 +109,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"mutual_tls_enabled": {
-			Description: "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+			Description: "Whether mutual transport layer security (mTLS) should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -123,39 +124,39 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
 		},
 
 		"default_domain": {
+			Description: "The default publicly resolvable name of this Container App Environment.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The default publicly resolvable name of this Container App Environment",
 		},
 
 		"docker_bridge_cidr": {
+			Description: "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
 		},
 
 		"platform_reserved_cidr": {
+			Description: "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
 		},
 
 		"platform_reserved_dns_ip_address": {
+			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 		},
 
 		"static_ip_address": {
+			Description: "The Static IP address of the Environment.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Static IP Address of the Environment.",
 		},
 	}
 }
@@ -189,6 +190,12 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
+				}
+			}
+
+			for _, v := range model.WorkloadProfiles {
+				if IsConsumptionProfileType(v.WorkloadProfileType) && (v.MinimumCount != 0 || v.MaximumCount != 0) {
+					return fmt.Errorf("`minimum_count` and `maximum_count` cannot be set for `workload_profile` %q as they are not supported for the `workload_profile_type` %q", v.Name, v.WorkloadProfileType)
 				}
 			}
 

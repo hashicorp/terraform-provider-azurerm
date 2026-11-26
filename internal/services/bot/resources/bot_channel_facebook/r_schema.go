@@ -17,6 +17,7 @@ func botChannelFacebookSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,12 +25,14 @@ func botChannelFacebookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"facebook_application_id": {
+			Description:  "The Facebook Application ID for the Facebook Channel.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"facebook_application_secret": {
+			Description:  "The Facebook Application Secret for the Facebook Channel.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -42,12 +45,14 @@ func botChannelFacebookSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The Facebook Page ID for the Facebook Channel.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"access_token": {
+						Description:  "The Facebook Page Access Token for the Facebook Channel.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,

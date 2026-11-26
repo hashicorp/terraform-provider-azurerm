@@ -14,6 +14,7 @@ import (
 func customProviderSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Custom Provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,16 +32,19 @@ func customProviderSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the route definition.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.NoZeroValues,
 					},
 					"endpoint": {
+						Description:  "The endpoint of the route definition.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
 					},
 					"routing_type": {
+						Description:  "The routing type that is supported for the resource request.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(customresourceprovider.ResourceTypeRoutingProxy),
@@ -57,11 +61,13 @@ func customProviderSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the action.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.NoZeroValues,
 					},
 					"endpoint": {
+						Description:  "The endpoint of the action.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
@@ -76,6 +82,7 @@ func customProviderSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"specification": {
+						Description:  "The endpoint where the validation specification is located.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,

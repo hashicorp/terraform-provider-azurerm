@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDataFlowCreateUpdate,
-		Read:   resourceDataFactoryDataFlowRead,
-		Update: resourceDataFactoryDataFlowCreateUpdate,
-		Delete: resourceDataFactoryDataFlowDelete,
+		Description: "Manages a Data Flow inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDataFlowCreateUpdate,
+		Read:        resourceDataFactoryDataFlowRead,
+		Update:      resourceDataFactoryDataFlowCreateUpdate,
+		Delete:      resourceDataFactoryDataFlowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dataflows.ParseDataflowID(id)

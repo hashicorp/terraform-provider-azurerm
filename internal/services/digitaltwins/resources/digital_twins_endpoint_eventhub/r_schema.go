@@ -13,6 +13,7 @@ import (
 func digitalTwinsEndpointEventhubSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Digital Twins Event Hub Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func digitalTwinsEndpointEventhubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"digital_twins_id": {
+			Description:  "The resource ID of the Digital Twins Instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func digitalTwinsEndpointEventhubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_primary_connection_string": {
+			Description:  "The primary connection string of the Event Hub Authorization Rule with a minimum of `send` permission.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -34,6 +37,7 @@ func digitalTwinsEndpointEventhubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_secondary_connection_string": {
+			Description:  "The secondary connection string of the Event Hub Authorization Rule with a minimum of `send` permission.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -41,6 +45,7 @@ func digitalTwinsEndpointEventhubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dead_letter_storage_secret": {
+			Description:  "The storage secret of the dead-lettering, whose format is `https://<storageAccountname>.blob.core.windows.net/<containerName>?<SASToken>`. When an endpoint can't deliver an event within a certain time period or after trying to deliver the event a certain number of times, it can send the undelivered event to a Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,

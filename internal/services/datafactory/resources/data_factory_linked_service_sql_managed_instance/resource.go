@@ -23,6 +23,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_factory_linked_service_sql_managed_instance"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Linked Service (connection) between Azure SQL Managed Instance and Azure Data Factory."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return linkedservices.ValidateLinkedServiceID
 }

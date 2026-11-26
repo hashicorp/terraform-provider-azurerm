@@ -17,23 +17,25 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Backup Policy for the Azure Backup Policy Data Lake Storage.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{2,149}$"),
 				"`name` must be 3 - 150 characters long, contain only letters, numbers and hyphens(-), and cannot start with a number or hyphen.",
 			),
 		},
 
-		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
+		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{}), "Data Protection Backup Vault"),
 
 		"backup_schedule": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
-			MaxItems: 5,
+			Description: "A list of repeating time interval, also known as the backup schedule. It supports daily & weekly backup. It should follow [`ISO 8601` recurring time interval format](https://en.wikipedia.org/wiki/ISO_8601#Recurring_intervals), for example: `R/2021-05-23T02:30:00+00:00/P1W`.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			ForceNew:    true,
+			MinItems:    1,
+			MaxItems:    5,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.ISO8601RepeatingTime,
@@ -41,6 +43,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"default_retention_duration": {
+			Description:  "The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,12 +51,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_rule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+			Description: "The priority of each rule is determined by its order in the list, where the first rule has the highest priority.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the retention rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -61,6 +66,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"duration": {
+						Description:  "The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -68,6 +74,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"absolute_criteria": {
+						Description:  "The absolute criteria for the retention rule. These values mean the first successful backup of the day/week/month/year.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -75,10 +82,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
+						Description: "A list of days of the week on which the retention rule applies.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForDayOfWeek(), false),
@@ -86,10 +94,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"months_of_year": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
+						Description: "A list of months of the year on which the retention rule applies.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForMonth(), false),
@@ -97,10 +106,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"scheduled_backup_times": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
+						Description: "A list of backup times for backup in the `RFC3339` format.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsRFC3339Time,
@@ -108,10 +118,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"weeks_of_month": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
+						Description: "A list of weeks of the month on which the retention rule applies.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForWeekNumber(), false),
@@ -122,6 +133,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"time_zone": {
+			Description:  "The Time Zone which should be used by the backup schedule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

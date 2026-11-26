@@ -30,6 +30,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_bot_service_azure_bot"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Bot Service."
+}
+
 func (r Resource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,

@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_subscription_cost_management_view"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Cost Management View for a Subscription."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.SubscriptionCostManagementViewID
 }

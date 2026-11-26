@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryManagedPrivateEndpointCreate,
-		Read:   resourceDataFactoryManagedPrivateEndpointRead,
-		Delete: resourceDataFactoryManagedPrivateEndpointDelete,
+		Description: "Manages a Data Factory Managed Private Endpoint.",
+		Create:      resourceDataFactoryManagedPrivateEndpointCreate,
+		Read:        resourceDataFactoryManagedPrivateEndpointRead,
+		Delete:      resourceDataFactoryManagedPrivateEndpointDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := managedprivateendpoints.ParseManagedPrivateEndpointID(id)
