@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id subnet_id
+
+const subnetNetworkSecurityGroupAssociation = "azurerm_subnet_network_security_group_association"
 
 func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -34,10 +39,11 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSubnetID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SubnetId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
@@ -146,10 +152,13 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	}
 
 	// TODO: migrate to a composite ID
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *subnetId, *subnet.Model, sdk.SetIDCallback(meta, subnetId, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *subnetId, *subnet.Model, sdk.SetIDAndIdentityCallback(meta, subnetId, d)); err != nil {
 		return fmt.Errorf("updating Network Security Group Association for %s: %+v", *subnetId, err)
 	}
 	d.SetId(subnetId.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, subnetId); err != nil {
+		return err
+	}
 
 	timeout, _ := ctx.Deadline()
 
@@ -198,7 +207,10 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	model := resp.Model
+	return resourceSubnetNetworkSecurityGroupAssociationFlatten(d, id, resp.Model)
+}
+
+func resourceSubnetNetworkSecurityGroupAssociationFlatten(d *pluginsdk.ResourceData, id *commonids.SubnetId, model *subnets.Subnet) error {
 	if model == nil {
 		return fmt.Errorf("`model` was nil for %s", *id)
 	}
@@ -218,7 +230,7 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 	d.Set("subnet_id", model.Id)
 	d.Set("network_security_group_id", securityGroup.Id)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
