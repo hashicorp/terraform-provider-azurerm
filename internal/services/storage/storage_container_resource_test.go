@@ -348,7 +348,7 @@ resource "azurerm_storage_container" "test" {
 
   metadata = {
     hello = "world"
-    panda = "pops"
+    PanDa = "pops"
   }
 }
 `, r.template(data))
