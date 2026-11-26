@@ -37,11 +37,12 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Backup Vault should exist. Changing this forces a new Backup Vault to be created.
 
-* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore`, `SnapshotStore` and `VaultStore`. Changing this forces a new resource to be created.
+* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore` and `VaultStore`. Changing this forces a new resource to be created.
 
--> **Note:** The `SnapshotStore` will be removed in version 4.0 as it has been replaced by `OperationalStore`.
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
+
+* `alerts_for_all_job_failures_enabled` - (Optional) Whether to enable Azure Monitor alerts for all job failures.
 
 * `cross_region_restore_enabled` - (Optional) Whether to enable cross-region restore for the Backup Vault.
  

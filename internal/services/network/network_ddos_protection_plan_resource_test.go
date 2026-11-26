@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +20,7 @@ type NetworkDdosProtectionPlanResource struct{}
 
 // NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
 // Plan per region.
-func TestAccNetworkDDoSProtectionPlan(t *testing.T) {
+func TestAccNetworkDDoSProtectionPlan_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"normal": {
 			"basic":          testAccNetworkDDoSProtectionPlan_basic,

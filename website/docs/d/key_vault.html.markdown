@@ -53,7 +53,7 @@ The following attributes are exported:
 
 * `enabled_for_template_deployment` - Can Azure Resource Manager retrieve secrets from the Key Vault?
 
-* `enable_rbac_authorization` - Is Role Based Access Control (RBAC) for authorization of data actions enabled on this Key Vault?
+* `rbac_authorization_enabled` - Is Role Based Access Control (RBAC) for authorization of data actions enabled on this Key Vault?
 
 * `purge_protection_enabled` - Is purge protection enabled on this Key Vault?
 

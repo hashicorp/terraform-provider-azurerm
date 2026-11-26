@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -7,7 +7,7 @@ import (
 	rmtags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 )
 
-func Expand(tagsMap map[string]interface{}) map[string]*string {
+func Expand(tagsMap map[string]any) map[string]*string {
 	output := make(map[string]*string, len(tagsMap))
 
 	for i, v := range tagsMap {

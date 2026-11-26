@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -23,10 +23,11 @@ import (
 
 func resourceCosmosDbTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbTableCreate,
-		Read:   resourceCosmosDbTableRead,
-		Update: resourceCosmosDbTableUpdate,
-		Delete: resourceCosmosDbTableDelete,
+		Description: "Manages a Table within a Cosmos DB Account.",
+		Create:      resourceCosmosDbTableCreate,
+		Read:        resourceCosmosDbTableRead,
+		Update:      resourceCosmosDbTableUpdate,
+		Delete:      resourceCosmosDbTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseTableID(id)
@@ -47,6 +48,7 @@ func resourceCosmosDbTable() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Table.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,6 +58,7 @@ func resourceCosmosDbTable() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Table to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -63,9 +66,10 @@ func resourceCosmosDbTable() *pluginsdk.Resource {
 			},
 
 			"throughput": {
+				Description:  "The throughput of Table (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -74,7 +78,7 @@ func resourceCosmosDbTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -118,7 +122,7 @@ func resourceCosmosDbTableCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceCosmosDbTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -142,7 +146,7 @@ func resourceCosmosDbTableUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -191,7 +195,7 @@ func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceCosmosDbTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

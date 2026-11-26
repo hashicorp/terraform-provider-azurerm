@@ -1,6 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 
-version = "2025.11"
+version = "2026.1"
 
 var clientId = DslContext.getParameter("clientId", "")
 var clientSecret = DslContext.getParameter("clientSecret", "")
@@ -15,13 +15,13 @@ var tenantIdAlt = DslContext.getParameter("tenantIdAlt", "")
 var subscriptionIdAltTenant = DslContext.getParameter("subscriptionIdAltTenant", "")
 var principalIdAltTenant = DslContext.getParameter("principalIdAltTenant", "")
 var vcsRootId = DslContext.getParameter("vcsRootId", "TF_HashiCorp_AzureRM_Repository")
-var runBetaVersion = DslContext.getParameter("runBetaVersion", "true").equals("true", ignoreCase = true)
+var createBetaProject = DslContext.getParameter("createBetaProject", "false").equals("true", ignoreCase = true)
 var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
 var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-provider-azurerm")
 var gitPat = DslContext.getParameter("gitPat", "")
 var teamcityToken = DslContext.getParameter("teamcityToken", "")
-var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_FIVEPOINTZERO_BETA")
+var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_SIXPOINTZERO_BETA")
 var labelSuccess = DslContext.getParameter("labelSuccess", "teamcity-passed")
 var labelFailure = DslContext.getParameter("labelFailure", "teamcity-failed")
 var labelOutdated = DslContext.getParameter("labelOutdated", "teamcity-outdated")
@@ -42,7 +42,7 @@ var clientConfig = ClientConfiguration(
     subscriptionIdAltTenant,
     principalIdAltTenant,
     vcsRootId,
-    runBetaVersion,
+    createBetaProject,
     enableTestTriggersGlobally,
     emailAddressAccTests,
     gitHubRepo,

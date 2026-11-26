@@ -120,7 +120,7 @@ A `galleries` block supports the following:
 
 * `type` - (Optional) Type of workbook supported by the workbook template. Defaults to `workbook`.
 
-~> **Note:** See [documentation](https://docs.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-automate#galleries) for more information of `resource_type` and `type`.
+~> **Note:** See [documentation](https://docs.microsoft.com/azure/azure-monitor/visualize/workbooks-automate#galleries) for more information of `resource_type` and `type`.
 
 ## Attributes Reference
 

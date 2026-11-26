@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Load Balancer should exist. Changing this forces a new Load Balancer to be created.
 
-* `frontend_ip_configuration` - (Optional) One or more `frontend_ip_configuration` blocks as documented below.
+* `frontend_ip_configuration` - (Optional) One or more `frontend_ip_configuration` blocks as defined below.
 
 -> **Note:** Azure Load Balancer does not allow the complete removal of all previously attached frontend configurations. If you have previously applied with one or more `frontend_ip_configuration` arguments, the removal of them all will result in a replacement  (destroy/create) of the Load Balancer.
 
@@ -86,7 +86,7 @@ The `frontend_ip_configuration` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Load Balancer ID.
-* `frontend_ip_configuration` - A `frontend_ip_configuration` block as documented below.
+* `frontend_ip_configuration` - A `frontend_ip_configuration` block as defined below.
 * `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 * `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 
@@ -126,4 +126,4 @@ terraform import azurerm_lb.example /subscriptions/00000000-0000-0000-0000-00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2023-09-01
+* `Microsoft.Network` - 2025-07-01

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package redhatopenshift
@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/resources/redhat_openshift_cluster"
 )
 
 var (
@@ -34,7 +35,7 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		RedHatOpenShiftCluster{},
+		redhat_openshift_cluster.Resource{},
 	}
 }
 
@@ -59,5 +60,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		redhat_openshift_cluster.ListResource{},
+	}
 }

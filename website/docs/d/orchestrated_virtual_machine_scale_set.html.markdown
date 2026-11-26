@@ -14,8 +14,8 @@ Use this data source to access information about an existing Orchestrated Virtua
 
 ```hcl
 data "azurerm_orchestrated_virtual_machine_scale_set" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-scale-set"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -65,7 +65,7 @@ A `network_interface` block exports the following:
 
 * `dns_servers` - An array of the DNS servers in use.
 
-* `ip_configuration` - An `ip_configuration` block as documented below.
+* `ip_configuration` - An `ip_configuration` block as defined below.
 
 * `ip_forwarding_enabled` - Is IP forwarding enabled?
 
@@ -145,4 +145,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01
+* `Microsoft.Compute` - 2025-04-01

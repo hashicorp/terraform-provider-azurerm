@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -10,10 +10,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ pluginsdk.StateUpgrade = LegacyVMSSV0ToV1{}
@@ -164,8 +164,8 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"single_placement_group": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
 			ForceNew: true,
+			Default:  true,
 		},
 
 		"priority": {
@@ -247,13 +247,13 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"provision_vm_agent": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_automatic_upgrades": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -301,7 +301,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 		},
 
 		// lintignore:S018
@@ -310,13 +309,14 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disable_password_authentication": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
 						ForceNew: true,
+						Default:  false,
 					},
 					"ssh_keys": {
 						Type:     pluginsdk.TypeList,
@@ -336,12 +336,12 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 		},
 
 		"network_profile": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -405,33 +405,33 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								"application_gateway_backend_address_pool_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									Set:      pluginsdk.HashString,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								},
 
 								"application_security_group_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
+									MaxItems: 20,
+									Set:      pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
-									Set:      pluginsdk.HashString,
-									MaxItems: 20,
 								},
 
 								"load_balancer_backend_address_pool_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									Set:      pluginsdk.HashString,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								},
 
 								"load_balancer_inbound_nat_rules_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
 									Computed: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									Set:      pluginsdk.HashString,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								},
 
 								"primary": {
@@ -467,7 +467,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
 		},
 
 		"boot_diagnostics": {
@@ -495,6 +494,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -510,15 +510,14 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"vhd_containers": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"managed_disk_type": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Computed:      true,
-						ConflictsWith: []string{"storage_profile_os_disk.vhd_containers"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 
 					"caching": {
@@ -538,7 +537,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
 		},
 
 		"storage_profile_data_disk": {
@@ -583,6 +581,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -611,7 +610,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 		},
 
 		// lintignore:S018
@@ -642,6 +640,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"extension": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      resourceArmVirtualMachineScaleSetExtensionHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -681,7 +680,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetExtensionHash,
 		},
 
 		"tags": {
@@ -695,7 +693,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// @tombuildsstuff: NOTE, this state migration is essentially pointless
 		// however it existed in the legacy migration so even though this is
 		//  essentially a noop there's no reason this shouldn't be the same I guess
@@ -720,10 +718,10 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-func userDataStateFunc(v interface{}) string {
+func userDataStateFunc(v any) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = base64.EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -731,10 +729,10 @@ func userDataStateFunc(v interface{}) string {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
 			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
@@ -746,20 +744,20 @@ func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%t-", m["disable_password_authentication"].(bool))
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 		fmt.Fprintf(&buf, "%t-", m["primary"].(bool))
 	}
@@ -767,10 +765,10 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 
 		if v, ok := m["vhd_containers"]; ok {
@@ -781,10 +779,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["publisher"]; ok {
 			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
@@ -805,10 +803,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetExtensionHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
 		fmt.Fprintf(&buf, "%s-", m["type"].(string))

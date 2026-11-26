@@ -55,8 +55,12 @@ provider "azurerm" {
     enhanced_validation {
       locations                   = true
       resource_providers          = true
-      preflight_enabled           = false
+      preflight_enabled           = true
       preflight_location_fallback = "westeurope"
+    }
+
+    servicebus {
+      auto_delete_subscription_default_rule = false
     }
 
     key_vault {
@@ -151,6 +155,8 @@ The `features` block supports the following:
 
 * `enhanced_validation` - (Optional) An `enhanced_validation` block as defined below.
 
+* `servicebus` - (Optional) A `servicebus` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -217,15 +223,21 @@ The `databricks_workspace` block supports the following:
 
 The `enhanced_validation` block supports the following:
 
-* `locations` - (Optional) Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+* `locations` - (Optional) Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable. Defaults to `false`.
 
-* `preflight_enabled` - (Optional) Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each supported resource is valid? Requires valid credentials and external Azure API access at plan time. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` Environment Variable. Defaults to `false`.
+* `preflight_enabled` - (Optional) Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each supported resource is valid. Requires valid credentials and external Azure API access at plan time. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` Environment Variable. Defaults to `false`.
 
 ~> **Note:** Preflight Validation is a "Best Effort" feature and is not guaranteed to be 100% accurate. Terraform will attempt to validate the request payload against the Azure API based on known values for the resource from the configuration. References to resources or values that is not known at plan time are sent as empty or null values.
 
 * `preflight_location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
 
-* `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+* `resource_providers` - (Optional) Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `false`.
+
+---
+
+The `servicebus` block supports the following:
+
+* `auto_delete_subscription_default_rule` - (Optional) Should the `$Default` rule be automatically deleted after creating an `azurerm_servicebus_subscription`? This prevents unfiltered messages from being delivered during the window between subscription creation and custom rule application. Defaults to `false`.
 
 ---
 
@@ -341,10 +353,6 @@ The `virtual_machine` block supports the following:
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
 ~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
-
-* `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
-
-!> **Note:** Due to a breaking API change `graceful_shutdown` is no longer effective and has been deprecated. This feature will be removed from v5.0 of the AzureRM provider.
 
 * `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 const (
@@ -23,18 +22,17 @@ const (
 	FxStringPrefixPhp            FxStringPrefix = "PHP"
 	FxStringPrefixPowerShell     FxStringPrefix = "POWERSHELL"
 	FxStringPrefixPython         FxStringPrefix = "PYTHON"
-	FxStringPrefixRuby           FxStringPrefix = "RUBY"
 	FxStringPrefixTomcat         FxStringPrefix = "TOMCAT"
 )
 
 type FxStringPrefix string
 
-var urlSchemes = []string{
+var UrlSchemes = []string{
 	"https://",
 	"http://",
 }
 
-func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
+func DecodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
 	if len(parts) != 2 {
@@ -96,12 +94,6 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	case FxStringPrefixPython:
 		result.PythonVersion = parts[1]
-	}
-
-	if !features.FivePointOh() {
-		if FxStringPrefix(strings.ToUpper(parts[0])) == FxStringPrefixRuby {
-			result.RubyVersion = parts[1]
-		}
 	}
 
 	return result
@@ -218,9 +210,9 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	}
 
 	dockerUrl := partial.RegistryURL
-	for _, prefix := range urlSchemes {
-		if strings.HasPrefix(dockerUrl, prefix) {
-			dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+	for _, prefix := range UrlSchemes {
+		if after, ok := strings.CutPrefix(dockerUrl, prefix); ok {
+			dockerUrl = after
 			continue
 		}
 	}
@@ -329,7 +321,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 func EncodeDockerFxString(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 
-	registryUrl = trimURLScheme(strings.TrimSuffix(registryUrl, "/"))
+	registryUrl = TrimURLScheme(strings.TrimSuffix(registryUrl, "/"))
 
 	return fmt.Sprintf(template, registryUrl, image)
 }
@@ -338,7 +330,7 @@ func EncodeDockerFxStringWindows(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 	dockerHubTemplate := "DOCKER|%s"
 
-	registryUrl = trimURLScheme(registryUrl)
+	registryUrl = TrimURLScheme(registryUrl)
 
 	// Windows App Services fail to auth if the index portion of the image ref is `index.docker.io` so it must not be included.
 	if strings.EqualFold(registryUrl, "index.docker.io") {

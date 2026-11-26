@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name system_center_virtual_machine_manager_cloud -service-package-name systemcentervirtualmachinemanager -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
 
 type SystemCenterVirtualMachineManagerCloudModel struct {
 	Name                                                   string            `tfschema:"name"`
@@ -41,7 +41,7 @@ var (
 
 type SystemCenterVirtualMachineManagerCloudResource struct{}
 
-func (r SystemCenterVirtualMachineManagerCloudResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerCloudResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerCloudModel{}
 }
 
@@ -70,9 +70,9 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Arguments() map[string]*
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
-		"system_center_virtual_machine_manager_server_inventory_item_id": commonschema.ResourceIDReferenceRequiredForceNew(&inventoryitems.InventoryItemId{}),
+		"system_center_virtual_machine_manager_server_inventory_item_id": commonschema.ResourceIDReferenceRequiredForceNew(&inventoryitems.InventoryItemId{}, "System Center Virtual Machine Manager Server Inventory Item"),
 
 		"tags": commonschema.Tags(),
 	}

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func Flatten(tagMap map[string]*string) map[string]interface{} {
+func Flatten(tagMap map[string]*string) map[string]any {
 	// scrub any provider-level ignored tag keys before they reach state
 	tagMap = rmtags.Ignore().ApplyMap(tagMap)
 
 	// If tagsMap is nil, len(tagsMap) will be 0.
-	output := make(map[string]interface{}, len(tagMap))
+	output := make(map[string]any, len(tagMap))
 
 	for i, v := range tagMap {
 		if v == nil {
@@ -29,8 +29,7 @@ func Flatten(tagMap map[string]*string) map[string]interface{} {
 }
 
 func FlattenAndSet(d *pluginsdk.ResourceData, tagMap map[string]*string) error {
-	flattened := Flatten(tagMap)
-	if err := d.Set("tags", flattened); err != nil {
+	if err := d.Set("tags", Flatten(tagMap)); err != nil {
 		return fmt.Errorf("setting `tags`: %s", err)
 	}
 
