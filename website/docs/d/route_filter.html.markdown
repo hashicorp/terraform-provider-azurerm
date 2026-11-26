@@ -14,8 +14,8 @@ Use this data source to access information about an existing Route Filter.
 
 ```hcl
 data "azurerm_route_filter" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-route-filter"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
