@@ -55,6 +55,66 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 }
 ```
 
+### Full Text Search
+
+```hcl
+resource "azurerm_cosmosdb_account" "example" {
+  name                = "tfex-cosmosdb-account"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  capabilities {
+    name = "EnableNoSQLFullTextSearch"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.example.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "example" {
+  name                = "example-acsd"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "example" {
+  name                = "example-container"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_sql_database.example.name
+  partition_key_paths = ["/definition/id"]
+
+  full_text_policy {
+    default_language = "en-US"
+
+    full_text_path {
+      path     = "/text"
+      language = "en-US"
+    }
+  }
+
+  indexing_policy {
+    indexing_mode = "consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    full_text_index {
+      path = "/text"
+    }
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -84,6 +144,10 @@ The following arguments are supported:
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
 * `indexing_policy` - (Optional) An `indexing_policy` block as defined below.
+
+* `full_text_policy` - (Optional) A `full_text_policy` block as defined below.
+
+-> **Note:** `full_text_policy` and `full_text_index` require the `EnableNoSQLFullTextSearch` capability to be enabled on the Cosmos DB Account.
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
@@ -115,11 +179,37 @@ An `indexing_policy` block supports the following:
 
 * `spatial_index` - (Optional) One or more `spatial_index` blocks as defined below.
 
+* `full_text_index` - (Optional) One or more `full_text_index` blocks as defined below.
+
 ---
 
 A `spatial_index` block supports the following:
 
 * `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path.
+
+---
+
+A `full_text_index` block supports the following:
+
+* `path` - (Required) Path for which the full text indexing behaviour applies to. This must be one of the paths defined in the `full_text_policy` block.
+
+---
+
+A `full_text_policy` block supports the following:
+
+* `default_language` - (Required) The default language used for the paths in this full text policy. Possible values are `en-US`, `de-DE`, `es-ES`, `fr-FR`, `it-IT`, `pt-BR` and `pt-PT`.
+
+* `full_text_path` - (Required) One or more `full_text_path` blocks as defined below.
+
+-> **Note:** Languages other than `en-US` are currently in preview and require the `New features for full-text search` feature to be enabled on the Cosmos DB Account.
+
+---
+
+A `full_text_path` block supports the following:
+
+* `path` - (Required) The path to the property containing the text to index. Wildcard characters such as `*` and `[]` are not supported.
+
+* `language` - (Required) The language of the text at this path. Possible values are `en-US`, `de-DE`, `es-ES`, `fr-FR`, `it-IT`, `pt-BR` and `pt-PT`.
 
 ---
 
@@ -190,4 +280,4 @@ terraform import azurerm_cosmosdb_sql_container.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2024-08-15
+* `Microsoft.DocumentDB` - 2025-10-15
