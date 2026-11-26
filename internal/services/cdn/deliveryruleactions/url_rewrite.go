@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -16,21 +16,24 @@ func URLRewrite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_pattern": {
+				Description:  "This value must start with a `/` and can't be longer than 260 characters.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteSourcePattern(),
 			},
 
 			"destination": {
+				Description:  "This value must start with a `/` and can't be longer than 260 characters.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteDestination(),
 			},
 
 			"preserve_unmatched_path": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Whether preserve an unmatched path.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 		},
 	}
