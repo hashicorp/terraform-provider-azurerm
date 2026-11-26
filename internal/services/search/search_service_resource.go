@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package search
@@ -189,8 +189,8 @@ func resourceSearchService() *pluginsdk.Resource {
 			"network_rule_bypass_option": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
 				Default:      string(services.SearchBypassNone),
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
