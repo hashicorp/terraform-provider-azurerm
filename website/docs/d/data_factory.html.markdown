@@ -14,8 +14,8 @@ Use this data source to access information about an existing Azure Data Factory 
 
 ```hcl
 data "azurerm_data_factory" "example" {
-  name                = "existing-adf"
-  resource_group_name = "existing-rg"
+  name                = "example-data-factory"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -58,6 +58,8 @@ A `github_configuration` block exports the following:
 - `branch_name` - The branch of the repository to get code from.
 
 - `git_url` - The GitHub repository url.
+
+- `last_commit_id` - The last commit ID of the repository.
 
 - `repository_name` - The name of the git repository.
 

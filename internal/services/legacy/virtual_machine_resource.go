@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy
@@ -172,6 +172,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				MaxItems: 1,
+				Set:      resourceVirtualMachineStorageImageReferenceHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -207,7 +208,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineStorageImageReferenceHash,
 			},
 
 			"storage_os_disk": {
@@ -241,21 +241,21 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"managed_disk_id": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
-							ForceNew:      true,
 							Computed:      true, // azignore:AZS007 - pre-existing violation
+							ForceNew:      true,
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 						},
 
 						"managed_disk_type": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true, // azignore:AZS007 - pre-existing violation
-							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachines.StorageAccountTypesPremiumLRS),
 								string(virtualmachines.StorageAccountTypesStandardLRS),
 								string(virtualmachines.StorageAccountTypesStandardSSDLRS),
 							}, false),
+							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 						},
 
 						"image_uri": {
@@ -412,12 +412,13 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
+				Set:      resourceVirtualMachineStorageOsProfileHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"computer_name": {
 							Type:     pluginsdk.TypeString,
-							ForceNew: true,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"admin_username": {
@@ -433,21 +434,22 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 
 						"custom_data": {
 							Type:      pluginsdk.TypeString,
-							ForceNew:  true,
 							Optional:  true,
 							Computed:  true, // azignore:AZS007 - pre-existing violation
+							ForceNew:  true,
 							StateFunc: userDataStateFunc,
 						},
 					},
 				},
-				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
 			// lintignore:S018
 			"os_profile_windows_config": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeSet,
+				Optional:      true,
+				MaxItems:      1,
+				Set:           resourceVirtualMachineStorageOsProfileWindowsConfigHash,
+				ConflictsWith: []string{"os_profile_linux_config"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"provision_vm_agent": {
@@ -464,8 +466,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validate.VirtualMachineTimeZoneCaseInsensitive(),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"winrm": {
 							Type:     pluginsdk.TypeList,
@@ -524,15 +526,15 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set:           resourceVirtualMachineStorageOsProfileWindowsConfigHash,
-				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
 			// lintignore:S018
 			"os_profile_linux_config": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeSet,
+				Optional:      true,
+				MaxItems:      1,
+				Set:           resourceVirtualMachineStorageOsProfileLinuxConfigHash,
+				ConflictsWith: []string{"os_profile_windows_config"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disable_password_authentication": {
@@ -557,8 +559,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set:           resourceVirtualMachineStorageOsProfileLinuxConfigHash,
-				ConflictsWith: []string{"os_profile_windows_config"},
 			},
 
 			"os_profile_secrets": {
