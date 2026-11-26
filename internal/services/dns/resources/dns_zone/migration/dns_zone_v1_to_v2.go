@@ -43,18 +43,18 @@ func (DnsZoneV1ToV2) Schema() map[string]*pluginsdk.Schema {
 		"name_servers": {
 			Type:     pluginsdk.TypeSet,
 			Computed: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"soa_record": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {

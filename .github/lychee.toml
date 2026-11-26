@@ -19,6 +19,12 @@ cache_exclude_status = "400..=428, 430.."
 # learn.microsoft.com rate-limits aggressively; a dead link returns 404, not 429
 accept = ["200..=206", "429"]
 
+# github.com and the registry answer 502/503 for a minute or so now and then; the defaults (3 tries, 1s apart) give up before they recover.
+# Only server errors and timeouts are retried and the wait doubles each try, so a site that stays down holds the run up for about two and a
+# half minutes. A missing page (404) still fails at once.
+max_retries = 5
+retry_wait_time = 5
+
 exclude = [
   # issue/pull/label links in our own and Azure's repos are volatile and rate-limited, and
   # effectively never die; links into other repos stay checked (they break when repos move)
@@ -39,5 +45,6 @@ exclude = [
   # block non-browser clients (the links work in a browser)
   "^https://dev\\.mysql\\.com",
   "^https://azuremarketplace\\.microsoft\\.com",
+  "^https://techcommunity\\.microsoft\\.com",
   "slack\\.com",
 ]

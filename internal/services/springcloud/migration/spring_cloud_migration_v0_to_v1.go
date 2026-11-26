@@ -37,8 +37,8 @@ func (s SpringCloudV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "S0",
 			ForceNew: true,
+			Default:  "S0",
 		},
 
 		"build_agent_pool_size": {

@@ -24,6 +24,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Managed Redis instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +36,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
+			Description:  "The features and specification of the Managed Redis instance to deploy. `Balanced_B3` SKU or higher is required for geo-replication.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
@@ -47,12 +49,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Description:  "The ID of the Key Vault Key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name/a1b2c3d4`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 
 					"user_assigned_identity_id": {
+						Description:  "The ID of the User Assigned Identity that has access to the Key Vault Key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -68,17 +72,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Managed Redis Database Instance.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"access_keys_authentication_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether access key authentication is enabled for the database.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"client_protocol": {
+						Description:  "Whether redis clients can connect using TLS-encrypted or plaintext redis protocols.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(redisenterprise.ProtocolEncrypted),
@@ -86,6 +93,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"clustering_policy": {
+						Description:  "Clustering policy specified at create time.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(redisenterprise.ClusteringPolicyOSSCluster),
@@ -93,6 +101,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"eviction_policy": {
+						Description:  "The Redis eviction policy.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(redisenterprise.EvictionPolicyVolatileLRU),
@@ -100,20 +109,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"geo_replication_group_name": {
+						Description:  "The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_geo_replication`](managed_redis_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.ManagedRedisDatabaseGeoreplicationGroupName,
 					},
 
 					"module": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 4,
+						Description: "Refer to [the modules documentation](https://learn.microsoft.com/azure/redis/redis-modules) to learn more.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MaxItems:    4,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The name which should be used for this module.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"RedisBloom",
 										"RedisTimeSeries",
@@ -123,69 +135,77 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"args": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "Configuration options for the module (e.g. `ERROR_RATE 0.00 INITIAL_SIZE 400`).",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 								},
 
 								"version": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Version of the module to be used.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
 					},
 
 					"persistence_append_only_file_backup_frequency": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description:  "The frequency of Append Only File (AOF) backups. Providing this value implies AOF persistence method is enabled. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForAofFrequency(), false),
 						ConflictsWith: []string{
 							"default_database.0.geo_replication_group_name",
 							"default_database.0.persistence_redis_database_backup_frequency",
 						},
-
-						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForAofFrequency(), false),
 					},
 
 					"persistence_redis_database_backup_frequency": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description:  "The frequency of Redis Database (RDB) backups. Providing this value implies RDB persistence method is enabled. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForRdbFrequency(), false),
 						ConflictsWith: []string{
 							"default_database.0.geo_replication_group_name",
 							"default_database.0.persistence_append_only_file_backup_frequency",
 						},
-						ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForRdbFrequency(), false),
 					},
 
 					"port": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "TCP port of the database endpoint.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"primary_access_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Primary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"secondary_access_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Secondary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"high_availability_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  true,
+			Description: "Whether to enable high availability for the Managed Redis instance.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"public_network_access": {
+			Description:  "The public network access setting for the Managed Redis instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      redisenterprise.PublicNetworkAccessEnabled,
@@ -199,8 +219,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "DNS name of the cluster endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

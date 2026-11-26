@@ -44,6 +44,10 @@ func (r CosmosDbMongoRoleDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_role_definition"
 }
 
+func (r CosmosDbMongoRoleDefinitionResource) Description() string {
+	return "Manages a Cosmos DB Mongo Role Definition."
+}
+
 func (r CosmosDbMongoRoleDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoRoleDefinitionResourceModel{}
 }
@@ -55,6 +59,7 @@ func (r CosmosDbMongoRoleDefinitionResource) IDValidationFunc() pluginsdk.Schema
 func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmos_mongo_database_id": {
+			Description:  "The resource ID of the Mongo DB.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -62,6 +67,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"role_name": {
+			Description:  "The user-friendly name for the Mongo Role Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -69,8 +75,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"inherited_role_names": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of Mongo Roles which are inherited to the Mongo Role Definition.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -83,8 +90,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"actions": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "A list of actions that are allowed.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -98,12 +106,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"collection_name": {
+									Description:  "The name of the Mongo DB Collection that the Role Definition is applied to.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.CosmosEntityName,
 								},
 
 								"db_name": {
+									Description:  "The name of the Mongo DB that the Role Definition is applied to.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.CosmosEntityName,

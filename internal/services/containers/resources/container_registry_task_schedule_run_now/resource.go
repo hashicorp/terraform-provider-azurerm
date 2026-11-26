@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_container_registry_task_schedule_run_now"
 }
 
+func (r Resource) Description() string {
+	return "Runs a Container Registry Task Schedule."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ContainerRegistryTaskScheduleID
 }

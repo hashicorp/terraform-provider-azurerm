@@ -18,90 +18,90 @@ type WorkspaceV2ToV3 struct{}
 func (WorkspaceV2ToV3) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"allow_resource_only_permissions": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"cmk_for_query_forced": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"daily_quota_gb": {
-			Optional: true,
 			Type:     pluginsdk.TypeFloat,
+			Optional: true,
 		},
 
 		"internet_ingestion_enabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"internet_query_enabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"local_authentication_disabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"location": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"primary_shared_key": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"reservation_capacity_in_gb_per_day": {
-			Computed: true,
-			Optional: true,
 			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
 		},
 
 		"resource_group_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"retention_in_days": {
-			Computed: true,
-			Optional: true,
 			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
 		},
 
 		"secondary_shared_key": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"sku": {
-			Computed: true,
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Optional: true,
 			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"workspace_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
