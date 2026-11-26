@@ -36,6 +36,9 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		redhat_openshift_cluster.Resource{},
+		RedHatHcpOpenShiftCluster{},
+		RedHatHcpOpenShiftExternalAuth{},
+		RedHatHcpOpenShiftNodePool{},
 	}
 }
 
@@ -62,5 +65,8 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		redhat_openshift_cluster.ListResource{},
+		RedHatHcpOpenShiftClusterListResource{},
+		RedHatHcpOpenShiftExternalAuthListResource{},
+		RedHatHcpOpenShiftNodePoolListResource{},
 	}
 }

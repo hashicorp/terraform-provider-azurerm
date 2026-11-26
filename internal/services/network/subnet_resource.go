@@ -92,6 +92,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.PowerAutomate/hostedRpa",
 	"Microsoft.PowerPlatform/enterprisePolicies",
 	"Microsoft.PowerPlatform/vnetaccesslinks",
+	"Microsoft.RedHatOpenShift/hcpOpenShiftClusters",
 	"Microsoft.ServiceFabricMesh/networks",
 	"Microsoft.ServiceNetworking/trafficControllers",
 	"Microsoft.Singularity/accounts/networks",
