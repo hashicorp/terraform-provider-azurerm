@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package manageddevopspools
@@ -89,7 +89,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								// There's an issue with API that if parallelism is omitted, it's always set to `0` instead of being computed dynamically.
-								// To workaround this, mark it as Required which is also consistent with portal behavior.
+								// To workaround this, mark it as Required which is also consistent with portal behaviour.
 								// Relevant GH issue: https://github.com/Azure/azure-rest-api-specs/issues/40986
 								"parallelism": {
 									Type:         pluginsdk.TypeInt,
@@ -117,14 +117,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"kind": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pools.AzureDevOpsPermissionTypeCreatorOnly),
-										string(pools.AzureDevOpsPermissionTypeInherit),
-										string(pools.AzureDevOpsPermissionTypeSpecificAccounts),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
 
 								"administrator_account": {
@@ -135,25 +131,25 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"groups": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												ForceNew: true,
+												Type:         pluginsdk.TypeList,
+												Optional:     true,
+												ForceNew:     true,
+												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.IsEmailAddress,
 												},
-												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
 
 											"users": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												ForceNew: true,
+												Type:         pluginsdk.TypeList,
+												Optional:     true,
+												ForceNew:     true,
+												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.IsEmailAddress,
 												},
-												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
 										},
 									},
@@ -165,7 +161,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}, "Dev Center Project"),
 
 		"maximum_concurrency": {
 			Type:         pluginsdk.TypeInt,
@@ -257,8 +253,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										Schema: map[string]*pluginsdk.Schema{
 											"key_export_enabled": {
 												Type:     pluginsdk.TypeBool,
-												Default:  false,
 												Optional: true,
+												Default:  false,
 											},
 
 											"key_vault_certificate_ids": {
@@ -290,8 +286,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"storage": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"caching": {
@@ -334,9 +330,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"stateful_agent": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"grace_period_time_span": {
@@ -358,13 +355,13 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					"automatic_resource_prediction": automaticResourcePredictionSchema("stateful_agent.0"),
 				},
 			},
-			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
 		"stateless_agent": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"manual_resource_prediction": manualResourcePredictionSchema("stateless_agent.0"),
@@ -372,7 +369,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					"automatic_resource_prediction": automaticResourcePredictionSchema("stateless_agent.0"),
 				},
 			},
-			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
 		"work_folder": {
@@ -389,7 +385,7 @@ func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ManagedDevOpsPoolResource) ModelObject() interface{} {
+func (ManagedDevOpsPoolResource) ModelObject() any {
 	return &ManagedDevOpsPoolModel{}
 }
 

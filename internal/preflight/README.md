@@ -196,7 +196,7 @@ if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
 
 | Question                                                          | Answer | Pattern |
 |-------------------------------------------------------------------|--------|---------|
-| Can we build a complete and syntacticly valid request for Create? | Yes    | **1**   |
+| Can we build a complete and syntactically valid request for Create? | Yes    | **1**   |
 | Do you want to skip plan-time API calls for in-place updates?     | Yes    | **2**   |
 
 ---

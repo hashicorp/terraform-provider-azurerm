@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -37,7 +37,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Identity() resourceids.Re
 	return &namespaces.NamespaceId{}
 }
 
-func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() interface{} {
+func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() any {
 	return &ServiceBusNamespaceCustomerManagedKeyModel{}
 }
 

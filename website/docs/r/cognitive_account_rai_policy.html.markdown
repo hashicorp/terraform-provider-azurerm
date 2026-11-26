@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `base_policy_name` - (Required) The name of the base policy to use for this RAI Policy. Changing this forces a new resource to be created.
 
-* `content_filter` - (Required) A `content_filter` block as defined below.
+* `content_filter` - (Required) One or more `content_filter` blocks as defined below.
 
 * `mode` - (Optional) The mode of the RAI Policy. Possible values are `Default`, `Deferred`, `Blocking` or `Asynchronous_filter`.
 

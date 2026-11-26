@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -21,16 +21,13 @@ import (
 
 type DataConnectorMicrosoftThreatIntelligenceResource struct{}
 
+var _ sdk.Resource = DataConnectorMicrosoftThreatIntelligenceResource{}
+
 type DataConnectorMicrosoftThreatIntelligenceModel struct {
 	Name                                    string `tfschema:"name"`
 	WorkspaceId                             string `tfschema:"log_analytics_workspace_id"`
 	TenantId                                string `tfschema:"tenant_id"`
 	MicrosoftEmergingThreatFeedLookBackDate string `tfschema:"microsoft_emerging_threat_feed_lookback_date"`
-}
-
-type DataConnectorMicrosoftThreatIntelligenceDataType struct {
-	Enabled      bool   `tfschema:"enabled"`
-	LookbackDate string `tfschema:"lookback_date"`
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
@@ -52,7 +49,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,8 +57,8 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		// lintignore: S013
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
@@ -71,7 +68,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Attributes() map[strin
 	return map[string]*schema.Schema{}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligenceResource) ModelObject() interface{} {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) ModelObject() any {
 	return &DataConnectorMicrosoftThreatIntelligenceModel{}
 }
 
@@ -211,8 +208,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() plu
 func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {
 	if input.MicrosoftEmergingThreatFeedLookBackDate == "" {
 		return dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-			LookbackPeriod: "",
-			State:          pointer.To(dataconnectors.DataTypeStateDisabled),
+			State: pointer.To(dataconnectors.DataTypeStateDisabled),
 		}
 	}
 

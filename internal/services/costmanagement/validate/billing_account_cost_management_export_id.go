@@ -1,9 +1,9 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+// NOTE: this file is written by hand, as the ID generator cannot handle IDs without a subscription
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
 )
 
-func BillingAccountCostManagementExportID(input interface{}, key string) (warnings []string, errors []error) {
+func BillingAccountCostManagementExportID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
