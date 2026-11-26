@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceSnowflakeCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceSnowflakeRead,
-		Update: resourceDataFactoryLinkedServiceSnowflakeCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceSnowflakeDelete,
+		Description: "Manages a Linked Service (connection) between Snowflake and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceSnowflakeCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceSnowflakeRead,
+		Update:      resourceDataFactoryLinkedServiceSnowflakeCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceSnowflakeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

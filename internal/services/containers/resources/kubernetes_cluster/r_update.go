@@ -87,6 +87,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
 	updateCluster := false
+	updateTagsOnly := d.HasChange("tags") && !d.HasChangesExcept("tags")
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control_enabled") {
@@ -364,7 +365,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if d.HasChange("tags") {
-		updateCluster = true
+		updateCluster = !updateTagsOnly
 		t := d.Get("tags").(map[string]any)
 		existing.Model.Tags = tags.Expand(t)
 	}
@@ -569,6 +570,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		if err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
+	} else if updateTagsOnly {
+		// if Tags are the only thing that's changed we can use the lighter-weight Update Tags API, which issues a
+		// PATCH, rather than the full Create/Update API, which issues a PUT and can trigger an unnecessary cluster
+		// reconcile
+		tagsObject := managedclusters.TagsObject{
+			Tags: existing.Model.Tags,
+		}
+		if err = clusterClient.UpdateTagsThenPoll(ctx, *id, tagsObject, managedclusters.DefaultUpdateTagsOperationOptions()); err != nil {
+			return fmt.Errorf("updating tags for %s: %+v", *id, err)
+		}
 	}
 
 	// then roll the version of Kubernetes if necessary
@@ -601,15 +612,47 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		agentProfile := helpers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
+		if d.HasChange("default_node_pool.0.security") {
+			// there is one specific case where default_node_pool.0.name can be updated so we need to grab the old name from state before calling GetNodePool
+			currentNodePoolId := defaultNodePoolId
+			if d.HasChange("default_node_pool.0.name") {
+				oldName, _ := d.GetChange("default_node_pool.0.name")
+				currentNodePoolId = agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, oldName.(string))
+			}
+
+			if agentProfile.Properties.SecurityProfile == nil {
+				agentProfile.Properties.SecurityProfile = &agentpools.AgentPoolSecurityProfile{
+					EnableSecureBoot: pointer.To(false),
+					EnableVTPM:       pointer.To(false),
+				}
+			}
+
+			existingNodePool, err := nodePoolsClient.Get(ctx, currentNodePoolId)
+			if err != nil && !response.WasNotFound(existingNodePool.HttpResponse) {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", currentNodePoolId, err)
+			}
+
+			// Because SSHAccess is related to security, ensure the value set outside of Terraform is preserved until it is exposed in the provider.
+			if existingNodePool.Model != nil && existingNodePool.Model.Properties != nil && existingNodePool.Model.Properties.SecurityProfile != nil {
+				agentProfile.Properties.SecurityProfile.SshAccess = existingNodePool.Model.Properties.SecurityProfile.SshAccess
+			}
+		}
+
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
-			existingNodePool, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+			// there is one specific case where default_node_pool.0.name can be updated so we need to grab the old name from state before calling GetNodePool
+			currentNodePoolId := defaultNodePoolId
+			if d.HasChange("default_node_pool.0.name") {
+				oldName, _ := d.GetChange("default_node_pool.0.name")
+				currentNodePoolId = agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, oldName.(string))
+			}
+			existingNodePool, err := nodePoolsClient.Get(ctx, currentNodePoolId)
 			if err != nil {
-				return fmt.Errorf("retrieving Default Node Pool %s: %+v", defaultNodePoolId, err)
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", currentNodePoolId, err)
 			}
 			currentNodePoolVersion := pointer.From(existingNodePool.Model.Properties.OrchestratorVersion)
 
-			if err := helpers.ValidateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
+			if err := helpers.ValidateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, currentNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}

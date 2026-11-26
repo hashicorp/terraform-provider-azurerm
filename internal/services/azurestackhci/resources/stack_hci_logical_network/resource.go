@@ -23,3 +23,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_stack_hci_logical_network"
 }
+
+func (Resource) Description() string {
+	return "Manages an Azure Stack HCI Logical Network."
+}

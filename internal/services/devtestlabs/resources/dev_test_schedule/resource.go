@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDevTestLabSchedulesCreateUpdate,
-		Read:   resourceDevTestLabSchedulesRead,
-		Update: resourceDevTestLabSchedulesCreateUpdate,
-		Delete: resourceDevTestLabSchedulesDelete,
+		Description: "Manages automated startup and shutdown schedules for Azure Dev Test Lab.",
+		Create:      resourceDevTestLabSchedulesCreateUpdate,
+		Read:        resourceDevTestLabSchedulesRead,
+		Update:      resourceDevTestLabSchedulesCreateUpdate,
+		Delete:      resourceDevTestLabSchedulesDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schedules.ParseLabScheduleID(id)
 			return err

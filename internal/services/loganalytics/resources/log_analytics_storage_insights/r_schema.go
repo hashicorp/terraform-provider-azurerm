@@ -15,6 +15,7 @@ import (
 func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Log Analytics Storage Insights.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace within which the Storage Insights should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The ID of the Storage Account used by this Log Analytics Storage Insights.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,6 +41,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_key": {
+			Description:  "The storage access key to be used to connect to the Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -45,8 +49,9 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"blob_container_names": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "The names of the blob containers that the workspace should read.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.NoZeroValues,
@@ -54,9 +59,10 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"table_names": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MinItems: 1,
+			Description: "The names of the Azure tables that the workspace should read.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.NoZeroValues,

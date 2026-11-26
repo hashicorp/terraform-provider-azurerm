@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_container_connected_registry"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Container Connected Registry."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return connectedregistries.ValidateConnectedRegistryID
 }
