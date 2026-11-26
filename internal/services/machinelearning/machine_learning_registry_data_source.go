@@ -29,10 +29,9 @@ type MachineLearningRegistryDataSourceModel struct {
 	ResourceGroupName                                       string                                     `tfschema:"resource_group_name"`
 	Location                                                string                                     `tfschema:"location"`
 	Identity                                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	PublicNetworkAccessEnabled                              bool                                       `tfschema:"public_network_access_enabled"`
+	PublicNetworkAccess                                     string                                     `tfschema:"public_network_access"`
 	SystemCreatedStorageAccountType                         string                                     `tfschema:"system_created_storage_account_type"`
 	SystemCreatedStorageAccountHierarchicalNamespaceEnabled bool                                       `tfschema:"system_created_storage_account_hierarchical_namespace_enabled"`
-	SystemCreatedContainerRegistrySku                       string                                     `tfschema:"system_created_container_registry_sku"`
 	SystemCreatedStorageAccountId                           string                                     `tfschema:"system_created_storage_account_id"`
 	SystemCreatedStorageAccountName                         string                                     `tfschema:"system_created_storage_account_name"`
 	SystemCreatedContainerRegistryId                        string                                     `tfschema:"system_created_container_registry_id"`
@@ -96,8 +95,8 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
@@ -127,11 +126,6 @@ func registryRegionDataSourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"system_created_container_registry_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"system_created_container_registry_sku": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -196,8 +190,8 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				Name:                          id.RegistryName,
 				ResourceGroupName:             id.ResourceGroupName,
 				Identity:                      identityIds,
-				Location:                      resp.Model.Location,
-				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
+				Location:                      location.Normalize(resp.Model.Location),
+				PublicNetworkAccess:           pointer.From(prop.PublicNetworkAccess),
 				Tags:                          pointer.From(resp.Model.Tags),
 				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
 				DiscoveryUrl:                  pointer.From(prop.DiscoveryURL),
@@ -221,7 +215,6 @@ func (d MachineLearningRegistryDataSource) Read() sdk.ResourceFunc {
 				if location.Normalize(region.Location) == location.Normalize(resp.Model.Location) {
 					model.SystemCreatedStorageAccountType = region.SystemCreatedStorageAccountType
 					model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = region.HierarchicalNamespaceEnabled
-					model.SystemCreatedContainerRegistrySku = region.SystemCreatedContainerRegistrySku
 					model.SystemCreatedStorageAccountId = region.SystemCreatedStorageAccountId
 					model.SystemCreatedStorageAccountName = region.SystemCreatedStorageAccountName
 					model.SystemCreatedContainerRegistryId = region.SystemCreatedAcrId

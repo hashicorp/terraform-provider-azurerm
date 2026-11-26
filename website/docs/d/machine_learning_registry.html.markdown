@@ -53,15 +53,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `managed_resource_group_id` - The ID of the managed resource group created for the Machine Learning Registry.
 
-* `public_network_access_enabled` - Whether public network access is enabled for the Machine Learning Registry.
+* `public_network_access` - The public network access setting for the Machine Learning Registry.
 
 * `replication_regions` - One or more `replication_regions` blocks as defined below.
 
 * `system_created_container_registry_id` - The ID of the system-created container registry in the primary region.
 
 * `system_created_container_registry_name` - The name of the system-created container registry in the primary region.
-
-* `system_created_container_registry_sku` - The SKU of the system-created container registry in the primary region. This is always `Premium`.
 
 * `system_created_storage_account_hierarchical_namespace_enabled` - Whether hierarchical namespace is enabled for the system-created storage account in the primary region.
 
@@ -94,8 +92,6 @@ A `replication_regions` block exports the following:
 * `system_created_container_registry_id` - The ID of the system-created container registry for this region.
 
 * `system_created_container_registry_name` - The name of the system-created container registry for this region.
-
-* `system_created_container_registry_sku` - The SKU of the system-created container registry for this region. This is always `Premium`.
 
 * `system_created_storage_account_hierarchical_namespace_enabled` - Whether hierarchical namespace is enabled for the system-created storage account for this region.
 

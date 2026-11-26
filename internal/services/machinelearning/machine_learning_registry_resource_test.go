@@ -93,6 +93,28 @@ func TestAccMachineLearningRegistry_update(t *testing.T) {
 	})
 }
 
+func TestAccMachineLearningRegistry_replicationRegion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
+	r := MachineLearningRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withReplicationRegion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r MachineLearningRegistryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	registryClient := client.MachineLearning.RegistryManagement
 	id, err := registrymanagement.ParseRegistryID(state.ID)
@@ -128,6 +150,31 @@ resource "azurerm_machine_learning_registry" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r MachineLearningRegistryResource) withReplicationRegion(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_machine_learning_registry" "test" {
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestMLR-%[2]d"
+
+  replication_region {
+    location = "%[3]s"
+  }
+
+  replication_region {
+    location = "%[4]s"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Secondary, data.Locations.Ternary)
+}
+
 func (r MachineLearningRegistryResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -149,31 +196,28 @@ func (r MachineLearningRegistryResource) complete(data acceptance.TestData) stri
 %[1]s
 
 resource "azurerm_machine_learning_registry" "test" {
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  name                          = "acctestMLR-%[2]d"
-  public_network_access_enabled = false
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  name                  = "acctestMLR-%[2]d"
+  public_network_access = "Disabled"
 
   system_created_storage_account_type                           = "Standard_ZRS"
   system_created_storage_account_hierarchical_namespace_enabled = true
-  system_created_container_registry_sku                         = "Premium"
 
   replication_region {
     location                                                      = "%[3]s"
     system_created_storage_account_type                           = "Standard_ZRS"
     system_created_storage_account_hierarchical_namespace_enabled = true
-    system_created_container_registry_sku                         = "Premium"
   }
 
   replication_region {
     location                                                      = "%[4]s"
     system_created_storage_account_type                           = "Standard_ZRS"
     system_created_storage_account_hierarchical_namespace_enabled = true
-    system_created_container_registry_sku                         = "Premium"
   }
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -189,32 +233,28 @@ func (r MachineLearningRegistryResource) update(data acceptance.TestData) string
 %[1]s
 
 resource "azurerm_machine_learning_registry" "test" {
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  name                          = "acctestMLR-%[2]d"
-  public_network_access_enabled = true
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  name                  = "acctestMLR-%[2]d"
+  public_network_access = "Enabled"
 
   system_created_storage_account_type                           = "Standard_ZRS"
   system_created_storage_account_hierarchical_namespace_enabled = true
-  system_created_container_registry_sku                         = "Premium"
 
   replication_region {
     location                                                      = "%[3]s"
     system_created_storage_account_type                           = "Standard_ZRS"
     system_created_storage_account_hierarchical_namespace_enabled = true
-    system_created_container_registry_sku                         = "Premium"
   }
 
   replication_region {
     location                                                      = "%[4]s"
     system_created_storage_account_type                           = "Standard_ZRS"
     system_created_storage_account_hierarchical_namespace_enabled = true
-    system_created_container_registry_sku                         = "Premium"
   }
 
   identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    type = "SystemAssigned"
   }
 
   tags = {

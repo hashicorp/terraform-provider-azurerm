@@ -37,11 +37,9 @@ The following arguments are supported:
 
 ---
 
-* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Machine Learning Registry. Defaults to `true`.
+* `public_network_access` - (Optional) The public network access setting for the Machine Learning Registry. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 * `replication_region` - (Optional) One or more `replication_region` blocks as defined below. Removing an existing `replication_region` forces a new Machine Learning Registry to be created.
-
-* `system_created_container_registry_sku` - (Optional) The SKU of the system-created container registry in the primary region. The only supported value is `Premium`. Defaults to `Premium`. Changing this forces a new Machine Learning Registry to be created.
 
 * `system_created_storage_account_hierarchical_namespace_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the system-created storage account in the primary region. Defaults to `false`. Changing this forces a new Machine Learning Registry to be created.
 
@@ -61,9 +59,7 @@ An `identity` block supports the following:
 
 A `replication_region` block supports the following:
 
-* `location` - (Required) The Azure Region where the replicated Machine Learning Registry resources should exist. This must be different from the primary `location`. Changing this forces a new Machine Learning Registry to be created.
-
-* `system_created_container_registry_sku` - (Optional) The SKU of the system-created container registry in this region. The only supported value is `Premium`. Defaults to `Premium`. Changing this forces a new Machine Learning Registry to be created.
+* `location` - (Required) The Azure Region where the replicated Machine Learning Registry resources should exist. This must be different from the primary `location` and unique across `replication_region` blocks. Changing this forces a new Machine Learning Registry to be created.
 
 * `system_created_storage_account_hierarchical_namespace_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the system-created storage account in this region. Defaults to `false`. Changing this forces a new Machine Learning Registry to be created.
 

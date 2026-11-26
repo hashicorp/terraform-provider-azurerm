@@ -31,7 +31,6 @@ type ReplicationRegion struct {
 	Location                           string `tfschema:"location"`
 	SystemCreatedStorageAccountType    string `tfschema:"system_created_storage_account_type"`
 	HierarchicalNamespaceEnabled       bool   `tfschema:"system_created_storage_account_hierarchical_namespace_enabled"`
-	SystemCreatedContainerRegistrySku  string `tfschema:"system_created_container_registry_sku"`
 	SystemCreatedStorageAccountId      string `tfschema:"system_created_storage_account_id"`
 	SystemCreatedStorageAccountName    string `tfschema:"system_created_storage_account_name"`
 	SystemCreatedAcrId                 string `tfschema:"system_created_container_registry_id"`
@@ -43,10 +42,9 @@ type MachineLearningRegistryModel struct {
 	ResourceGroupName                                       string                                     `tfschema:"resource_group_name"`
 	Location                                                string                                     `tfschema:"location"`
 	Identity                                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	PublicNetworkAccessEnabled                              bool                                       `tfschema:"public_network_access_enabled"`
+	PublicNetworkAccess                                     string                                     `tfschema:"public_network_access"`
 	SystemCreatedStorageAccountType                         string                                     `tfschema:"system_created_storage_account_type"`
 	SystemCreatedStorageAccountHierarchicalNamespaceEnabled bool                                       `tfschema:"system_created_storage_account_hierarchical_namespace_enabled"`
-	SystemCreatedContainerRegistrySku                       string                                     `tfschema:"system_created_container_registry_sku"`
 	SystemCreatedStorageAccountId                           string                                     `tfschema:"system_created_storage_account_id"`
 	SystemCreatedStorageAccountName                         string                                     `tfschema:"system_created_storage_account_name"`
 	SystemCreatedContainerRegistryId                        string                                     `tfschema:"system_created_container_registry_id"`
@@ -99,10 +97,14 @@ func (r MachineLearningRegistryResource) Arguments() map[string]*pluginsdk.Schem
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  true,
+			Default:  string(PublicNetworkAccessStateEnabled),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(PublicNetworkAccessStateEnabled),
+				string(PublicNetworkAccessStateDisabled),
+			}, false),
 		},
 
 		"replication_region": {
@@ -111,16 +113,6 @@ func (r MachineLearningRegistryResource) Arguments() map[string]*pluginsdk.Schem
 			Elem: &pluginsdk.Resource{
 				Schema: replicationRegionSchema(),
 			},
-		},
-
-		"system_created_container_registry_sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(registrymanagement.SkuTierPremium),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registrymanagement.SkuTierPremium),
-			}, false),
 		},
 
 		"system_created_storage_account_hierarchical_namespace_enabled": {
@@ -155,24 +147,17 @@ func replicationRegionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationWithoutForceNew(),
 
-		"system_created_container_registry_sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(registrymanagement.SkuTierPremium),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registrymanagement.SkuTierPremium),
-			}, false),
-		},
-
 		"system_created_storage_account_hierarchical_namespace_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
 		"system_created_storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			ForceNew: true,
 			Default:  systemCreatedStorageAccountTypeDefault,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard_LRS",
@@ -265,11 +250,17 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 			locationKnown := rawConfig["location"].IsWhollyKnown()
 			replicationRegionsKnown := rawConfig["replication_region"].IsNull() || rawConfig["replication_region"].IsWhollyKnown()
 
-			if locationKnown && replicationRegionsKnown {
+			if replicationRegionsKnown {
+				seenLocations := make(map[string]bool)
 				for _, region := range model.ReplicationRegion {
-					if location.Normalize(region.Location) == location.Normalize(model.Location) {
+					normalizedLocation := location.Normalize(region.Location)
+					if locationKnown && normalizedLocation == location.Normalize(model.Location) {
 						return fmt.Errorf("`replication_region` cannot contain the primary `location`: `%s`", model.Location)
 					}
+					if seenLocations[normalizedLocation] {
+						return fmt.Errorf("`replication_region` cannot contain duplicate `location`: `%s`", region.Location)
+					}
+					seenLocations[normalizedLocation] = true
 				}
 			}
 
@@ -278,26 +269,16 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 				oldRegions := oldVal.([]any)
 				newRegions := newVal.([]any)
 
-				newRegionsByLocation := make(map[string]map[string]any)
+				newLocations := make(map[string]bool)
 				for _, r := range newRegions {
 					region := r.(map[string]any)
-					newRegionsByLocation[location.Normalize(region["location"].(string))] = region
+					newLocations[location.Normalize(region["location"].(string))] = true
 				}
 
 				for _, r := range oldRegions {
 					oldRegion := r.(map[string]any)
 					oldLocation := location.Normalize(oldRegion["location"].(string))
-					newRegion, exists := newRegionsByLocation[oldLocation]
-					if !exists {
-						if err := metadata.ResourceDiff.ForceNew("replication_region"); err != nil {
-							return err
-						}
-						break
-					}
-
-					if oldRegion["system_created_storage_account_type"].(string) != newRegion["system_created_storage_account_type"].(string) ||
-						oldRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) != newRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) ||
-						oldRegion["system_created_container_registry_sku"].(string) != newRegion["system_created_container_registry_sku"].(string) {
+					if !newLocations[oldLocation] {
 						if err := metadata.ResourceDiff.ForceNew("replication_region"); err != nil {
 							return err
 						}
@@ -339,13 +320,9 @@ func (r MachineLearningRegistryResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: registrymanagement.Registry{
-					PublicNetworkAccess: pointer.To(string(PublicNetworkAccessStateEnabled)),
+					PublicNetworkAccess: pointer.To(model.PublicNetworkAccess),
 					RegionDetails:       pointer.To(expandRegistryRegions(model)),
 				},
-			}
-
-			if !model.PublicNetworkAccessEnabled {
-				param.Properties.PublicNetworkAccess = pointer.To(string(PublicNetworkAccessStateDisabled))
 			}
 
 			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
@@ -408,8 +385,8 @@ func (r MachineLearningRegistryResource) flatten(metadata sdk.ResourceMetaData, 
 		Name:                           id.RegistryName,
 		ResourceGroupName:              id.ResourceGroupName,
 		Identity:                       identityIds,
-		Location:                       registry.Location,
-		PublicNetworkAccessEnabled:     pointer.From(prop.PublicNetworkAccess) == string(PublicNetworkAccessStateEnabled),
+		Location:                       location.Normalize(registry.Location),
+		PublicNetworkAccess:            pointer.From(prop.PublicNetworkAccess),
 		Tags:                           pointer.From(registry.Tags),
 		MachineLearningFlowRegistryUri: pointer.From(prop.MlFlowRegistryUri),
 		DiscoveryUrl:                   pointer.From(prop.DiscoveryURL),
@@ -433,7 +410,6 @@ func (r MachineLearningRegistryResource) flatten(metadata sdk.ResourceMetaData, 
 		if location.Normalize(region.Location) == location.Normalize(registry.Location) {
 			model.SystemCreatedStorageAccountType = region.SystemCreatedStorageAccountType
 			model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled = region.HierarchicalNamespaceEnabled
-			model.SystemCreatedContainerRegistrySku = region.SystemCreatedContainerRegistrySku
 			model.SystemCreatedStorageAccountId = region.SystemCreatedStorageAccountId
 			model.SystemCreatedStorageAccountName = region.SystemCreatedStorageAccountName
 			model.SystemCreatedContainerRegistryId = region.SystemCreatedAcrId
@@ -468,9 +444,7 @@ func (r MachineLearningRegistryResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.RegistriesGet(ctx, *id)
 			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if existing.Model == nil {
@@ -492,11 +466,8 @@ func (r MachineLearningRegistryResource) Update() sdk.ResourceFunc {
 				param.Identity = expandedIdentity
 			}
 
-			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				param.Properties.PublicNetworkAccess = pointer.To(string(PublicNetworkAccessStateDisabled))
-				if model.PublicNetworkAccessEnabled {
-					param.Properties.PublicNetworkAccess = pointer.To(string(PublicNetworkAccessStateEnabled))
-				}
+			if metadata.ResourceData.HasChange("public_network_access") {
+				param.Properties.PublicNetworkAccess = pointer.To(model.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("replication_region") {
@@ -538,7 +509,7 @@ func expandRegistryRegionDetail(input ReplicationRegion) registrymanagement.Regi
 		AcrDetails: &[]registrymanagement.AcrDetails{
 			{
 				SystemCreatedAcrAccount: &registrymanagement.SystemCreatedAcrAccount{
-					AcrAccountSku: pointer.To(input.SystemCreatedContainerRegistrySku),
+					AcrAccountSku: pointer.To(string(registrymanagement.SkuTierPremium)),
 				},
 			},
 		},
@@ -557,10 +528,9 @@ func expandRegistryRegions(model MachineLearningRegistryModel) []registrymanagem
 	regions := make([]registrymanagement.RegistryRegionArmDetails, 0)
 
 	regions = append(regions, expandRegistryRegionDetail(ReplicationRegion{
-		Location:                          model.Location,
-		SystemCreatedStorageAccountType:   model.SystemCreatedStorageAccountType,
-		HierarchicalNamespaceEnabled:      model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled,
-		SystemCreatedContainerRegistrySku: model.SystemCreatedContainerRegistrySku,
+		Location:                        model.Location,
+		SystemCreatedStorageAccountType: model.SystemCreatedStorageAccountType,
+		HierarchicalNamespaceEnabled:    model.SystemCreatedStorageAccountHierarchicalNamespaceEnabled,
 	}))
 
 	for _, region := range model.ReplicationRegion {
@@ -578,7 +548,7 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 
 	for _, item := range *input {
 		var region ReplicationRegion
-		region.Location = pointer.From(item.Location)
+		region.Location = location.Normalize(pointer.From(item.Location))
 
 		if sa := pointer.From(item.StorageAccountDetails); len(sa) > 0 {
 			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
@@ -598,7 +568,6 @@ func flattenRegistryRegionDetails(input *[]registrymanagement.RegistryRegionArmD
 
 		if acr := pointer.From(item.AcrDetails); len(acr) > 0 {
 			if systemAcr := acr[0].SystemCreatedAcrAccount; systemAcr != nil {
-				region.SystemCreatedContainerRegistrySku = pointer.From(systemAcr.AcrAccountSku)
 				region.SystemCreatedContainerRegistryName = pointer.From(systemAcr.AcrAccountName)
 
 				if systemAcr.ArmResourceId != nil {
