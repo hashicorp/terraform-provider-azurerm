@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package confidential_ledger
@@ -15,6 +15,7 @@ func confidentialLedgerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// Required
 		"name": {
+			Description:  "The name of the Confidential Ledger.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,9 +27,10 @@ func confidentialLedgerSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"ledger_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The type of Confidential Ledger.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(confidentialledger.LedgerTypePrivate),
 				string(confidentialledger.LedgerTypePublic),
@@ -43,16 +45,19 @@ func confidentialLedgerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ledger_role_name": {
+						Description:  "The Ledger Role to grant this AzureAD Service Principal.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 					},
 					"principal_id": {
+						Description:  "The Principal ID of the AzureAD Service Principal.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"tenant_id": {
+						Description:  "The Tenant ID for this AzureAD Service Principal.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
@@ -68,11 +73,13 @@ func confidentialLedgerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ledger_role_name": {
+						Description:  "The Ledger Role to grant this Certificate Security Principal.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 					},
 					"pem_public_key": {
+						Description:  "The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -84,12 +91,14 @@ func confidentialLedgerSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"identity_service_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Identity Service Endpoint for this Confidential Ledger.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"ledger_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Endpoint for this Confidential Ledger.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

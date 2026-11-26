@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package communication_service_email_domain_association
@@ -19,6 +19,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_communication_service_email_domain_association"
+}
+
+func (Resource) Description() string {
+	return "Manages a Communication Service email domain association."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

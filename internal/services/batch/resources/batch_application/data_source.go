@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package batch_application
@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBatchApplicationRead,
+		Description: "Use this data source to access information about an existing Batch Application instance.",
+		Read:        dataSourceBatchApplicationRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,6 +27,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Application.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ApplicationName,
@@ -34,24 +36,28 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"account_name": {
+				Description:  "The name of the Batch Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"allow_updates": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether packages within the application may be overwritten using the same version string.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"default_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The package to use if a client requests the application but does not specify a version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The display name for the application.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

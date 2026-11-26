@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtualwan
@@ -109,36 +109,36 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 						},
 
 						"propagated_route_table": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true, // azignore:AZS007 - pre-existing violation
-							MaxItems: 1,
+							Type:         pluginsdk.TypeList,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							MaxItems:     1,
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Computed: true, // azignore:AZS007 - pre-existing violation
+										Type:         pluginsdk.TypeSet,
+										Optional:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
-										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 
 									"route_table_ids": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										Computed: true, // azignore:AZS007 - pre-existing violation
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
-										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 								},
 							},
-							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 						},
 					},
 				},

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package batch_account
@@ -17,10 +17,11 @@ const batchAccountResourceName = "azurerm_batch_account"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBatchAccountCreate,
-		Read:   resourceBatchAccountRead,
-		Update: resourceBatchAccountUpdate,
-		Delete: resourceBatchAccountDelete,
+		Description: "Manages an Azure Batch Account.",
+		Create:      resourceBatchAccountCreate,
+		Read:        resourceBatchAccountRead,
+		Update:      resourceBatchAccountUpdate,
+		Delete:      resourceBatchAccountDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

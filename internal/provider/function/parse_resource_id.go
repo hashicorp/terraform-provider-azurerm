@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function
@@ -41,13 +41,13 @@ func (p ParseResourceIDFunction) Metadata(_ context.Context, _ function.Metadata
 func (p ParseResourceIDFunction) Definition(_ context.Context, _ function.DefinitionRequest, response *function.DefinitionResponse) {
 	response.Definition = function.Definition{
 		Summary:             "parse_resource_id",
-		Description:         "Parses an Azure Resource Manager ID and exposes the contained information",
-		MarkdownDescription: "Parses an Azure Resource Manager ID and exposes the contained information",
+		Description:         "Parses an Azure Resource Manager ID and exposes the contained information.",
+		MarkdownDescription: "Parses an Azure Resource Manager ID and exposes the contained information.",
 		Parameters: []function.Parameter{
 			function.StringParameter{
 				Name:                "id",
-				Description:         "Resource ID",
-				MarkdownDescription: "Resource ID",
+				Description:         "Resource ID.",
+				MarkdownDescription: "Resource ID.",
 			},
 		},
 		Return: function.ObjectReturn{

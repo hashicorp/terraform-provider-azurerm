@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appgateway
@@ -51,8 +51,8 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		MaxItems: 1,
 		Computed: computed,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"disabled_protocols": {
@@ -132,6 +132,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"backend_address_pool": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				Set:      applicationGatewayBackendAddressPool,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -163,7 +164,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewayBackendAddressPool,
 			},
 
 			// lintignore:S016,S017,S023
@@ -171,6 +171,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
 				MinItems:     1,
+				Set:          applicationGatewayBackendSettingsHash,
 				AtLeastOneOf: []string{"backend_http_settings", "backend"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -214,8 +215,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 						"connection_draining": {
 							Type:     pluginsdk.TypeList,
-							MaxItems: 1,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -300,7 +301,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewayBackendSettingsHash,
 			},
 
 			"backend": {
@@ -481,8 +481,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"global": {
 				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"request_buffering_enabled": {
@@ -501,6 +501,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"http_listener": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
+				Set:          applicationGatewayHttpListnerHash,
 				AtLeastOneOf: []string{"http_listener", "listener"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -612,14 +613,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewayHttpListnerHash,
 			},
 
 			"listener": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				AtLeastOneOf: []string{"http_listener", "listener"},
 				Set:          applicationGatewayListenerHash,
+				AtLeastOneOf: []string{"http_listener", "listener"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -873,8 +873,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"routing_rule": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
 				Set:          applicationGatewayRoutingRuleHash,
+				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -1042,8 +1042,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"data": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"key_vault_secret_id": {
@@ -1078,6 +1078,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"probe": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      applicationGatewayProbeHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"interval": {
@@ -1175,7 +1176,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewayProbeHash,
 			},
 
 			"rewrite_rule_set": {
@@ -1315,6 +1315,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"ssl_certificate": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      applicationGatewaySSLCertificate,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -1326,8 +1327,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							StateFunc:    base64EncodedStateFunc,
 							ValidateFunc: validation.StringIsBase64,
+							StateFunc:    base64EncodedStateFunc,
 						},
 
 						"password": {
@@ -1353,7 +1354,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewaySSLCertificate,
 			},
 
 			"trusted_client_certificate": {
@@ -1601,8 +1601,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"file_upload_limit_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
+							ValidateFunc: validation.IntBetween(1, 750),
 						},
 						"request_body_check": {
 							Type:     pluginsdk.TypeBool,
@@ -1612,8 +1612,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"max_request_body_size_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 128),
 							Default:      128,
+							ValidateFunc: validation.IntBetween(1, 128),
 						},
 						"disabled_rule_group": {
 							Type:     pluginsdk.TypeList,
@@ -1650,13 +1650,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 									"selector_match_operator": {
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
 										Optional:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
 									},
 									"selector": {
-										ValidateFunc: validation.StringIsNotEmpty,
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},

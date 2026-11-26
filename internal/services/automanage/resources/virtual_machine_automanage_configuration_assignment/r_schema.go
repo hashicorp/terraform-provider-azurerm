@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_automanage_configuration_assignment
@@ -13,12 +13,14 @@ import (
 func (v Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"virtual_machine_id": {
+			Description:  "The ARM resource ID of the Virtual Machine to assign the Automanage Configuration to.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: configurationprofileassignments.ValidateVirtualMachineID,
 		},
 		"configuration_id": {
+			Description:  "The ARM resource ID of the Automanage Configuration to assign to the Virtual Machine.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,

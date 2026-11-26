@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine_scale_set
@@ -241,6 +241,25 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = helpers.ExpandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		updateInstances = true
+
+		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT,
+		// which preserves the write-only values omitted from the GET model
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
+				Id: pointer.To(d.Get("capacity_reservation_group_id").(string)),
+			},
+		}
+
+		// The API rejects a CRG unless singlePlacementGroup is false. Existing still holds the stale value
+		// when both change together. So applied the new value here.
+		existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating capacity reservation group for Windows %s: %+v", id, err)
+		}
+	}
+
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
 		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = pointer.To(v)
@@ -255,12 +274,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if updateScaleInPolicy := helpers.ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]any)); updateScaleInPolicy != nil {
 			updateProps.ScaleInPolicy = updateScaleInPolicy
 		}
-	}
-
-	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
-		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
-		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
-		updateProps.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
 	if d.HasChange("termination_notification") {
@@ -375,6 +388,21 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		Existing:                     *existing.Model,
 		ID:                           id,
 		OSType:                       virtualmachinescalesets.OperatingSystemTypesWindows,
+	}
+
+	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		// a health extension or health_probe_id must be set when automatic_zone_rebalancing_enabled is true,
+		// so when the properties changes in the same update we apply it first, then set the resiliency policy.
+		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
+		if automaticZoneRebalancingEnabled && d.HasChanges("extension", "health_probe_id") {
+			if err := metaData.PerformUpdate(ctx, update); err != nil {
+				return err
+			}
+			metaData.UpdateInstances = false
+		}
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
 	if err := metaData.PerformUpdate(ctx, update); err != nil {

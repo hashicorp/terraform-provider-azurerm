@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package disk_access
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDiskAccessCreateUpdate,
-		Read:   resourceDiskAccessRead,
-		Update: resourceDiskAccessCreateUpdate,
-		Delete: resourceDiskAccessDelete,
+		Description: "Manages a Disk Access.",
+		Create:      resourceDiskAccessCreateUpdate,
+		Read:        resourceDiskAccessRead,
+		Update:      resourceDiskAccessCreateUpdate,
+		Delete:      resourceDiskAccessDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := diskaccesses.ParseDiskAccessID(id)

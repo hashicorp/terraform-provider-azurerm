@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package batch_account
@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBatchAccountRead,
+		Description: "Use this data source to access information about an existing Batch Account.",
+		Read:        dataSourceBatchAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Batch Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
@@ -36,51 +38,61 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"location":            commonschema.LocationComputed(),
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Storage Account used for this Batch Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"pool_allocation_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The pool allocation mode configured for this Batch Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"key_vault_reference": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch Account using the `UserSubscription` pool allocation mode.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure identifier of the Azure KeyVault reference.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The HTTPS URL of the Azure KeyVault reference.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The Batch Account primary access key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-				Computed:  true,
+				Description: "The Batch Account secondary access key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 			"account_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The account endpoint used to interact with the Batch service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"encryption": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The `encryption` block that describes the Azure KeyVault key reference used to encrypt data for the Azure Batch Account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The full URL path of the Key Vault Key used to encrypt data for this Batch Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

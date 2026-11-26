@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package trusted_signing_account
@@ -15,9 +15,10 @@ import (
 func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Artifact Signing Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(3, 24),
 				validation.StringMatch(
@@ -32,8 +33,9 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The SKU name of this Artifact Signing Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice(
 				codesigningaccounts.PossibleValuesForSkuName(),
 				false,
@@ -47,8 +49,9 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 func (m Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URI of the Artifact Signing Account which is used during signing files.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

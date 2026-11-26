@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_slack
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelSlackCreate,
-		Read:   resourceBotChannelSlackRead,
-		Delete: resourceBotChannelSlackDelete,
-		Update: resourceBotChannelSlackUpdate,
+		Description: "Manages a Slack integration for a Bot Channel.",
+		Create:      resourceBotChannelSlackCreate,
+		Read:        resourceBotChannelSlackRead,
+		Delete:      resourceBotChannelSlackDelete,
+		Update:      resourceBotChannelSlackUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

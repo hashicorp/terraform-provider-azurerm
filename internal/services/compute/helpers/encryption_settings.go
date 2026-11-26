@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -24,13 +24,15 @@ func EncryptionSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"secret_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 
 							"source_vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 						},
 					},
@@ -42,13 +44,15 @@ func EncryptionSettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key_url": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 
 							"source_vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 						},
 					},

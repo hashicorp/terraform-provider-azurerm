@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -140,9 +140,9 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 
 			"security_domain_key_vault_certificate_ids": {
 				Type:         pluginsdk.TypeList,
+				Optional:     true,
 				MinItems:     3,
 				MaxItems:     10,
-				Optional:     true,
 				RequiredWith: []string{"security_domain_quorum"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -153,8 +153,8 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"security_domain_quorum": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				RequiredWith: []string{"security_domain_key_vault_certificate_ids"},
 				ValidateFunc: validation.IntBetween(2, 10),
+				RequiredWith: []string{"security_domain_key_vault_certificate_ids"},
 			},
 
 			"security_domain_encrypted_data": {

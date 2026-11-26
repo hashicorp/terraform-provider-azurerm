@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_powershell72_module
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_automation_powershell72_module"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Automation Powershell 7.2 Module."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
