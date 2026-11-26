@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_consumer_group
@@ -28,6 +28,10 @@ type Resource struct{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_eventhub_consumer_group"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Event Hubs Consumer Group as a nested resource within an Event Hub."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_trigger_schedule
@@ -58,15 +58,21 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_data_factory_trigger_schedule"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about a trigger schedule in Azure Data Factory."
+}
+
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the trigger schedule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 		},
 
 		"data_factory_id": {
+			Description:  "The ID of the Azure Data Factory to fetch trigger schedule from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: factories.ValidateFactoryID,
@@ -77,8 +83,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Schedule Trigger's description.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"schedule": {
@@ -87,32 +94,36 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days_of_month": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "Day(s) of the month on which the trigger is scheduled.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeInt,
 						},
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "Day(s) of the week on which the trigger is scheduled.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"hours": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "Hours of the day on which the trigger is scheduled.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeInt,
 						},
 					},
 
 					"minutes": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "Minutes of the hour on which the trigger is scheduled.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeInt,
 						},
@@ -124,13 +135,15 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"weekday": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The day of the week on which the trigger runs.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"week": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
+									Description: "The occurrence of the specified day during the month.",
+									Type:        pluginsdk.TypeInt,
+									Computed:    true,
 								},
 							},
 						},
@@ -140,43 +153,51 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"start_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The time the Schedule Trigger will start. The time will be represented in UTC.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"end_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The time the Schedule Trigger should end. The time will be represented in UTC.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_zone": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timezone of the start/end time.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"frequency": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The trigger frequency.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"interval": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The interval for how often the trigger occurs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"activated": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Data Factory Schedule Trigger is activated.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"pipeline_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Data Factory Pipeline name that the trigger will act on.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "List of tags that can be used for describing the Data Factory Schedule Trigger.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

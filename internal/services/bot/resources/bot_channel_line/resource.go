@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_line
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelLineCreate,
-		Read:   resourceBotChannelLineRead,
-		Delete: resourceBotChannelLineDelete,
-		Update: resourceBotChannelLineUpdate,
+		Description: "Manages a Line integration for a Bot Channel.",
+		Create:      resourceBotChannelLineCreate,
+		Read:        resourceBotChannelLineRead,
+		Delete:      resourceBotChannelLineDelete,
+		Update:      resourceBotChannelLineUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

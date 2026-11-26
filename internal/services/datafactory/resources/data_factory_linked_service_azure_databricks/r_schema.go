@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_azure_databricks
@@ -14,6 +14,7 @@ import (
 func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Linked Service. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 
 		// Authentication types
 		"msi_workspace_id": {
+			Description:  "Authenticate to ADB via Managed Service Identity.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -36,6 +39,7 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 		},
 
 		"access_token": {
+			Description:  "Authenticate to ADB via an access token.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -44,34 +48,39 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 		},
 
 		"key_vault_password": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description:  "Authenticate to ADB via Azure Key Vault Linked Service.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {
+						Description:  "The name of an existing Key Vault Data Factory Linked Service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.LinkedServiceDatasetName,
 					},
 
 					"secret_name": {
+						Description:  "The secret name in Azure Key Vault that stores ADB access token.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.LinkedServiceDatasetName,
 					},
 				},
 			},
-			ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"adb_domain": {
+			Description:  "The domain URL of the databricks instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -79,6 +88,7 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 
 		// Cluster types [existing cluster, new cluster, interactive pools]
 		"existing_cluster_id": {
+			Description:  "The cluster_id of an existing cluster within the linked ADB instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -86,136 +96,155 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 		},
 
 		"new_cluster_config": {
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			Optional: true,
+			Description:  "Creates new clusters within the linked ADB instance.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"node_type": {
+						Description:  "Node type for the new cluster.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"custom_tags": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "Tags for the cluster resource.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"min_number_of_workers": {
+						Description:  "The minimum number of worker nodes.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
 						ValidateFunc: validation.IntBetween(1, 25000),
 					},
 					"max_number_of_workers": {
+						Description:  "The maximum number of worker nodes.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 25000),
 					},
 					"cluster_version": {
+						Description:  "Spark version of the cluster.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"spark_config": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "User-specified Spark configuration variables key-value pairs.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"spark_environment_variables": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "User-specified Spark environment variables key-value pairs.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"log_destination": {
+						Description:  "Location to deliver Spark driver, worker, and event logs.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"init_scripts": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "User defined initialization scripts for the cluster.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"driver_node_type": {
+						Description:  "Driver node type for the cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
-			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 		},
 
 		"instance_pool": {
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			Optional: true,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"min_number_of_workers": {
+						Description:  "The minimum number of worker nodes.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
 						ValidateFunc: validation.IntBetween(1, 25000),
 					},
 					"max_number_of_workers": {
+						Description:  "The max number of worker nodes. Set this value if you want to enable autoscaling between the `min_number_of_workers` and this value. Omit this value to use a fixed number of workers defined in the `min_number_of_workers` property.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 25000),
 					},
 					"instance_pool_id": {
+						Description:  "Identifier of the instance pool within the linked ADB instance.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"cluster_version": {
+						Description:  "Spark version of the cluster.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
-			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 		},
 
 		"integration_runtime_name": {
+			Description:  "The integration runtime reference to associate with the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

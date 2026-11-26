@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -106,8 +106,8 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 
 		"routing_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Required: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -218,8 +218,8 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 
 		"backend_pool_load_balancing": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 5000,
 			Required: true,
+			MaxItems: 5000,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -248,8 +248,8 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 
 		"backend_pool_health_probe": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 5000,
 			Required: true,
+			MaxItems: 5000,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -286,14 +286,14 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 
 		"backend_pool": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 50,
 			Required: true,
+			MaxItems: 50,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"backend": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Required: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -350,8 +350,8 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 
 		"frontend_endpoint": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Required: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {

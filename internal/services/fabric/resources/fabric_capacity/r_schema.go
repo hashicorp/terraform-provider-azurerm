@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fabric_capacity
@@ -15,9 +15,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for the Fabric Capacity.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-z]([a-z\d]{2,62})$`),
 				"`name` must be between 3 and 63 characters. It can contain only lowercase letters and numbers. It must start with a lowercase letter.",
@@ -35,9 +36,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the SKU to use for the Fabric Capacity.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
+							"F0",
 							"F2",
 							"F4",
 							"F8",
@@ -49,9 +52,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							"F512",
 							"F1024",
 							"F2048",
+							"F4096",
+							"F8192",
 						}, false),
 					},
 					"tier": {
+						Description:  "The tier of the SKU to use for the Fabric Capacity.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(fabriccapacities.PossibleValuesForRpSkuTier(), false),
@@ -61,8 +67,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administration_members": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "An array of administrator user identities. The member must be an Entra user or a Service Principal.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

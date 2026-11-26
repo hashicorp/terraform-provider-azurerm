@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_test
@@ -12,6 +12,17 @@ import (
 )
 
 type ContainerRegistryDataSource struct{}
+
+func TestAccDataSourceAzureRMContainerRegistry_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")
+	r := ContainerRegistryDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")

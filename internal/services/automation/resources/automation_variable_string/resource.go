@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_variable_string
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableStringCreate,
-		Read:   resourceAutomationVariableStringRead,
-		Update: resourceAutomationVariableStringUpdate,
-		Delete: resourceAutomationVariableStringDelete,
+		Description: "Manages a string variable in Azure Automation.",
+		Create:      resourceAutomationVariableStringCreate,
+		Read:        resourceAutomationVariableStringRead,
+		Update:      resourceAutomationVariableStringUpdate,
+		Delete:      resourceAutomationVariableStringDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := variable.ParseVariableID(id)

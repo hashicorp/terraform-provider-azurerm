@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_connection
@@ -13,6 +13,7 @@ import (
 func automationConnectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func automationConnectionSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
+			Description:  "The name of the Automation Account in which the Connection is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func automationConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"type": {
+			Description:  "The type of the Connection - can be either builtin type such as `Azure`, `AzureClassicCertificate`, and `AzureServicePrincipal`, or a user defined types.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,16 +39,18 @@ func automationConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"values": {
-			Type:     pluginsdk.TypeMap,
-			Required: true,
+			Description: "A mapping of key value pairs passed to the connection. Different `type` needs different parameters in the `values`.",
+			Type:        pluginsdk.TypeMap,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for this Connection.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

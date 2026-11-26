@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_cluster
@@ -13,6 +13,7 @@ import (
 func stackHciClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Stack HCI Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func stackHciClusterSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"client_id": {
+			Description:  "The Client ID of the Azure Active Directory Application which is used by the Azure Stack HCI Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func stackHciClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_id": {
+			Description:  "The Tenant ID of the Azure Active Directory which is used by the Azure Stack HCI Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -39,24 +42,28 @@ func stackHciClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automanage_configuration_id": {
+			Description:  "The ID of the Automanage Configuration assigned to the Azure Stack HCI Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
 		},
 
 		"cloud_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "An immutable UUID for the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"service_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The region specific Data Path Endpoint of the Azure Stack HCI Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_provider_object_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The object ID of the Resource Provider Service Principal.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityOptional(),

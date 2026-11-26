@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -51,7 +51,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"storage_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.StorageAccountId{}),
+			"storage_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.StorageAccountId{}, "Storage Account"),
 
 			"rules": {
 				Type:     pluginsdk.TypeSet,

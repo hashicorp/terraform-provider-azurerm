@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_cluster
@@ -14,9 +14,10 @@ import (
 func eventhubClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the EventHub Cluster resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
 				"The event hub name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
@@ -28,8 +29,9 @@ func eventhubClusterSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The SKU name of the EventHub Cluster.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^Dedicated_[1-9][0-9]*$`),
 				"SKU name must match /^Dedicated_[1-9][0-9]*$/.",

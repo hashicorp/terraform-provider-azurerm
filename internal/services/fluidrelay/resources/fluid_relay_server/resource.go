@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fluid_relay_server
@@ -15,6 +15,10 @@ var _ sdk.ResourceWithUpdate = (*Resource)(nil)
 
 func (s Resource) ResourceType() string {
 	return "azurerm_fluid_relay_server"
+}
+
+func (s Resource) Description() string {
+	return "Manages a Fluid Relay Server."
 }
 
 func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_service
@@ -14,6 +14,7 @@ import (
 func databaseMigrationServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the database migration service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func databaseMigrationServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"subnet_id": {
+			Description:  "The ID of the virtual subnet resource to which the database migration service should be joined.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,12 +34,13 @@ func databaseMigrationServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The SKU name of the database migration service.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// No const defined in go sdk, the literal listed below is derived from the response of listskus endpoint.
-				// See: https://docs.microsoft.com/rest/api/datamigration/resourceskus/listskus
+				// See: https://learn.microsoft.com/rest/api/datamigration/resourceskus/listskus
 				"Premium_4vCores",
 				"Standard_1vCores",
 				"Standard_2vCores",
@@ -46,5 +49,11 @@ func databaseMigrationServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+
+		"network_interface_id": {
+			Description: "The ID of the Network Interface created by Azure for the Database Migration Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
 	}
 }

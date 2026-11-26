@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share_account_test
@@ -17,6 +17,17 @@ import (
 )
 
 type DataShareAccountResource struct{}
+
+func TestAccDataShareAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
+	r := DataShareAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataShareAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")

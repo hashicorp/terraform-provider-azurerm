@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_consumer_group_test
@@ -12,6 +12,17 @@ import (
 )
 
 type EventHubConsumerGroupDataSource struct{}
+
+func TestAccEventHubConsumerGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")
+	r := EventHubConsumerGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccEventHubConsumerGroupDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")

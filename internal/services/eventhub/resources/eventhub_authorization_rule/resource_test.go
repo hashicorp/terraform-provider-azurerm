@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_authorization_rule_test
@@ -18,6 +18,17 @@ import (
 )
 
 type EventHubAuthorizationRuleResource struct{}
+
+func TestAccEventHubAuthorizationRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
+	r := EventHubAuthorizationRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.base(data, true, true, true),
+		},
+	}, "")
+}
 
 func TestAccEventHubAuthorizationRule_listen(t *testing.T) {
 	testAccEventHubAuthorizationRule(t, true, false, false)

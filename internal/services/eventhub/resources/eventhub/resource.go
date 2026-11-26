@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -19,10 +19,11 @@ var eventHubResourceName = "azurerm_eventhub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubCreate,
-		Read:   resourceEventHubRead,
-		Update: resourceEventHubUpdate,
-		Delete: resourceEventHubDelete,
+		Description: "Manages an Event Hub as a nested resource within an Event Hubs namespace.",
+		Create:      resourceEventHubCreate,
+		Read:        resourceEventHubRead,
+		Update:      resourceEventHubUpdate,
+		Delete:      resourceEventHubDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&eventhubs.EventhubId{}),

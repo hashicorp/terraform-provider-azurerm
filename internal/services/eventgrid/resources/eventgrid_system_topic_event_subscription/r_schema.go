@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_system_topic_event_subscription
@@ -17,6 +17,7 @@ func eventgridSystemTopicEventSubscriptionSchema() map[string]*pluginsdk.Schema 
 		"name": helpers.EventSubscriptionSchemaEventSubscriptionName(),
 
 		"system_topic": {
+			Description:  "The System Topic where the Event Subscription should be created in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

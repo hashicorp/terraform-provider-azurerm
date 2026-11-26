@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_flowlet_data_flow
@@ -13,12 +13,14 @@ import (
 func dataFactoryFlowletDataFlowSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Data Factory Flowlet Data Flow.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"data_factory_id": {
+			Description:  "The ID of Data Factory in which to associate the Data Flow with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func dataFactoryFlowletDataFlowSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"script": {
+			Description:  "The script for the Data Factory Flowlet Data Flow.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -33,6 +36,7 @@ func dataFactoryFlowletDataFlowSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"script_lines": {
+			Description:  "The script lines for the Data Factory Flowlet Data Flow.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			AtLeastOneOf: []string{"script", "script_lines"},
@@ -49,20 +53,23 @@ func dataFactoryFlowletDataFlowSchema() map[string]*pluginsdk.Schema {
 		"transformation": helpers.SchemaForDataFlowSourceTransformation(),
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Flowlet Data Flow.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Flowlet Data Flow.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"folder": {
+			Description:  "The folder that this Data Flow is in. If not specified, the Data Flow will appear at the root level.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

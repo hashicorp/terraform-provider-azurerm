@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_partner_registration
@@ -31,6 +31,7 @@ type EventGridPartnerRegistrationDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the EventGrid Partner Registration resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -42,8 +43,9 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"partner_registration_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The immutable ID of the corresponding partner registration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"tags": commonschema.TagsDataSource(),
 	}
@@ -88,6 +90,10 @@ func (r DataSource) Read() sdk.ResourceFunc {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_eventgrid_partner_registration"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing EventGrid Partner Registration."
 }
 
 func (DataSource) ModelObject() any {

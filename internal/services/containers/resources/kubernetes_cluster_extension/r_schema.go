@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster_extension
@@ -15,9 +15,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Kubernetes Cluster Extension.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-.]{0,252}$"),
 				"name must be between 1 and 253 characters in length and may contain only letters, numbers, periods (.), hyphens (-), and must begin with a letter or number.",
@@ -25,6 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_id": {
+			Description:  "The Cluster ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension_type": {
+			Description:  "The type of extension. For more information, refer to [Available Extensions for AKS](https://learn.microsoft.com/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,8 +42,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"configuration_protected_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "Configuration settings that are sensitive, as name-value pairs for configuring this extension.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				Sensitive:    true,
@@ -49,8 +53,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"configuration_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "Configuration settings, as name-value pairs for configuring this extension.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -65,6 +70,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the plan from the marketplace.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -72,6 +78,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"product": {
+						Description:  "The product of the plan from the marketplace.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -79,6 +86,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"publisher": {
+						Description:  "The publisher of the plan.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -86,6 +94,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"promotion_code": {
+						Description:  "The promotion code to use with the plan.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -93,6 +102,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"version": {
+						Description:  "The version of the plan from the marketplace.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -103,38 +113,42 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"release_train": {
+			Description:   "The release train used by this extension.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"version"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"version"},
 		},
 
 		"release_namespace": {
+			Description:   "Namespace where the extension release must be placed for a cluster scoped extension. If this namespace does not exist, it will be created.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"target_namespace"},
 		},
 
 		"target_namespace": {
+			Description:   "Namespace where the extension will be created for a namespace scoped extension. If this namespace does not exist, it will be created.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"release_namespace"},
 		},
 
 		"version": {
+			Description:   "User-specified version that the extension should pin to. If it is not set, Azure will use the latest version and auto upgrade it.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
-			ConflictsWith: []string{"release_train"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"release_train"},
 		},
 	}
 }
@@ -144,8 +158,9 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		"aks_assigned_identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"current_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current version of the extension.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_postgresql_flexible_server
@@ -25,6 +25,10 @@ func (r Resource) Identity() resourceids.ResourceId {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_postgresql_flexible_server"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Backup Instance to back up PostgreSQL Flexible Server."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_domain_topic
@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridDomainTopicCreate,
-		Read:   resourceEventGridDomainTopicRead,
-		Delete: resourceEventGridDomainTopicDelete,
+		Description: "Manages an EventGrid Domain Topic.",
+		Create:      resourceEventGridDomainTopicCreate,
+		Read:        resourceEventGridDomainTopicRead,
+		Delete:      resourceEventGridDomainTopicDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

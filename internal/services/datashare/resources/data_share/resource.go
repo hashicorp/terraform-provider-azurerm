@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataShareCreateUpdate,
-		Read:   resourceDataShareRead,
-		Update: resourceDataShareCreateUpdate,
-		Delete: resourceDataShareDelete,
+		Description: "Manages a Data Share.",
+		Create:      resourceDataShareCreateUpdate,
+		Read:        resourceDataShareRead,
+		Update:      resourceDataShareCreateUpdate,
+		Delete:      resourceDataShareDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

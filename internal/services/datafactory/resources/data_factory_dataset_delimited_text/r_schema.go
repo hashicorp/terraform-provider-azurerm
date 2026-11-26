@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_delimited_text
@@ -13,6 +13,7 @@ import (
 func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Dataset. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"linked_service_name": {
+			Description:  "The Data Factory Linked Service name in which to associate the Dataset with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -35,35 +38,40 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		// Delimited Text Specific Field, one option for 'location'
 		"http_server_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"relative_url": {
+						Description:  "The base URL to the web server hosting the file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"path": {
+						Description:  "The folder path to the file on the web server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"filename": {
+						Description:  "The filename of the file on the web server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -72,39 +80,45 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		// Delimited Text Specific Field, one option for 'location'
 		"azure_blob_storage_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container": {
+						Description:  "The container on the Azure Blob Storage Account hosting the file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_container_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `container` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"path": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The folder path to the file. This can be an empty string.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 					"dynamic_path_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"filename": {
+						Description:  "The filename of the file.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -112,40 +126,46 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 
 		"azure_blob_fs_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"file_system": {
+						Description:  "The storage Data Lake gen2 file system on the Azure Blob Storage Account hosting the file.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_file_system_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `file_system` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"path": {
+						Description:  "The folder path to the file.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"filename": {
+						Description:  "The filename of the file.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -153,33 +173,38 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 
 		// Delimited Text Specific Field
 		"column_delimiter": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  ",",
+			Description: "The column delimiter.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     ",",
 		},
 
 		// Delimited Text Specific Field
 		"row_delimiter": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The row delimiter.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		// Delimited Text Specific Field
 		"quote_character": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  `"`,
+			Description: "The quote character.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     `"`,
 		},
 
 		// Delimited Text Specific Field
 		"escape_character": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  `\`,
+			Description: "The escape character.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     `\`,
 		},
 
 		// Delimited Text Specific Field
 		"encoding": {
+			Description:  "The encoding format for the file.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -187,49 +212,56 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 
 		// Delimited Text Specific Field
 		"first_row_as_header": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "When used as input, treat the first row of data as headers. When used as output, write the headers into the output as the first row of data.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// Delimited Text Specific Field
 		"null_value": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "",
+			Description: "The null value string.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "",
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Dataset.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Dataset.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Dataset.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"folder": {
+			Description:  "The folder that this Dataset is in. If not specified, the Dataset will appear at the root level.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Dataset.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -241,13 +273,15 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the column.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Type of the column. These values are case sensitive.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Byte",
 							"Byte[]",
@@ -267,6 +301,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"description": {
+						Description:  "The description of the column.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -276,8 +311,9 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"compression_codec": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The compression codec used to read/write text files. These values are case sensitive.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"None",
 				"bzip2",
@@ -292,8 +328,9 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"compression_level": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The compression ratio for the Data Factory Dataset. These values are case sensitive.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Optimal",
 				"Fastest",

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -30,6 +30,7 @@ func SSHKeysSchemaVM() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_key": {
+					Description:      "The Public Key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format.",
 					Type:             pluginsdk.TypeString,
 					Required:         true,
 					ForceNew:         true,
@@ -38,6 +39,7 @@ func SSHKeysSchemaVM() *pluginsdk.Schema {
 				},
 
 				"username": {
+					Description:  "The Username for which this Public SSH Key should be configured.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -60,6 +62,7 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_key": {
+					Description:      "The Public Key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format.",
 					Type:             pluginsdk.TypeString,
 					Required:         true,
 					ForceNew:         isVirtualMachine,
@@ -68,6 +71,7 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 				},
 
 				"username": {
+					Description:  "The Username for which this Public SSH Key should be configured.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,

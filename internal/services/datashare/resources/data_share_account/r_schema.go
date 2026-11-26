@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share_account
@@ -12,6 +12,7 @@ import (
 func dataShareAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Data Share Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_odata
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDataFactoryLinkedServiceODataCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceODataRead,
-		Update: resourceArmDataFactoryLinkedServiceODataCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceODataDelete,
+		Description: "Manages a Linked Service (connection) between a Database and Azure Data Factory through OData protocol.",
+		Create:      resourceArmDataFactoryLinkedServiceODataCreateUpdate,
+		Read:        resourceArmDataFactoryLinkedServiceODataRead,
+		Update:      resourceArmDataFactoryLinkedServiceODataCreateUpdate,
+		Delete:      resourceArmDataFactoryLinkedServiceODataDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

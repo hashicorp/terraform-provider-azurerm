@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_cache_rule
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_container_registry_cache_rule"
+}
+
+func (Resource) Description() string {
+	return "Manages an Azure Container Registry Cache Rule."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

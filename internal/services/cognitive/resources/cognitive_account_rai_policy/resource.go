@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account_rai_policy
@@ -18,6 +18,10 @@ type Resource struct{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_account_rai_policy"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services Account RAI Policy."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

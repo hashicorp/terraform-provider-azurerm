@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_task
@@ -18,6 +18,10 @@ var (
 
 func (r Resource) ResourceType() string {
 	return "azurerm_container_registry_task"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Container Registry Task."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_synapse
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceSynapseCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceSynapseRead,
-		Update: resourceDataFactoryLinkedServiceSynapseCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceSynapseDelete,
+		Description: "Manages a Linked Service (connection) between Synapse and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceSynapseCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceSynapseRead,
+		Update:      resourceDataFactoryLinkedServiceSynapseCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceSynapseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

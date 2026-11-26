@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_access_connector
@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Databricks Access Connector resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

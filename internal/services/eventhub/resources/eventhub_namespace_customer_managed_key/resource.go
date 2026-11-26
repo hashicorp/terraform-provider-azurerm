@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace_customer_managed_key
@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
-		Read:   resourceEventHubNamespaceCustomerManagedKeyRead,
-		Update: resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
-		Delete: resourceEventHubNamespaceCustomerManagedKeyDelete,
+		Description: "Manages a Customer Managed Key for an EventHub Namespace.",
+		Create:      resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
+		Read:        resourceEventHubNamespaceCustomerManagedKeyRead,
+		Update:      resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
+		Delete:      resourceEventHubNamespaceCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace_disaster_recovery_config
@@ -14,10 +14,11 @@ var eventHubNamespaceResourceName = "azurerm_eventhub_namespace"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceDisasterRecoveryConfigCreate,
-		Read:   resourceEventHubNamespaceDisasterRecoveryConfigRead,
-		Update: resourceEventHubNamespaceDisasterRecoveryConfigUpdate,
-		Delete: resourceEventHubNamespaceDisasterRecoveryConfigDelete,
+		Description: "Manages a Disaster Recovery Config for an Event Hub Namespace.",
+		Create:      resourceEventHubNamespaceDisasterRecoveryConfigCreate,
+		Read:        resourceEventHubNamespaceDisasterRecoveryConfigRead,
+		Update:      resourceEventHubNamespaceDisasterRecoveryConfigUpdate,
+		Delete:      resourceEventHubNamespaceDisasterRecoveryConfigDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(id)

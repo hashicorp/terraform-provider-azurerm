@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_credential_service_principal
@@ -12,7 +12,7 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "The desired name of the credential resource",
+			Description:  "The name of the Credential.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,7 +20,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
-			Description:  "The resource ID of the parent Data Factory",
+			Description:  "The Data Factory ID in which to associate the Credential with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,14 +28,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_id": {
-			Description:  "The Tenant ID of the Service Principal",
+			Description:  "The Tenant ID of the Service Principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"service_principal_id": {
-			Description:  "The Client ID of the Service Principal",
+			Description:  "The Client ID of the Service Principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
@@ -48,18 +48,21 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {
+						Description:  "The name of the Linked Service to use for the Service Principal Key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"secret_name": {
+						Description:  "The name of the Secret in the Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"secret_version": {
+						Description:  "The version of the Secret in the Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -69,14 +72,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Description:  "(Optional) Short text description",
+			Description:  "The description for the Data Factory Credential.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"annotations": { // this property is not visible in the azure portal
-			Description: "(Optional) List of string annotations.",
+			Description: "List of tags that can be used for describing the Data Factory Credential.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Elem: &pluginsdk.Schema{

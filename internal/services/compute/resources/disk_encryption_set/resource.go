@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package disk_encryption_set
@@ -22,10 +22,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDiskEncryptionSetCreate,
-		Read:   resourceDiskEncryptionSetRead,
-		Update: resourceDiskEncryptionSetUpdate,
-		Delete: resourceDiskEncryptionSetDelete,
+		Description: "Manages a Disk Encryption Set.",
+		Create:      resourceDiskEncryptionSetCreate,
+		Read:        resourceDiskEncryptionSetRead,
+		Update:      resourceDiskEncryptionSetUpdate,
+		Delete:      resourceDiskEncryptionSetDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

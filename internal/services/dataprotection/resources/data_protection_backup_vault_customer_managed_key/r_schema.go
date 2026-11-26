@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_vault_customer_managed_key
@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_protection_backup_vault_id": {
+			Description:  "The ID of the Backup Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_key_id": {
+			Description:  "The ID of the Key Vault Key which should be used to Encrypt the data in this Backup Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),

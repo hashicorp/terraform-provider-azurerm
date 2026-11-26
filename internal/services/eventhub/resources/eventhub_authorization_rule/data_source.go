@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_authorization_rule
@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: EventHubAuthorizationRuleDataSourceRead,
+		Description: "Use this data source to access information about an existing Event Hubs Authorization Rule within an Event Hub.",
+		Read:        EventHubAuthorizationRuleDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,45 +29,52 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: helpers.EventHubAuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the EventHub Authorization Rule resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
+				Description:  "The name of the grandparent EventHub Namespace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
+				Description:  "The name of the EventHub.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Key for the Event Hubs Authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Key for the Event Hubs Authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Connection String for the Event Hubs Authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Connection String for the Event Hubs Authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),

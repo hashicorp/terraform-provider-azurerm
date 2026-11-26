@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_mysql
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetMySQLCreateUpdate,
-		Read:   resourceDataFactoryDatasetMySQLRead,
-		Update: resourceDataFactoryDatasetMySQLCreateUpdate,
-		Delete: resourceDataFactoryDatasetMySQLDelete,
+		Description: "Manages a MySQL Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetMySQLCreateUpdate,
+		Read:        resourceDataFactoryDatasetMySQLRead,
+		Update:      resourceDataFactoryDatasetMySQLCreateUpdate,
+		Delete:      resourceDataFactoryDatasetMySQLDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

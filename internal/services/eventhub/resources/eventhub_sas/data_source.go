@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_sas
@@ -36,13 +36,15 @@ type EventHubSharedAccessSignatureDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"connection_string": {
-			Type:      pluginsdk.TypeString,
-			Required:  true,
-			Sensitive: true,
+			Description: "The connection string for the Event Hub to which this SAS applies.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			Sensitive:   true,
 		},
 
 		// Always in UTC and must be ISO-8601 format
 		"expiry": {
+			Description:  "The expiration time and date of this SAS.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.ISO8601DateTime,
@@ -53,9 +55,10 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"sas": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The computed Event Hub Shared Access Signature (SAS).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }
@@ -66,6 +69,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_eventhub_sas"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to obtain a Shared Access Signature (SAS Token) for an existing Event Hub."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

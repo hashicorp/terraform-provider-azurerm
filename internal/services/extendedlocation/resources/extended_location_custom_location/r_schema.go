@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package extended_location_custom_location
@@ -18,9 +18,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Custom Location.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[A-Za-z\d.\-_]*[A-Za-z\d]$`),
 				"supported alphanumeric characters and periods, underscores, hyphens. Name should end with an alphanumeric character.",
@@ -32,9 +33,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"namespace": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The namespace of the Custom Location.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-.]{0,252}$"),
 				"namespace must be between 1 and 253 characters in length and may contain only letters, numbers, periods (.), hyphens (-), and must begin with a letter or number.",
@@ -42,6 +44,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"host_resource_id": {
+			Description:  "The host resource ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,12 +52,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_extension_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			Elem:     commonschema.ResourceIDReferenceElem(&extensions.ScopedExtensionId{}),
+			Description: "The list of Cluster Extension IDs.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			Elem:        commonschema.ResourceIDReferenceElem(&extensions.ScopedExtensionId{}),
 		},
 
 		"host_type": {
+			Description:  "The host type of the Custom Location.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -62,6 +67,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of the Custom Location.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -74,12 +80,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
+						Description:  "The type of authentication.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"value": {
+						Description:  "The value of authentication.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsBase64,

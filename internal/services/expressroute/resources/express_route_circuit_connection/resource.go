@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_circuit_connection
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitConnectionCreate,
-		Read:   resourceExpressRouteCircuitConnectionRead,
-		Update: resourceExpressRouteCircuitConnectionUpdate,
-		Delete: resourceExpressRouteCircuitConnectionDelete,
+		Description: "Manages an Express Route Circuit Connection.",
+		Create:      resourceExpressRouteCircuitConnectionCreate,
+		Read:        resourceExpressRouteCircuitConnectionRead,
+		Update:      resourceExpressRouteCircuitConnectionUpdate,
+		Delete:      resourceExpressRouteCircuitConnectionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

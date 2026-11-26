@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_azure_blob
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetAzureBlobCreateUpdate,
-		Read:   resourceDataFactoryDatasetAzureBlobRead,
-		Update: resourceDataFactoryDatasetAzureBlobCreateUpdate,
-		Delete: resourceDataFactoryDatasetAzureBlobDelete,
+		Description: "Manages an Azure Blob Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetAzureBlobCreateUpdate,
+		Read:        resourceDataFactoryDatasetAzureBlobRead,
+		Update:      resourceDataFactoryDatasetAzureBlobCreateUpdate,
+		Delete:      resourceDataFactoryDatasetAzureBlobDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

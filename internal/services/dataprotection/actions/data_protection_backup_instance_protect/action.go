@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_protect
@@ -44,9 +44,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"backup_instance_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ID of the backup instance on which to perform the action.",
 				MarkdownDescription: "The ID of the backup instance on which to perform the action.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: backupinstanceresources.ValidateBackupInstanceID,
@@ -55,9 +55,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"protect_action": schema.StringAttribute{
+				Description:         "The protect state action to take on this backup instance.",
+				MarkdownDescription: "The protect state action to take on this backup instance.",
 				Required:            true,
-				Description:         "The protect state action to take on this backup instance. Possible values include `stop_protection`,`resume_protection`, `suspend_backups`, and `resume_backups`.",
-				MarkdownDescription: "The protect state action to take on this backup instance. Possible values include `stop_protection`,`resume_protection`, `suspend_backups`, and `resume_backups`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						StopProtection,

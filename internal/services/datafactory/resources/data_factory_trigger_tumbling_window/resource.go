@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_trigger_tumbling_window
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerTumblingWindowCreateUpdate,
-		Read:   resourceDataFactoryTriggerTumblingWindowRead,
-		Update: resourceDataFactoryTriggerTumblingWindowCreateUpdate,
-		Delete: resourceDataFactoryTriggerTumblingWindowDelete,
+		Description: "Manages a Tumbling Window Trigger inside an Azure Data Factory.",
+		Create:      resourceDataFactoryTriggerTumblingWindowCreateUpdate,
+		Read:        resourceDataFactoryTriggerTumblingWindowRead,
+		Update:      resourceDataFactoryTriggerTumblingWindowCreateUpdate,
+		Delete:      resourceDataFactoryTriggerTumblingWindowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)

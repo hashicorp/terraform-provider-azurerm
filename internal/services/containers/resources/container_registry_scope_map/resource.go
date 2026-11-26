@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_scope_map
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryScopeMapCreate,
-		Read:   resourceContainerRegistryScopeMapRead,
-		Update: resourceContainerRegistryScopeMapUpdate,
-		Delete: resourceContainerRegistryScopeMapDelete,
+		Description: "Manages an Azure Container Registry scope map. For more information on scope maps see the [product documentation](https://learn.microsoft.com/azure/container-registry/container-registry-repository-scoped-permissions).",
+		Create:      resourceContainerRegistryScopeMapCreate,
+		Read:        resourceContainerRegistryScopeMapRead,
+		Update:      resourceContainerRegistryScopeMapUpdate,
+		Delete:      resourceContainerRegistryScopeMapDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := scopemaps.ParseScopeMapID(id)

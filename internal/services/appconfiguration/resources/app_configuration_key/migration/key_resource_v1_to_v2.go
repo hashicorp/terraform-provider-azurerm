@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -74,45 +74,45 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 func (KeyResourceV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 		"content_type": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"etag": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"key": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 		"label": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"locked": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Optional: true,
 			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 		"type": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"value": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"vault_key_reference": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 	}
 }

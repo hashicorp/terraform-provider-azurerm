@@ -18,6 +18,16 @@ import (
 
 type DashboardGrafanaManagedPrivateEndpointResource struct{}
 
+func TestAccDashboardGrafanaManagedPrivateEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
+	r := DashboardGrafanaManagedPrivateEndpointResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDashboardGrafanaManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
 	r := DashboardGrafanaManagedPrivateEndpointResource{}

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_kusto
@@ -13,6 +13,7 @@ import (
 func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Linked Service. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,18 +29,21 @@ func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kusto_endpoint": {
+			Description:  "The URI of the Kusto Cluster endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"kusto_database_name": {
+			Description:  "The Kusto Database Name.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"use_managed_identity": {
+			Description:  "Whether to use the Data Factory's Managed Identity to authenticate against the Kusto Database.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			Default:      false,
@@ -46,6 +51,7 @@ func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_principal_id": {
+			Description:  "The Service Principal ID in which to authenticate against the Kusto Database.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
@@ -54,6 +60,7 @@ func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_principal_key": {
+			Description:  "The Service Principal key in which to authenticate against the Kusto Database.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -62,6 +69,7 @@ func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant": {
+			Description:  "The Service Principal tenant ID or name in which to authenticate against the Kusto Database.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -69,36 +77,41 @@ func dataFactoryLinkedServiceKustoSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"integration_runtime_name": {
+			Description:  "The integration runtime reference to associate with the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace
@@ -20,10 +20,11 @@ var (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceCreate,
-		Read:   resourceEventHubNamespaceRead,
-		Update: resourceEventHubNamespaceUpdate,
-		Delete: resourceEventHubNamespaceDelete,
+		Description: "Manages an EventHub Namespace.",
+		Create:      resourceEventHubNamespaceCreate,
+		Read:        resourceEventHubNamespaceRead,
+		Update:      resourceEventHubNamespaceUpdate,
+		Delete:      resourceEventHubNamespaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package marketplace_role_assignment
@@ -19,4 +19,8 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_marketplace_role_assignment"
+}
+
+func (r Resource) Description() string {
+	return "Assigns a given Principal (User or Group) to a given Role in a Private Azure Marketplace."
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryCreateUpdate,
-		Read:   resourceDataFactoryRead,
-		Update: resourceDataFactoryCreateUpdate,
-		Delete: resourceDataFactoryDelete,
+		Description: "Manages an Azure Data Factory (Version 2).",
+		Create:      resourceDataFactoryCreateUpdate,
+		Read:        resourceDataFactoryRead,
+		Update:      resourceDataFactoryCreateUpdate,
+		Delete:      resourceDataFactoryDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

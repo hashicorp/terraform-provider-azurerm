@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_hybrid_runbook_worker
@@ -15,6 +15,10 @@ var _ sdk.Resource = (*Resource)(nil)
 
 func (m Resource) ResourceType() string {
 	return "azurerm_automation_hybrid_runbook_worker"
+}
+
+func (m Resource) Description() string {
+	return "Manages an Automation Hybrid Runbook Worker."
 }
 
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace_authorization_rule
@@ -18,10 +18,11 @@ var eventHubNamespaceResourceName = "azurerm_eventhub_namespace"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
-		Read:   resourceEventHubNamespaceAuthorizationRuleRead,
-		Update: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
-		Delete: resourceEventHubNamespaceAuthorizationRuleDelete,
+		Description: "Manages an Authorization Rule for an Event Hub Namespace.",
+		Create:      resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
+		Read:        resourceEventHubNamespaceAuthorizationRuleRead,
+		Update:      resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
+		Delete:      resourceEventHubNamespaceAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(id)
@@ -43,6 +44,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 		Schema: helpers.EventHubAuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Authorization Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -50,6 +52,7 @@ func RegisterResource() *pluginsdk.Resource {
 			},
 
 			"namespace_name": {
+				Description:  "The name of the EventHub Namespace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

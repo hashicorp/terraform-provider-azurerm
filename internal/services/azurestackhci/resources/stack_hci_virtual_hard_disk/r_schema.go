@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_virtual_hard_disk
@@ -17,9 +17,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Azure Stack HCI Virtual Hard Disk.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`),
 				"name must begin and end with an alphanumeric character, be between 2 and 64 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
@@ -30,9 +31,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"disk_size_in_gb": {
+			Description:  "The size of the disk in GB.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -40,6 +42,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"block_size_in_bytes": {
+			Description:  "The block size of the disk in bytes.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -47,6 +50,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_file_format": {
+			Description:  "The format of the disk file.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -54,13 +58,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dynamic_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether to enable dynamic sizing for the Azure Stack HCI Virtual Hard Disk.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"hyperv_generation": {
+			Description:  "The hypervisor generation of the Azure Stack HCI Virtual Hard Disk.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -68,6 +74,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"logical_sector_in_bytes": {
+			Description:  "The logical sector size of the disk in bytes.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -75,6 +82,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"physical_sector_in_bytes": {
+			Description:  "The physical sector size of the disk in bytes.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -82,6 +90,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_path_id": {
+			Description:  "The ID of the Azure Stack HCI Storage Path used for this Virtual Hard Disk.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

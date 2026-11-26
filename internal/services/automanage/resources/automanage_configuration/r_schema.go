@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage_configuration
@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Automanage Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,33 +41,38 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"real_time_protection_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the real time protection is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"scheduled_scan_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the scheduled scan is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"scheduled_scan_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "Quick",
+						Description: "The type of the scheduled scan.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     "Quick",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Quick",
 							"Full",
 						}, false),
 					},
 					"scheduled_scan_day": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Default:  8,
+						Description: "The day of the scheduled scan.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
+						Default:     8,
 						ValidateFunc: validation.IntInSlice([]int{
 							0, 1, 2, 3, 4, 5, 6, 7, 8,
 						}),
 					},
 					"scheduled_scan_time_in_minutes": {
+						Description:  "The time of the scheduled scan in minutes.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      0,
@@ -79,16 +85,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"extensions": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "The extensions to exclude from the antimalware scan, separated by `;`. For example `.ext1;.ext2`.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 								},
 								"paths": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "The paths to exclude from the antimalware scan, separated by `;`. For example `C:\\\\Windows\\\\Temp;D:\\\\Temp`.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 								},
 								"processes": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "The processes to exclude from the antimalware scan, separated by `;`. For example `svchost.exe;notepad.exe`.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 								},
 							},
 						},
@@ -106,9 +115,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"assignment_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "ApplyAndAutoCorrect",
+						Description: "The assignment type of the azure security baseline.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     "ApplyAndAutoCorrect",
 						ValidateFunc: validation.StringInSlice([]string{
 							"ApplyAndAutoCorrect",
 							"ApplyAndMonitor",
@@ -142,16 +152,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"policy_name": {
+						Description:  "The name of the backup policy.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,149}$`), "Policy name must be 3 - 150 characters long, begin with an alphanumeric character, and only contain alphanumeric characters and hyphens."),
 					},
 					"time_zone": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "UTC",
+						Description: "The timezone of the backup policy.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     "UTC",
 					},
 					"instant_rp_retention_range_in_days": {
+						Description:  "The retention range in days of the backup policy.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      5,
@@ -164,17 +177,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"schedule_run_frequency": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "Daily",
+									Description: "The schedule run frequency of the backup policy.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     "Daily",
 									ValidateFunc: validation.StringInSlice([]string{
 										"Daily",
 										"Weekly",
 									}, false),
 								},
 								"schedule_run_times": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "The schedule run times of the backup policy.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
@@ -185,8 +200,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"schedule_run_days": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "The schedule run days of the backup policy.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -201,9 +217,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"schedule_policy_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "SimpleSchedulePolicy",
+									Description: "The schedule policy type of the backup policy.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     "SimpleSchedulePolicy",
 									ValidateFunc: validation.StringInSlice([]string{
 										"SimpleSchedulePolicy",
 									}, false),
@@ -218,9 +235,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"retention_policy_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "LongTermRetentionPolicy",
+									Description: "The retention policy type of the backup policy.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     "LongTermRetentionPolicy",
 									ValidateFunc: validation.StringInSlice([]string{
 										"LongTermRetentionPolicy",
 									}, false),
@@ -232,8 +250,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"retention_times": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
+												Description: "The retention times of the backup policy.",
+												Type:        pluginsdk.TypeList,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringMatch(
@@ -249,14 +268,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"count": {
+															Description:  "The count of the retention duration of the backup policy.",
 															Type:         pluginsdk.TypeInt,
 															Optional:     true,
 															ValidateFunc: validation.IntBetween(7, 9999),
 														},
 														"duration_type": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-															Default:  "Days",
+															Description: "The duration type of the retention duration of the backup policy.",
+															Type:        pluginsdk.TypeString,
+															Optional:    true,
+															Default:     "Days",
 															ValidateFunc: validation.StringInSlice([]string{
 																"Days",
 															}, false),
@@ -274,8 +295,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"retention_times": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
+												Description: "The retention times of the backup policy.",
+												Type:        pluginsdk.TypeList,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringMatch(
@@ -291,14 +313,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"count": {
+															Description:  "The count of the retention duration of the backup policy.",
 															Type:         pluginsdk.TypeInt,
 															Optional:     true,
 															ValidateFunc: validation.IntBetween(1, 5163),
 														},
 														"duration_type": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-															Default:  "Weeks",
+															Description: "The duration type of the retention duration of the backup policy.",
+															Type:        pluginsdk.TypeString,
+															Optional:    true,
+															Default:     "Weeks",
 															ValidateFunc: validation.StringInSlice([]string{
 																"Weeks",
 															}, false),
@@ -318,43 +342,49 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// "AutomationAccount/Enable": boolean,
 		"automation_account_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Automation Account is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// "BootDiagnostics/Enable": boolean,
 		"boot_diagnostics_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the boot diagnostics are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// "DefenderForCloud/Enable": boolean,
 		"defender_for_cloud_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the defender for cloud is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 		// "GuestConfiguration/Enable": boolean,
 		"guest_configuration_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the guest configuration is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// "LogAnalytics/Enable": boolean,
 		"log_analytics_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Log Analytics are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// "Alerts/AutomanageStatusChanges/Enable": boolean,
 		"status_change_alert_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the status change alert is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"tags": commonschema.Tags(),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_cluster
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubClusterCreateUpdate,
-		Read:   resourceEventHubClusterRead,
-		Update: resourceEventHubClusterCreateUpdate,
-		Delete: resourceEventHubClusterDelete,
+		Description: "Manages an EventHub Cluster.",
+		Create:      resourceEventHubClusterCreateUpdate,
+		Read:        resourceEventHubClusterRead,
+		Update:      resourceEventHubClusterCreateUpdate,
+		Delete:      resourceEventHubClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := eventhubsclusters.ParseClusterID(id)
 			return err

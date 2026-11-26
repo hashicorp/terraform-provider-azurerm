@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_cosmosdb_sqlapi
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
-		Read:   resourceDataFactoryDatasetCosmosDbSQLAPIRead,
-		Update: resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
-		Delete: resourceDataFactoryDatasetCosmosDbSQLAPIDelete,
+		Description: "Manages an Azure Cosmos DB SQL API Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
+		Read:        resourceDataFactoryDatasetCosmosDbSQLAPIRead,
+		Update:      resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
+		Delete:      resourceDataFactoryDatasetCosmosDbSQLAPIDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

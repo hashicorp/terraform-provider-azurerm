@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_sftp
@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceSFTPCreate,
-		Read:   resourceDataFactoryLinkedServiceSFTPRead,
-		Update: resourceDataFactoryLinkedServiceSFTPUpdate,
-		Delete: resourceDataFactoryLinkedServiceSFTPDelete,
+		Description: "Manages a Linked Service (connection) between an SFTP Server and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceSFTPCreate,
+		Read:        resourceDataFactoryLinkedServiceSFTPRead,
+		Update:      resourceDataFactoryLinkedServiceSFTPUpdate,
+		Delete:      resourceDataFactoryLinkedServiceSFTPDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

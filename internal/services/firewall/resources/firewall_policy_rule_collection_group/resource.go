@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_policy_rule_collection_group
@@ -17,10 +17,11 @@ const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Read:   resourceFirewallPolicyRuleCollectionGroupRead,
-		Update: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
+		Description: "Manages a Firewall Policy Rule Collection Group.",
+		Create:      resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		Read:        resourceFirewallPolicyRuleCollectionGroupRead,
+		Update:      resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		Delete:      resourceFirewallPolicyRuleCollectionGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&firewallpolicyrulecollectiongroups.RuleCollectionGroupId{}),
 

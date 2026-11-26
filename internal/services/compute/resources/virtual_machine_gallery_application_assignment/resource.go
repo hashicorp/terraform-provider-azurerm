@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_gallery_application_assignment
@@ -23,6 +23,10 @@ var _ sdk.ResourceWithUpdate = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_virtual_machine_gallery_application_assignment"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Virtual Machine Gallery Application Assignment."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

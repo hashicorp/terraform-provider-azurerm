@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_disk
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataProtectionBackupInstanceDiskCreateUpdate,
-		Read:   resourceDataProtectionBackupInstanceDiskRead,
-		Update: resourceDataProtectionBackupInstanceDiskCreateUpdate,
-		Delete: resourceDataProtectionBackupInstanceDiskDelete,
+		Description: "Manages a Backup Instance to back up Disk.",
+		Create:      resourceDataProtectionBackupInstanceDiskCreateUpdate,
+		Read:        resourceDataProtectionBackupInstanceDiskRead,
+		Update:      resourceDataProtectionBackupInstanceDiskCreateUpdate,
+		Delete:      resourceDataProtectionBackupInstanceDiskDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

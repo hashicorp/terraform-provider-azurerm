@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic_san_volume_snapshot
@@ -33,6 +33,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_elastic_san_volume_snapshot"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Elastic SAN Volume Snapshot."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ElasticSANVolumeSnapshotDataSourceModel{}
 }
@@ -40,12 +44,14 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Elastic SAN Volume Snapshot.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ElasticSanSnapshotName,
 		},
 
 		"volume_group_id": {
+			Description:  "The Elastic SAN Volume Group ID within which the Elastic SAN Volume Snapshot exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -57,18 +63,21 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"source_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource ID from which the Snapshot is created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"source_volume_size_in_gib": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "The size of source volume.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_name": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The source volume name of the Snapshot.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

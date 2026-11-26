@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share
@@ -16,6 +16,7 @@ import (
 func dataShareSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Data Share.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func dataShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"account_id": {
+			Description:  "The ID of the Data Share Account in which the Data Share is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func dataShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kind": {
+			Description:  "The kind of the Data Share.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,8 +40,9 @@ func dataShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Data Share's description.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"snapshot_schedule": {
@@ -48,18 +52,21 @@ func dataShareSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the snapshot schedule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.SnapshotScheduleName(),
 					},
 
 					"recurrence": {
+						Description:  "The interval of the synchronization with the source data.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(synchronizationsetting.PossibleValuesForRecurrenceInterval(), false),
 					},
 
 					"start_time": {
+						Description:      "The synchronization with the source data's start time.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -70,8 +77,9 @@ func dataShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"terms": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The terms of the Data Share.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

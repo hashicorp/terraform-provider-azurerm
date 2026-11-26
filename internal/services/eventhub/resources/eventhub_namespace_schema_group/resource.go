@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace_schema_group
@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceSchemaRegistryCreate,
-		Read:   resourceEventHubNamespaceSchemaRegistryRead,
-		Delete: resourceEventHubNamespaceSchemaRegistryDelete,
+		Description: "Manages a Schema Group for an EventHub Namespace.",
+		Create:      resourceEventHubNamespaceSchemaRegistryCreate,
+		Read:        resourceEventHubNamespaceSchemaRegistryRead,
+		Delete:      resourceEventHubNamespaceSchemaRegistryDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schemaregistry.ParseSchemaGroupID(id)

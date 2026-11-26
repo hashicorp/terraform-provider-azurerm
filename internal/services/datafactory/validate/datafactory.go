@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,11 +13,11 @@ import (
 )
 
 func DataFactoryPipelineAndTriggerName() pluginsdk.SchemaValidateFunc {
-	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`), "invalid name, see https://docs.microsoft.com/azure/data-factory/naming-rules")
+	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`), "invalid name, see https://learn.microsoft.com/azure/data-factory/naming-rules")
 }
 
 func DataFactoryName() pluginsdk.SchemaValidateFunc {
-	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`), "invalid data_factory_name, see https://docs.microsoft.com/azure/data-factory/naming-rules")
+	return validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`), "invalid data_factory_name, see https://learn.microsoft.com/azure/data-factory/naming-rules")
 }
 
 func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {

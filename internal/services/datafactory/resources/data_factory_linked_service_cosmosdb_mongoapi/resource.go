@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_cosmosdb_mongoapi
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead,
-		Update: resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceCosmosDbMongoAPIDelete,
+		Description: "Manages a Linked Service (connection) between a CosmosDB and Azure Data Factory using Mongo API.",
+		Create:      resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead,
+		Update:      resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceCosmosDbMongoAPIDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

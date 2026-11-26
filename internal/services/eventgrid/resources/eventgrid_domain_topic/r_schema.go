@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_domain_topic
@@ -14,9 +14,10 @@ import (
 func eventgridDomainTopicSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the EventGrid Domain Topic resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
@@ -27,9 +28,10 @@ func eventgridDomainTopicSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"domain_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the EventGrid Domain.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(

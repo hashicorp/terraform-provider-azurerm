@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_automatic_cluster
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,6 +26,10 @@ var (
 
 func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_automatic_cluster"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Managed Kubernetes Automatic Cluster (a special SKU of AKS / Azure Kubernetes Service)."
 }
 
 func (r Resource) Identity() resourceids.ResourceId {

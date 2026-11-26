@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_partner_namespace
@@ -38,6 +38,7 @@ type EventGridPartnerNamespaceDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Event Grid Partner Namespace resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -51,8 +52,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint for the Event Grid Partner Namespace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"inbound_ip_rule": {
@@ -61,35 +63,41 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The IP mask (CIDR) to match on.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The action to take when the rule is matched.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether local authentication methods are enabled for the Event Grid Partner Namespace.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"partner_registration_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource ID of the partner registration associated with this Event Grid Partner Namespace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"partner_topic_routing_mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The partner topic routing mode.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_network_access": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Whether public network access is allowed for this server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -142,6 +150,10 @@ func (r DataSource) Read() sdk.ResourceFunc {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_eventgrid_partner_namespace"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Event Grid Partner Namespace."
 }
 
 func (DataSource) ModelObject() any {

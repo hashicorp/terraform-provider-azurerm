@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package route_filter_test
@@ -17,6 +17,17 @@ import (
 )
 
 type RouteFilterResource struct{}
+
+func TestAccRouteFilter_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccRouteFilter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
