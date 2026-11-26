@@ -15,10 +15,11 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitCreate,
-		Read:   resourceExpressRouteCircuitRead,
-		Update: resourceExpressRouteCircuitUpdate,
-		Delete: resourceExpressRouteCircuitDelete,
+		Description: "Manages an ExpressRoute circuit.",
+		Create:      resourceExpressRouteCircuitCreate,
+		Read:        resourceExpressRouteCircuitRead,
+		Update:      resourceExpressRouteCircuitUpdate,
+		Delete:      resourceExpressRouteCircuitDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressroutecircuits.ParseExpressRouteCircuitID(id)
 			return err

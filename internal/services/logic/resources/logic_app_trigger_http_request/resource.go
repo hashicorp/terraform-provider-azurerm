@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppTriggerHttpRequestCreateUpdate,
-		Read:   resourceLogicAppTriggerHttpRequestRead,
-		Update: resourceLogicAppTriggerHttpRequestCreateUpdate,
-		Delete: resourceLogicAppTriggerHttpRequestDelete,
+		Description: "Manages an HTTP Request Trigger within a Logic App Workflow.",
+		Create:      resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Read:        resourceLogicAppTriggerHttpRequestRead,
+		Update:      resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Delete:      resourceLogicAppTriggerHttpRequestDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := workflowtriggers.ParseTriggerID(id)

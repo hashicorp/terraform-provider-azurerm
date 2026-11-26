@@ -6,16 +6,17 @@ package cdn_frontdoor_route
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorRouteCreate,
-		Read:   resourceCdnFrontDoorRouteRead,
-		Update: resourceCdnFrontDoorRouteUpdate,
-		Delete: resourceCdnFrontDoorRouteDelete,
+		Description: "Manages a Front Door (standard/premium) Route.",
+		Create:      resourceCdnFrontDoorRouteCreate,
+		Read:        resourceCdnFrontDoorRouteRead,
+		Update:      resourceCdnFrontDoorRouteUpdate,
+		Delete:      resourceCdnFrontDoorRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

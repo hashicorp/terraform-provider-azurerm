@@ -18,10 +18,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelsRegistrationCreate,
-		Read:   resourceBotChannelsRegistrationRead,
-		Delete: resourceBotChannelsRegistrationDelete,
-		Update: resourceBotChannelsRegistrationUpdate,
+		Description: "Manages a Bot Channels Registration.",
+		Create:      resourceBotChannelsRegistrationCreate,
+		Read:        resourceBotChannelsRegistrationRead,
+		Delete:      resourceBotChannelsRegistrationDelete,
+		Update:      resourceBotChannelsRegistrationUpdate,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

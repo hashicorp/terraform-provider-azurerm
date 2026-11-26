@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmBotConnectionCreate,
-		Read:   resourceArmBotConnectionRead,
-		Update: resourceArmBotConnectionUpdate,
-		Delete: resourceArmBotConnectionDelete,
+		Description: "Manages a Bot Connection.",
+		Create:      resourceArmBotConnectionCreate,
+		Read:        resourceArmBotConnectionRead,
+		Update:      resourceArmBotConnectionUpdate,
+		Delete:      resourceArmBotConnectionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BotConnectionID(id)
 			return err

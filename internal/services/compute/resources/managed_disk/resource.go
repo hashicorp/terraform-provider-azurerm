@@ -63,10 +63,11 @@ type KeyEncryptionKey struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedDiskCreate,
-		Read:   resourceManagedDiskRead,
-		Update: resourceManagedDiskUpdate,
-		Delete: resourceManagedDiskDelete,
+		Description: "Manages a Managed Disk.",
+		Create:      resourceManagedDiskCreate,
+		Read:        resourceManagedDiskRead,
+		Update:      resourceManagedDiskUpdate,
+		Delete:      resourceManagedDiskDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

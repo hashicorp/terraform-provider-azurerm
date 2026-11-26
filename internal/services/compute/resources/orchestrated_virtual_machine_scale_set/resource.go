@@ -27,10 +27,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceOrchestratedVirtualMachineScaleSetCreate,
-		Read:   resourceOrchestratedVirtualMachineScaleSetRead,
-		Update: resourceOrchestratedVirtualMachineScaleSetUpdate,
-		Delete: resourceOrchestratedVirtualMachineScaleSetDelete,
+		Description: "Manages an Orchestrated Virtual Machine Scale Set in Flexible Orchestration Mode.",
+		Create:      resourceOrchestratedVirtualMachineScaleSetCreate,
+		Read:        resourceOrchestratedVirtualMachineScaleSetRead,
+		Update:      resourceOrchestratedVirtualMachineScaleSetUpdate,
+		Delete:      resourceOrchestratedVirtualMachineScaleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineScaleSetID(id)
@@ -169,6 +170,8 @@ func RegisterResource() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			pluginsdk.CustomizeDiffShim(helpers.OrchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
 }

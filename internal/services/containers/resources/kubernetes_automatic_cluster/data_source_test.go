@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 type KubernetesAutomaticClusterDataSource struct{}
@@ -46,15 +47,16 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 func TestAccDataSourceKubernetesAutomaticCluster_serviceMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterDataSource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.serviceMesh(data),
+			Config: r.serviceMesh(data, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
 				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh.0.revisions.0").HasValue("asm-1-28"),
+				check.That(data.ResourceName).Key("service_mesh.0.revisions.0").HasValue(meta.LatestMeshRevision),
 			),
 		},
 	})
@@ -101,7 +103,7 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
 `, KubernetesAutomaticClusterResource{}.basic(data))
 }
 
-func (KubernetesAutomaticClusterDataSource) serviceMesh(data acceptance.TestData) string {
+func (KubernetesAutomaticClusterDataSource) serviceMesh(data acceptance.TestData, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -109,7 +111,7 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.serviceMeshProfile(data, true, true))
+`, KubernetesAutomaticClusterResource{}.serviceMeshProfile(data, true, true, serviceMeshVersion))
 }
 
 func (KubernetesAutomaticClusterDataSource) apiServerAuthorizedIPRanges(data acceptance.TestData) string {

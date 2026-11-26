@@ -106,8 +106,8 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			"encryption_scope_override_enabled": {
 				Type:         pluginsdk.TypeBool,
 				Optional:     true,
-				Default:      true, // defaulting to false would be preferable here, but the API defaults this to true when unspecified
 				ForceNew:     true,
+				Default:      true, // defaulting to false would be preferable here, but the API defaults this to true when unspecified
 				RequiredWith: []string{"default_encryption_scope"},
 			},
 

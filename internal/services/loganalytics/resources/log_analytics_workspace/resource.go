@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsWorkspaceCreate,
-		Read:   resourceLogAnalyticsWorkspaceRead,
-		Update: resourceLogAnalyticsWorkspaceUpdate,
-		Delete: resourceLogAnalyticsWorkspaceDelete,
+		Description: "Manages a Log Analytics (formally Operational Insights) Workspace.",
+		Create:      resourceLogAnalyticsWorkspaceCreate,
+		Read:        resourceLogAnalyticsWorkspaceRead,
+		Update:      resourceLogAnalyticsWorkspaceUpdate,
+		Delete:      resourceLogAnalyticsWorkspaceDelete,
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceLogAnalyticsWorkspaceCustomDiff),
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKubernetesClusterNodePoolRead,
+		Description: "Use this data source to access information about an existing Kubernetes Cluster Node Pool.",
+		Read:        dataSourceKubernetesClusterNodePoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,12 +33,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Kubernetes Cluster Node Pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.KubernetesAgentPoolName,
 			},
 
 			"kubernetes_cluster_name": {
+				Description:  "The Name of the Kubernetes Cluster where this Node Pool is located.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -46,13 +49,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_scaling_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this Node Pool has Auto-Scaling enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The eviction policy used for Virtual Machines in the Virtual Machine Scale Set, when `priority` is set to `Spot`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"gpu_driver": {
@@ -61,94 +66,111 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"max_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of Nodes allowed when auto-scaling is enabled.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"max_pods": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of Pods allowed on each Node in this Node Pool.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Mode for this Node Pool, specifying how these Nodes should be used (for either System or User resources).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"min_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The minimum number of Nodes allowed when auto-scaling is enabled.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"node_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The current number of Nodes in the Node Pool.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"node_labels": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "A map of Kubernetes Labels applied to each Node in this Node Pool.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"node_public_ip_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether nodes in this Node Pool have a Public IP Address.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"node_public_ip_prefix_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"node_taints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A map of Kubernetes Taints applied to each Node in this Node Pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"node_image_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The current node image version running on this Node Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"orchestrator_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The version of Kubernetes configured on each Node in this Node Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"os_disk_size_gb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The size of the OS Disk on each Node in this Node Pool.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"os_disk_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the OS Disk on each Node in this Node Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The operating system used on each Node in this Node Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"priority": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The priority of the Virtual Machines in the Virtual Machine Scale Set backing this Node Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"proximity_placement_group_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Proximity Placement Group where the Virtual Machine Scale Set backing this Node Pool will be placed.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"spot_max_price": {
-				Type:     pluginsdk.TypeFloat,
-				Computed: true,
+				Description: "The maximum price being paid for Virtual Machines in this Scale Set. `-1` means the current on-demand price for a Virtual Machine.",
+				Type:        pluginsdk.TypeFloat,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -156,13 +178,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"upgrade_settings": helpers.UpgradeSettingsForDataSourceSchema(),
 
 			"vm_size": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The size of the Virtual Machines used in the Virtual Machine Scale Set backing this Node Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"vnet_subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Subnet in which this Node Pool exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"zones": commonschema.ZonesMultipleComputed(),

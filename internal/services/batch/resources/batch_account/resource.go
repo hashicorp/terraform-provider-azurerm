@@ -17,10 +17,11 @@ const batchAccountResourceName = "azurerm_batch_account"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBatchAccountCreate,
-		Read:   resourceBatchAccountRead,
-		Update: resourceBatchAccountUpdate,
-		Delete: resourceBatchAccountDelete,
+		Description: "Manages an Azure Batch Account.",
+		Create:      resourceBatchAccountCreate,
+		Read:        resourceBatchAccountRead,
+		Update:      resourceBatchAccountUpdate,
+		Delete:      resourceBatchAccountDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

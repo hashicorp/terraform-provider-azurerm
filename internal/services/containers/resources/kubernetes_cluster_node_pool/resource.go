@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster_node_pool/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,10 +21,11 @@ const azureKubernetesClusterNodePoolResourceName = "azurerm_kubernetes_cluster_n
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKubernetesClusterNodePoolCreate,
-		Read:   resourceKubernetesClusterNodePoolRead,
-		Update: resourceKubernetesClusterNodePoolUpdate,
-		Delete: resourceKubernetesClusterNodePoolDelete,
+		Description: "Manages a Node Pool within a Kubernetes Cluster.",
+		Create:      resourceKubernetesClusterNodePoolCreate,
+		Read:        resourceKubernetesClusterNodePoolRead,
+		Update:      resourceKubernetesClusterNodePoolUpdate,
+		Delete:      resourceKubernetesClusterNodePoolDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&agentpools.AgentPoolId{}),

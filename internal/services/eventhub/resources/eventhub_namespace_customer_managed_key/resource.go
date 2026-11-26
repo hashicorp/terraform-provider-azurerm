@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
-		Read:   resourceEventHubNamespaceCustomerManagedKeyRead,
-		Update: resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
-		Delete: resourceEventHubNamespaceCustomerManagedKeyDelete,
+		Description: "Manages a Customer Managed Key for an EventHub Namespace.",
+		Create:      resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
+		Read:        resourceEventHubNamespaceCustomerManagedKeyRead,
+		Update:      resourceEventHubNamespaceCustomerManagedKeyCreateUpdate,
+		Delete:      resourceEventHubNamespaceCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

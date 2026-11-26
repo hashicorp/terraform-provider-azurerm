@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsStorageInsightsCreateUpdate,
-		Read:   resourceLogAnalyticsStorageInsightsRead,
-		Update: resourceLogAnalyticsStorageInsightsCreateUpdate,
-		Delete: resourceLogAnalyticsStorageInsightsDelete,
+		Description: "Manages a Log Analytics Storage Insights resource.",
+		Create:      resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Read:        resourceLogAnalyticsStorageInsightsRead,
+		Update:      resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Delete:      resourceLogAnalyticsStorageInsightsDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

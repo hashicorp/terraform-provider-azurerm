@@ -26,10 +26,11 @@ import (
 
 func resourceCassandraDatacenter() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCassandraDatacenterCreate,
-		Read:   resourceCassandraDatacenterRead,
-		Update: resourceCassandraDatacenterUpdate,
-		Delete: resourceCassandraDatacenterDelete,
+		Description: "Manages a Cassandra Datacenter.",
+		Create:      resourceCassandraDatacenterCreate,
+		Read:        resourceCassandraDatacenterRead,
+		Update:      resourceCassandraDatacenterUpdate,
+		Delete:      resourceCassandraDatacenterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := managedcassandras.ParseDataCenterID(id)
@@ -45,6 +46,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name which should be used for this Cassandra Datacenter.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -52,6 +54,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 
 			"cassandra_cluster_id": {
+				Description:  "The ID of the Cassandra Cluster.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -61,6 +64,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"delegated_management_subnet_id": {
+				Description:  "The ID of the delegated management subnet for this Cassandra Datacenter.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -68,18 +72,21 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 
 			"backup_storage_customer_key_uri": {
+				Description:  "The key URI of the customer key to use for the encryption of the backup Storage Account.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"base64_encoded_yaml_fragment": {
+				Description:  "The fragment of the cassandra.yaml configuration file to be included in the cassandra.yaml for all nodes in this Cassandra Datacenter. The fragment should be Base64 encoded and only a subset of keys is allowed.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"disk_sku": {
+				Description:  "The Disk SKU that is used for this Cassandra Datacenter.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "P30",
@@ -87,31 +94,36 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 
 			"managed_disk_customer_key_uri": {
+				Description:  "The key URI of the customer key to use for the encryption of the Managed Disk.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"node_count": {
+				Description:  "The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than `3`.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
+				ValidateFunc: validation.IntAtLeast(3),
 			},
 
 			"disk_count": {
+				Description:  "The number of p30 disks that are attached to each node.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
 
 			"availability_zones_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Whether Availability Zones are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 
 			"sku_name": {
+				Description:  "The selected SKU.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "Standard_E16s_v5",
@@ -119,8 +131,9 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 
 			"seed_node_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of IP Addresses for the seed nodes in this Cassandra Datacenter.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
