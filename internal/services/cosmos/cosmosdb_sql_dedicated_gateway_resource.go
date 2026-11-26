@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
@@ -35,7 +36,11 @@ func (r CosmosDbSqlDedicatedGatewayResource) ResourceType() string {
 	return "azurerm_cosmosdb_sql_dedicated_gateway"
 }
 
-func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() interface{} {
+func (r CosmosDbSqlDedicatedGatewayResource) Description() string {
+	return "Manages a SQL Dedicated Gateway within a Cosmos DB Account."
+}
+
+func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() any {
 	return &CosmosDbSqlDedicatedGatewayModel{}
 }
 
@@ -46,6 +51,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) IDValidationFunc() pluginsdk.Schema
 func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmosdb_account_id": {
+			Description:  "The resource ID of the CosmosDB Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -53,6 +59,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"instance_size": {
+			Description:  "The instance size for the CosmosDB SQL Dedicated Gateway.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -60,6 +67,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"instance_count": {
+			Description:  "The instance count for the CosmosDB SQL Dedicated Gateway.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 5),
@@ -99,11 +107,9 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
-
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
 				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+					ServiceType:   pointer.To(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway),
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
@@ -145,11 +151,9 @@ func (r CosmosDbSqlDedicatedGatewayResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
-
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
 				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+					ServiceType:   pointer.To(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway),
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},

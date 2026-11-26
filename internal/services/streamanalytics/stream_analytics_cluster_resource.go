@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -22,11 +22,11 @@ import (
 type ClusterResource struct{}
 
 type ClusterModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroup     string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	StreamingCapacity int64                  `tfschema:"streaming_capacity"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Name              string         `tfschema:"name"`
+	ResourceGroup     string         `tfschema:"resource_group_name"`
+	Location          string         `tfschema:"location"`
+	StreamingCapacity int64          `tfschema:"streaming_capacity"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 var (
@@ -34,7 +34,7 @@ var (
 	_ sdk.ResourceWithStateMigration = ClusterResource{}
 )
 
-func (r ClusterResource) ModelObject() interface{} {
+func (r ClusterResource) ModelObject() any {
 	return &ClusterModel{}
 }
 

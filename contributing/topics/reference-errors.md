@@ -55,7 +55,7 @@ if err != nil {
 }
 ```
 
-# Internal Errors
+## Internal Errors
 
 Internal errors, which are entirely outside the users control (such as failed expectations) that occur within the provider should be prefixed with `internal-error`, for example:
 
@@ -80,7 +80,6 @@ instead of:
 * `return fmt.Errorf("failed updating thing: %+v", err)`
 * `return fmt.Errorf("something went wrong: %+v", err)`
 
-
 This type of error wrapping should be applied to **all** error handling including any nested function that contains two or more error checks (e.g., a function that calls an update API and waits for the update to finish or builds an SDK struct) so practitioners and code maintainers have a clear idea which generated the error.
 
 > **Note:** Wrapped error messages should generally not start with `failed`, `error`, or an uppercase letter as there will be a function higher up the stack that will prefix this.
@@ -93,7 +92,7 @@ For error messages that are simple strings without any variables, use `errors.Ne
 errors.New("resource not found")
 ```
 
-instead of 
+instead of
 
 ```go
 fmt.Errorf("resource not found")

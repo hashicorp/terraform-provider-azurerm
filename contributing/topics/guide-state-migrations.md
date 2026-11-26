@@ -3,6 +3,7 @@
 State migrations come into play if a resource's implementation needs to change, this can happen for a number a reasons, such as the implementation being incorrect or the API that the resource interacts with changes.
 
 Common scenarios where a state migration would be required in Azure are:
+
 * To correct the format of a Resource ID, the most common example is updating the casing of a segment e.g. `/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1` -> `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1`
 * Updating the default value of a property in the schema
 * Recasting property values in the schema, unlike the scenario's above this also requires changes to the user's config, thus should only be in a major version release
@@ -22,7 +23,6 @@ State migrations are service specific and are thus kept under a `migration` fold
 ...
 ```
 
-
 The migration file follows the naming convention of `[resourceName]_[initialVersion]_to_[finalVersion].go` e.g. `managed_disk_v0_to_v1.go`
 
 ## Walkthrough for adding a state migration
@@ -33,25 +33,26 @@ We will step through an example on how to add a state migration for a made up re
 1. Create an empty file under the service's migration folder called `capybara_v0_to_v1.go` e.g. (e.g. `./internal/services/animals/migration/capybara_v0_to_v1.go`)
 
 2. The bare minimum required within the file is shown below. Regardless of what the state migration is modifying, `Schema()` and `UpgradeFunc()` must be specified since these are referenced by the resource.
+
    ```go
    package migration
-   
+
    import (
        "context"
-       
+
        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
    )
-   
+
    type CapybaraV0ToV1 struct{}
-   
+
    func (CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
        return map[string]*pluginsdk.Schema{
            // TODO implement me!
        }
    }
-   
+
    func (CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-       return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+       return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
            // TODO implement me!
            return nil, nil
        }
@@ -60,7 +61,7 @@ We will step through an example on how to add a state migration for a made up re
 
 3. Copy over the schema for `capybara_resource.go`. If nothing in the schema is changing then this can be copied over 1:1, however you will want to go through and remove some property attributes that are not required.
    The `Schema()` is a point-in-time reference to the Terraform Schema for this Resource at this point - and is used by Terraform to deserialize/serialize the object from the Terraform State. For this reason only a subset of attributes should be defined here (including `Type`, `Required`, `Optional`, `Computed` and `Elem` [for maps/lists/sets, including any custom hash functions]) - and the following attributes can be removed from the Schema:
-   
+
    * Default
    * ValidateFunc
    * ForceNew
@@ -70,37 +71,38 @@ We will step through an example on how to add a state migration for a made up re
    * ConflictsWith
    * ExactlyOneOf
    * RequiredWith
-   
+
    Other caveats to look out for when copying the schema over are:
    * in-lining any schema elements which are returned by functions
    * removing any if/else logic within the Schema, in most cases this will be feature flags e.g. `features.SixPointOh()`
-   
+
 4. Fill out the UpgradeFunc to update the Terraform State for this resource. Typically this involves parsing the old Resource ID case-insensitively and then setting the correct casing for the `id` field (which is what this example assumes) - however note that State Migrations aren't limited to the `id` field. The file should now look like this:
+
    ```go
    package migration
-   
+
    import (
        "context"
        "log"
-   
+
        "github.com/hashicorp/go-azure-sdk/resource-manager/animals/2023-11-01/capybaras"
        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
    )
-   
+
    type CapybaraV0ToV1 struct{}
-   
+
    func (s CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
        return map[string]*pluginsdk.Schema{
            "name": {
                Type:     pluginsdk.TypeString,
                Required: true,
            },
-   
+
            "cuteness": {
                Type:     pluginsdk.TypeInt,
                Required: true,
            },
-   
+
            "pet_names": {
                Type:     pluginsdk.TypeList,
                Optional: true,
@@ -110,15 +112,15 @@ We will step through an example on how to add a state migration for a made up re
            },
        }
    }
-   
+
    func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-       return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+       return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
            oldId := rawState["id"].(string)
            parsed, err := capybaras.ParseCapybaraIDInsensitively(oldId)
            if err != nil {
                return nil, err
            }
-   
+
            newId := parsed.ID()
            log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
            rawState["id"] = newId
@@ -131,31 +133,31 @@ We will step through an example on how to add a state migration for a made up re
 
    ```go
    package animal
-   
+
    import (
        "context"
        "fmt"
        "time"
-       
+
        "github.com/hashicorp/go-azure-sdk/resource-manager/animals/2023-11-01/capybaras"
        "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
        "github.com/hashicorp/terraform-provider-azurerm/internal/services/animals/migration"
        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
    )
-   
+
    type CapybaraResource struct{}
-   
+
    var (
        _ sdk.ResourceWithStateMigration = CapybaraResource{}
    )
-   
+
    type CapybaraResourceModel struct {
        Name       string   `tfschema:"name"`
-       Cuteness   string   `tfschema:"cuteness"`
+       Cuteness   int      `tfschema:"cuteness"`
        PetNames   []string `tfschema:"pet_names"`
-   
+
    }
-   
+
    func (r CapybaraResource) StateUpgraders() sdk.StateUpgradeData {
        return sdk.StateUpgradeData{
            SchemaVersion: 1, // This field references the version which the state migration updates the schema to i.e. v0 -> v1
@@ -164,9 +166,9 @@ We will step through an example on how to add a state migration for a made up re
            },
        }
    }
-   
+
    // The rest of the resource e.g. Create/Update/Read/Delete methods have been omitted for brevity
-   
+
    ```
 
 ## Testing
@@ -181,7 +183,7 @@ To add a state migration test for the CapybaraResource state migration example a
 
    ```go
    package animal_test
-   
+
    import (
        "fmt"
        "testing"
@@ -194,22 +196,22 @@ To add a state migration test for the CapybaraResource state migration example a
    func TestAccCapybara_V0ToV1_5420(t *testing.T) {
        data := acceptance.BuildTestData(t, "azurerm_capybara", "test")
        r := CapybaraResource{}
-   
+
        data.ResourceRegressionTest(t, r, []acceptance.TestStep{
         // TODO: add a setup test step using the initial version of the schema
-   
+
         // TODO: add a migration test step using the final version of the schema
     }, "5.42.0")
    }
    ```
 
 3. Add the setup configuration function as well as the setup test step. Usually the basic configuration is sufficient, but this is dependent on the type of state migration. The setup test step must be functional for the selected previous provider version.
-   
-   > For this example state migration, the schema itself hasn't changed, so we could use the existing `r.basic` function, but we'll use `basic[InitialVersion]` to demonstrate what is required if the schema had changed. 
+
+   > For this example state migration, the schema itself hasn't changed, so we could use the existing `r.basic` function, but we'll use `basic[InitialVersion]` to demonstrate what is required if the schema had changed.
 
    ```go
    package animal_test
-   
+
    import (
        "fmt"
        "testing"
@@ -222,7 +224,7 @@ To add a state migration test for the CapybaraResource state migration example a
    func TestAccCapybara_V0ToV1_5420(t *testing.T) {
        data := acceptance.BuildTestData(t, "azurerm_capybara", "test")
        r := CapybaraResource{}
-   
+
        data.ResourceRegressionTest(t, r, []acceptance.TestStep{
         {
             Config: r.basicV0(data),
@@ -250,7 +252,7 @@ To add a state migration test for the CapybaraResource state migration example a
 
    ```go
    package animal_test
-   
+
    import (
        "fmt"
        "testing"
@@ -264,7 +266,7 @@ To add a state migration test for the CapybaraResource state migration example a
    func TestAccCapybara_V0ToV1_5420(t *testing.T) {
        data := acceptance.BuildTestData(t, "azurerm_capybara", "test")
        r := CapybaraResource{}
-   
+
        data.ResourceRegressionTest(t, r, []acceptance.TestStep{
             {
                 Config: r.basicV0(data),

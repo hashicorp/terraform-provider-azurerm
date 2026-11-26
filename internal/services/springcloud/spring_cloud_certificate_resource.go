@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -71,8 +71,8 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 			},
 
 			"exclude_private_key": {
@@ -85,8 +85,8 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
+				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 			},
 
 			"thumbprint": {
@@ -97,7 +97,7 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -153,7 +153,7 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceSpringCloudCertificateRead(d, meta)
 }
 
-func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
