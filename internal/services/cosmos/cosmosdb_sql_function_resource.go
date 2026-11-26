@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -20,10 +20,11 @@ import (
 
 func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLFunctionCreate,
-		Read:   resourceCosmosDbSQLFunctionRead,
-		Update: resourceCosmosDbSQLFunctionUpdate,
-		Delete: resourceCosmosDbSQLFunctionDelete,
+		Description: "Manages an SQL User Defined Function.",
+		Create:      resourceCosmosDbSQLFunctionCreate,
+		Read:        resourceCosmosDbSQLFunctionRead,
+		Update:      resourceCosmosDbSQLFunctionUpdate,
+		Delete:      resourceCosmosDbSQLFunctionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,12 +40,14 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name which should be used for this SQL User Defined Function.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"container_id": {
+				Description:  "The ID of the Cosmos DB SQL Container to create the SQL User Defined Function within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -52,6 +55,7 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 			},
 
 			"body": {
+				Description:  "Body of the User Defined Function.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -60,7 +64,7 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -101,7 +105,7 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCosmosDbSQLFunctionRead(d, meta)
 }
 
-func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -133,7 +137,7 @@ func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCosmosDbSQLFunctionRead(d, meta)
 }
 
-func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,7 +169,7 @@ func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

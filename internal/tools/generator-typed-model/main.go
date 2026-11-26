@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -39,14 +39,14 @@ func main() {
 
 func snake2Camel(input string) string {
 	segs := strings.Split(input, "_")
-	var out string
+	var out strings.Builder
 	for _, seg := range segs {
 		if seg == "" {
 			continue
 		}
-		out += strings.ToUpper(string(seg[0])) + seg[1:]
+		out.WriteString(strings.ToUpper(string(seg[0])) + seg[1:])
 	}
-	return out
+	return out.String()
 }
 
 func modelForSchemaMap(name string, sm map[string]*schema.Schema) []jen.Statement {

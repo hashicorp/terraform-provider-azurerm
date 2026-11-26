@@ -1,11 +1,10 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package features
 
 func Default() UserFeatures {
-	return UserFeatures{
-		// NOTE: ensure all nested objects are fully populated
+	return UserFeatures{ // azignore:AZG007 - ensure all nested objects are fully populated so each default is intentional and visible.
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,

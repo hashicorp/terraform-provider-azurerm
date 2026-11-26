@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -60,7 +60,7 @@ func (r DataConnectorIOTResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_iot"
 }
 
-func (r DataConnectorIOTResource) ModelObject() interface{} {
+func (r DataConnectorIOTResource) ModelObject() any {
 	return &DataConnectorIOTModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -66,16 +66,17 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"locations": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"os_types": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -83,19 +84,19 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 								"Windows",
 							}, true),
 						},
-						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"resource_groups": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"resource_types": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -103,11 +104,11 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 								"Microsoft.HybridCompute/machines",
 							}, true),
 						},
-						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"tags": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"tag": {
@@ -124,7 +125,6 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 								},
 							},
 						},
-						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 
 					"tag_filter": {
@@ -146,7 +146,7 @@ func (MaintenanceDynamicScopeResource) Attributes() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (MaintenanceDynamicScopeResource) ModelObject() interface{} {
+func (MaintenanceDynamicScopeResource) ModelObject() any {
 	return &MaintenanceDynamicScopeModel{}
 }
 
@@ -272,7 +272,7 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 						tagsListProp := make([]Tag, 0)
 						tagFilterProp := ""
 						if tags := filter.TagSettings; tags != nil {
-							tagFilterProp = string(pointer.From(tags.FilterOperator))
+							tagFilterProp = pointer.FromEnum(tags.FilterOperator)
 							for k, v := range pointer.From(tags.Tags) {
 								tagsListProp = append(tagsListProp, Tag{
 									Tag:    k,
@@ -389,6 +389,6 @@ func (MaintenanceDynamicScopeResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (MaintenanceDynamicScopeResource) IDValidationFunc() func(interface{}, string) ([]string, []error) {
+func (MaintenanceDynamicScopeResource) IDValidationFunc() func(any, string) ([]string, []error) {
 	return configurationassignments.ValidateConfigurationAssignmentID
 }

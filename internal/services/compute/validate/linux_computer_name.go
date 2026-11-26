@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,17 +9,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func LinuxComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
+func LinuxComputerNameFull(i any, k string) (warnings []string, errors []error) {
 	// Linux host name cannot exceed 64 characters in length
 	return LinuxComputerName(i, k, 64, false)
 }
 
-func LinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
+func LinuxComputerNamePrefix(i any, k string) (warnings []string, errors []error) {
 	// Linux host name prefix cannot exceed 58 characters in length
 	return LinuxComputerName(i, k, 58, true)
 }
 
-func LinuxComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
+func LinuxComputerName(i any, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	validator := validation.All(
 		validation.StringIsNotWhiteSpace,
 		validation.StringLenBetween(1, maxLength),

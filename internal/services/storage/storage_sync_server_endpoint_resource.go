@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -30,7 +30,7 @@ var (
 	_ sdk.ResourceWithIdentity = SyncServerEndpointResource{}
 )
 
-func (r SyncServerEndpointResource) ModelObject() interface{} {
+func (r SyncServerEndpointResource) ModelObject() any {
 	return &StorageSyncServerEndpointResourceSchema{}
 }
 
@@ -61,61 +61,61 @@ func (r SyncServerEndpointResource) Identity() resourceids.ResourceId {
 func (r SyncServerEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"storage_sync_group_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: serverendpointresource.ValidateSyncGroupID,
 		},
 
 		"registered_server_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: registeredserverresource.ValidateRegisteredServerID,
 		},
 
 		"server_local_path": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"cloud_tiering_enabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 			Default:  false,
 		},
 
 		"volume_free_space_percent": {
-			Optional:     true,
 			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			Default:      20,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 
 		"tier_files_older_than_days": {
-			Optional:     true,
 			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 		},
 
 		"initial_download_policy": {
-			ForceNew:     true,
-			Optional:     true,
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
 			Default:      serverendpointresource.InitialDownloadPolicyNamespaceThenModifiedFiles,
 			ValidateFunc: validation.StringInSlice(serverendpointresource.PossibleValuesForInitialDownloadPolicy(), false),
 		},
 
 		"local_cache_mode": {
-			Optional:     true,
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			Default:      serverendpointresource.LocalCacheModeUpdateLocallyCachedFiles,
 			ValidateFunc: validation.StringInSlice(serverendpointresource.PossibleValuesForLocalCacheMode(), false),
 		},
@@ -236,8 +236,8 @@ func (r SyncServerEndpointResource) flatten(metadata sdk.ResourceMetaData, id *s
 			schema.ServerLocalPath = pointer.From(props.ServerLocalPath)
 			schema.VolumeFreeSpacePercent = pointer.From(props.VolumeFreeSpacePercent)
 			schema.CloudTieringEnabled = pointer.From(props.CloudTiering) == serverendpointresource.FeatureStatusOn
-			schema.InitialDownloadPolicy = string(pointer.From(props.InitialDownloadPolicy))
-			schema.LocalCacheMode = string(pointer.From(props.LocalCacheMode))
+			schema.InitialDownloadPolicy = pointer.FromEnum(props.InitialDownloadPolicy)
+			schema.LocalCacheMode = pointer.FromEnum(props.LocalCacheMode)
 			if pointer.From(props.TierFilesOlderThanDays) != 0 {
 				schema.TierFilesOlderThanDays = pointer.From(props.TierFilesOlderThanDays)
 			}

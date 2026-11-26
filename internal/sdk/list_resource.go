@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -73,7 +73,7 @@ func (r *FrameworkListResourceWrapper) List(ctx context.Context, request list.Li
 }
 
 func (r *FrameworkListResourceWrapper) RawV5Schemas(ctx context.Context, _ list.RawV5SchemaRequest, response *list.RawV5SchemaResponse) {
-	res := r.FrameworkListWrappedResource.ResourceFunc()
+	res := r.ResourceFunc()
 	response.ProtoV5Schema = res.ProtoSchema(ctx)()
 	response.ProtoV5IdentitySchema = res.ProtoIdentitySchema(ctx)()
 }
