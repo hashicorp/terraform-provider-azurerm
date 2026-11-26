@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package batch_application
@@ -17,10 +17,11 @@ var azureBatchApplicationResourceName = "azurerm_batch_application"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBatchApplicationCreate,
-		Read:   resourceBatchApplicationRead,
-		Update: resourceBatchApplicationUpdate,
-		Delete: resourceBatchApplicationDelete,
+		Description: "Manages Azure Batch Application instance.",
+		Create:      resourceBatchApplicationCreate,
+		Read:        resourceBatchApplicationRead,
+		Update:      resourceBatchApplicationUpdate,
+		Delete:      resourceBatchApplicationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

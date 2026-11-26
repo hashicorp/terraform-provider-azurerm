@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -81,11 +81,11 @@ func resourceStorageShare() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  string(shares.SMB),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(shares.SMB),
 					string(shares.NFS),
 				}, false),
-				Default: string(shares.SMB),
 			},
 
 			"acl": {
@@ -132,8 +132,8 @@ func resourceStorageShare() *pluginsdk.Resource {
 
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
-				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(shares.PremiumAccessTier),
