@@ -65,6 +65,8 @@ A `github_configuration` block supports the following:
 
 * `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: `https://github.<mydomain>.com`. Use `https://github.com` for open source repositories.
 
+* `last_commit_id` - (Optional) Specifies the last commit ID of the repository.
+
 * `repository_name` - (Required) Specifies the name of the git repository.
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
