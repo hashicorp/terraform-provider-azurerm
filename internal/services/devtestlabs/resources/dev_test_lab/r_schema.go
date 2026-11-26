@@ -1,0 +1,67 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package dev_test_lab
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+func devTestLabSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description:  "The name of the Dev Test Lab.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DevTestLabName(),
+		},
+
+		"location": commonschema.Location(),
+
+		// There's a bug in the Azure API where this is returned in lower-case
+		// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
+		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+
+		"tags": commonschema.Tags(),
+
+		"artifacts_storage_account_id": {
+			Description: "The ID of the Storage Account used for Artifact Storage.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"default_storage_account_id": {
+			Description: "The ID of the Default Storage Account for this Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"default_premium_storage_account_id": {
+			Description: "The ID of the Default Premium Storage Account for this Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"key_vault_id": {
+			Description: "The ID of the Key used for this Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"premium_data_disk_storage_account_id": {
+			Description: "The ID of the Storage Account used for Storage of Premium Data Disk.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"unique_identifier": {
+			Description: "The unique immutable identifier of the Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+	}
+}

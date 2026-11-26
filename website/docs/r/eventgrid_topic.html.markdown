@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventGrid Topic exists. Changing this forces a new resource to be created.
 
+* `data_residency_boundary` - (Optional) Specifies the data residency boundary. Possible values are `WithinGeopair`, `WithinRegion`.
+
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -55,6 +57,8 @@ The following arguments are supported:
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Topic. Defaults to `true`.
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
+
+* `minimum_tls_version` - (Optional) The minimum supported TLS version. Possible values are `1.0`, `1.1`, `1.2`. Default is `1.2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

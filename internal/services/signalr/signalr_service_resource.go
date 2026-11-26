@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -893,20 +893,20 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 
 					"connectivity_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"messaging_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"http_request_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 				},
 			},
