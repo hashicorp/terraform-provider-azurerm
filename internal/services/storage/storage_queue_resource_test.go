@@ -176,8 +176,9 @@ resource "azurerm_storage_queue" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
   metadata = {
-    hello = "world"
-    rick  = "M0rty"
+    hello        = "world"
+    rick         = "M0rty"
+    UpperCaseKey = "value"
   }
 }
 `, r.template(data), data.RandomInteger)

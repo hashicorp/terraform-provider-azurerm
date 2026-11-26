@@ -22,7 +22,7 @@ func TestAccStorageShareDataSource_basic(t *testing.T) {
 			Config: dataSourceStorageShare{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("quota").HasValue("5"),
-				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.%").HasValue("3"),
 				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("metadata.foo").HasValue("bar"),
 				check.That(data.ResourceName).Key("rbac_scope_id").MatchesRegex(regexp.MustCompile(`/fileshares/`)),

@@ -24,7 +24,7 @@ func TestAccStorageContainerDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("has_immutability_policy").HasValue("false"),
 				check.That(data.ResourceName).Key("default_encryption_scope").HasValue(fmt.Sprintf("acctestEScontainer%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("encryption_scope_override_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.%").HasValue("3"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
 				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%[1]s.blob.core.windows.net/acctest-container-%[1]s", data.RandomString)),

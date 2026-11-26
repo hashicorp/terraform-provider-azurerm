@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `encryption_scope_override_enabled` - (Optional) Whether to allow blobs to override the default encryption scope for this container. Can only be set when specifying `default_encryption_scope`. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `metadata` - (Optional) A mapping of MetaData for this Container. All metadata keys should be lowercase.
+* `metadata` - (Optional) A mapping of MetaData for this Container.
 
 ## Attributes Reference
 

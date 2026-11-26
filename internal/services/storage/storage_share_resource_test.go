@@ -303,8 +303,9 @@ resource "azurerm_storage_share" "test" {
   }
 
   metadata = {
-    hello = "world"
-    foo   = "bar"
+    hello        = "world"
+    foo          = "bar"
+    UpperCaseKey = "value"
   }
 }
 `, r.template(data), data.RandomString)
@@ -336,8 +337,9 @@ resource "azurerm_storage_share" "test" {
   quota              = 5
 
   metadata = {
-    hello = "world"
-    happy = "birthday"
+    hello        = "world"
+    happy        = "birthday"
+    UpperCaseKey = "value"
   }
 }
 `, r.template(data), data.RandomString)
