@@ -70,10 +70,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		publicNetworkAccess = cognitiveservicesaccounts.PublicNetworkAccessDisabled
 	}
 
-	apiProps, err := expandCognitiveAccountAPIProperties(d)
-	if err != nil {
-		return err
-	}
+	apiProps := expandCognitiveAccountAPIProperties(d)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {

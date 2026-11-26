@@ -177,6 +177,7 @@ func TestAccCognitiveAccount_update(t *testing.T) {
 }
 
 func TestAccCognitiveAccount_qnaRuntimeEndpoint(t *testing.T) {
+	t.Skip("skipping as the kind `QnAMaker` was deprecated on 31 October 2025 and there is no available quota")
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 
@@ -407,6 +408,7 @@ func TestAccCognitiveAccount_identity(t *testing.T) {
 }
 
 func TestAccCognitiveAccount_metricsAdvisor(t *testing.T) {
+	t.Skip("skipping as the kind `MetricsAdvisor` was deprecated on 18 May 2026 and there is no available quota")
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 
@@ -551,7 +553,7 @@ func TestAccCognitiveAccount_textAnalytics_networkAclsVirtualNetworkRulesWithByp
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 	kind := "TextAnalytics"
-	sku_name := "F0"
+	sku_name := "S"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -878,7 +880,7 @@ resource "azurerm_cognitive_account" "test" {
   qna_runtime_endpoint = "%s"
   sku_name             = "S0"
 }
-`, data.RandomInteger, "West US", data.RandomInteger, url) // QnAMaker only available in West US
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, url)
 }
 
 func (CognitiveAccountResource) qnaRuntimeEndpointUnspecified(data acceptance.TestData) string {
@@ -899,7 +901,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "QnAMaker"
   sku_name            = "S0"
 }
-`, data.RandomInteger, "West US", data.RandomInteger) // QnAMaker only available in West US
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) customQuestionAnsweringSearchServiceId(data acceptance.TestData) string {
@@ -925,11 +927,11 @@ resource "azurerm_cognitive_account" "test" {
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   kind                                         = "TextAnalytics"
-  sku_name                                     = "F0"
+  sku_name                                     = "S"
   custom_question_answering_search_service_id  = azurerm_search_service.test.id
   custom_question_answering_search_service_key = azurerm_search_service.test.primary_key
 }
-`, data.RandomInteger, "West US")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdUpdated(data acceptance.TestData) string {
@@ -962,11 +964,11 @@ resource "azurerm_cognitive_account" "test" {
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   kind                                         = "TextAnalytics"
-  sku_name                                     = "F0"
+  sku_name                                     = "S"
   custom_question_answering_search_service_id  = azurerm_search_service.test2.id
   custom_question_answering_search_service_key = azurerm_search_service.test2.primary_key
 }
-`, data.RandomInteger, "West US")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdRemoved(data acceptance.TestData) string {
@@ -999,9 +1001,9 @@ resource "azurerm_cognitive_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "TextAnalytics"
-  sku_name            = "F0"
+  sku_name            = "S"
 }
-`, data.RandomInteger, "West US")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (CognitiveAccountResource) cognitiveServices(data acceptance.TestData) string {
@@ -1038,7 +1040,7 @@ resource "azurerm_cognitive_account" "test" {
   name                       = "acctestcogacc-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  kind                       = "LUIS"
+  kind                       = "CognitiveServices"
   sku_name                   = "S0"
   dynamic_throttling_enabled = true
 }
@@ -1058,7 +1060,7 @@ resource "azurerm_cognitive_account" "test" {
   name                       = "acctestcogacc-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  kind                       = "LUIS"
+  kind                       = "CognitiveServices"
   sku_name                   = "S0"
   dynamic_throttling_enabled = false
 }

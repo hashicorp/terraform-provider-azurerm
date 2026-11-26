@@ -55,9 +55,14 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		publicNetworkAccess = cognitiveservicesaccounts.PublicNetworkAccessDisabled
 	}
 
-	apiProps, err := expandCognitiveAccountAPIProperties(d)
-	if err != nil {
-		return err
+	apiProps := expandCognitiveAccountAPIProperties(d)
+
+	if d.HasChange("custom_question_answering_search_service_id") {
+		apiProps.QnaAzureSearchEndpointId = pointer.To(d.Get("custom_question_answering_search_service_id").(string))
+	}
+
+	if d.HasChange("custom_question_answering_search_service_key") {
+		apiProps.QnaAzureSearchEndpointKey = pointer.To(d.Get("custom_question_answering_search_service_key").(string))
 	}
 
 	props := cognitiveservicesaccounts.Account{
