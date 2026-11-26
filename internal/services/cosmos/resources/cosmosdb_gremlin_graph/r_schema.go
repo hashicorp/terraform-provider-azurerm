@@ -112,11 +112,11 @@ func cosmosdbGremlinGraphSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"excluded_paths": {
@@ -124,11 +124,11 @@ func cosmosdbGremlinGraphSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"composite_index": common.CosmosDbIndexingPolicyCompositeIndexSchema(),

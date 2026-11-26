@@ -353,8 +353,8 @@ func webApplicationFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					"mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallMode(), false),
 						Default:      string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
+						ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallMode(), false),
 					},
 
 					"request_body_check": {
@@ -366,8 +366,8 @@ func webApplicationFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					"file_upload_limit_in_mb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(1, 4000),
 						Default:      100,
+						ValidateFunc: validation.IntBetween(1, 4000),
 					},
 
 					"request_body_enforcement": {
@@ -393,8 +393,8 @@ func webApplicationFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					"max_request_body_size_in_kb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(8, 2000),
 						Default:      128,
+						ValidateFunc: validation.IntBetween(8, 2000),
 					},
 
 					"request_body_inspect_limit_in_kb": {
@@ -413,8 +413,8 @@ func webApplicationFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"log_scrubbing": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -454,9 +454,9 @@ func webApplicationFirewallPolicySchema() map[string]*pluginsdk.Schema {
 											},
 
 											"selector": {
+												Description: "When matchVariable is a collection, operator used to specify which elements in the collection this rule applies to.",
 												Type:        pluginsdk.TypeString,
 												Optional:    true,
-												Description: "When matchVariable is a collection, operator used to specify which elements in the collection this rule applies to.",
 											},
 										},
 									},

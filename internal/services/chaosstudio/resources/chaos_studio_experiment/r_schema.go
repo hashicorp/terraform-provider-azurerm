@@ -14,25 +14,25 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"selectors": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"chaos_studio_target_ids": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidateChaosStudioTargetID,
@@ -42,36 +42,36 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"steps": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Required:     true,
 									Type:         pluginsdk.TypeString,
+									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"actions": {
-									Required: true,
 									Type:     pluginsdk.TypeList,
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"action_type": {
-												Required: true,
 												Type:     pluginsdk.TypeString,
+												Required: true,
 												ValidateFunc: validation.StringInSlice([]string{
 													continuousActionType,
 													delayActionType,
@@ -81,16 +81,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 											// the different types of actions require different properties to be set
 											// which is why the validation for these is done in expandActions
 											"urn": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"selector_name": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"duration": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"parameters": {
 												Type:     pluginsdk.TypeMap,

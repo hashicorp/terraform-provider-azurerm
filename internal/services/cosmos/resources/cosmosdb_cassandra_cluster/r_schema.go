@@ -104,8 +104,8 @@ func cosmosdbCassandraClusterSchema() map[string]*pluginsdk.Schema {
 			Description: "The version of Cassandra that the Cluster converges to run.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Default:     "3.11",
 			ForceNew:    true,
+			Default:     "3.11",
 			ValidateFunc: validation.StringInSlice([]string{
 				"3.11",
 				"4.0",

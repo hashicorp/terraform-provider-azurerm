@@ -34,6 +34,7 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 		"backend_address_pool": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      applicationGatewayBackendAddressPool,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -65,7 +66,6 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: applicationGatewayBackendAddressPool,
 		},
 
 		// lintignore:S016,S017,S023
@@ -73,6 +73,7 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
 			MinItems:     1,
+			Set:          applicationGatewayBackendSettingsHash,
 			AtLeastOneOf: []string{"backend_http_settings", "backend"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -116,8 +117,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 
 					"connection_draining": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -202,7 +203,6 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: applicationGatewayBackendSettingsHash,
 		},
 
 		"backend": {
@@ -383,8 +383,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"global": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"request_buffering_enabled": {
@@ -403,6 +403,7 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 		"http_listener": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
+			Set:          applicationGatewayHttpListnerHash,
 			AtLeastOneOf: []string{"http_listener", "listener"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -514,14 +515,13 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: applicationGatewayHttpListnerHash,
 		},
 
 		"listener": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			AtLeastOneOf: []string{"http_listener", "listener"},
 			Set:          applicationGatewayListenerHash,
+			AtLeastOneOf: []string{"http_listener", "listener"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -775,8 +775,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 		"routing_rule": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
 			Set:          applicationGatewayRoutingRuleHash,
+			AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -944,8 +944,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					"data": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"key_vault_secret_id": {
@@ -980,6 +980,7 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 		"probe": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      applicationGatewayProbeHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"interval": {
@@ -1077,7 +1078,6 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: applicationGatewayProbeHash,
 		},
 
 		"rewrite_rule_set": {
@@ -1217,6 +1217,7 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 		"ssl_certificate": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      applicationGatewaySSLCertificate,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -1228,8 +1229,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
-						StateFunc:    base64EncodedStateFunc,
 						ValidateFunc: validation.StringIsBase64,
+						StateFunc:    base64EncodedStateFunc,
 					},
 
 					"password": {
@@ -1255,7 +1256,6 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: applicationGatewaySSLCertificate,
 		},
 
 		"trusted_client_certificate": {
@@ -1503,8 +1503,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					"file_upload_limit_mb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(1, 750),
 						Default:      100,
+						ValidateFunc: validation.IntBetween(1, 750),
 					},
 					"request_body_check": {
 						Type:     pluginsdk.TypeBool,
@@ -1514,8 +1514,8 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 					"max_request_body_size_kb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(1, 128),
 						Default:      128,
+						ValidateFunc: validation.IntBetween(1, 128),
 					},
 					"disabled_rule_group": {
 						Type:     pluginsdk.TypeList,
@@ -1552,13 +1552,13 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 
 								"selector_match_operator": {
 									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
 									Optional:     true,
+									ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
 								},
 								"selector": {
-									ValidateFunc: validation.StringIsNotEmpty,
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
@@ -1605,8 +1605,8 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		MaxItems: 1,
 		Computed: computed,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"disabled_protocols": {
