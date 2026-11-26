@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package template
@@ -18,7 +18,7 @@ func Render(data *data.TerraformNodeData, text string) ([]string, error) {
 	var b bytes.Buffer
 
 	tmpl := template.New("template")
-	tmpl.Funcs(map[string]interface{}{
+	tmpl.Funcs(map[string]any{
 		"lower": strings.ToLower,
 		"title": toTitle,
 	})
@@ -28,8 +28,7 @@ func Render(data *data.TerraformNodeData, text string) ([]string, error) {
 		return nil, err
 	}
 
-	err = tmpl.Execute(&b, data)
-	if err != nil {
+	if err = tmpl.Execute(&b, data); err != nil {
 		return nil, err
 	}
 

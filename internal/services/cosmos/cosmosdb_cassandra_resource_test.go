@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
 
-func TestAccCassandraSequential(t *testing.T) {
+func TestAccCassandra_sequential(t *testing.T) {
 	if os.Getenv("CASSANDRA_VERY_EXPENSIVE_TEST_ENABLED") != "true" {
 		t.Skip("Skipping due to massive cost of this resource test.")
 	}

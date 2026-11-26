@@ -58,9 +58,20 @@ func (c ReplicationRecoveryServicesProvidersClient) RefreshProvider(ctx context.
 
 // RefreshProviderThenPoll performs RefreshProvider then polls until it's completed
 func (c ReplicationRecoveryServicesProvidersClient) RefreshProviderThenPoll(ctx context.Context, id ReplicationRecoveryServicesProviderId) error {
+	return c.RefreshProviderCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshProviderCallbackThenPoll performs RefreshProvider, runs the optional callback function, then polls until it's completed
+func (c ReplicationRecoveryServicesProvidersClient) RefreshProviderCallbackThenPoll(ctx context.Context, id ReplicationRecoveryServicesProviderId, callback func() error) error {
 	result, err := c.RefreshProvider(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshProvider: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

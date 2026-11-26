@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -36,7 +36,11 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() strin
 	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
 }
 
-func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Description() string {
+	return "Sets a Coordinator Configuration value on Azure Cosmos DB for PostgreSQL Cluster."
+}
+
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() any {
 	return &CosmosDbPostgreSQLCoordinatorConfigurationResource{}
 }
 
@@ -51,6 +55,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Identity() resourcei
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Coordinator Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -58,6 +63,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[stri
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster where we want to change configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -65,6 +71,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Arguments() map[stri
 		},
 
 		"value": {
+			Description:  "The value of the Coordinator Configuration on Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -101,7 +108,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 					Value: model.Value,
 				},
 			}
-			if err := client.UpdateOnCoordinatorThenPoll(ctx, id, parameters); err != nil {
+			if err := client.UpdateOnCoordinatorCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

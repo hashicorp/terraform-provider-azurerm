@@ -122,7 +122,7 @@ func expandBool(ctx context.Context, source basetypes.BoolValuable, target refle
 			return diags
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		switch tElem := t.Elem(); tElem.Kind() {
 		case reflect.Bool:
 			{
@@ -151,7 +151,7 @@ func expandFloat64(ctx context.Context, source basetypes.Float64Valuable, target
 			return diags
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		switch tElem := t.Elem(); tElem.Kind() {
 		case reflect.Float64:
 			{
@@ -180,7 +180,7 @@ func expandInt64(ctx context.Context, source basetypes.Int64Valuable, target ref
 			return diags
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		switch tElem := t.Elem(); tElem.Kind() {
 		case reflect.Int64:
 			{
@@ -209,7 +209,7 @@ func expandString(ctx context.Context, source basetypes.StringValuable, target r
 			return diags
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		switch tElem := t.Elem(); tElem.Kind() {
 		case reflect.String:
 			target.Set(reflect.ValueOf(v.ValueStringPointer()))
@@ -240,7 +240,7 @@ func expandObject(ctx context.Context, sourcePath path.Path, source basetypes.Ob
 			}
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		switch elem := t.Elem(); elem.Kind() {
 		case reflect.Struct:
 			if nestedObjectSource, ok := source.(typehelpers.NestedObjectValue); ok {
@@ -335,7 +335,7 @@ func expandListOfObject(ctx context.Context, sourcePath path.Path, source typehe
 			return diags
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		{
 			switch elem := t.Elem(); elem.Kind() {
 			case reflect.Struct:
@@ -349,7 +349,7 @@ func expandListOfObject(ctx context.Context, sourcePath path.Path, source typehe
 	case reflect.Map:
 		{
 			switch elem := t.Elem(); elem.Kind() {
-			case reflect.Struct, reflect.Ptr:
+			case reflect.Struct, reflect.Pointer:
 				// Maps and pointers to maps can be treated the same here
 				{
 					diags.Append(expandNestedObjectToMap(ctx, sourcePath, source, targetPath, elem, target)...)
@@ -597,7 +597,7 @@ func expandMapOfPrimitive(ctx context.Context, source basetypes.MapValue, target
 					return diags
 				}
 
-			case reflect.Ptr:
+			case reflect.Pointer:
 				{
 					switch k := tMapElem.Elem().Kind(); k {
 					case reflect.String:
@@ -664,7 +664,7 @@ func expandNestedObjectToMap(ctx context.Context, sourcePath path.Path, source t
 		return diags
 	}
 
-	if targetType.Kind() == reflect.Ptr {
+	if targetType.Kind() == reflect.Pointer {
 		targetType = targetType.Elem()
 	}
 
@@ -791,7 +791,7 @@ func extractMapKeyValue(source any) (reflect.Value, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
 
 	valFrom := reflect.ValueOf(source)
-	if kind := valFrom.Kind(); kind == reflect.Ptr {
+	if kind := valFrom.Kind(); kind == reflect.Pointer {
 		valFrom = valFrom.Elem()
 	}
 

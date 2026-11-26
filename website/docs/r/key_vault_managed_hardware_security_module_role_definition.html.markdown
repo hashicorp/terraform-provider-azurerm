@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_key_vault_managed_hardware_security_module_role_definition
 
-Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module).
+Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module.html).
 
 ## Example Usage
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 ---
 
-A `permission` block supports the following, more details about permission see [permitted-operations](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/built-in-roles#permitted-operations):
+A `permission` block supports the following, more details about permission see [permitted-operations](https://learn.microsoft.com/azure/key-vault/managed-hsm/built-in-roles#permitted-operations):
 
 * `actions` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.
 

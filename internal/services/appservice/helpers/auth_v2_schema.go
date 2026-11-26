@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 type AuthV2Settings struct {
@@ -84,7 +83,8 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				"auth_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the AuthV2 Settings be enabled. Defaults to `false`",
+					Default:     false,
+					Description: "Whether the AuthV2 Settings should be enabled.",
 				},
 
 				"runtime_version": {
@@ -92,7 +92,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      `~1`,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`",
+					Description:  "The Runtime Version of the Authentication and Authorisation feature of this App.",
 				},
 
 				"config_file_path": {
@@ -105,20 +105,15 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				"require_authentication": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the authentication flow be used for all requests.",
+					Description: "Whether the authentication flow should be used for all requests.",
 				},
 
 				"unauthenticated_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.UnauthenticatedClientActionV2RedirectToLoginPage),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.UnauthenticatedClientActionV2RedirectToLoginPage),
-						string(web.UnauthenticatedClientActionV2AllowAnonymous),
-						string(web.UnauthenticatedClientActionV2Return401),
-						string(web.UnauthenticatedClientActionV2Return403),
-					}, false),
-					Description: "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientActionV2(), false),
+					Description:  "The action to take for requests made without authentication.",
 				},
 
 				"default_provider": {
@@ -155,13 +150,13 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 
 				"twitter_v2": TwitterAuthV2SettingsSchema(),
 
-				"login": authV2LoginSchema(),
+				"login": AuthV2LoginSchema(),
 
 				"require_https": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should HTTPS be required on connections? Defaults to true.",
+					Description: "Whether HTTPS should be required on connections.",
 				},
 
 				"http_route_api_prefix": {
@@ -169,19 +164,15 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "/.auth",
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`",
+					Description:  "The prefix that should precede all the authentication and authorisation paths.",
 				},
 
 				"forward_proxy_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.ForwardProxyConventionNoProxy),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ForwardProxyConventionNoProxy),
-						string(web.ForwardProxyConventionCustom),
-						string(web.ForwardProxyConventionStandard),
-					}, false),
-					Description: "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ForwardProxyConventionNoProxy),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
+					Description:  "The convention used to determine the URL of the request made.",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -211,7 +202,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"auth_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the AuthV2 Settings be enabled.",
+					Description: "Whether the AuthV2 Settings are enabled.",
 				},
 
 				"runtime_version": {
@@ -229,7 +220,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"require_authentication": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the authentication flow used for all requests.",
+					Description: "Whether the authentication flow is used for all requests.",
 				},
 
 				"unauthenticated_action": {
@@ -270,12 +261,12 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 
 				"twitter_v2": TwitterAuthV2SettingsSchemaComputed(),
 
-				"login": authV2LoginSchemaComputed(),
+				"login": AuthV2LoginSchemaComputed(),
 
 				"require_https": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is HTTPS required on connections?",
+					Description: "Whether HTTPS is required on connections.",
 				},
 
 				"http_route_api_prefix": {
@@ -287,7 +278,7 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 				"forward_proxy_convention": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The convention used to determine the url of the request made.",
+					Description: "The convention used to determine the URL of the request made.",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -320,7 +311,7 @@ type AuthV2Login struct {
 	NonceExpirationTime           string   `tfschema:"nonce_expiration_time"`
 }
 
-func authV2LoginSchema() *pluginsdk.Schema {
+func AuthV2LoginSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
@@ -337,7 +328,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Token Store configuration Enabled. Defaults to `false`",
+					Description: "Whether the Token Store configuration should be enabled.",
 				},
 
 				"token_refresh_extension_time": {
@@ -345,7 +336,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      72,
 					ValidateFunc: validation.FloatAtLeast(0),
-					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
 				},
 
 				"token_store_path": {
@@ -372,7 +363,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the fragments from the request be preserved after the login request is made. Defaults to `false`.",
+					Description: "Whether the fragments from the request should be preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -386,14 +377,11 @@ func authV2LoginSchema() *pluginsdk.Schema {
 				},
 
 				"cookie_expiration_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.CookieExpirationConventionFixedTime),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.CookieExpirationConventionIdentityProviderDerived),
-						string(web.CookieExpirationConventionFixedTime),
-					}, false),
-					Description: "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.CookieExpirationConventionFixedTime),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForCookieExpirationConvention(), false),
+					Description:  "The method by which cookies expire.",
 				},
 
 				"cookie_expiration_time": {
@@ -401,14 +389,14 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "08:00:00",
 					ValidateFunc: validate.TimeInterval,
-					Description:  "The time after the request is made when the session cookie should expire. Defaults to `08:00:00`.",
+					Description:  "The time after the request is made when the session cookie should expire.",
 				},
 
 				"validate_nonce": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the nonce be validated while completing the login flow. Defaults to `true`.",
+					Description: "Whether the nonce should be validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
@@ -416,14 +404,14 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "00:05:00",
 					ValidateFunc: validate.TimeInterval,
-					Description:  "The time after the request is made when the nonce should expire. Defaults to `00:05:00`.",
+					Description:  "The time after the request is made when the nonce should expire.",
 				},
 			},
 		},
 	}
 }
 
-func authV2LoginSchemaComputed() *pluginsdk.Schema {
+func AuthV2LoginSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -438,7 +426,7 @@ func authV2LoginSchemaComputed() *pluginsdk.Schema {
 				"token_store_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the Token Store configuration Enabled.",
+					Description: "Whether the Token Store configuration is enabled.",
 				},
 
 				"token_refresh_extension_time": {
@@ -462,7 +450,7 @@ func authV2LoginSchemaComputed() *pluginsdk.Schema {
 				"preserve_url_fragments_for_logins": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Are the fragments from the request be preserved after the login request is made.",
+					Description: "Whether the fragments from the request are preserved after the login request is made.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -488,7 +476,7 @@ func authV2LoginSchemaComputed() *pluginsdk.Schema {
 				"validate_nonce": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the nonce be validated while completing the login flow.",
+					Description: "Whether the nonce is validated while completing the login flow.",
 				},
 
 				"nonce_expiration_time": {
@@ -501,7 +489,7 @@ func authV2LoginSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
+func ExpandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 	if len(input) == 0 {
 		return nil
 	}
@@ -519,7 +507,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 			NonceExpirationInterval: pointer.To(login.NonceExpirationTime),
 		},
 		CookieExpiration: &webapps.CookieExpiration{
-			Convention:       pointer.To(webapps.CookieExpirationConvention(login.CookieExpirationConvention)),
+			Convention:       pointer.ToEnum[webapps.CookieExpirationConvention](login.CookieExpirationConvention),
 			TimeToExpiration: pointer.To(login.CookieExpirationTime),
 		},
 	}
@@ -559,7 +547,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 	return result
 }
 
-func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
+func FlattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 	if input == nil {
 		return []AuthV2Login{}
 	}
@@ -587,7 +575,7 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 	}
 
 	if cookie := input.CookieExpiration; cookie != nil {
-		result.CookieExpirationConvention = string(pointer.From(cookie.Convention))
+		result.CookieExpirationConvention = pointer.FromEnum(cookie.Convention)
 		result.CookieExpirationTime = pointer.From(cookie.TimeToExpiration)
 	}
 
@@ -668,14 +656,14 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},
 	}
 }
 
-func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *webapps.Apple {
+func ExpandAppleAuthV2Settings(input []AppleAuthV2Settings) *webapps.Apple {
 	if len(input) == 1 {
 		apple := input[0]
 		return &webapps.Apple{
@@ -695,7 +683,7 @@ func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *webapps.Apple {
 	}
 }
 
-func flattenAppleAuthV2Settings(input *webapps.Apple) []AppleAuthV2Settings {
+func FlattenAppleAuthV2Settings(input *webapps.Apple) []AppleAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []AppleAuthV2Settings{}
 	}
@@ -803,7 +791,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should the www-authenticate provider should be omitted from the request? Defaults to `false`",
+					Default:     false,
+					Description: "Whether the www-authenticate provider should be omitted from the request.",
 				},
 
 				"allowed_groups": {
@@ -851,7 +840,7 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
@@ -873,7 +862,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"tenant_auth_endpoint": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`",
+					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
 				},
 
 				"client_secret_setting_name": {
@@ -909,7 +898,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is the www-authenticate provider omitted from the request?",
+					Description: "Whether the www-authenticate provider is omitted from the request.",
 				},
 
 				"allowed_groups": {
@@ -950,14 +939,14 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
+					Description: "A list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 				},
 			},
 		},
 	}
 }
 
-func expandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDirectory {
+func ExpandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDirectory {
 	result := &webapps.AzureActiveDirectory{
 		Enabled: pointer.To(false),
 	}
@@ -1039,7 +1028,7 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDire
 	return result
 }
 
-func flattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Settings {
+func FlattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []AadAuthV2Settings{}
 	}
@@ -1136,7 +1125,7 @@ func StaticWebAppAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *webapps.AzureStaticWebApps {
+func ExpandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *webapps.AzureStaticWebApps {
 	if len(input) == 1 {
 		swa := input[0]
 		return &webapps.AzureStaticWebApps{
@@ -1152,16 +1141,16 @@ func expandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *webap
 	}
 }
 
-func flattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
+func FlattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
 	if input == nil || (input.Enabled != nil && !*input.Enabled) {
 		return []StaticWebAppAuthV2Settings{}
 	}
 
 	result := StaticWebAppAuthV2Settings{}
 
-	if props := input; props != nil && pointer.From(props.Enabled) {
-		if props.Registration != nil {
-			result.ClientId = pointer.From(props.Registration.ClientId)
+	if pointer.From(input.Enabled) {
+		if input.Registration != nil {
+			result.ClientId = pointer.From(input.Registration.ClientId)
 		}
 	}
 
@@ -1239,7 +1228,7 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
+					Description: "The Client Credential Method used.",
 				},
 
 				"client_secret_setting_name": {
@@ -1318,7 +1307,7 @@ func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`",
+					Description: "The Client Credential Method used.",
 				},
 
 				"client_secret_setting_name": {
@@ -1355,7 +1344,7 @@ func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string]webapps.CustomOpenIdConnectProvider {
+func ExpandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string]webapps.CustomOpenIdConnectProvider {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1391,7 +1380,7 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 	return result
 }
 
-func flattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConnectProvider) []CustomOIDCAuthV2Settings {
+func FlattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConnectProvider) []CustomOIDCAuthV2Settings {
 	if input == nil || len(*input) == 0 {
 		return []CustomOIDCAuthV2Settings{}
 	}
@@ -1408,7 +1397,7 @@ func flattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConne
 				provider.ClientId = pointer.From(reg.ClientId)
 				if reg.ClientCredential != nil {
 					provider.ClientSecretSettingName = pointer.From(reg.ClientCredential.ClientSecretSettingName)
-					provider.ClientCredentialMethod = string(pointer.From(reg.ClientCredential.Method))
+					provider.ClientCredentialMethod = pointer.FromEnum(reg.ClientCredential.Method)
 				}
 				if config := reg.OpenIdConnectConfiguration; config != nil {
 					provider.OpenIDConfigurationEndpoint = pointer.From(config.WellKnownOpenIdConfiguration)
@@ -1473,7 +1462,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 				"graph_api_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The version of the Facebook API to be used while logging in.",
 				},
@@ -1484,7 +1473,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
@@ -1521,14 +1510,14 @@ func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
+					Description: "A list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.",
 				},
 			},
 		},
 	}
 }
 
-func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *webapps.Facebook {
+func ExpandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *webapps.Facebook {
 	if len(input) == 1 {
 		facebook := input[0]
 		result := &webapps.Facebook{
@@ -1552,7 +1541,7 @@ func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *webapps.Faceb
 	}
 }
 
-func flattenFacebookAuthV2Settings(input *webapps.Facebook) []FacebookAuthV2Settings {
+func FlattenFacebookAuthV2Settings(input *webapps.Facebook) []FacebookAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []FacebookAuthV2Settings{}
 	}
@@ -1614,7 +1603,7 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
@@ -1645,17 +1634,17 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
+					Description: "A list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.",
 				},
 			},
 		},
 	}
 }
 
-func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
+func ExpandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	if len(input) == 1 {
 		github := input[0]
-		result := &webapps.GitHub{
+		return &webapps.GitHub{
 			Enabled: pointer.To(true),
 			Registration: &webapps.ClientRegistration{
 				ClientId:                pointer.To(github.ClientId),
@@ -1665,8 +1654,6 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 				Scopes: pointer.To(github.LoginScopes),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.GitHub{
@@ -1674,7 +1661,7 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	}
 }
 
-func flattenGitHubAuthV2Settings(input *webapps.GitHub) []GithubAuthV2Settings {
+func FlattenGitHubAuthV2Settings(input *webapps.GitHub) []GithubAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []GithubAuthV2Settings{}
 	}
@@ -1738,7 +1725,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1748,7 +1735,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Login scopes that will be requested as part of Google Sign-In authentication.",
+					Description: "A list of Login scopes that will be requested as part of Google Sign-In authentication.",
 				},
 			},
 		},
@@ -1779,7 +1766,7 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "A list of Allowed Audiences that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 
 				"login_scopes": {
@@ -1788,14 +1775,14 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
+					Description: "The list of OAuth 2.0 scopes requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.",
 				},
 			},
 		},
 	}
 }
 
-func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
+func ExpandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 	if len(input) == 1 {
 		google := input[0]
 		return &webapps.Google{
@@ -1818,7 +1805,7 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 	}
 }
 
-func flattenGoogleAuthV2Settings(input *webapps.Google) []GoogleAuthV2Settings {
+func FlattenGoogleAuthV2Settings(input *webapps.Google) []GoogleAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []GoogleAuthV2Settings{}
 	}
@@ -1885,7 +1872,7 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1925,7 +1912,7 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+					Description: "A list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
 				},
 
 				"login_scopes": {
@@ -1941,7 +1928,7 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *webapps.LegacyMicrosoftAccount {
+func ExpandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *webapps.LegacyMicrosoftAccount {
 	if len(input) == 1 {
 		msft := input[0]
 		return &webapps.LegacyMicrosoftAccount{
@@ -1964,7 +1951,7 @@ func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *webapps.Leg
 	}
 }
 
-func flattenMicrosoftAuthV2Settings(input *webapps.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
+func FlattenMicrosoftAuthV2Settings(input *webapps.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []MicrosoftAuthV2Settings{}
 	}
@@ -2046,18 +2033,16 @@ func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
+func ExpandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
 	if len(input) == 1 {
 		twitter := input[0]
-		result := &webapps.Twitter{
+		return &webapps.Twitter{
 			Enabled: pointer.To(true),
 			Registration: &webapps.TwitterRegistration{
 				ConsumerKey:               pointer.To(twitter.ConsumerKey),
 				ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.Twitter{
@@ -2065,7 +2050,7 @@ func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter
 	}
 }
 
-func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Settings {
+func FlattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []TwitterAuthV2Settings{}
 	}
@@ -2079,7 +2064,7 @@ func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Setting
 		return []TwitterAuthV2Settings{result}
 	}
 
-	return nil
+	return []TwitterAuthV2Settings{}
 }
 
 func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
@@ -2097,28 +2082,28 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 		},
 		GlobalValidation: &webapps.GlobalValidation{
 			RequireAuthentication:       pointer.To(settings.RequireAuth),
-			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(settings.UnauthenticatedAction)),
+			UnauthenticatedClientAction: pointer.ToEnum[webapps.UnauthenticatedClientActionV2](settings.UnauthenticatedAction),
 			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
 		},
 		IdentityProviders: &webapps.IdentityProviders{
-			AzureActiveDirectory:         expandAadAuthV2Settings(settings.AzureActiveDirectoryAuth),
-			Facebook:                     expandFacebookAuthV2Settings(settings.FacebookAuth),
-			GitHub:                       expandGitHubAuthV2Settings(settings.GithubAuth),
-			Google:                       expandGoogleAuthV2Settings(settings.GoogleAuth),
-			Twitter:                      expandTwitterAuthV2Settings(settings.TwitterAuth),
-			CustomOpenIdConnectProviders: pointer.To(expandCustomOIDCAuthV2Settings(settings.CustomOIDCAuth)),
-			LegacyMicrosoftAccount:       expandMicrosoftAuthV2Settings(settings.MicrosoftAuth),
-			Apple:                        expandAppleAuthV2Settings(settings.AppleAuth),
-			AzureStaticWebApps:           expandStaticWebAppAuthV2Settings(settings.AzureStaticWebAuth),
+			AzureActiveDirectory:         ExpandAadAuthV2Settings(settings.AzureActiveDirectoryAuth),
+			Facebook:                     ExpandFacebookAuthV2Settings(settings.FacebookAuth),
+			GitHub:                       ExpandGitHubAuthV2Settings(settings.GithubAuth),
+			Google:                       ExpandGoogleAuthV2Settings(settings.GoogleAuth),
+			Twitter:                      ExpandTwitterAuthV2Settings(settings.TwitterAuth),
+			CustomOpenIdConnectProviders: pointer.To(ExpandCustomOIDCAuthV2Settings(settings.CustomOIDCAuth)),
+			LegacyMicrosoftAccount:       ExpandMicrosoftAuthV2Settings(settings.MicrosoftAuth),
+			Apple:                        ExpandAppleAuthV2Settings(settings.AppleAuth),
+			AzureStaticWebApps:           ExpandStaticWebAppAuthV2Settings(settings.AzureStaticWebAuth),
 		},
-		Login: expandAuthV2LoginSettings(settings.Login),
+		Login: ExpandAuthV2LoginSettings(settings.Login),
 		HTTPSettings: &webapps.HTTPSettings{
 			RequireHTTPS: pointer.To(settings.RequireHTTPS),
 			Routes: &webapps.HTTPSettingsRoutes{
 				ApiPrefix: pointer.To(settings.HttpRoutesAPIPrefix),
 			},
 			ForwardProxy: &webapps.ForwardProxy{
-				Convention: pointer.To(webapps.ForwardProxyConvention(settings.ForwardProxyConvention)),
+				Convention: pointer.ToEnum[webapps.ForwardProxyConvention](settings.ForwardProxyConvention),
 			},
 		},
 	}
@@ -2163,7 +2148,7 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 
 	if global := settings.GlobalValidation; global != nil {
 		result.RequireAuth = pointer.From(global.RequireAuthentication)
-		result.UnauthenticatedAction = string(pointer.From(global.UnauthenticatedClientAction))
+		result.UnauthenticatedAction = pointer.FromEnum(global.UnauthenticatedClientAction)
 		result.DefaultAuthProvider = pointer.From(global.RedirectToProvider)
 		result.ExcludedPaths = pointer.From(global.ExcludedPaths)
 	}
@@ -2174,26 +2159,26 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 			result.HttpRoutesAPIPrefix = pointer.From(http.Routes.ApiPrefix)
 		}
 		if fp := http.ForwardProxy; fp != nil {
-			result.ForwardProxyConvention = string(pointer.From(fp.Convention))
+			result.ForwardProxyConvention = pointer.FromEnum(fp.Convention)
 			result.ForwardProxyCustomHostHeaderName = pointer.From(fp.CustomHostHeaderName)
 			result.ForwardProxyCustomSchemeHeaderName = pointer.From(fp.CustomProtoHeaderName)
 		}
 	}
 
 	if login := settings.Login; login != nil {
-		result.Login = flattenAuthV2LoginSettings(login)
+		result.Login = FlattenAuthV2LoginSettings(login)
 	}
 
 	if authProviders := settings.IdentityProviders; authProviders != nil {
-		result.AppleAuth = flattenAppleAuthV2Settings(authProviders.Apple)
-		result.AzureActiveDirectoryAuth = flattenAadAuthV2Settings(authProviders.AzureActiveDirectory)
-		result.AzureStaticWebAuth = flattenStaticWebAppAuthV2Settings(authProviders.AzureStaticWebApps)
-		result.CustomOIDCAuth = flattenCustomOIDCAuthV2Settings(authProviders.CustomOpenIdConnectProviders)
-		result.FacebookAuth = flattenFacebookAuthV2Settings(authProviders.Facebook)
-		result.GithubAuth = flattenGitHubAuthV2Settings(authProviders.GitHub)
-		result.GoogleAuth = flattenGoogleAuthV2Settings(authProviders.Google)
-		result.MicrosoftAuth = flattenMicrosoftAuthV2Settings(authProviders.LegacyMicrosoftAccount)
-		result.TwitterAuth = flattenTwitterAuthV2Settings(authProviders.Twitter)
+		result.AppleAuth = FlattenAppleAuthV2Settings(authProviders.Apple)
+		result.AzureActiveDirectoryAuth = FlattenAadAuthV2Settings(authProviders.AzureActiveDirectory)
+		result.AzureStaticWebAuth = FlattenStaticWebAppAuthV2Settings(authProviders.AzureStaticWebApps)
+		result.CustomOIDCAuth = FlattenCustomOIDCAuthV2Settings(authProviders.CustomOpenIdConnectProviders)
+		result.FacebookAuth = FlattenFacebookAuthV2Settings(authProviders.Facebook)
+		result.GithubAuth = FlattenGitHubAuthV2Settings(authProviders.GitHub)
+		result.GoogleAuth = FlattenGoogleAuthV2Settings(authProviders.Google)
+		result.MicrosoftAuth = FlattenMicrosoftAuthV2Settings(authProviders.LegacyMicrosoftAccount)
+		result.TwitterAuth = FlattenTwitterAuthV2Settings(authProviders.Twitter)
 	}
 
 	return []AuthV2Settings{result}
@@ -2209,7 +2194,7 @@ func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
 		},
 		GlobalValidation: &webapps.GlobalValidation{
 			RequireAuthentication:       pointer.To(false),
-			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(web.UnauthenticatedClientActionV2RedirectToLoginPage)),
+			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
 			ExcludedPaths:               pointer.To([]string{}),
 			RedirectToProvider:          pointer.To(""),
 		},
@@ -2227,7 +2212,7 @@ func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
 				NonceExpirationInterval: pointer.To("00:05:00"),
 			},
 			CookieExpiration: &webapps.CookieExpiration{
-				Convention:       pointer.To(webapps.CookieExpirationConvention(web.CookieExpirationConventionFixedTime)),
+				Convention:       pointer.To(webapps.CookieExpirationConventionFixedTime),
 				TimeToExpiration: pointer.To("08:00:00"),
 			},
 			AllowedExternalRedirectURLs: pointer.To([]string{}),
@@ -2238,7 +2223,7 @@ func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
 				ApiPrefix: pointer.To("/.auth"),
 			},
 			ForwardProxy: &webapps.ForwardProxy{
-				Convention: pointer.To(webapps.ForwardProxyConvention(web.ForwardProxyConventionNoProxy)),
+				Convention: pointer.To(webapps.ForwardProxyConventionNoProxy),
 			},
 		},
 		IdentityProviders: &webapps.IdentityProviders{

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -23,6 +23,7 @@ type Authorizers struct {
 	KeyVault        auth.Authorizer
 	ManagedHSM      auth.Authorizer
 	ResourceManager auth.Authorizer
+	Search          auth.Authorizer
 	Storage         auth.Authorizer
 	Synapse         auth.Authorizer
 
@@ -52,7 +53,6 @@ type ClientOptions struct {
 	ResourceManagerEndpoint string
 
 	// Legacy authorizers for go-autorest
-	BatchManagementAuthorizer autorest.Authorizer
 	KeyVaultAuthorizer        autorest.Authorizer
 	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer

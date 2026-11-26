@@ -38,3 +38,19 @@ func WasStatusCode(resp *http.Response, statusCode int) bool {
 
 	return false
 }
+
+// WasStatusCodes returns true if the HttpResponse is non-nil and matches one of the provided Status Codes
+// It's recommended to use WasBadRequest/WasConflict/WasNotFound where possible instead
+func WasStatusCodes(resp *http.Response, statusCodes ...int) (result bool) {
+	if resp == nil {
+		return
+	}
+
+	for _, c := range statusCodes {
+		if ok := WasStatusCode(resp, c); ok {
+			return true
+		}
+	}
+
+	return
+}

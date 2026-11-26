@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/hashicorp/terraform-exec/tfexec"
 
 	"github.com/hashicorp/go-version"
 
@@ -31,6 +33,10 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	// step.ImportStateKind implicitly defaults to the zero-value (ImportCommandWithID) for backward compatibility
 	kind := step.ImportStateKind
 	importStatePersist := step.ImportStatePersist
+
+	if step.GenerateConfig && kind == ImportCommandWithID {
+		return fmt.Errorf("GenerateConfig mode is not supported for ImportState tests using ImportCommandWithID; set ImportStateKind to ImportBlockWithID or ImportBlockWithResourceIdentity instead")
+	}
 
 	if err := importStatePreconditions(t, helper, step); err != nil {
 		return err
@@ -127,6 +133,12 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 		testStepConfig = priorStepCfg
 	}
 
+	// The resource address in the import block needs to be updated if this is a GenerateConfig mode test step
+	if step.GenerateConfig && stepNumber > 1 {
+		name := strings.Split(resourceName, ".")
+		resourceName = strings.Replace(resourceName, "."+name[1], ".generated", 1)
+	}
+
 	switch {
 	case step.ImportStateConfigExact:
 		break
@@ -158,11 +170,13 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 				t.Fatalf("copying state: %s", err)
 			}
 
-			err = runProviderCommand(ctx, t, workingDir, providers, func() error {
-				return workingDir.RemoveResource(ctx, resourceName)
-			})
-			if err != nil {
-				t.Fatalf("removing resource %s from copied state: %s", resourceName, err)
+			if !step.GenerateConfig {
+				err = runProviderCommand(ctx, t, workingDir, providers, func() error {
+					return workingDir.RemoveResource(ctx, resourceName)
+				})
+				if err != nil {
+					t.Fatalf("removing resource %s from copied state: %s", resourceName, err)
+				}
 			}
 		}
 	}
@@ -186,9 +200,20 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 func testImportBlock(ctx context.Context, t testing.T, workingDir *plugintest.WorkingDir, providers *providerFactories, resourceName string, step TestStep, priorIdentityValues map[string]any) error {
 	kind := step.ImportStateKind
 
-	err := runProviderCommandCreatePlan(ctx, t, workingDir, providers)
-	if err != nil {
-		return fmt.Errorf("generating plan with import config: %s", err)
+	if step.GenerateConfig {
+		var opts []tfexec.PlanOption
+
+		path := workingDir.BaseDir() + "/generated.tf"
+		opts = append(opts, tfexec.GenerateConfigOut(path))
+		err := runProviderCommandGenerateConfigAndCreatePlan(ctx, t, workingDir, providers, opts...)
+		if err != nil {
+			return fmt.Errorf("generating plan with import config: %s", err)
+		}
+	} else {
+		err := runProviderCommandCreatePlan(ctx, t, workingDir, providers)
+		if err != nil {
+			return fmt.Errorf("generating plan with import config: %s", err)
+		}
 	}
 
 	plan, err := runProviderCommandSavedPlan(ctx, t, workingDir, providers)
@@ -423,11 +448,11 @@ func appendImportBlock(config teststep.Config, resourceName string, importID str
 
 func appendImportBlockWithIdentity(config teststep.Config, resourceName string, identityValues map[string]any) teststep.Config {
 	configBuilder := strings.Builder{}
-	configBuilder.WriteString(fmt.Sprintf(``+"\n"+
+	fmt.Fprintf(&configBuilder, ``+"\n"+
 		`import {`+"\n"+
 		`	to = %s`+"\n"+
 		`	identity = {`+"\n",
-		resourceName))
+		resourceName)
 
 	for k, v := range identityValues {
 		// It's valid for identity attributes to be null, we can just omit it from config
@@ -437,20 +462,20 @@ func appendImportBlockWithIdentity(config teststep.Config, resourceName string, 
 
 		switch v := v.(type) {
 		case bool:
-			configBuilder.WriteString(fmt.Sprintf(`		%q = %t`+"\n", k, v))
+			fmt.Fprintf(&configBuilder, `		%q = %t`+"\n", k, v)
 
 		case []any:
 			var quotedV []string
 			for _, v := range v {
 				quotedV = append(quotedV, fmt.Sprintf(`%q`, v))
 			}
-			configBuilder.WriteString(fmt.Sprintf(`		%q = [%s]`+"\n", k, strings.Join(quotedV, ", ")))
+			fmt.Fprintf(&configBuilder, `		%q = [%s]`+"\n", k, strings.Join(quotedV, ", "))
 
 		case json.Number:
-			configBuilder.WriteString(fmt.Sprintf(`		%q = %s`+"\n", k, v))
+			fmt.Fprintf(&configBuilder, `		%q = %s`+"\n", k, v)
 
 		case string:
-			configBuilder.WriteString(fmt.Sprintf(`		%q = %q`+"\n", k, v))
+			fmt.Fprintf(&configBuilder, `		%q = %q`+"\n", k, v)
 
 		default:
 			panic(fmt.Sprintf("unexpected type %T for identity value %q", v, k))

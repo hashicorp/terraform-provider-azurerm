@@ -86,7 +86,7 @@ The following arguments are supported:
 
 The `dns_config` block supports:
 
-* `relative_name` - (Required) The relative domain name, this is combined with the domain name used by Traffic Manager to form the FQDN which is exported as documented below. Changing this forces a new resource to be created.
+* `relative_name` - (Required) The relative domain name, this is combined with the domain name used by Traffic Manager to form the FQDN which is exported as defined below. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers and clients.
 

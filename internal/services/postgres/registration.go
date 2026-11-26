@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -6,8 +6,14 @@ package postgres
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_active_directory_administrator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_backup"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_database"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_firewall_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_virtual_endpoint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,44 +43,26 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	dataSources := map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_flexible_server": dataSourcePostgresqlFlexibleServer(),
+	return map[string]*pluginsdk.Resource{
+		"azurerm_postgresql_flexible_server": postgresql_flexible_server.RegisterDataSource(),
 	}
-
-	if !features.FivePointOh() {
-		dataSources["azurerm_postgresql_server"] = dataSourcePostgreSqlServer()
-	}
-
-	return dataSources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_flexible_server":                                resourcePostgresqlFlexibleServer(),
-		"azurerm_postgresql_flexible_server_firewall_rule":                  resourcePostgresqlFlexibleServerFirewallRule(),
-		"azurerm_postgresql_flexible_server_configuration":                  resourcePostgresqlFlexibleServerConfiguration(),
-		"azurerm_postgresql_flexible_server_database":                       resourcePostgresqlFlexibleServerDatabase(),
-		"azurerm_postgresql_flexible_server_active_directory_administrator": resourcePostgresqlFlexibleServerAdministrator(),
+	return map[string]*pluginsdk.Resource{
+		"azurerm_postgresql_flexible_server":                                postgresql_flexible_server.RegisterResource(),
+		"azurerm_postgresql_flexible_server_active_directory_administrator": postgresql_flexible_server_active_directory_administrator.RegisterResource(),
+		"azurerm_postgresql_flexible_server_configuration":                  postgresql_flexible_server_configuration.RegisterResource(),
+		"azurerm_postgresql_flexible_server_database":                       postgresql_flexible_server_database.RegisterResource(),
+		"azurerm_postgresql_flexible_server_firewall_rule":                  postgresql_flexible_server_firewall_rule.RegisterResource(),
 	}
-
-	if !features.FivePointOh() {
-		resources["azurerm_postgresql_server"] = resourcePostgreSQLServer()
-		resources["azurerm_postgresql_active_directory_administrator"] = resourcePostgreSQLAdministrator()
-		resources["azurerm_postgresql_configuration"] = resourcePostgreSQLConfiguration()
-		resources["azurerm_postgresql_database"] = resourcePostgreSQLDatabase()
-		resources["azurerm_postgresql_firewall_rule"] = resourcePostgreSQLFirewallRule()
-		resources["azurerm_postgresql_server_key"] = resourcePostgreSQLServerKey()
-		resources["azurerm_postgresql_virtual_network_rule"] = resourcePostgreSQLVirtualNetworkRule()
-	}
-
-	return resources
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		PostgresqlFlexibleServerBackupResource{},
-		PostgresqlFlexibleServerVirtualEndpointResource{},
+		postgresql_flexible_server_backup.Resource{},
+		postgresql_flexible_server_virtual_endpoint.Resource{},
 	}
 }
 
@@ -99,5 +87,8 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		postgresql_flexible_server_configuration.ListResource{},
+		postgresql_flexible_server_firewall_rule.ListResource{},
+	}
 }

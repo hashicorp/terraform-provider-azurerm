@@ -49,6 +49,9 @@ type Credentials struct {
 	// CustomManagedIdentityAPIVersion specifies the API version to use for IMDS.
 	CustomManagedIdentityAPIVersion string
 
+	// CustomManagedIdentityHeaders specifies the headers when requesting token
+	CustomManagedIdentityHeaders map[string][]string
+
 	// Enables OIDC authentication (federated client credentials).
 	EnableAuthenticationUsingOIDC bool
 	// OIDCAssertionToken specifies the OIDC Assertion Token to authenticate using Client Credentials.

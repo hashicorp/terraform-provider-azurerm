@@ -58,9 +58,20 @@ func (c ReplicationFabricsClient) CheckConsistency(ctx context.Context, id Repli
 
 // CheckConsistencyThenPoll performs CheckConsistency then polls until it's completed
 func (c ReplicationFabricsClient) CheckConsistencyThenPoll(ctx context.Context, id ReplicationFabricId) error {
+	return c.CheckConsistencyCallbackThenPoll(ctx, id, nil)
+}
+
+// CheckConsistencyCallbackThenPoll performs CheckConsistency, runs the optional callback function, then polls until it's completed
+func (c ReplicationFabricsClient) CheckConsistencyCallbackThenPoll(ctx context.Context, id ReplicationFabricId, callback func() error) error {
 	result, err := c.CheckConsistency(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CheckConsistency: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

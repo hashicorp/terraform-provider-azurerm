@@ -62,9 +62,20 @@ func (c LocalRulestackResourcesClient) LocalRulestacksCreateOrUpdate(ctx context
 
 // LocalRulestacksCreateOrUpdateThenPoll performs LocalRulestacksCreateOrUpdate then polls until it's completed
 func (c LocalRulestackResourcesClient) LocalRulestacksCreateOrUpdateThenPoll(ctx context.Context, id LocalRulestackId, input LocalRulestackResource) error {
+	return c.LocalRulestacksCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LocalRulestacksCreateOrUpdateCallbackThenPoll performs LocalRulestacksCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c LocalRulestackResourcesClient) LocalRulestacksCreateOrUpdateCallbackThenPoll(ctx context.Context, id LocalRulestackId, input LocalRulestackResource, callback func() error) error {
 	result, err := c.LocalRulestacksCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LocalRulestacksCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

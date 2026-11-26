@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -38,7 +38,7 @@ func (s StorageDefenderResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 	return commonids.ValidateStorageAccountID
 }
 
-func (s StorageDefenderResource) ModelObject() interface{} {
+func (s StorageDefenderResource) ModelObject() any {
 	return &StorageDefenderModel{}
 }
 
@@ -83,7 +83,7 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Default:  false,
 		},
 
-		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}),
+		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}, "Event Grid Topic"),
 	}
 }
 
@@ -104,16 +104,18 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewScopeID(plan.StorageAccountId)
 
-			resp, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(resp.HttpResponse) &&
-				resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.IsEnabled != nil && *resp.Model.Properties.IsEnabled {
-				return tf.ImportAsExistsError(s.ResourceType(), id.ID())
+				if !response.WasNotFound(resp.HttpResponse) &&
+					resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.IsEnabled != nil && *resp.Model.Properties.IsEnabled {
+					return tf.ImportAsExistsError(s.ResourceType(), id.ID())
+				}
 			}
 
 			input := defenderforstorage.DefenderForStorageSetting{
@@ -140,7 +142,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 				input.Properties.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(topicId.ID())
 			}
 
-			if _, err = client.Create(ctx, id, input); err != nil {
+			if _, err := client.Create(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

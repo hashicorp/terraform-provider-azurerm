@@ -181,27 +181,20 @@ func newVar(name string, typ types.Type) *types.Var {
 	return types.NewParam(token.NoPos, nil, name, typ)
 }
 
-// anonVar creates an anonymous 'var' for use in a types.Tuple.
-func anonVar(typ types.Type) *types.Var {
-	return newVar("", typ)
-}
-
-var lenResults = types.NewTuple(anonVar(tInt))
+var lenResults = typesinternal.TupleOf(tInt)
 
 // makeLen returns the len builtin specialized to type func(T)int.
 func makeLen(T types.Type) *Builtin {
-	lenParams := types.NewTuple(anonVar(T))
 	return &Builtin{
 		name: "len",
-		sig:  types.NewSignatureType(nil, nil, nil, lenParams, lenResults, false),
+		sig:  types.NewSignatureType(nil, nil, nil, typesinternal.TupleOf(T), lenResults, false),
 	}
 }
 
 // receiverTypeArgs returns the type arguments to a method's receiver.
 // Returns an empty list if the receiver does not have type arguments.
 func receiverTypeArgs(method *types.Func) []types.Type {
-	recv := method.Signature().Recv()
-	_, named := typesinternal.ReceiverNamed(recv)
+	_, named := typesinternal.RecvBase(method)
 	if named == nil {
 		return nil // recv is anonymous struct/interface
 	}
@@ -315,6 +308,13 @@ func (c *canonizer) List(ts []types.Type) *typeList {
 // and may contain deeply nested aliases.
 func (c *canonizer) Type(T types.Type) types.Type {
 	T = types.Unalias(T) // remove the top level alias.
+
+	// A Signature's receiver is not part of its type identity, so a method
+	// signature must not stand in for an identical function signature, nor
+	// for a method signature with a different receiver (go.dev/issue/81602).
+	if sig, ok := T.(*types.Signature); ok && sig.Recv() != nil {
+		return T
+	}
 
 	c.mu.Lock()
 	defer c.mu.Unlock()

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover
@@ -40,12 +40,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		StorageMoverResource{},
 		StorageMoverAgentResource{},
+		StorageMoverJobDefinitionResource{},
+		StorageMoverProjectResource{},
+		StorageMoverResource{},
 		StorageMoverSourceEndpointResource{},
 		StorageMoverTargetEndpointResource{},
-		StorageMoverProjectResource{},
-		StorageMoverJobDefinitionResource{},
 	}
 }
 
@@ -68,7 +68,10 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		StorageMoverAgentListResource{},
+		StorageMoverJobDefinitionListResource{},
 		StorageMoverListResource{},
+		StorageMoverProjectListResource{},
 		StorageMoverSourceEndpointListResource{},
+		StorageMoverTargetEndpointListResource{},
 	}
 }

@@ -25,9 +25,9 @@ func (s BaseReplicationProviderSpecificContainerCreationInputImpl) ReplicationPr
 
 var _ ReplicationProviderSpecificContainerCreationInput = RawReplicationProviderSpecificContainerCreationInputImpl{}
 
-// RawReplicationProviderSpecificContainerCreationInputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawReplicationProviderSpecificContainerCreationInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawReplicationProviderSpecificContainerCreationInputImpl struct {
 	replicationProviderSpecificContainerCreationInput BaseReplicationProviderSpecificContainerCreationInputImpl
 	Type                                              string
@@ -36,6 +36,10 @@ type RawReplicationProviderSpecificContainerCreationInputImpl struct {
 
 func (s RawReplicationProviderSpecificContainerCreationInputImpl) ReplicationProviderSpecificContainerCreationInput() BaseReplicationProviderSpecificContainerCreationInputImpl {
 	return s.replicationProviderSpecificContainerCreationInput
+}
+
+func (s RawReplicationProviderSpecificContainerCreationInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalReplicationProviderSpecificContainerCreationInputImplementation(input []byte) (ReplicationProviderSpecificContainerCreationInput, error) {

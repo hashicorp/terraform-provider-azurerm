@@ -62,9 +62,20 @@ func (c AutonomousDatabasesClient) Action(ctx context.Context, id AutonomousData
 
 // ActionThenPoll performs Action then polls until it's completed
 func (c AutonomousDatabasesClient) ActionThenPoll(ctx context.Context, id AutonomousDatabaseId, input AutonomousDatabaseLifecycleAction) error {
+	return c.ActionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ActionCallbackThenPoll performs Action, runs the optional callback function, then polls until it's completed
+func (c AutonomousDatabasesClient) ActionCallbackThenPoll(ctx context.Context, id AutonomousDatabaseId, input AutonomousDatabaseLifecycleAction, callback func() error) error {
 	result, err := c.Action(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Action: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

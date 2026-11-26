@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads_test
@@ -87,7 +87,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test1" {
       image {
         offer     = "RHEL-SAP-HA"
         publisher = "RedHat"
-        sku       = "82sapha-gen2"
+        sku       = "86sapha-gen2"
         version   = "latest"
       }
 
@@ -132,7 +132,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test2" {
       image {
         offer     = "RHEL-SAP-HA"
         publisher = "RedHat"
-        sku       = "82sapha-gen2"
+        sku       = "86sapha-gen2"
         version   = "latest"
       }
 
@@ -177,7 +177,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test3" {
       image {
         offer     = "RHEL-SAP-HA"
         publisher = "RedHat"
-        sku       = "82sapha-gen2"
+        sku       = "86sapha-gen2"
         version   = "latest"
       }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package videoindexer_test
@@ -93,7 +93,7 @@ func (r AccountResource) Exists(ctx context.Context, client *clients.Client, sta
 	}
 
 	if _, err = client.VideoIndexer.AccountClient.Get(ctx, *id); err != nil {
-		return nil, fmt.Errorf("retreiving %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
 	return pointer.To(true), nil

@@ -62,9 +62,20 @@ func (c WorkspacesClient) WorkspaceManagedIdentitySqlControlSettingsCreateOrUpda
 
 // WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdateThenPoll performs WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdate then polls until it's completed
 func (c WorkspacesClient) WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdateThenPoll(ctx context.Context, id WorkspaceId, input ManagedIdentitySqlControlSettingsModel) error {
+	return c.WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdateCallbackThenPoll performs WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c WorkspacesClient) WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdateCallbackThenPoll(ctx context.Context, id WorkspaceId, input ManagedIdentitySqlControlSettingsModel, callback func() error) error {
 	result, err := c.WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing WorkspaceManagedIdentitySqlControlSettingsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

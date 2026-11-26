@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -124,6 +124,10 @@ func (ad *AccountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 	}
 
 	if baseUri == nil {
+		if StorageDomainSuffix != nil && ad.StorageAccountId.StorageAccountName != "" {
+			uri := fmt.Sprintf("https://%s.%s.%s", ad.StorageAccountId.StorageAccountName, endpointType, *StorageDomainSuffix)
+			return &uri, nil
+		}
 		return nil, fmt.Errorf("determining %s endpoint for %s: missing primary endpoint", endpointType, ad.StorageAccountId)
 	}
 	return baseUri, nil

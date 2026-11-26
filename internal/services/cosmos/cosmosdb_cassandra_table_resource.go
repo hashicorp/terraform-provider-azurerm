@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,10 +23,11 @@ import (
 
 func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbCassandraTableCreate,
-		Read:   resourceCosmosDbCassandraTableRead,
-		Update: resourceCosmosDbCassandraTableUpdate,
-		Delete: resourceCosmosDbCassandraTableDelete,
+		Description: "Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.",
+		Create:      resourceCosmosDbCassandraTableCreate,
+		Read:        resourceCosmosDbCassandraTableRead,
+		Update:      resourceCosmosDbCassandraTableUpdate,
+		Delete:      resourceCosmosDbCassandraTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseCassandraKeyspaceTableID(id)
@@ -41,6 +43,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Cassandra Table.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -48,6 +51,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			},
 
 			"cassandra_keyspace_id": {
+				Description:  "The ID of the Cosmos DB Cassandra Keyspace to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -55,15 +59,17 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			},
 
 			"default_ttl": {
+				Description:  "Time to live of the Cosmos DB Cassandra table. `-1` means the Cassandra table never expires.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"analytical_storage_ttl": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
+				Description: "Time to live of the Analytical Storage. `-1` means the Analytical Storage never expires.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
+				ForceNew:    true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
@@ -73,9 +79,10 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"schema": common.CassandraTableSchemaPropertySchema(),
 
 			"throughput": {
+				Description:  "The throughput of Cassandra KeySpace (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -84,7 +91,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -97,12 +104,14 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := cosmosdb.NewCassandraKeyspaceTableID(meta.(*clients.Client).Account.SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
 
-	existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
 	}
 
 	table := cosmosdb.CassandraTableCreateUpdateParameters{
@@ -133,7 +142,7 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 		table.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	if err := client.CassandraResourcesCreateUpdateCassandraTableThenPoll(ctx, id, table); err != nil {
+	if err := client.CassandraResourcesCreateUpdateCassandraTableCallbackThenPoll(ctx, id, table, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -142,7 +151,7 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceCosmosDbCassandraTableRead(d, meta)
 }
 
-func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -202,7 +211,7 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceCosmosDbCassandraTableRead(d, meta)
 }
 
-func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -258,7 +267,7 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -277,34 +286,34 @@ func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interf
 }
 
 func expandTableSchema(d *pluginsdk.ResourceData) *cosmosdb.CassandraSchema {
-	i := d.Get("schema").([]interface{})
+	i := d.Get("schema").([]any)
 
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
-	input := i[0].(map[string]interface{})
+	input := i[0].(map[string]any)
 
 	cassandraSchema := cosmosdb.CassandraSchema{}
 
-	if v, ok := input["column"].([]interface{}); ok {
+	if v, ok := input["column"].([]any); ok {
 		cassandraSchema.Columns = expandTableSchemaColumns(v)
 	}
 
-	if v, ok := input["partition_key"].([]interface{}); ok {
+	if v, ok := input["partition_key"].([]any); ok {
 		cassandraSchema.PartitionKeys = expandTableSchemaPartitionKeys(v)
 	}
 
-	if v, ok := input["cluster_key"].([]interface{}); ok {
+	if v, ok := input["cluster_key"].([]any); ok {
 		cassandraSchema.ClusterKeys = expandTableSchemaClusterKeys(v)
 	}
 
 	return &cassandraSchema
 }
 
-func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
+func expandTableSchemaColumns(input []any) *[]cosmosdb.Column {
 	columns := make([]cosmosdb.Column, 0)
 	for _, col := range input {
-		data := col.(map[string]interface{})
+		data := col.(map[string]any)
 		column := cosmosdb.Column{
 			Name: pointer.To(data["name"].(string)),
 			Type: pointer.To(data["type"].(string)),
@@ -315,10 +324,10 @@ func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
 	return &columns
 }
 
-func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPartitionKey {
+func expandTableSchemaPartitionKeys(input []any) *[]cosmosdb.CassandraPartitionKey {
 	keys := make([]cosmosdb.CassandraPartitionKey, 0)
 	for _, key := range input {
-		data := key.(map[string]interface{})
+		data := key.(map[string]any)
 		k := cosmosdb.CassandraPartitionKey{
 			Name: pointer.To(data["name"].(string)),
 		}
@@ -328,10 +337,10 @@ func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPa
 	return &keys
 }
 
-func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
+func expandTableSchemaClusterKeys(input []any) *[]cosmosdb.ClusterKey {
 	keys := make([]cosmosdb.ClusterKey, 0)
 	for _, key := range input {
-		data := key.(map[string]interface{})
+		data := key.(map[string]any)
 		k := cosmosdb.ClusterKey{
 			Name:    pointer.To(data["name"].(string)),
 			OrderBy: pointer.To(data["order_by"].(string)),
@@ -342,13 +351,13 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
 	return &keys
 }
 
-func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
-	results := make([]interface{}, 0)
+func flattenTableSchema(input *cosmosdb.CassandraSchema) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	result["column"] = flattenTableSchemaColumns(input.Columns)
 	result["partition_key"] = flattenTableSchemaPartitionKeys(input.PartitionKeys)
 	result["cluster_key"] = flattenTableSchemaClusterKeys(input.ClusterKeys)
@@ -357,23 +366,17 @@ func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 	return results
 }
 
-func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
+func flattenTableSchemaColumns(input *[]cosmosdb.Column) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	columns := make([]interface{}, 0)
+	columns := make([]any, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		typeStr := ""
-		if v.Type != nil {
-			typeStr = *v.Type
-		}
-		columns = append(columns, map[string]interface{}{
+		name := pointer.From(v.Name)
+		typeStr := pointer.From(v.Type)
+		columns = append(columns, map[string]any{
 			"name": name,
 			"type": typeStr,
 		})
@@ -382,43 +385,33 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	return columns
 }
 
-func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
+func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	keys := make([]interface{}, 0)
+	keys := make([]any, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		keys = append(keys, map[string]interface{}{
-			"name": name,
+		keys = append(keys, map[string]any{
+			"name": pointer.From(v.Name),
 		})
 	}
 
 	return keys
 }
 
-func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
+func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	keys := make([]interface{}, 0)
+	keys := make([]any, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		orderBy := ""
-		if v.OrderBy != nil {
-			orderBy = *v.OrderBy
-		}
-		keys = append(keys, map[string]interface{}{
+		name := pointer.From(v.Name)
+		orderBy := pointer.From(v.OrderBy)
+		keys = append(keys, map[string]any{
 			"name":     name,
 			"order_by": orderBy,
 		})

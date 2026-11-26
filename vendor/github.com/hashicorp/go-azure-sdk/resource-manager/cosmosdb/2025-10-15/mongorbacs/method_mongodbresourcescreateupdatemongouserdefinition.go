@@ -62,9 +62,20 @@ func (c MongorbacsClient) MongoDBResourcesCreateUpdateMongoUserDefinition(ctx co
 
 // MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll performs MongoDBResourcesCreateUpdateMongoUserDefinition then polls until it's completed
 func (c MongorbacsClient) MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx context.Context, id MongodbUserDefinitionId, input MongoUserDefinitionCreateUpdateParameters) error {
+	return c.MongoDBResourcesCreateUpdateMongoUserDefinitionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MongoDBResourcesCreateUpdateMongoUserDefinitionCallbackThenPoll performs MongoDBResourcesCreateUpdateMongoUserDefinition, runs the optional callback function, then polls until it's completed
+func (c MongorbacsClient) MongoDBResourcesCreateUpdateMongoUserDefinitionCallbackThenPoll(ctx context.Context, id MongodbUserDefinitionId, input MongoUserDefinitionCreateUpdateParameters, callback func() error) error {
 	result, err := c.MongoDBResourcesCreateUpdateMongoUserDefinition(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MongoDBResourcesCreateUpdateMongoUserDefinition: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block for the ExpressRoute circuit as documented below.
+* `sku` - (Required) A `sku` block for the ExpressRoute circuit as defined below.
 
 * `service_provider_name` - (Optional) The name of the ExpressRoute Service Provider. Changing this forces a new resource to be created.
 
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
 
-* `rate_limiting_enabled` - (Optional) Enable [rate limiting](https://learn.microsoft.com/en-us/azure/expressroute/rate-limit) for the circuit. Only works with ExpressRoute Ports. Defaults to `false`.
+* `rate_limiting_enabled` - (Optional) Enable [rate limiting](https://learn.microsoft.com/azure/expressroute/rate-limit) for the circuit. Only works with ExpressRoute Ports. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -112,4 +112,4 @@ terraform import azurerm_express_route_circuit.myExpressRoute /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

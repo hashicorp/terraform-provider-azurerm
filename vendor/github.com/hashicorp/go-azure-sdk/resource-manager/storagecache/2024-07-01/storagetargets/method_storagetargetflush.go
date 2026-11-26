@@ -58,9 +58,20 @@ func (c StorageTargetsClient) StorageTargetFlush(ctx context.Context, id Storage
 
 // StorageTargetFlushThenPoll performs StorageTargetFlush then polls until it's completed
 func (c StorageTargetsClient) StorageTargetFlushThenPoll(ctx context.Context, id StorageTargetId) error {
+	return c.StorageTargetFlushCallbackThenPoll(ctx, id, nil)
+}
+
+// StorageTargetFlushCallbackThenPoll performs StorageTargetFlush, runs the optional callback function, then polls until it's completed
+func (c StorageTargetsClient) StorageTargetFlushCallbackThenPoll(ctx context.Context, id StorageTargetId, callback func() error) error {
 	result, err := c.StorageTargetFlush(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StorageTargetFlush: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

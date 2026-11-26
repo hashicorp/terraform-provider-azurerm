@@ -62,9 +62,20 @@ func (c MachineLearningComputesClient) ComputeCreateOrUpdate(ctx context.Context
 
 // ComputeCreateOrUpdateThenPoll performs ComputeCreateOrUpdate then polls until it's completed
 func (c MachineLearningComputesClient) ComputeCreateOrUpdateThenPoll(ctx context.Context, id ComputeId, input ComputeResource) error {
+	return c.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ComputeCreateOrUpdateCallbackThenPoll performs ComputeCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c MachineLearningComputesClient) ComputeCreateOrUpdateCallbackThenPoll(ctx context.Context, id ComputeId, input ComputeResource, callback func() error) error {
 	result, err := c.ComputeCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ComputeCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

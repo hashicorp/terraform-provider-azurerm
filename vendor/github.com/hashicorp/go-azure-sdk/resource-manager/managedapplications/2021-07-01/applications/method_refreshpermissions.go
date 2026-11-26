@@ -57,9 +57,20 @@ func (c ApplicationsClient) RefreshPermissions(ctx context.Context, id Applicati
 
 // RefreshPermissionsThenPoll performs RefreshPermissions then polls until it's completed
 func (c ApplicationsClient) RefreshPermissionsThenPoll(ctx context.Context, id ApplicationId) error {
+	return c.RefreshPermissionsCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshPermissionsCallbackThenPoll performs RefreshPermissions, runs the optional callback function, then polls until it's completed
+func (c ApplicationsClient) RefreshPermissionsCallbackThenPoll(ctx context.Context, id ApplicationId, callback func() error) error {
 	result, err := c.RefreshPermissions(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshPermissions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

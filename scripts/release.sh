@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 
@@ -82,7 +82,7 @@ if [[ "${NOTEST}" == "1" ]]; then
   echo "Warning: Skipping tests"
 else
   echo "Running tests..."
-  ( set -x; TF_ACC='' scripts/run-test.sh )
+  ( set -x; TF_ACC='' scripts/checks/test.sh )
 fi
 
 # Get the next release

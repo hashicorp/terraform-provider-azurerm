@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -33,7 +33,11 @@ func (r CosmosDbMongoUserDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_user_definition"
 }
 
-func (r CosmosDbMongoUserDefinitionResource) ModelObject() interface{} {
+func (r CosmosDbMongoUserDefinitionResource) Description() string {
+	return "Manages a Cosmos DB Mongo User Definition."
+}
+
+func (r CosmosDbMongoUserDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoUserDefinitionResourceModel{}
 }
 
@@ -44,6 +48,7 @@ func (r CosmosDbMongoUserDefinitionResource) IDValidationFunc() pluginsdk.Schema
 func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmos_mongo_database_id": {
+			Description:  "The resource ID of the Mongo DB.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -51,6 +56,7 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"username": {
+			Description:  "The username for the Mongo User Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -58,6 +64,7 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"password": {
+			Description:  "The password for the Mongo User Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -65,8 +72,9 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"inherited_role_names": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of Mongo Roles that are inherited to the Mongo User Definition.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -100,13 +108,15 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			existing, err := client.MongoDBResourcesGetMongoUserDefinition(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.MongoDBResourcesGetMongoUserDefinition(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
@@ -119,7 +129,7 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, properties); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionCallbackThenPoll(ctx, id, properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

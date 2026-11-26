@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy
@@ -33,12 +33,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_virtual_machine":           resourceVirtualMachine(),
 		"azurerm_virtual_machine_scale_set": resourceVirtualMachineScaleSet(),
 	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {

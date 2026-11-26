@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -22,10 +23,11 @@ import (
 
 func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbCassandraKeyspaceCreate,
-		Read:   resourceCosmosDbCassandraKeyspaceRead,
-		Update: resourceCosmosDbCassandraKeyspaceUpdate,
-		Delete: resourceCosmosDbCassandraKeyspaceDelete,
+		Description: "Manages a Cassandra KeySpace within a Cosmos DB Account.",
+		Create:      resourceCosmosDbCassandraKeyspaceCreate,
+		Read:        resourceCosmosDbCassandraKeyspaceRead,
+		Update:      resourceCosmosDbCassandraKeyspaceUpdate,
+		Delete:      resourceCosmosDbCassandraKeyspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseCassandraKeyspaceID(id)
@@ -46,6 +48,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Cassandra KeySpace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -55,6 +58,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Cassandra KeySpace to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -62,9 +66,10 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 			},
 
 			"throughput": {
+				Description:  "The throughput of Cassandra KeySpace (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -73,7 +78,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -81,12 +86,14 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 
 	id := cosmosdb.NewCassandraKeyspaceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.CassandraResourcesGetCassandraKeyspace(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of creating %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraResourcesGetCassandraKeyspace(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of creating %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", id.ID())
 	}
 
 	db := cosmosdb.CassandraKeyspaceCreateUpdateParameters{
@@ -108,7 +115,7 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	if err := client.CassandraResourcesCreateUpdateCassandraKeyspaceThenPoll(ctx, id, db); err != nil {
+	if err := client.CassandraResourcesCreateUpdateCassandraKeyspaceCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -117,7 +124,7 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,7 +152,7 @@ func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -200,7 +207,7 @@ func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbCassandraKeyspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

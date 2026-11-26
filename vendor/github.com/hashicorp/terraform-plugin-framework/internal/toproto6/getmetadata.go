@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6
@@ -26,6 +26,7 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 		ListResources:      make([]tfprotov6.ListResourceMetadata, 0, len(fw.ListResources)),
 		Resources:          make([]tfprotov6.ResourceMetadata, 0, len(fw.Resources)),
 		ServerCapabilities: ServerCapabilities(ctx, fw.ServerCapabilities),
+		StateStores:        make([]tfprotov6.StateStoreMetadata, 0, len(fw.StateStores)),
 	}
 
 	for _, action := range fw.Actions {
@@ -50,6 +51,10 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 
 	for _, resource := range fw.Resources {
 		protov6.Resources = append(protov6.Resources, ResourceMetadata(ctx, resource))
+	}
+
+	for _, stateStore := range fw.StateStores {
+		protov6.StateStores = append(protov6.StateStores, StateStoreMetadata(ctx, stateStore))
 	}
 
 	return protov6

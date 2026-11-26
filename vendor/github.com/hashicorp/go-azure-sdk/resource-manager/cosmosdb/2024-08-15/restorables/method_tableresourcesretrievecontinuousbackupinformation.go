@@ -62,9 +62,20 @@ func (c RestorablesClient) TableResourcesRetrieveContinuousBackupInformation(ctx
 
 // TableResourcesRetrieveContinuousBackupInformationThenPoll performs TableResourcesRetrieveContinuousBackupInformation then polls until it's completed
 func (c RestorablesClient) TableResourcesRetrieveContinuousBackupInformationThenPoll(ctx context.Context, id TableId, input ContinuousBackupRestoreLocation) error {
+	return c.TableResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// TableResourcesRetrieveContinuousBackupInformationCallbackThenPoll performs TableResourcesRetrieveContinuousBackupInformation, runs the optional callback function, then polls until it's completed
+func (c RestorablesClient) TableResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx context.Context, id TableId, input ContinuousBackupRestoreLocation, callback func() error) error {
 	result, err := c.TableResourcesRetrieveContinuousBackupInformation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing TableResourcesRetrieveContinuousBackupInformation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

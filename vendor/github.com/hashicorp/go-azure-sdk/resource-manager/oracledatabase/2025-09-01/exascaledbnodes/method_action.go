@@ -62,9 +62,20 @@ func (c ExascaleDbNodesClient) Action(ctx context.Context, id ExadbVMClusterDbNo
 
 // ActionThenPoll performs Action then polls until it's completed
 func (c ExascaleDbNodesClient) ActionThenPoll(ctx context.Context, id ExadbVMClusterDbNodeId, input DbNodeAction) error {
+	return c.ActionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ActionCallbackThenPoll performs Action, runs the optional callback function, then polls until it's completed
+func (c ExascaleDbNodesClient) ActionCallbackThenPoll(ctx context.Context, id ExadbVMClusterDbNodeId, input DbNodeAction, callback func() error) error {
 	result, err := c.Action(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Action: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

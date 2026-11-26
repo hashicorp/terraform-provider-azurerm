@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,10 +21,11 @@ import (
 
 func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLTriggerCreateUpdate,
-		Read:   resourceCosmosDbSQLTriggerRead,
-		Update: resourceCosmosDbSQLTriggerCreateUpdate,
-		Delete: resourceCosmosDbSQLTriggerDelete,
+		Description: "Manages an SQL Trigger.",
+		Create:      resourceCosmosDbSQLTriggerCreateUpdate,
+		Read:        resourceCosmosDbSQLTriggerRead,
+		Update:      resourceCosmosDbSQLTriggerCreateUpdate,
+		Delete:      resourceCosmosDbSQLTriggerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,6 +41,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name which should be used for this SQL Trigger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -46,6 +49,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"container_id": {
+				Description:  "The ID of the Cosmos DB SQL Container to create the SQL Trigger within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -53,36 +57,30 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"body": {
+				Description:  "Body of the Trigger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"operation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.TriggerOperationAll),
-					string(cosmosdb.TriggerOperationCreate),
-					string(cosmosdb.TriggerOperationUpdate),
-					string(cosmosdb.TriggerOperationDelete),
-					string(cosmosdb.TriggerOperationReplace),
-				}, false),
+				Description:  "The operation the trigger is associated with.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerOperation(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.TriggerTypePre),
-					string(cosmosdb.TriggerTypePost),
-				}, false),
+				Description:  "Type of the Trigger.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerType(), false),
 			},
 		},
 	}
 }
 
-func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -96,12 +94,14 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	id := cosmosdb.NewTriggerID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.SqlResourcesGetSqlTrigger(ctx, id)
-		if !response.WasNotFound(existing.HttpResponse) {
-			if err != nil {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.SqlResourcesGetSqlTrigger(ctx, id)
+			if !response.WasNotFound(existing.HttpResponse) {
+				if err != nil {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				return tf.ImportAsExistsError("azurerm_cosmosdb_sql_trigger", id.ID())
 			}
-			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_trigger", id.ID())
 		}
 	}
 
@@ -117,15 +117,21 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	if err := client.SqlResourcesCreateUpdateSqlTriggerThenPoll(ctx, id, createUpdateSqlTriggerParameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.SqlResourcesCreateUpdateSqlTriggerCallbackThenPoll(ctx, id, createUpdateSqlTriggerParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.SqlResourcesCreateUpdateSqlTriggerThenPoll(ctx, id, createUpdateSqlTriggerParameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceCosmosDbSQLTriggerRead(d, meta)
 }
 
-func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -161,7 +167,7 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

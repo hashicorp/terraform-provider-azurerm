@@ -37,9 +37,20 @@ func (c FrontDoorsClient) FrontendEndpointsDisableHTTPS(ctx context.Context, id 
 
 // FrontendEndpointsDisableHTTPSThenPoll performs FrontendEndpointsDisableHTTPS then polls until it's completed
 func (c FrontDoorsClient) FrontendEndpointsDisableHTTPSThenPoll(ctx context.Context, id FrontendEndpointId) error {
+	return c.FrontendEndpointsDisableHTTPSCallbackThenPoll(ctx, id, nil)
+}
+
+// FrontendEndpointsDisableHTTPSCallbackThenPoll performs FrontendEndpointsDisableHTTPS, runs the optional callback function, then polls until it's completed
+func (c FrontDoorsClient) FrontendEndpointsDisableHTTPSCallbackThenPoll(ctx context.Context, id FrontendEndpointId, callback func() error) error {
 	result, err := c.FrontendEndpointsDisableHTTPS(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing FrontendEndpointsDisableHTTPS: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {

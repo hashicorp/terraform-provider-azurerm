@@ -62,9 +62,20 @@ func (c ServerEndpointResourceClient) ServerEndpointsUpdate(ctx context.Context,
 
 // ServerEndpointsUpdateThenPoll performs ServerEndpointsUpdate then polls until it's completed
 func (c ServerEndpointResourceClient) ServerEndpointsUpdateThenPoll(ctx context.Context, id ServerEndpointId, input ServerEndpointUpdateParameters) error {
+	return c.ServerEndpointsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServerEndpointsUpdateCallbackThenPoll performs ServerEndpointsUpdate, runs the optional callback function, then polls until it's completed
+func (c ServerEndpointResourceClient) ServerEndpointsUpdateCallbackThenPoll(ctx context.Context, id ServerEndpointId, input ServerEndpointUpdateParameters, callback func() error) error {
 	result, err := c.ServerEndpointsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServerEndpointsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
