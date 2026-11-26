@@ -20,16 +20,18 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Job Target Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"job_agent_id": {
+			Description:  "The ID of the Elastic Job Agent.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: jobs.ValidateJobAgentID,
 			ForceNew:     true,
+			ValidateFunc: jobs.ValidateJobAgentID,
 		},
 		"job_target": {
 			Type:     pluginsdk.TypeSet,
@@ -37,34 +39,40 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"server_name": {
+						Description:  "The name of the MS SQL Server.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ValidateMsSqlServerName,
 					},
 					"database_name": {
+						Description:  "The name of the MS SQL Database.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.ValidateMsSqlDatabaseName,
 					},
 					"elastic_pool_name": {
+						Description:  "The name of the MS SQL Elastic Pool.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.ValidateMsSqlElasticPoolName,
 					},
 					"job_credential_id": {
+						Description:  "The ID of the job credential to use during execution of jobs.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: jobcredentials.ValidateCredentialID,
 					},
 					"membership_type": {
+						Description:  "The membership type for this job target.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(jobtargetgroups.JobTargetGroupMembershipTypeInclude),
 						ValidateFunc: validation.StringInSlice(jobtargetgroups.PossibleValuesForJobTargetGroupMembershipType(), false),
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The job target type. This value is computed based on `server_name`, `database_name`, and `elastic_pool_name`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},

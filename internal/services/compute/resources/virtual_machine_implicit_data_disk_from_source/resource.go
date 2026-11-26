@@ -39,6 +39,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_virtual_machine_implicit_data_disk_from_source"
 }
 
+func (r Resource) Description() string {
+	return "Manages an implicit Data Disk of a Virtual Machine."
+}
+
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		client := metadata.Client.Compute.VirtualMachinesClient

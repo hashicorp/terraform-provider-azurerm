@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Backend Address Pool Address.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_address_pool_id": {
+			Description:  "The ID of the Backend Address Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,24 +29,26 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_id": {
+			Description:   "The ID of the Virtual Network within which the Backend Address Pool should exist.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"backend_address_ip_configuration_id"},
 			ValidateFunc:  commonids.ValidateVirtualNetworkID,
+			ConflictsWith: []string{"backend_address_ip_configuration_id"},
 		},
 
 		"ip_address": {
+			Description:  "The Static IP Address which should be allocated to this Backend Address Pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsIPAddress,
 		},
 
 		"backend_address_ip_configuration_id": {
+			Description:   "The IP config ID of the regional load balancer that's added to the global load balancer's backend address pool.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"virtual_network_id"},
 			ValidateFunc:  loadbalancers.ValidateFrontendIPConfigurationID,
-			Description:   "For global load balancer, user needs to specify the `backend_address_ip_configuration_id` of the added regional load balancers",
+			ConflictsWith: []string{"virtual_network_id"},
 		},
 	}
 }

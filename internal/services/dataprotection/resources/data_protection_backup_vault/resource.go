@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataProtectionBackupVaultCreateUpdate,
-		Read:   resourceDataProtectionBackupVaultRead,
-		Update: resourceDataProtectionBackupVaultCreateUpdate,
-		Delete: resourceDataProtectionBackupVaultDelete,
+		Description: "Manages a Backup Vault.",
+		Create:      resourceDataProtectionBackupVaultCreateUpdate,
+		Read:        resourceDataProtectionBackupVaultRead,
+		Update:      resourceDataProtectionBackupVaultCreateUpdate,
+		Delete:      resourceDataProtectionBackupVaultDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

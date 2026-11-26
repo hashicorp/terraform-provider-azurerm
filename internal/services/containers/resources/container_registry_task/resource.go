@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_container_registry_task"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Container Registry Task."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tasks.ValidateTaskID
 }

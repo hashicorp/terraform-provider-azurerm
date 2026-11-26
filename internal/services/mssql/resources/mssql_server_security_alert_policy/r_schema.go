@@ -16,6 +16,7 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_name": {
+			Description:  "The name of the MS SQL Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,9 +24,10 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disabled_alerts": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Set:      pluginsdk.HashString,
+			Description: "An array of alerts that are disabled.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -39,21 +41,24 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"email_account_admins_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the alerts are sent to the account administrators.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"email_addresses": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "An array of email addresses to which the alert is sent.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"retention_days": {
+			Description:  "The number of days to keep the Threat Detection audit logs.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
@@ -61,25 +66,28 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"state": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The state of the policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(),
 				false),
 		},
 
 		"storage_account_access_key": {
+			Description:  "The primary access key of the Threat Detection audit logs blob storage endpoint.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			RequiredWith: []string{"storage_endpoint"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"storage_endpoint"},
 		},
 
 		"storage_endpoint": {
+			Description:  "The blob storage endpoint that will hold all Threat Detection audit logs (e.g., `https://example.blob.core.windows.net`).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			RequiredWith: []string{"storage_account_access_key"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"storage_account_access_key"},
 		},
 	}
 }

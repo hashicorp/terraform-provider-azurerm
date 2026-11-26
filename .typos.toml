@@ -48,6 +48,7 @@ exportfs = "exportfs" # misspell ignore entry in .golangci.yml
 passin = "passin"     # openssl flag
 
 # short identifiers, enum values and test literals
+als = "als"
 fle = "fle"
 fo = "fo"
 ot = "ot"

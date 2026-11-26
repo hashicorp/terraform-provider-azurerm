@@ -101,8 +101,8 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 			"peer_complete_virtual_networks_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"remote_subnet_names": {

@@ -17,6 +17,7 @@ import (
 func monitorAadDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Monitor Azure Active Directory Diagnostic Setting.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,9 +26,10 @@ func monitorAadDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 
 		// When absent, will use the default eventhub, whilst the Diagnostic Setting API will return this property as an empty string. Therefore, it is useless to make this property as Computed.
 		"eventhub_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The name of the Event Hub where Diagnostics Data should be sent. If not specified, the default Event Hub will be used.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
 				"The event hub name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
@@ -35,6 +37,7 @@ func monitorAadDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventhub_authorization_rule_id": {
+			Description:  "The ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -43,6 +46,7 @@ func monitorAadDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of a Log Analytics Workspace where Diagnostics Data should be sent.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -50,6 +54,7 @@ func monitorAadDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The ID of the Storage Account where logs should be sent.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -63,8 +68,9 @@ func monitorAadDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The log category for the Azure Active Directory Diagnostic.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},

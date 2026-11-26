@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_iothub_device_update_account"
 }
 
+func (r Resource) Description() string {
+	return "Manages an IoT Hub Device Update Account."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return deviceupdates.ValidateAccountID
 }

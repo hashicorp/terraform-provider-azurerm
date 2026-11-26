@@ -61,61 +61,61 @@ func (r SyncServerEndpointResource) Identity() resourceids.ResourceId {
 func (r SyncServerEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"storage_sync_group_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: serverendpointresource.ValidateSyncGroupID,
 		},
 
 		"registered_server_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: registeredserverresource.ValidateRegisteredServerID,
 		},
 
 		"server_local_path": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"cloud_tiering_enabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 			Default:  false,
 		},
 
 		"volume_free_space_percent": {
-			Optional:     true,
 			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			Default:      20,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 
 		"tier_files_older_than_days": {
-			Optional:     true,
 			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 		},
 
 		"initial_download_policy": {
-			ForceNew:     true,
-			Optional:     true,
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
 			Default:      serverendpointresource.InitialDownloadPolicyNamespaceThenModifiedFiles,
 			ValidateFunc: validation.StringInSlice(serverendpointresource.PossibleValuesForInitialDownloadPolicy(), false),
 		},
 
 		"local_cache_mode": {
-			Optional:     true,
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			Default:      serverendpointresource.LocalCacheModeUpdateLocallyCachedFiles,
 			ValidateFunc: validation.StringInSlice(serverendpointresource.PossibleValuesForLocalCacheMode(), false),
 		},

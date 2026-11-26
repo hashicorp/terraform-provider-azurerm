@@ -79,9 +79,9 @@ func (a *Action) Schema(ctx context.Context, _ action.SchemaRequest, response *a
 			},
 
 			"timeout": schema.StringAttribute{
+				Description:         "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.", // azignore:AZS014 - an action cannot set a Default in its schema
 				Optional:            true,
-				Description:         "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
-				MarkdownDescription: "Timeout duration for the Front Door Purge action to complete. Defaults to 30m.",
 			},
 		},
 	}

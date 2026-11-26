@@ -42,7 +42,7 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	consumerGroupBody := devices.EventHubConsumerGroupBodyDescription{
 		// The properties are currently undocumented. See also:
-		// https://docs.microsoft.com/azure/templates/microsoft.devices/2021-03-31/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
+		// https://learn.microsoft.com/azure/templates/microsoft.devices/2021-03-31/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
 		//
 		// There is an example where the name is repeated in the properties,
 		// so that seems to be the "proper" way. See also:

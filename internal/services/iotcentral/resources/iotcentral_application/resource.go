@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotCentralAppCreate,
-		Read:   resourceIotCentralAppRead,
-		Update: resourceIotCentralAppUpdate,
-		Delete: resourceIotCentralAppDelete,
+		Description: "Manages an IoT Central Application.",
+		Create:      resourceIotCentralAppCreate,
+		Read:        resourceIotCentralAppRead,
+		Update:      resourceIotCentralAppUpdate,
+		Delete:      resourceIotCentralAppDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apps.ParseIotAppID(id)

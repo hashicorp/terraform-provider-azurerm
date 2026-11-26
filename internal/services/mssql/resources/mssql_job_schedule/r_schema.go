@@ -18,42 +18,48 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"job_id": {
+			Description:  "The ID of the Elastic Job.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: jobs.ValidateJobID,
 		},
 		"type": {
+			Description:  "The type of schedule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(jobs.PossibleValuesForJobScheduleType(), false),
 		},
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the Elastic Job Schedule should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 			// Note: O+C the API sets this field to `false` if the schedule type is `Once` and the job has finished
 			Computed: true,
 		},
 		"end_time": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The end time of the schedule.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C API sets and returns a default value if omitted
 			Computed:         true,
-			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 		},
 		"interval": {
+			Description:  "The interval between job executions.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.ISO8601Duration,
 		},
 		"start_time": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The start time of the schedule.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C API sets and returns a default value if omitted
 			Computed:         true,
-			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 		},
 	}
 }

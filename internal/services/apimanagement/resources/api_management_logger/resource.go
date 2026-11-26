@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementLoggerCreate,
-		Read:   resourceApiManagementLoggerRead,
-		Update: resourceApiManagementLoggerUpdate,
-		Delete: resourceApiManagementLoggerDelete,
+		Description: "Manages a Logger within an API Management Service.",
+		Create:      resourceApiManagementLoggerCreate,
+		Read:        resourceApiManagementLoggerRead,
+		Update:      resourceApiManagementLoggerUpdate,
+		Delete:      resourceApiManagementLoggerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := logger.ParseLoggerID(id)
 			return err

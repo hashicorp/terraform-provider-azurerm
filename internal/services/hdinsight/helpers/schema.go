@@ -23,8 +23,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SchemaHDInsightName() *pluginsdk.Schema {
+func SchemaHDInsightName(descriptor string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  fmt.Sprintf("Specifies the name for this %s.", descriptor),
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -32,8 +33,9 @@ func SchemaHDInsightName() *pluginsdk.Schema {
 	}
 }
 
-func SchemaHDInsightTier() *pluginsdk.Schema {
+func SchemaHDInsightTier(descriptor string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  fmt.Sprintf("Specifies the Tier which should be used for this %s.", descriptor),
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -43,9 +45,10 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 
 func SchemaHDInsightTls() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Required: true,
-		ForceNew: true,
+		Description: "The minimal supported TLS version.",
+		Type:        pluginsdk.TypeString,
+		Required:    true,
+		ForceNew:    true,
 		ValidateFunc: validation.StringInSlice([]string{
 			"1.0",
 			"1.1",
@@ -57,6 +60,7 @@ func SchemaHDInsightTls() *pluginsdk.Schema {
 
 func SchemaHDInsightClusterVersion() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:      "The Version of HDInsights which should be used for this Cluster.",
 		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ForceNew:         true,
@@ -91,14 +95,16 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				// NOTE: these are Required since if these aren't present you get a `500 bad request`
 				"username": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The username used for the Ambari Portal.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"password": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					Sensitive: true,
+					Description: "The password used for the Ambari Portal.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Sensitive:   true,
 					// Azure returns the key as *****. We'll suppress that here.
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
@@ -117,12 +123,14 @@ func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"compute_isolation_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "This field indicates whether to enable compute isolation.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"host_sku": {
+					Description:  "The name of the host SKU.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -140,25 +148,29 @@ func SchemaHDInsightsExternalMetastore() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"server": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The fully-qualified domain name (FQDN) of the SQL server to use for the metastore.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"database_name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The external metastore's existing SQL database.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"username": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The external metastore's existing SQL server admin username.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"password": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					ForceNew:  true,
-					Sensitive: true,
+					Description: "The external metastore's existing SQL server admin password.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
+					Sensitive:   true,
 					// Azure returns the key as *****. We'll suppress that here.
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
@@ -194,11 +206,13 @@ func SchemaHDInsightsMonitor() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"log_analytics_workspace_id": {
+					Description:  "The Operations Management Suite (OMS) workspace ID.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsUUID,
 				},
 				"primary_key": {
+					Description:  "The Operations Management Suite (OMS) workspace key.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
@@ -221,11 +235,13 @@ func SchemaHDInsightsExtension() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"log_analytics_workspace_id": {
+					Description:  "The workspace ID of the Log Analytics extension.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsUUID,
 				},
 				"primary_key": {
+					Description:  "The workspace key of the Log Analytics extension.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
@@ -247,6 +263,7 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"connection_direction": {
+					Description:  "The direction of the Resource Provider connection.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -255,10 +272,11 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 				},
 
 				"private_link_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
+					Description: "Whether the Private Link is enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					ForceNew:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -274,6 +292,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"aadds_resource_id": {
+					Description:  "The resource ID of the Azure Active Directory Domain Service.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -281,6 +300,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 
 				"domain_name": {
+					Description:  "The name of the Azure Active Directory Domain.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -288,6 +308,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 
 				"domain_username": {
+					Description:  "The username of the Azure Active Directory Domain.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -295,6 +316,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 
 				"domain_user_password": {
+					Description:  "The user password of the Azure Active Directory Domain.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -303,9 +325,10 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 
 				"ldaps_urls": {
-					Type:     pluginsdk.TypeSet,
-					Required: true,
-					ForceNew: true,
+					Description: "A list of the LDAPS URLs to communicate with the Azure Active Directory.",
+					Type:        pluginsdk.TypeSet,
+					Required:    true,
+					ForceNew:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validate.HDInsightClusterLdapsUrls,
@@ -313,6 +336,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 
 				"msi_resource_id": {
+					Description:  "The User Assigned Identity for the HDInsight Cluster.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -320,9 +344,10 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 
 				"cluster_users_group_dns": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					ForceNew: true,
+					Description: "A list of the distinguished names for the cluster user groups.",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
+					ForceNew:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -335,25 +360,29 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 
 func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MinItems: 1,
+		Description: "The script action which will run on the cluster.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		ForceNew:    true,
+		MinItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the script action.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"uri": {
+					Description:  "The URI to the script.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"parameters": {
+					Description:  "The parameters for the script provided.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -799,6 +828,7 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"storage_account_key": {
+					Description:  "The Access Key which should be used to connect to the Storage Account.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -806,21 +836,24 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"storage_container_url": {
+					Description:  "The URL of the Storage Container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 				},
 				"storage_account_id": {
+					Description:  "The ID of the Storage Account.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"is_default": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-					ForceNew: true,
+					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
+					ForceNew:    true,
 				},
 			},
 		},
@@ -836,27 +869,31 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"storage_account_id": {
+					Description:  "The ID of the Storage Account.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"filesystem_id": {
+					Description:  "The ID of the Gen2 Filesystem.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"user_assigned_identity_id": {
+					Description:  "The ID of User Assigned Identity to use for accessing the Gen2 filesystem.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"is_default": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-					ForceNew: true,
+					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
+					ForceNew:    true,
 				},
 			},
 		},
@@ -870,23 +907,27 @@ func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"encryption_algorithm": {
+					Description:  "This is an algorithm identifier for encryption.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForJsonWebKeyEncryptionAlgorithm(), false),
 				},
 
 				"encryption_at_host_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "This is an indicator to show whether resource disk encryption is enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 
 				"key_vault_managed_identity_id": {
+					Description:  "This is the resource ID of Managed Identity used to access the Key Vault.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				},
 
 				"key_vault_key_id": {
+					Description:  "The ID of the Key Vault Key.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
@@ -904,13 +945,15 @@ func SchemaHDInsightPrivateLinkConfigurations() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The name of the Private Link configuration.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"group_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The ID of the Private Link Service group.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"ip_configuration": SchemaHDInsightPrivateLinkConfigurationIpConfiguration(),
@@ -927,28 +970,33 @@ func SchemaHDInsightPrivateLinkConfigurationIpConfiguration() *pluginsdk.Schema 
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The name of the IP configuration.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "Whether this IP configuration is primary.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 
 				"private_ip_address": {
+					Description:  "The private IP address of the IP configuration.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsIPAddress,
 				},
 
 				"private_ip_allocation_method": {
+					Description:  "The private IP allocation method.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPrivateIPAllocationMethod(), false),
 				},
 
 				"subnet_id": {
+					Description:  "The ID of the Subnet within the Virtual Network where the IP configuration should be provisioned.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: commonids.ValidateSubnetID,
@@ -1095,37 +1143,42 @@ type HDInsightNodeDefinition struct {
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
 	result := map[string]*pluginsdk.Schema{
 		"vm_size": {
+			Description:  "The size of the Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
 		},
 		"username": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The username of the local administrator.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"password": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			ForceNew:  true,
-			Sensitive: true,
+			Description: "The password associated with the local administrator.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Sensitive:   true,
 		},
 		"ssh_keys": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			ForceNew: true,
+			Description: "A set of SSH keys which should be used for the local administrator.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
+			Set:         pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Set: pluginsdk.HashString,
-			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
-			},
 		},
 
 		"subnet_id": {
+			Description:  "The ID of the subnet within the Virtual Network in which to provision the nodes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -1133,6 +1186,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		},
 
 		"virtual_network_id": {
+			Description:  "The ID of the Virtual Network in which to provision the nodes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -1261,9 +1315,9 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: required,
 		Optional: !required,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: result,
 		},
@@ -1273,36 +1327,41 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
 	result := map[string]*pluginsdk.Schema{
 		"vm_size": {
+			Description:  "The Size of the Virtual Machine which should be used as the Kafka Management Nodes.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
 		},
 		"username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Username of the local administrator for the Kafka Management Nodes.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"password": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			ForceNew:  true,
-			Sensitive: true,
+			Description: "The Password associated with the local administrator for the Kafka Management Nodes.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Sensitive:   true,
 		},
 		"ssh_keys": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			ForceNew: true,
+			Description: "A list of SSH Keys which should be used for the local administrator on the Kafka Management Nodes.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
+			Set:         pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Set: pluginsdk.HashString,
-			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
-			},
 		},
 
 		"subnet_id": {
+			Description:  "The ID of the Subnet within the Virtual Network where the Kafka Management Nodes should be provisioned within.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -1310,6 +1369,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 		},
 
 		"virtual_network_id": {
+			Description:  "The ID of the Virtual Network where the Kafka Management Nodes should be provisioned within.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -1438,9 +1498,9 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: required,
 		Optional: !required,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: result,
 		},

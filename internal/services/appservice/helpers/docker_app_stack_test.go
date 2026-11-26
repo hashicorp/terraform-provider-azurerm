@@ -4,6 +4,9 @@
 package helpers_test
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/linux_web_app_slot"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app_slot"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -44,7 +47,7 @@ func TestDecodeDockerAppStackLinux(t *testing.T) {
 				t.Fatalf("web app: expected docker_image_name %q, got %q", tc.expected, got)
 			}
 
-			slot := helpers.SiteConfigLinuxWebAppSlot{LinuxFxVersion: tc.fxVersion}
+			slot := linux_web_app_slot.SiteConfigLinuxWebAppSlot{LinuxFxVersion: tc.fxVersion}
 			slot.DecodeDockerAppStack(dockerAppSettings)
 			if got := slot.ApplicationStack[0].DockerImageName; got != tc.expected {
 				t.Fatalf("web app slot: expected docker_image_name %q, got %q", tc.expected, got)
@@ -56,13 +59,13 @@ func TestDecodeDockerAppStackLinux(t *testing.T) {
 func TestDecodeDockerAppStackWindows(t *testing.T) {
 	for _, tc := range dockerFxStringCases {
 		t.Run(tc.name, func(t *testing.T) {
-			webApp := helpers.SiteConfigWindows{WindowsFxVersion: tc.fxVersion}
+			webApp := windows_web_app.SiteConfigWindows{WindowsFxVersion: tc.fxVersion}
 			webApp.DecodeDockerAppStack(dockerAppSettings)
 			if got := webApp.ApplicationStack[0].DockerImageName; got != tc.expected {
 				t.Fatalf("web app: expected docker_image_name %q, got %q", tc.expected, got)
 			}
 
-			slot := helpers.SiteConfigWindowsWebAppSlot{WindowsFxVersion: tc.fxVersion}
+			slot := windows_web_app_slot.SiteConfigWindowsWebAppSlot{WindowsFxVersion: tc.fxVersion}
 			slot.DecodeDockerAppStack(dockerAppSettings)
 			if got := slot.ApplicationStack[0].DockerImageName; got != tc.expected {
 				t.Fatalf("web app slot: expected docker_image_name %q, got %q", tc.expected, got)

@@ -23,9 +23,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The name which should be used for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-z\d]([-a-z\d]{1,38}[a-z\d])$`),
 				"`name` must be between 3 and 40 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
@@ -37,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"administrator_username": {
+			Description:  "The administrator username of the MongoDB Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -45,9 +47,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"create_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(mongoclusters.CreateModeDefault),
+			Description: "The creation mode for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(mongoclusters.CreateModeDefault),
 			// Confirmed with service team the 'Default', `GeoReplica` and `PointInTimeRestore` are the only accepted value currently, other values will be supported later.
 			ValidateFunc: validation.StringInSlice([]string{
 				string(mongoclusters.CreateModeDefault),
@@ -64,12 +67,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Description:  "The ID of the Key Vault Key used for encryption. For example: `https://example-vault-name.vault.azure.net/keys/example-key-name`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 					},
 
 					"user_assigned_identity_id": {
+						Description:  "The ID of the User Assigned Identity that has access to the Key Vault Key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -79,18 +84,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_api_mode_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Data API for the MongoDB Cluster is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"preview_features": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+			Description: "The preview features that can be enabled on the MongoDB Cluster.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -105,6 +112,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"point_in_time_utc": {
+						Description:  "The point in time (in UTC) to restore from, in ISO 8601 format (e.g., `2024-01-01T00:00:00Z`).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -112,6 +120,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"source_id": {
+						Description:  "The ID of the source MongoDB Cluster to restore from.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -122,23 +131,26 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"shard_count": {
+			Description:  "The number of shards to provision on the MongoDB Cluster.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
 			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"source_location": {
+			Description:      "The location of the source MongoDB Cluster.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
+			ValidateFunc:     validation.StringIsNotEmpty,
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			ValidateFunc:     validation.StringIsNotEmpty,
 			RequiredWith:     []string{"source_server_id"},
 		},
 
 		"source_server_id": {
+			Description:  "The ID of the replication source MongoDB Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -146,6 +158,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_password": {
+			Description:  "The Password associated with the `administrator_username` for the MongoDB Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -154,8 +167,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_methods": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of allowed authentication modes for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			// NOTE: O+C `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -165,8 +179,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"compute_tier": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The compute tier to assign to the MongoDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Free",
 				"M10",
@@ -182,8 +197,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"high_availability_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The high availability mode for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// Confirmed with service team the `SameZone` is currently not supported.
 				string(mongoclusters.HighAvailabilityModeDisabled),
@@ -192,12 +208,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cosmos_db_network_bypass_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Cosmos DB network bypass is enabled for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"public_network_access": {
+			Description:  "The Public Network Access setting for the MongoDB Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(mongoclusters.PublicNetworkAccessEnabled),
@@ -205,16 +223,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_size_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The size of the data disk space for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 			// Note: O+C because geo replicas and point-in-time restores inherit the source cluster's storage size when omitted. Computed preserves the API-returned size without planning its removal.
 			Computed:     true,
 			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
 		"storage_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The storage type for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because the service team has indicated a default of `PremiumSSDv2` is preferred, however, this is not available in all regions so we'll omit it and let the service fallback to `PremiumSSD` if necessary.
 			Computed:     true,
 			ForceNew:     true,
@@ -224,8 +244,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The version for the MongoDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"5.0",
 				"6.0",
@@ -240,21 +261,24 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"connection_strings": {
 			Type:      pluginsdk.TypeList,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the connection string.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description of the connection string.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The value of the Mongo Cluster connection string. The `<user>:<password>` placeholder returned from API will be replaced by the real `administrator_username` and `administrator_password` if available in the state.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},

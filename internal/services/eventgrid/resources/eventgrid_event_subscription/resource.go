@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridEventSubscriptionCreateUpdate,
-		Read:   resourceEventGridEventSubscriptionRead,
-		Update: resourceEventGridEventSubscriptionCreateUpdate,
-		Delete: resourceEventGridEventSubscriptionDelete,
+		Description: "Manages an EventGrid Event Subscription.",
+		Create:      resourceEventGridEventSubscriptionCreateUpdate,
+		Read:        resourceEventGridEventSubscriptionRead,
+		Update:      resourceEventGridEventSubscriptionCreateUpdate,
+		Delete:      resourceEventGridEventSubscriptionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

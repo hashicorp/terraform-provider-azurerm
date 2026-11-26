@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiReleaseCreateUpdate,
-		Read:   resourceApiManagementApiReleaseRead,
-		Update: resourceApiManagementApiReleaseCreateUpdate,
-		Delete: resourceApiManagementApiReleaseDelete,
+		Description: "Manages an API Management API Release.",
+		Create:      resourceApiManagementApiReleaseCreateUpdate,
+		Read:        resourceApiManagementApiReleaseRead,
+		Update:      resourceApiManagementApiReleaseCreateUpdate,
+		Delete:      resourceApiManagementApiReleaseDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

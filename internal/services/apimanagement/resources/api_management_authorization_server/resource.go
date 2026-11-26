@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementAuthorizationServerCreateUpdate,
-		Read:   resourceApiManagementAuthorizationServerRead,
-		Update: resourceApiManagementAuthorizationServerCreateUpdate,
-		Delete: resourceApiManagementAuthorizationServerDelete,
+		Description: "Manages an Authorization Server within an API Management Service.",
+		Create:      resourceApiManagementAuthorizationServerCreateUpdate,
+		Read:        resourceApiManagementAuthorizationServerRead,
+		Update:      resourceApiManagementAuthorizationServerCreateUpdate,
+		Delete:      resourceApiManagementAuthorizationServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := authorizationserver.ParseAuthorizationServerID(id)
 			return err

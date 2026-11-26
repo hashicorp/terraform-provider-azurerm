@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the endpoint. The name must be unique across endpoint types. The following names are reserved: `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"iothub_id": {
+			Description:  "The ID of the IoT Hub to create the endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"container_name": {
+			Description:  "The name of the Cosmos DB Container in the Cosmos DB Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,6 +41,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the Cosmos DB Database in the Cosmos DB Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -45,6 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"endpoint_uri": {
+			Description:  "The URI of the Cosmos DB Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -52,6 +57,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_type": {
+			Description:  "The type used to authenticate against the Cosmos DB Account endpoint.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(devices.AuthenticationTypeKeyBased),
@@ -59,6 +65,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity_id": {
+			Description:   "The ID of the User Managed Identity used to authenticate against the Cosmos DB Account endpoint.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
@@ -66,6 +73,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"partition_key_name": {
+			Description:  "The name of the partition key associated with the Cosmos DB Container.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -73,6 +81,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"partition_key_template": {
+			Description:  "The template for generating a synthetic partition key value for use within the Cosmos DB Container.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -80,26 +89,29 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"primary_key": {
+			Description:   "The primary key of the Cosmos DB Account.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"identity_id"},
 			RequiredWith:  []string{"secondary_key"},
+			ConflictsWith: []string{"identity_id"},
 		},
 
 		"secondary_key": {
+			Description:   "The secondary key of the Cosmos DB Account.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"identity_id"},
 			RequiredWith:  []string{"primary_key"},
+			ConflictsWith: []string{"identity_id"},
 		},
 
 		"subscription_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The subscription ID for the endpoint.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
 			Computed:     true,
 			ValidateFunc: validation.IsUUID,
