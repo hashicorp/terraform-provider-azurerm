@@ -38,22 +38,26 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_container_app_environment_storage"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Container App Environment Storage."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container App Environment Storage.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedEnvironmentStorageName,
-			Description:  "The name for this Container App Environment Storage.",
 		},
 
 		"container_app_environment_id": {
+			Description:  "The ID of the Container App Environment to which this storage belongs.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironmentsstorages.ValidateManagedEnvironmentID,
-			Description:  "The ID of the Container App Environment to which this storage belongs.",
 		},
 	}
 }
@@ -61,27 +65,27 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_name": {
+			Description: "The Azure Storage Account in which the Share is located.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Azure Storage Account in which the Share is located.",
 		},
 
 		"share_name": {
+			Description: "The name of the Azure Storage Share.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the Azure Storage Share.",
 		},
 
 		"access_mode": {
+			Description: "The access mode to connect this storage to the Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The access mode to connect this storage to the Container App.",
 		},
 
 		"nfs_server_url": {
+			Description: "The NFS server URL for the Azure File Share.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The NFS server URL for the Azure File Share.",
 		},
 	}
 }

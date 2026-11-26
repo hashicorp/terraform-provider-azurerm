@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelMsTeamsCreate,
-		Read:   resourceBotChannelMsTeamsRead,
-		Delete: resourceBotChannelMsTeamsDelete,
-		Update: resourceBotChannelMsTeamsUpdate,
+		Description: "Manages an MS Teams integration for a Bot Channel.",
+		Create:      resourceBotChannelMsTeamsCreate,
+		Read:        resourceBotChannelMsTeamsRead,
+		Delete:      resourceBotChannelMsTeamsDelete,
+		Update:      resourceBotChannelMsTeamsUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

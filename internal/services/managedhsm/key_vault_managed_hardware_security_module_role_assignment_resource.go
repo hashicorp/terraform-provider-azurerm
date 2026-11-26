@@ -44,9 +44,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 	return map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
-			Required:     true,
 		},
 
 		"name": {

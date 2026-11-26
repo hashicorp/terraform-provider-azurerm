@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLighthouseDefinitionCreateUpdate,
-		Read:   resourceLighthouseDefinitionRead,
-		Update: resourceLighthouseDefinitionCreateUpdate,
-		Delete: resourceLighthouseDefinitionDelete,
+		Description: "Manages a [Lighthouse](https://learn.microsoft.com/azure/lighthouse) Definition.",
+		Create:      resourceLighthouseDefinitionCreateUpdate,
+		Read:        resourceLighthouseDefinitionRead,
+		Update:      resourceLighthouseDefinitionCreateUpdate,
+		Delete:      resourceLighthouseDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := registrationdefinitions.ParseScopedRegistrationDefinitionID(id)

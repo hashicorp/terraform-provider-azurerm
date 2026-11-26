@@ -36,6 +36,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_api_connection"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing API Connection."
+}
+
 func (r DataSource) ModelObject() any {
 	return &ApiConnectionDataSourceModel{}
 }
@@ -47,6 +51,7 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the API Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -61,18 +66,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"managed_api_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Managed API that this connection is linked to.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of the API Connection.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"parameter_values": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "A mapping of parameter names to their values for the API Connection.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

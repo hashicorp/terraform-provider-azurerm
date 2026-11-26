@@ -19,9 +19,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Elastic SAN resource.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Type:         pluginsdk.TypeString,
 			ValidateFunc: validate.ElasticSanName,
 		},
 
@@ -32,28 +33,31 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"base_size_in_tib": {
-			Required:     true,
+			Description:  "The base size of the Elastic SAN resource in TiB.",
 			Type:         pluginsdk.TypeInt,
+			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 
 		"extended_size_in_tib": {
-			Optional:     true,
+			Description:  "The extended size of the Elastic SAN resource in TiB.",
 			Type:         pluginsdk.TypeInt,
+			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 
 		"sku": {
-			Required: true,
-			MaxItems: 1,
-			MinItems: 1,
 			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required: true,
-						ForceNew: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The SKU name.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.StringInSlice(
 							elasticsans.PossibleValuesForSkuName(),
 							false,
@@ -61,9 +65,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tier": {
-						Optional: true,
-						Type:     pluginsdk.TypeString,
-						Default:  string(elasticsans.SkuTierPremium),
+						Description: "The SKU tier.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     string(elasticsans.SkuTierPremium),
 						ValidateFunc: validation.StringInSlice(
 							elasticsans.PossibleValuesForSkuTier(),
 							false,
@@ -80,28 +85,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"total_iops": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total Provisioned IOPS of the Elastic SAN resource.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"total_mbps": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total Provisioned MBps of the Elastic SAN resource.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"total_size_in_tib": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total size of the Elastic SAN resource in TB.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"total_volume_size_in_gib": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total size of the provisioned Volumes in GiB.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_group_count": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total number of volume groups in this Elastic SAN resource.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 	}
 }

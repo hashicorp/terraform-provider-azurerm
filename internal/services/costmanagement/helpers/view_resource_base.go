@@ -54,29 +54,34 @@ type CostManagementViewBaseResource struct{}
 func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "User visible input name of the Cost Management View.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"chart_type": {
+			Description:  "Chart type of the main view in Cost Analysis.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForChartType(), false),
 		},
 
 		"accumulated": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-			ForceNew: true,
+			Description: "Whether the costs data in the Cost Management View are accumulated over time.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"report_type": {
+			Description:  "The type of the report.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportType(), false),
 		},
 
 		"timeframe": {
+			Description:  "The time frame for pulling data for the report.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportTimeframeType(), false),
@@ -84,11 +89,12 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 
 		"dataset": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"granularity": {
+						Description:  "The granularity of the rows in the report.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportGranularityType(), false),
@@ -100,14 +106,16 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
+									Description: "The name which should be used for this aggregation.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
+									ForceNew:    true,
 								},
 								"column_name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
+									Description: "The name of the column to aggregate.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
+									ForceNew:    true,
 								},
 							},
 						},
@@ -119,13 +127,15 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"direction": {
+									Description:  "Direction of sort.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportConfigSortingType(), false),
 								},
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The name of the column to sort.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
@@ -137,13 +147,15 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
+									Description:  "The type of column.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForQueryColumnType(), false),
 								},
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The name of the column to group.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},
@@ -158,6 +170,7 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
+						Description:  "KPI type.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForKpiTypeType(), false),
@@ -172,10 +185,12 @@ func (br CostManagementViewBaseResource) Arguments(fields map[string]*pluginsdk.
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the column which should be used for this sub-view in the Cost Analysis UI.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 					"type": {
+						Description:  "The data type to show in this sub-view.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForPivotTypeType(), false),
