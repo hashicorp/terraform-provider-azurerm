@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabricmanaged
@@ -204,11 +204,11 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "Basic",
 			ForceNew:     true,
+			Default:      "Basic",
 			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
-		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}, "Subnet"),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
 			Type:         pluginsdk.TypeString,

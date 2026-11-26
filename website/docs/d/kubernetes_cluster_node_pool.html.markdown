@@ -14,9 +14,9 @@ Use this data source to access information about an existing Kubernetes Cluster 
 
 ```hcl
 data "azurerm_kubernetes_cluster_node_pool" "example" {
-  name                    = "existing"
-  kubernetes_cluster_name = "existing-cluster"
-  resource_group_name     = "existing-resource-group"
+  name                    = "example"
+  kubernetes_cluster_name = "example-cluster"
+  resource_group_name     = "example-resources"
 }
 
 output "id" {
@@ -84,7 +84,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Kubernetes Cluster Node Pool.
 
-* `upgrade_settings` - A `upgrade_settings` block as documented below.
+* `upgrade_settings` - A `upgrade_settings` block as defined below.
 
 * `vm_size` - The size of the Virtual Machines used in the Virtual Machine Scale Set backing this Node Pool.
 
@@ -116,4 +116,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2026-05-01
+* `Microsoft.ContainerService` - 2026-07-01

@@ -67,25 +67,25 @@ The following arguments are supported:
 
 -> **Note:** `display_name`, `path` and `protocols` are required when `source_api_id` is not set.
 
-* `contact` - (Optional) A `contact` block as documented below.
+* `contact` - (Optional) A `contact` block as defined below.
 
 * `description` - (Optional) A description of the API Management API, which may include HTML formatting tags.
 
-* `import` - (Optional) A `import` block as documented below.
+* `import` - (Optional) A `import` block as defined below.
 
 -> **Note:** The `display_name`, `description`, `contact`, and `license` fields can be imported by the `import` block, which might cause a drift if these fields are set along with the `import` block.
 
-* `license` - (Optional) A `license` block as documented below.
+* `license` - (Optional) A `license` block as defined below.
 
-* `oauth2_authorization` - (Optional) An `oauth2_authorization` block as documented below.
+* `oauth2_authorization` - (Optional) An `oauth2_authorization` block as defined below.
 
-* `openid_authentication` - (Optional) An `openid_authentication` block as documented below.
+* `openid_authentication` - (Optional) An `openid_authentication` block as defined below.
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 -> **Note:** The `service_url` is required when `api_type` is specified as `websocket`.
 
-* `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
+* `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as defined below.
 
 * `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
 
