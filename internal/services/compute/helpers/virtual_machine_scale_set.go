@@ -157,7 +157,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Description:  "The Gallery Application Version resource ID.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
@@ -166,7 +165,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Description:  "The URI to an Azure Blob that will replace the default configuration for the package if provided.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
@@ -175,7 +173,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
-					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
@@ -184,7 +181,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Description:  "A passthrough value for more generic context. This field can be any valid `string` value.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
