@@ -18,19 +18,22 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmLoadBalancerBackendAddressPoolRead,
+		Description: "Use this data source to access information about an existing Load Balancer's Backend Address Pool.",
+		Read:        dataSourceArmLoadBalancerBackendAddressPoolRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Backend Address Pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"loadbalancer_id": {
+				Description:  "The ID of the Load Balancer in which the Backend Address Pool exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
@@ -42,18 +45,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Backend Address.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"virtual_network_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Virtual Network where the Backend Address of the Load Balancer exists.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Static IP address for this Load Balancer within the Virtual Network.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"inbound_nat_rule_port_mapping": {
@@ -62,16 +68,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"inbound_nat_rule_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The name of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"frontend_port": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The Frontend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"backend_port": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The Backend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 								},
 							},
@@ -81,8 +90,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"backend_ip_configurations": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of references to IP addresses defined in network interfaces.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -94,24 +104,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"load_balancing_rules": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of the Load Balancing Rules associated with this Backend Address Pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"outbound_rules": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of the Load Balancing Outbound Rules associated with this Backend Address Pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"inbound_nat_rules": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

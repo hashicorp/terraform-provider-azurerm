@@ -35,8 +35,9 @@ type PlaywrightWorkspaceDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Playwright Workspace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`),
 				"length of `name` must be between 3 and 24 characters (inclusive) and contain only numbers, letters, and hyphens (-)"),
@@ -51,13 +52,15 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"dataplane_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The data plane service API URI of the Playwright Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"uuid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID in GUID format of the Playwright Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -70,6 +73,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_playwright_workspace"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Playwright Workspace."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

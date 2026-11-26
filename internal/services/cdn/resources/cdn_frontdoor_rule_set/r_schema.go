@@ -4,7 +4,7 @@
 package cdn_frontdoor_rule_set
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -12,6 +12,7 @@ import (
 func cdnFrontdoorRuleSetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Front Door Rule Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func cdnFrontdoorRuleSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_profile_id": {
+			Description:  "The ID of the Front Door Profile.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

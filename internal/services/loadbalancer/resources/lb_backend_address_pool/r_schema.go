@@ -13,6 +13,7 @@ import (
 func lbBackendAddressPoolSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Backend Address Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func lbBackendAddressPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"loadbalancer_id": {
+			Description:  "The ID of the Load Balancer in which to create the Backend Address Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func lbBackendAddressPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"synchronous_mode": {
+			Description:  "The backend address synchronous mode for the Backend Address Pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -41,13 +44,15 @@ func lbBackendAddressPoolSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identifier": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The unique identifier of this Gateway Load Balancer Tunnel Interface.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The traffic type of this Gateway Load Balancer Tunnel Interface.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice(
 							loadbalancers.PossibleValuesForGatewayLoadBalancerTunnelInterfaceType(),
 							false,
@@ -55,8 +60,9 @@ func lbBackendAddressPoolSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"protocol": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The protocol used for this Gateway Load Balancer Tunnel Interface.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice(
 							loadbalancers.PossibleValuesForGatewayLoadBalancerTunnelProtocol(),
 							false,
@@ -64,46 +70,52 @@ func lbBackendAddressPoolSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"port": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The port number that this Gateway Load Balancer Tunnel Interface listens to.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 					},
 				},
 			},
 		},
 
 		"virtual_network_id": {
+			Description:  "The ID of the Virtual Network within which the Backend Address Pool should exist.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		"backend_ip_configurations": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The Backend IP Configurations associated with this Backend Address Pool.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"inbound_nat_rules": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "An array of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"load_balancing_rules": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The Load Balancing Rules associated with this Backend Address Pool.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"outbound_rules": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "An array of the Load Balancing Outbound Rules associated with this Backend Address Pool.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

@@ -24,10 +24,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceProximityPlacementGroupCreateUpdate,
-		Read:   resourceProximityPlacementGroupRead,
-		Update: resourceProximityPlacementGroupCreateUpdate,
-		Delete: resourceProximityPlacementGroupDelete,
+		Description: "Manages a Proximity Placement Group for Virtual Machines, Virtual Machine Scale Sets and Availability Sets.",
+		Create:      resourceProximityPlacementGroupCreateUpdate,
+		Read:        resourceProximityPlacementGroupRead,
+		Update:      resourceProximityPlacementGroupCreateUpdate,
+		Delete:      resourceProximityPlacementGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&proximityplacementgroups.ProximityPlacementGroupId{}),
 

@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_container_app_environment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Container App Environment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return managedenvironments.ValidateManagedEnvironmentID
 }

@@ -1,0 +1,1 @@
+{"schema-bug-example":{"properties":{"Field2":{"description":"Field2","type":"string"},"field1":{"description":"Field1","type":"string"}},"required":["field1","Field2"],"type":"object"}}

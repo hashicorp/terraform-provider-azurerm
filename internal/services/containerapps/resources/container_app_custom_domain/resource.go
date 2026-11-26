@@ -17,6 +17,10 @@ func (a Resource) ResourceType() string {
 	return "azurerm_container_app_custom_domain"
 }
 
+func (a Resource) Description() string {
+	return "Manages a Container App Custom Domain."
+}
+
 func (a Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ContainerAppCustomDomainId
 }

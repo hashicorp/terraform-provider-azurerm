@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDataProtectionBackupVaultRead,
+		Description: "Use this data source to access information about an existing Backup Vault.",
+		Read:        dataSourceDataProtectionBackupVaultRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,8 +32,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Backup Vault.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9]{2,50}$"),
 					"DataProtection BackupVault name must be 2 - 50 characters long, contain only letters, numbers and hyphens.).",
@@ -44,13 +46,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"datastore_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the data store.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"redundancy": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The backup storage redundancy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),

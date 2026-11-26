@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "A unique UUID/GUID which identifies this Log Analytics Query Pack Query - one will be generated if not specified.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -22,6 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"query_pack_id": {
+			Description:  "The ID of the Log Analytics Query Pack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,20 +31,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"body": {
+			Description:  "The body of the Log Analytics Query Pack Query.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
+			Description:  "The unique display name for the query within the Log Analytics Query Pack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"categories": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of the related categories for the function.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -64,20 +69,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the Log Analytics Query Pack Query.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"additional_settings_json": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			StateFunc: pluginsdk.NormalizeJson,
+			Description: "The additional properties that can be set for the Log Analytics Query Pack Query.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			StateFunc:   pluginsdk.NormalizeJson,
 		},
 
 		"resource_types": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of the related resource types for the function.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -219,6 +227,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"solutions": {
+			Description:      "A list of the related Log Analytics solutions for the function.",
 			Type:             pluginsdk.TypeList,
 			Optional:         true,
 			DiffSuppressFunc: suppress.CaseDifference,

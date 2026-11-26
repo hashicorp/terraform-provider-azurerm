@@ -12,12 +12,14 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cost Management Export.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"subscription_id": {
+			Description:  "The ID of the subscription on which to create an export.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

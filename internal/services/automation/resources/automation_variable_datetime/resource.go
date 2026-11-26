@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableDateTimeCreate,
-		Read:   resourceAutomationVariableDateTimeRead,
-		Update: resourceAutomationVariableDateTimeUpdate,
-		Delete: resourceAutomationVariableDateTimeDelete,
+		Description: "Manages a DateTime variable in Azure Automation.",
+		Create:      resourceAutomationVariableDateTimeCreate,
+		Read:        resourceAutomationVariableDateTimeRead,
+		Update:      resourceAutomationVariableDateTimeUpdate,
+		Delete:      resourceAutomationVariableDateTimeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := variable.ParseVariableID(id)

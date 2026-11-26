@@ -21,10 +21,11 @@ import (
 
 func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLTriggerCreateUpdate,
-		Read:   resourceCosmosDbSQLTriggerRead,
-		Update: resourceCosmosDbSQLTriggerCreateUpdate,
-		Delete: resourceCosmosDbSQLTriggerDelete,
+		Description: "Manages an SQL Trigger.",
+		Create:      resourceCosmosDbSQLTriggerCreateUpdate,
+		Read:        resourceCosmosDbSQLTriggerRead,
+		Update:      resourceCosmosDbSQLTriggerCreateUpdate,
+		Delete:      resourceCosmosDbSQLTriggerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -40,6 +41,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name which should be used for this SQL Trigger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -47,6 +49,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"container_id": {
+				Description:  "The ID of the Cosmos DB SQL Container to create the SQL Trigger within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -54,18 +57,21 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"body": {
+				Description:  "Body of the Trigger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"operation": {
+				Description:  "The operation the trigger is associated with.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerOperation(), false),
 			},
 
 			"type": {
+				Description:  "Type of the Trigger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerType(), false),
