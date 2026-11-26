@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -40,8 +40,8 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 
 		"path": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "",
 			ValidateFunc: validate.StorageShareDirectoryName,
 		},
@@ -74,16 +74,16 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 		"source": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  validation.StringIsNotEmpty,
 			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
 			ConflictsWith: []string{"source_content"},
 		},
 
 		"source_content": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  validation.StringIsNotEmpty,
 			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
 			ConflictsWith: []string{"source"},
 		},
 

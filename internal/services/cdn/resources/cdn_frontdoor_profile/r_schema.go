@@ -1,0 +1,74 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package cdn_frontdoor_profile
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description:  "The name of the Front Door Profile.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.FrontDoorName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"response_timeout_seconds": {
+			Description:  "The maximum response timeout in seconds.",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      120,
+			ValidateFunc: validation.IntBetween(16, 240),
+		},
+
+		"sku_name": {
+			Description: "The SKU for this Front Door Profile.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(profiles.SkuNamePremiumAzureFrontDoor),
+				string(profiles.SkuNameStandardAzureFrontDoor),
+			}, false),
+		},
+
+		"log_scrubbing_rule": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MaxItems: 3,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"match_variable": {
+						Description: "The variable to be scrubbed from the logs.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ValidateFunc: validation.StringInSlice(
+							profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+							false,
+						),
+					},
+				},
+			},
+		},
+
+		"tags": commonschema.Tags(),
+
+		"resource_guid": {
+			Description: "The UUID of this Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+	}
+}
