@@ -48,7 +48,7 @@ func TestAccManagedDisk_listBySubscriptionandRG(t *testing.T) {
 }
 
 func (r ManagedDiskResource) basicList(data acceptance.TestData) string {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -59,8 +59,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  count = 3
-  name                 = "acctestd-%d${count.index}"	
+  count                = 3
+  name                 = "acctestd-%d${count.index}"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
@@ -73,7 +73,7 @@ resource "azurerm_managed_disk" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
+}
 
 func (r ManagedDiskResource) basicQuery() string {
 	return `
