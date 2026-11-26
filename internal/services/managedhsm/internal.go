@@ -5,6 +5,7 @@ package managedhsm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,7 +27,7 @@ type deleteAndPurgeNestedItem interface {
 func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPurge bool, helper deleteAndPurgeNestedItem) error {
 	timeout, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context is missing a timeout")
+		return errors.New("context is missing a timeout")
 	}
 
 	log.Printf("[DEBUG] Deleting %s..", description)

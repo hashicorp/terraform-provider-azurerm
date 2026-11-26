@@ -5,6 +5,7 @@ package networkmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"regexp"
@@ -152,7 +153,7 @@ func (r ManagerRoutingRuleResource) CustomizeDiff() sdk.ResourceFunc {
 			if len(model.NextHop) > 0 {
 				v := model.NextHop[0]
 				if strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
-					return fmt.Errorf("expanding `next_hop`: `address` is required when `type` is `VirtualAppliance`")
+					return errors.New("expanding `next_hop`: `address` is required when `type` is `VirtualAppliance`")
 				}
 			}
 

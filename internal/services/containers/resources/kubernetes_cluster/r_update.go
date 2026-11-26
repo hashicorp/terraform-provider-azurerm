@@ -4,6 +4,7 @@
 package kubernetes_cluster
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -419,7 +420,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	if d.HasChange(nodeOsUpgradeChannel) {
 		updateCluster = true
 		if d.Get(autoUpgradeChannel).(string) == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get(nodeOsUpgradeChannel).(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			return fmt.Errorf("`node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
+			return errors.New("`node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
 		}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
@@ -540,7 +541,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]any)
 
 		if len(upgradeOverrideSettingRaw) == 0 {
-			return fmt.Errorf("`upgrade_override` cannot be unset")
+			return errors.New("`upgrade_override` cannot be unset")
 		}
 
 		updateCluster = true

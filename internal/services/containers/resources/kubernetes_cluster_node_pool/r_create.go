@@ -159,11 +159,11 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		profile.SpotMaxPrice = pointer.To(spotMaxPrice)
 	} else {
 		if evictionPolicy != "" {
-			return fmt.Errorf("`eviction_policy` can only be set when `priority` is set to `Spot`")
+			return errors.New("`eviction_policy` can only be set when `priority` is set to `Spot`")
 		}
 
 		if spotMaxPrice != -1.0 {
-			return fmt.Errorf("`spot_max_price` can only be set when `priority` is set to `Spot`")
+			return errors.New("`spot_max_price` can only be set when `priority` is set to `Spot`")
 		}
 	}
 
@@ -257,20 +257,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		if maxCount >= 0 {
 			profile.MaxCount = pointer.To(int64(maxCount))
 		} else {
-			return fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return errors.New("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount >= 0 {
 			profile.MinCount = pointer.To(int64(minCount))
 		} else {
-			return fmt.Errorf("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return errors.New("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > maxCount {
-			return fmt.Errorf("`max_count` must be >= `min_count`")
+			return errors.New("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
-		return fmt.Errorf("`max_count` and `min_count` must be set to `null` when auto_scaling_enabled is set to `false`")
+		return errors.New("`max_count` and `min_count` must be set to `null` when auto_scaling_enabled is set to `false`")
 	}
 
 	if kubeletConfig := d.Get("kubelet_config").([]any); len(kubeletConfig) > 0 {
@@ -279,7 +279,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 
 	if linuxOSConfig := d.Get("linux_os_config").([]any); len(linuxOSConfig) > 0 {
 		if osType != string(managedclusters.OSTypeLinux) {
-			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
+			return errors.New("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
 		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
 		if err != nil {
@@ -317,7 +317,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	if nodeSubnetID != nil {
 		// Wait for vnet and node subnet to come back to Succeeded before releasing any locks

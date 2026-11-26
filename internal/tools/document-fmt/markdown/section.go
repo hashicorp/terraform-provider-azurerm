@@ -4,6 +4,7 @@
 package markdown
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"slices"
@@ -33,7 +34,7 @@ type SectionWithTemplate interface {
 // if a matching section wasn't found, it returns an error
 func InsertAfterSection(newSection Section, sections []Section, after Section) ([]Section, error) {
 	if len(sections) == 0 {
-		return nil, fmt.Errorf("received an empty sections slice")
+		return nil, errors.New("received an empty sections slice")
 	}
 
 	for idx, s := range sections {
@@ -50,7 +51,7 @@ func InsertAfterSection(newSection Section, sections []Section, after Section) (
 // if a matching section wasn't found, it returns an error
 func InsertBeforeSection(newSection Section, sections []Section, before Section) ([]Section, error) {
 	if len(sections) == 0 {
-		return nil, fmt.Errorf("received an empty sections slice")
+		return nil, errors.New("received an empty sections slice")
 	}
 
 	for idx, s := range sections {

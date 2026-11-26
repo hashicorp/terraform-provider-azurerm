@@ -5,6 +5,7 @@ package monitor_diagnostic_setting
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,7 +69,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any)
 	}
 
 	if !hasEnabledMetrics && !hasEnabledLogs {
-		return fmt.Errorf("at least one type of Log or Metric must be enabled")
+		return errors.New("at least one type of Log or Metric must be enabled")
 	}
 
 	parameters := diagnosticsettings.DiagnosticSettingsResource{
@@ -145,7 +146,7 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []any) (*[]diagnosticsett
 		case categoryGroup != "":
 			output.CategoryGroup = pointer.To(categoryGroup)
 		default:
-			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
+			return nil, errors.New("exactly one of `category` or `category_group` must be specified")
 		}
 
 		results = append(results, output)

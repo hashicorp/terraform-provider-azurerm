@@ -5,6 +5,7 @@ package function_app_flex_consumption
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -244,7 +245,7 @@ func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReady, maximumInsta
 	}
 
 	if totalInstanceCount > maximumInstanceCount {
-		return nil, fmt.Errorf("the total number of always-ready instances should not exceed the maximum scale out limit")
+		return nil, errors.New("the total number of always-ready instances should not exceed the maximum scale out limit")
 	}
 
 	return &arList, nil

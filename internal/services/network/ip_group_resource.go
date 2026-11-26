@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -186,7 +187,7 @@ func resourceIpGroupFlatten(d *pluginsdk.ResourceData, id *ipgroups.IPGroupId, m
 
 		if props := model.Properties; props != nil {
 			if props.IPAddresses == nil {
-				return fmt.Errorf("list of ipAddresses returned is nil")
+				return errors.New("list of ipAddresses returned is nil")
 			}
 			if err := d.Set("cidrs", props.IPAddresses); err != nil {
 				return fmt.Errorf("setting `cidrs`: %+v", err)

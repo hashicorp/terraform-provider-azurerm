@@ -5,6 +5,7 @@ package windows_web_app_slot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -254,7 +255,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				if webAppModel := resp.Model; webAppModel != nil {
 					if webAppModel.Properties != nil && webAppModel.Properties.HostingEnvironmentProfile != nil &&
 						pointer.From(webAppModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
-						return fmt.Errorf("`virtual_network_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						return errors.New("`virtual_network_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 				}
 			}

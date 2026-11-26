@@ -7,6 +7,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,7 +17,7 @@ import (
 // SSHKey performs some basic validation on supplied SSH Keys - Encoded Signature and Key Size are evaluated
 // Will require rework if/when other Key Types are supported
 // lintignore:V012 // false positive - this validates a string SSH key, not an int; the int comparison here checks the RSA key size
-func SSHKey(i any, k string) (warnings []string, errors []error) {
+func SSHKey(i any, k string) (warnings []string, errs []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -41,7 +42,7 @@ func SSHKey(i any, k string) (warnings []string, errors []error) {
 		case ssh.KeyAlgoRSA:
 			rsaPubKey, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(*rsa.PublicKey)
 			if !ok {
-				return nil, []error{fmt.Errorf("- could not retrieve the RSA public key from the SSH public key")}
+				return nil, []error{errors.New("- could not retrieve the RSA public key from the SSH public key")}
 			}
 			rsaPubKeyBits := rsaPubKey.Size() * 8
 			if rsaPubKeyBits < 2048 {
@@ -50,7 +51,7 @@ func SSHKey(i any, k string) (warnings []string, errors []error) {
 		case ssh.KeyAlgoED25519:
 			_, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(ed25519.PublicKey)
 			if !ok {
-				return nil, []error{fmt.Errorf("- could not retrieve the ED25519 public key from the SSH public key")}
+				return nil, []error{errors.New("- could not retrieve the ED25519 public key from the SSH public key")}
 			}
 		default:
 			return nil, []error{fmt.Errorf("- the provided %s SSH key is not supported. Only RSA and ED25519 SSH keys are supported by Azure", pubKey.Type())}
@@ -59,5 +60,5 @@ func SSHKey(i any, k string) (warnings []string, errors []error) {
 		return nil, []error{fmt.Errorf("%q is not a complete SSH2 Public Key", k)}
 	}
 
-	return warnings, errors
+	return warnings, errs
 }

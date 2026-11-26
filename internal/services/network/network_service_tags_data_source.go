@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -80,7 +81,7 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta any) error
 	}
 
 	if resp.Model == nil || resp.Model.Values == nil {
-		return fmt.Errorf("listing network service tags: `model.Values` was nil")
+		return errors.New("listing network service tags: `model.Values` was nil")
 	}
 
 	service := d.Get("service").(string)

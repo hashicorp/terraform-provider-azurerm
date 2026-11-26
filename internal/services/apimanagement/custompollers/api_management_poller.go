@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,7 +53,7 @@ func NewAPIManagementPoller(cli *apimanagementservice.ApiManagementServiceClient
 	}
 
 	if pollingUrl == "" {
-		return nil, fmt.Errorf("no polling URL found in response")
+		return nil, errors.New("no polling URL found in response")
 	}
 
 	url, err := url.Parse(pollingUrl)
@@ -71,7 +72,7 @@ func NewAPIManagementPoller(cli *apimanagementservice.ApiManagementServiceClient
 
 func (p apiManagementPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	if p.pollingUrl == nil {
-		return nil, fmt.Errorf("internal error: cannot poll without a pollingUrl")
+		return nil, errors.New("internal error: cannot poll without a pollingUrl")
 	}
 
 	reqOpts := client.RequestOptions{

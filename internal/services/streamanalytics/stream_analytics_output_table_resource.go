@@ -5,6 +5,7 @@ package streamanalytics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -322,7 +323,7 @@ func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.Model.Properties
 		if _, ok := props.Datasource.(outputs.AzureTableOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+			return errors.New("specified output is not of type")
 		}
 		return nil
 	}

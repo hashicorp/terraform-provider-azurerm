@@ -5,6 +5,7 @@ package monitor_action_group
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -49,7 +50,7 @@ func expandMonitorActionGroupItsmReceiver(v []any) (*[]actiongroupsapis.ItsmRece
 		_, existKeyPayloadRevision := j["PayloadRevision"]
 		_, existKeyWorkItemType := j["WorkItemType"]
 		if !existKeyPayloadRevision || !existKeyWorkItemType {
-			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
+			return nil, errors.New("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
 		}
 		receivers = append(receivers, receiver)
 	}

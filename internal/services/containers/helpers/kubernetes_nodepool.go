@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"maps"
 	"regexp"
@@ -1122,7 +1123,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 		// Count must be set for the initial creation when using AutoScaling but cannot be updated
 		if d.HasChange("default_node_pool.0.node_count") && !d.IsNewResource() {
-			return nil, fmt.Errorf("cannot change `node_count` when `auto_scaling_enabled` is set to `true`")
+			return nil, errors.New("cannot change `node_count` when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if maxCount > 0 {
@@ -1132,7 +1133,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `auto_scaling_enabled` is set to `true`", count, maxCount)
 			}
 		} else {
-			return nil, fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return nil, errors.New("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > 0 {
@@ -1142,11 +1143,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `auto_scaling_enabled` is set to `true`", count, minCount)
 			}
 		} else {
-			return nil, fmt.Errorf("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return nil, errors.New("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > maxCount {
-			return nil, fmt.Errorf("`max_count` must be >= `min_count`")
+			return nil, errors.New("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
 		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
@@ -1295,10 +1296,10 @@ func ExpandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConf
 	netIpv4IPLocalPortRangeMin := raw["net_ipv4_ip_local_port_range_min"].(int)
 	netIpv4IPLocalPortRangeMax := raw["net_ipv4_ip_local_port_range_max"].(int)
 	if (netIpv4IPLocalPortRangeMin != 0 && netIpv4IPLocalPortRangeMax == 0) || (netIpv4IPLocalPortRangeMin == 0 && netIpv4IPLocalPortRangeMax != 0) {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
+		return nil, errors.New("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
 	}
 	if netIpv4IPLocalPortRangeMin > netIpv4IPLocalPortRangeMax {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
+		return nil, errors.New("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
 	}
 	if netIpv4IPLocalPortRangeMin != 0 && netIpv4IPLocalPortRangeMax != 0 {
 		result.NetIPv4IPLocalPortRange = pointer.To(fmt.Sprintf("%d %d", netIpv4IPLocalPortRangeMin, netIpv4IPLocalPortRangeMax))
@@ -1905,7 +1906,7 @@ func FindDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 		}
 
 		if defaultNodePoolName == nil {
-			return nil, fmt.Errorf("unable to Determine Default Agent Pool")
+			return nil, errors.New("unable to Determine Default Agent Pool")
 		}
 	}
 
