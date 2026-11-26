@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -57,6 +59,15 @@ func (r Resource) Create() sdk.ResourceFunc {
 					},
 				}
 			} else {
+				woAccessKey, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "access_key_wo", cty.String)
+				if err != nil {
+					return err
+				}
+
+				if !woAccessKey.IsNull() {
+					storage.AccessKey = woAccessKey.AsString()
+				}
+
 				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
