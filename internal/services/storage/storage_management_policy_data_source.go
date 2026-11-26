@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -49,14 +49,14 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 									"prefix_match": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 
 									"match_blob_index_tag": {

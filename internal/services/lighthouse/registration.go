@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package lighthouse
@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/resources/lighthouse_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/resources/lighthouse_definition"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,8 +43,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_lighthouse_assignment": resourceLighthouseAssignment(),
-		"azurerm_lighthouse_definition": resourceLighthouseDefinition(),
+		"azurerm_lighthouse_assignment": lighthouse_assignment.RegisterResource(),
+		"azurerm_lighthouse_definition": lighthouse_definition.RegisterResource(),
 	}
 }
 

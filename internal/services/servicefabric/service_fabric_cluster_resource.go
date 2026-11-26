@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabric
@@ -99,8 +99,8 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"add_on_features": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"azure_active_directory": {
