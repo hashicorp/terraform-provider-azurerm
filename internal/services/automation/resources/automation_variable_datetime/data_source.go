@@ -12,7 +12,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAutomationVariableDateTimeRead,
+		Description: "Use this data source to access information about an existing Automation Datetime Variable.",
+		Read:        dataSourceAutomationVariableDateTimeRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

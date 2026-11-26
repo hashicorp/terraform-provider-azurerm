@@ -13,6 +13,7 @@ import (
 func dedicatedHostGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Dedicated Host Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func dedicatedHostGroupSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"platform_fault_domain_count": {
+			Description:  "The number of fault domains that the Dedicated Host Group spans.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -31,10 +33,11 @@ func dedicatedHostGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automatic_placement_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether Virtual Machines or Virtual Machine Scale Sets are placed automatically on this Dedicated Host Group.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 		"zone": commonschema.ZoneSingleOptionalForceNew(),
 

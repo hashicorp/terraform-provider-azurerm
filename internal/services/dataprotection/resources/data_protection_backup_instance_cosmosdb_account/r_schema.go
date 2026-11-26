@@ -1,0 +1,48 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package data_protection_backup_instance_cosmosdb_account
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/basebackuppolicyresources"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+const cosmosDBAccountDataSourceType = "Microsoft.DocumentDB/databaseAccounts"
+
+func (r Resource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description: "The name of the Data Protection Backup Instance for the Cosmos DB Database Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			ValidateFunc: validation.All(
+				validation.StringIsNotEmpty,
+				validation.StringDoesNotContainAny("/"),
+			),
+		},
+
+		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&backupvaultresources.BackupVaultId{}, "Data Protection Backup Vault"),
+
+		"location": commonschema.Location(),
+
+		"cosmosdb_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&openapis.DatabaseAccountId{}, "CosmosDB Account"),
+
+		"data_protection_backup_policy_cosmosdb_account_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}, "Backup Policy"),
+	}
+}
+
+func (r Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"protection_state": {
+			Description: "The protection state of the Cosmos DB Database Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+	}
+}

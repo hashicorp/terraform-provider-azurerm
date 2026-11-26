@@ -21,15 +21,17 @@ func UserAssignedIdentityRequired() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeUserAssigned),
 					}, false),
 				},
 				"identity_ids": {
-					Type:     schema.TypeSet,
-					Required: true,
+					Description: "A set of User Assigned Managed Identity IDs to assign to this resource.",
+					Type:        schema.TypeSet,
+					Required:    true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -50,17 +52,19 @@ func UserAssignedIdentityRequiredForceNew() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeUserAssigned),
 					}, false),
 				},
 				"identity_ids": {
-					Type:     schema.TypeSet,
-					Required: true,
-					ForceNew: true,
+					Description: "A set of User Assigned Managed Identity IDs to assign to this resource.",
+					Type:        schema.TypeSet,
+					Required:    true,
+					ForceNew:    true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -80,15 +84,17 @@ func UserAssignedIdentityOptional() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeUserAssigned),
 					}, false),
 				},
 				"identity_ids": {
-					Type:     schema.TypeSet,
-					Required: true,
+					Description: "A set of User Assigned Managed Identity IDs to assign to this resource.",
+					Type:        schema.TypeSet,
+					Required:    true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -109,17 +115,19 @@ func UserAssignedIdentityOptionalForceNew() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The type of Managed Service Identity to configure on this resource.",
+					Type:        schema.TypeString,
+					Required:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(identity.TypeUserAssigned),
 					}, false),
 				},
 				"identity_ids": {
-					Type:     schema.TypeSet,
-					Required: true,
-					ForceNew: true,
+					Description: "A set of User Assigned Managed Identity IDs to assign to this resource.",
+					Type:        schema.TypeSet,
+					Required:    true,
+					ForceNew:    true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -138,12 +146,14 @@ func UserAssignedIdentityComputed() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Description: "The type of Managed Service Identity configured on this resource.",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 				"identity_ids": {
-					Type:     schema.TypeList,
-					Computed: true,
+					Description: "A list of User Assigned Managed Identity IDs assigned to this resource.",
+					Type:        schema.TypeList,
+					Computed:    true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},

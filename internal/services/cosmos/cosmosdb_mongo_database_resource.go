@@ -23,10 +23,11 @@ import (
 
 func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbMongoDatabaseCreate,
-		Update: resourceCosmosDbMongoDatabaseUpdate,
-		Read:   resourceCosmosDbMongoDatabaseRead,
-		Delete: resourceCosmosDbMongoDatabaseDelete,
+		Description: "Manages a Mongo Database within a Cosmos DB Account.",
+		Create:      resourceCosmosDbMongoDatabaseCreate,
+		Update:      resourceCosmosDbMongoDatabaseUpdate,
+		Read:        resourceCosmosDbMongoDatabaseRead,
+		Delete:      resourceCosmosDbMongoDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := openapis.ParseMongodbDatabaseID(id)
@@ -47,6 +48,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Mongo Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,6 +58,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Mongo Database to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -63,6 +66,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 			},
 
 			"throughput": {
+				Description:  "The throughput of the MongoDB database (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation

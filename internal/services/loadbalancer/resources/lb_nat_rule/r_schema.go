@@ -13,6 +13,7 @@ import (
 func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NAT Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"loadbalancer_id": {
+			Description:  "The ID of the Load Balancer in which to create the NAT Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,8 +31,9 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The transport protocol for the external endpoint.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(loadbalancers.TransportProtocolAll),
 				string(loadbalancers.TransportProtocolTcp),
@@ -39,6 +42,7 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"frontend_port": {
+			Description:   "The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ValidateFunc:  validation.IsPortNumberOrZero,
@@ -46,37 +50,43 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_port": {
+			Description:  "The port used for internal connections on the endpoint.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IsPortNumberOrZero,
 		},
 
 		"frontend_ip_configuration_name": {
+			Description:  "The name of the frontend IP configuration exposing this rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"floating_ip_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Whether the Floating IPs are enabled for this Load Balancer Rule. A floating IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"tcp_reset_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether TCP Reset is enabled for this Load Balancer Rule.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"backend_address_pool_id": {
+			Description:   "A reference to backendAddressPool resource.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
-			ConflictsWith: []string{"frontend_port"},
 			RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
+			ConflictsWith: []string{"frontend_port"},
 		},
 
 		"frontend_port_start": {
+			Description:   "The port range start for the external endpoint. This property is used together with BackendAddressPool and FrontendPortRangeEnd. Individual inbound NAT rule port mappings will be created for each backend address from BackendAddressPool. Acceptable values range from 1 to 65534, inclusive.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ValidateFunc:  validation.IsPortNumber,
@@ -85,6 +95,7 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"frontend_port_end": {
+			Description:   "The port range end for the external endpoint. This property is used together with BackendAddressPool and FrontendPortRangeStart. Individual inbound NAT rule port mappings will be created for each backend address from BackendAddressPool. Acceptable values range from 1 to 65534, inclusive.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ValidateFunc:  validation.IsPortNumber,
@@ -93,6 +104,7 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"idle_timeout_in_minutes": {
+			Description:  "The idle timeout in minutes for TCP connections.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      4,

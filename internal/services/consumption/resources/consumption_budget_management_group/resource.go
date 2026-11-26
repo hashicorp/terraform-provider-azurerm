@@ -23,6 +23,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_consumption_budget_management_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Consumption Budget for a Management Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return budgets.ValidateScopedBudgetID
 }

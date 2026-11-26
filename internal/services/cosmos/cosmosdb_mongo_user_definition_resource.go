@@ -32,6 +32,10 @@ func (r CosmosDbMongoUserDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_user_definition"
 }
 
+func (r CosmosDbMongoUserDefinitionResource) Description() string {
+	return "Manages a Cosmos DB Mongo User Definition."
+}
+
 func (r CosmosDbMongoUserDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoUserDefinitionResourceModel{}
 }
@@ -43,6 +47,7 @@ func (r CosmosDbMongoUserDefinitionResource) IDValidationFunc() pluginsdk.Schema
 func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmos_mongo_database_id": {
+			Description:  "The resource ID of the Mongo DB.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -50,6 +55,7 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"username": {
+			Description:  "The username for the Mongo User Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -57,6 +63,7 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"password": {
+			Description:  "The password for the Mongo User Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -64,8 +71,9 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"inherited_role_names": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of Mongo Roles that are inherited to the Mongo User Definition.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

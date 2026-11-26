@@ -67,7 +67,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 			),
 		},
 
-		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}),
+		"verifier_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&reachabilityanalysisintents.VerifierWorkspaceId{}, "Network Manager Verifier Workspace"),
 
 		"source_resource_id": {
 			Type:     pluginsdk.TypeString,

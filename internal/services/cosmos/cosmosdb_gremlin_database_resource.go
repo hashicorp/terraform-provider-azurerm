@@ -22,10 +22,11 @@ import (
 
 func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosGremlinDatabaseCreate,
-		Update: resourceCosmosGremlinDatabaseUpdate,
-		Read:   resourceCosmosGremlinDatabaseRead,
-		Delete: resourceCosmosGremlinDatabaseDelete,
+		Description: "Manages a Gremlin Database within a Cosmos DB Account.",
+		Create:      resourceCosmosGremlinDatabaseCreate,
+		Update:      resourceCosmosGremlinDatabaseUpdate,
+		Read:        resourceCosmosGremlinDatabaseRead,
+		Delete:      resourceCosmosGremlinDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := openapis.ParseGremlinDatabaseID(id)
@@ -46,6 +47,7 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Gremlin Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -55,6 +57,7 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the CosmosDB Account to create the Gremlin Database within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -62,6 +65,7 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 			},
 
 			"throughput": {
+				Description:  "The throughput of the Gremlin database (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation

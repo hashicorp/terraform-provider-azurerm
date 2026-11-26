@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetBinaryCreateUpdate,
-		Read:   resourceDataFactoryDatasetBinaryRead,
-		Update: resourceDataFactoryDatasetBinaryCreateUpdate,
-		Delete: resourceDataFactoryDatasetBinaryDelete,
+		Description: "Manages a Data Factory Binary Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetBinaryCreateUpdate,
+		Read:        resourceDataFactoryDatasetBinaryRead,
+		Update:      resourceDataFactoryDatasetBinaryCreateUpdate,
+		Delete:      resourceDataFactoryDatasetBinaryDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)
 			return err

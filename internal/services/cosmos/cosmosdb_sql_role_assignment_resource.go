@@ -25,10 +25,11 @@ import (
 
 func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLRoleAssignmentCreate,
-		Read:   resourceCosmosDbSQLRoleAssignmentRead,
-		Update: resourceCosmosDbSQLRoleAssignmentUpdate,
-		Delete: resourceCosmosDbSQLRoleAssignmentDelete,
+		Description: "Manages a Cosmos DB SQL Role Assignment.",
+		Create:      resourceCosmosDbSQLRoleAssignmentCreate,
+		Read:        resourceCosmosDbSQLRoleAssignmentRead,
+		Update:      resourceCosmosDbSQLRoleAssignmentUpdate,
+		Delete:      resourceCosmosDbSQLRoleAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -44,6 +45,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The GUID as the name of the Cosmos DB SQL Role Assignment - one will be generated if not specified.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -54,6 +56,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -61,6 +64,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"principal_id": {
+				Description:  "The ID of the Principal (Client) in Azure Active Directory.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -68,6 +72,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"scope": {
+				Description:  "The data plane resource path for which access is being granted through this Cosmos DB SQL Role Assignment.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -75,6 +80,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"role_definition_id": {
+				Description:  "The resource ID of the Cosmos DB SQL Role Definition.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: openapis.ValidateSqlRoleDefinitionID,

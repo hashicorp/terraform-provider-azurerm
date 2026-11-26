@@ -40,6 +40,10 @@ func (m DataSource) ResourceType() string {
 	return "azurerm_managed_disks"
 }
 
+func (m DataSource) Description() string {
+	return "Use this data source to access information about an existing Managed Disk."
+}
+
 type ManagedDisksDataSourceModel struct {
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	Disks             []Disk `tfschema:"disk"`
@@ -97,8 +101,9 @@ func (m DataSource) Attributes() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"create_option": {
@@ -107,28 +112,33 @@ func (m DataSource) Attributes() map[string]*schema.Schema {
 					},
 
 					"disk_access_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Disk Access resource for using Private Endpoints on disks.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"disk_encryption_set_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Disk Encryption Set used to encrypt this Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"disk_iops_read_write": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The number of IOPS allowed for this disk, where one operation can transfer between 4k and 256k bytes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"disk_mbps_read_write": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The bandwidth allowed for this disk.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"disk_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The size of the Managed Disk in gigabytes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"encryption_settings": {
@@ -147,13 +157,15 @@ func (m DataSource) Attributes() map[string]*schema.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"secret_url": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The URL to the Key Vault Secret used as the Disk Encryption Key.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 
 											"source_vault_id": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The ID of the source Key Vault.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 										},
 									},
@@ -164,13 +176,15 @@ func (m DataSource) Attributes() map[string]*schema.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"key_url": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The URL to the Key Vault Key used as the Key Encryption Key.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 
 											"source_vault_id": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The ID of the source Key Vault.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 										},
 									},
@@ -180,43 +194,51 @@ func (m DataSource) Attributes() map[string]*schema.Schema {
 					},
 
 					"location": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Azure location of the Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"image_reference_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the source image used for creating this Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"network_access_policy": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Policy for accessing the disk via network.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"os_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The operating system used for this Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"source_resource_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of an existing Managed Disk which this Disk was created from.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"source_uri": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Source URI for this Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"storage_account_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Storage Account where the `source_uri` is located.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"storage_account_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Storage Account type for the Managed Disk.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"tags": commonschema.TagsDataSource(),
