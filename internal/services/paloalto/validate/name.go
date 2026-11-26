@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -35,7 +35,7 @@ func DestinationNATName(input any, k string) (warnings []string, errors []error)
 
 func paloAltoNameValidation(input any, k string) (warnings []string, errors []error) {
 	return validation.All(
-		// regex pulled from https://docs.microsoft.com/rest/api/resources/resourcegroups/createorupdate
+		// regex pulled from https://learn.microsoft.com/rest/api/resources/resourcegroups/createorupdate
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]{1,128}$`), "may only contain alphanumeric characters and dashes, and must be between 1 and 128 characters in length"),
 		validation.StringDoesNotMatch(regexp.MustCompile(`^-|-$`), "cannot start or end with a `-`"),
 	)(input, k)

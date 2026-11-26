@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 
-* `container_network_interface` - (Required) A `container_network_interface` block as documented below.
+* `container_network_interface` - (Required) A `container_network_interface` block as defined below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -78,7 +78,7 @@ A `container_network_interface` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
-* `ip_configuration` - (Required) One or more `ip_configuration` blocks as documented below.
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
 ---
 
