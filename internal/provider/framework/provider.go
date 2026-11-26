@@ -233,6 +233,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 		Blocks: map[string]schema.Block{
 			"features": schema.ListNestedBlock{
+				Validators: []validator.List{
+					listvalidator.SizeBetween(1, 1),
+				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
@@ -310,6 +313,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							},
 						},
 						"enhanced_validation": schema.ListNestedBlock{
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"locations": schema.BoolAttribute{
@@ -329,9 +335,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 										Optional:    true,
 									},
 								},
-							},
-							Validators: []validator.List{
-								listvalidator.SizeAtMost(1),
 							},
 						},
 						"key_vault": schema.ListNestedBlock{
@@ -538,9 +541,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							},
 						},
 					},
-				},
-				Validators: []validator.List{
-					listvalidator.SizeBetween(1, 1),
 				},
 			},
 		},
