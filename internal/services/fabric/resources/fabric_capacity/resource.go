@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_fabric_capacity"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Fabric Capacity."
+}

@@ -30,12 +30,14 @@ func AdditionalUnattendContentSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"content": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					ForceNew:  true,
-					Sensitive: true,
+					Description: "The XML formatted content that is added to the unattend.xml file for the specified path and component.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
+					Sensitive:   true,
 				},
 				"setting": {
+					Description:  "The name of the setting to which the content applies.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -61,12 +63,14 @@ func AdditionalUnattendContentSchemaVM() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"content": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					ForceNew:  true,
-					Sensitive: true,
+					Description: "The XML formatted content that is added to the unattend.xml file for the specified path and component.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
+					Sensitive:   true,
 				},
 				"setting": {
+					Description:  "The name of the setting to which the content applies.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -193,8 +197,9 @@ func BootDiagnosticsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				// TODO: should this be `storage_account_endpoint`?
 				"storage_account_uri": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The Primary/Secondary endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including console output and screenshots from the Hypervisor.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					// TODO: validation
 				},
 			},
@@ -301,7 +306,7 @@ func LinuxSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
 				// closer to the Windows VMSS resource, which will also take a `store` param
@@ -312,6 +317,7 @@ func LinuxSecretSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"url": {
+								Description:  "The Secret URL of a Key Vault Certificate.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
@@ -463,21 +469,24 @@ func PlanSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The name of the Marketplace Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 
 				"product": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The product of the Marketplace Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 
 				"publisher": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The publisher of the Marketplace Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 			},
 		},
@@ -566,24 +575,28 @@ func SourceImageReferenceSchemaVM() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {
+					Description:  "The publisher of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
+					Description:  "The offer of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
+					Description:  "The SKU of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"version": {
+					Description:  "The version of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -611,24 +624,28 @@ func SourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {
+					Description:  "The publisher of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
+					Description:  "The offer of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
+					Description:  "The SKU of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"version": {
+					Description:  "The version of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
@@ -650,23 +667,27 @@ func SourceImageReferenceSchemaOrchestratedVMSS() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {
+					Description:  "The publisher of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
+					Description:  "The offer of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
+					Description:  "The SKU of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"version": {
+					Description:  "The version of the image used to create the Virtual Machines.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -846,6 +867,7 @@ func WinRmListenerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
+					Description:  "The protocol of the listener.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -853,6 +875,7 @@ func WinRmListenerSchema() *pluginsdk.Schema {
 				},
 
 				"certificate_url": {
+					Description:  "The secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -872,9 +895,13 @@ func WinRmListenerSchemaVM() *pluginsdk.Schema {
 		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
 		//   Target="windowsConfiguration.winRM.listeners"
 		ForceNew: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
+					Description:  "The protocol of listener.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -882,15 +909,13 @@ func WinRmListenerSchemaVM() *pluginsdk.Schema {
 				},
 
 				"certificate_url": {
+					Description:  "The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 			},
-		},
-		ConflictsWith: []string{
-			"os_managed_disk_id",
 		},
 	}
 }
@@ -986,7 +1011,7 @@ func WindowsSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 				"certificate": {
 					Type:     pluginsdk.TypeSet,
@@ -995,10 +1020,12 @@ func WindowsSecretSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"store": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The certificate store on the Virtual Machine where the certificate should be added.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 							"url": {
+								Description:  "The Secret URL of a Key Vault Certificate.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
@@ -1015,10 +1042,13 @@ func WindowsSecretSchemaVM() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 				"certificate": {
 					Type:     pluginsdk.TypeSet,
@@ -1027,10 +1057,12 @@ func WindowsSecretSchemaVM() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"store": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The certificate store on the Virtual Machine where the certificate should be added.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 							"url": {
+								Description:  "The Secret URL of a Key Vault Certificate.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
@@ -1039,9 +1071,6 @@ func WindowsSecretSchemaVM() *pluginsdk.Schema {
 					},
 				},
 			},
-		},
-		ConflictsWith: []string{
-			"os_managed_disk_id",
 		},
 	}
 }
@@ -1186,15 +1215,17 @@ func UefiKeySchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"values_base64": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
+				Description: "A list of Base64-encoded values for this key. For `x509` keys this is the DER-encoded certificate, for `sha256` keys this is the hash.",
+				Type:        pluginsdk.TypeList,
+				Required:    true,
+				ForceNew:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsBase64,
 				},
 			},
 			"type": {
+				Description:  "The type of key signature.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

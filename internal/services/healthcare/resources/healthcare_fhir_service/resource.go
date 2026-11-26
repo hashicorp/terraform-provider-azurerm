@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisFhirServiceCreate,
-		Read:   resourceHealthcareApisFhirServiceRead,
-		Update: resourceHealthcareApisFhirServiceUpdate,
-		Delete: resourceHealthcareApisFhirServiceDelete,
+		Description: "Manages a Healthcare FHIR (Fast Healthcare Interoperability Resources) Service.",
+		Create:      resourceHealthcareApisFhirServiceCreate,
+		Read:        resourceHealthcareApisFhirServiceRead,
+		Update:      resourceHealthcareApisFhirServiceUpdate,
+		Delete:      resourceHealthcareApisFhirServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),

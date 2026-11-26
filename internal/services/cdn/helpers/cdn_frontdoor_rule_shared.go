@@ -40,10 +40,11 @@ func PossibleValuesForRuleCacheBehavior() []string {
 
 func CdnFrontDoorRuleValuesRequiredSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MinItems: 1,
-		MaxItems: 25,
+		Description: "A list of CIDR ranges or country codes. If multiple values are specified, they are evaluated using `OR` logic.",
+		Type:        pluginsdk.TypeList,
+		Required:    true,
+		MinItems:    1,
+		MaxItems:    25,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -53,9 +54,10 @@ func CdnFrontDoorRuleValuesRequiredSchema() *pluginsdk.Schema {
 
 func CdnFrontDoorRuleValuesOptionalSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 25,
+		Description: "The values to match. If multiple values are specified, they are evaluated using `OR` logic.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    25,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -63,8 +65,9 @@ func CdnFrontDoorRuleValuesOptionalSchema() *pluginsdk.Schema {
 	}
 }
 
-func CdnFrontDoorRuleConditionNameSchema() *pluginsdk.Schema {
+func CdnFrontDoorRuleConditionNameSchema(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringIsNotEmpty,
@@ -73,10 +76,11 @@ func CdnFrontDoorRuleConditionNameSchema() *pluginsdk.Schema {
 
 func CdnFrontDoorRuleHttpVersionValuesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Required: true,
-		MinItems: 1,
-		MaxItems: 4,
+		Description: "A list of one or more HTTP versions to match.",
+		Type:        pluginsdk.TypeSet,
+		Required:    true,
+		MinItems:    1,
+		MaxItems:    4,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{"2.0", "1.1", "1.0", "0.9"}, false),
@@ -86,9 +90,10 @@ func CdnFrontDoorRuleHttpVersionValuesSchema() *pluginsdk.Schema {
 
 func CdnFrontDoorServerPortValuesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		MaxItems: 2,
+		Description: "A list of one or more values representing the server port to match. If multiple values are specified, they are evaluated using `OR` logic.",
+		Type:        pluginsdk.TypeSet,
+		Optional:    true,
+		MaxItems:    2,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{"80", "443"}, false),
@@ -98,10 +103,11 @@ func CdnFrontDoorServerPortValuesSchema() *pluginsdk.Schema {
 
 func CdnFrontDoorSocketAddressValuesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MinItems: 1,
-		MaxItems: 25,
+		Description: "One or more IP address ranges. If multiple IP address ranges are specified, they are evaluated using `OR` logic.",
+		Type:        pluginsdk.TypeList,
+		Required:    true,
+		MinItems:    1,
+		MaxItems:    25,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validate.FrontDoorRuleCidrIsValid,

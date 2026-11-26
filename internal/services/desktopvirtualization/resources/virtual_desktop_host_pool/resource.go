@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopHostPoolCreate,
-		Read:   resourceVirtualDesktopHostPoolRead,
-		Update: resourceVirtualDesktopHostPoolUpdate,
-		Delete: resourceVirtualDesktopHostPoolDelete,
+		Description: "Manages a Virtual Desktop Host Pool.",
+		Create:      resourceVirtualDesktopHostPoolCreate,
+		Read:        resourceVirtualDesktopHostPoolRead,
+		Update:      resourceVirtualDesktopHostPoolUpdate,
+		Delete:      resourceVirtualDesktopHostPoolDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

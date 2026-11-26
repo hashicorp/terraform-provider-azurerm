@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -362,7 +362,7 @@ resource "azurerm_postgresql_flexible_server" "primary" {
   public_network_access_enabled = false
   administrator_login           = "adminTerraform"
   administrator_password        = "maLTq5SnDBrWfyban7Wz"
-  sku_name                      = "GP_Standard_D2s_v3"
+  sku_name                      = "GP_Standard_D2ds_v5"
 
   delegated_subnet_id = azurerm_subnet.primary.id
   private_dns_zone_id = azurerm_private_dns_zone.primary.id
@@ -550,7 +550,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                          = "1"
   storage_mb                    = 32768
   storage_tier                  = "P30"
-  sku_name                      = "GP_Standard_D2s_v3"
+  sku_name                      = "GP_Standard_D2ds_v5"
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {

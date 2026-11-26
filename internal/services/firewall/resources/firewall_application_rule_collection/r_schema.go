@@ -14,6 +14,7 @@ import (
 func firewallApplicationRuleCollectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Application Rule Collection which must be unique within the Firewall.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func firewallApplicationRuleCollectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"azure_firewall_name": {
+			Description:  "The name of the Firewall in which the Application Rule Collection should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,12 +32,14 @@ func firewallApplicationRuleCollectionSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"priority": {
+			Description:  "The priority of the rule collection.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(100, 65000),
 		},
 
 		"action": {
+			Description:  "The action the rule will apply to matching traffic.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallRCActionType(), false),
@@ -48,33 +52,39 @@ func firewallApplicationRuleCollectionSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.NoZeroValues,
 					},
 					"source_addresses": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "A list of source IP addresses and/or IP ranges.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"source_ip_groups": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "A list of source IP Group IDs for the rule.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "A description for the rule.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 					"fqdn_tags": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "A list of FQDN tags.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"target_fqdns": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "A list of FQDNs.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"protocol": {
 						Type:     pluginsdk.TypeList,
@@ -83,11 +93,13 @@ func firewallApplicationRuleCollectionSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
+									Description:  "The type of connection.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallApplicationRuleProtocolType(), false),
 								},
 								"port": {
+									Description:  "A port for the connection.",
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IsPortNumber,

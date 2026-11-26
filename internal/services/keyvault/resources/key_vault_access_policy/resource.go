@@ -14,10 +14,11 @@ var keyVaultResourceName = "azurerm_key_vault"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultAccessPolicyCreate,
-		Read:   resourceKeyVaultAccessPolicyRead,
-		Update: resourceKeyVaultAccessPolicyUpdate,
-		Delete: resourceKeyVaultAccessPolicyDelete,
+		Description: "Manages a Key Vault Access Policy.",
+		Create:      resourceKeyVaultAccessPolicyCreate,
+		Read:        resourceKeyVaultAccessPolicyRead,
+		Update:      resourceKeyVaultAccessPolicyUpdate,
+		Delete:      resourceKeyVaultAccessPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AccessPolicyID(id)

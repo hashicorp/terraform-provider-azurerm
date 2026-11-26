@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationCertificateCreate,
-		Read:   resourceAutomationCertificateRead,
-		Update: resourceAutomationCertificateUpdate,
-		Delete: resourceAutomationCertificateDelete,
+		Description: "Manages an Automation Certificate.",
+		Create:      resourceAutomationCertificateCreate,
+		Read:        resourceAutomationCertificateRead,
+		Update:      resourceAutomationCertificateUpdate,
+		Delete:      resourceAutomationCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := certificate.ParseCertificateID(id)

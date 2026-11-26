@@ -13,9 +13,10 @@ import (
 
 func keyVaultAccessPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}, "Key Vault"),
 
 		"tenant_id": {
+			Description:  "The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func keyVaultAccessPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"object_id": {
+			Description:  "The object ID of a user, Service Principal or security group in the Azure Active Directory tenant for the vault. The object ID of a Service Principal can be fetched from `azuread_service_principal.object_id`. The object ID must be unique for the list of access policies.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func keyVaultAccessPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"application_id": {
+			Description:  "The object ID of an Application in Azure Active Directory.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

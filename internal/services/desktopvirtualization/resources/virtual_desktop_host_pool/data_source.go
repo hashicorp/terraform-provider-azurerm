@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceVirtualDesktopHostPoolRead,
+		Description: "Use this data source to access information about an existing Virtual Desktop Host Pool.",
+		Read:        dataSourceVirtualDesktopHostPoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Virtual Desktop Host Pool to retrieve.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -38,53 +40,63 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the Virtual Desktop Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"load_balancer_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of load balancing performed by the Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"friendly_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The friendly name for the Virtual Desktop Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description for the Virtual Desktop Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"validate_environment": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Returns `true` if the Host Pool is in Validation mode.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"custom_rdp_properties": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The custom RDP properties string for the Virtual Desktop Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"personal_desktop_assignment_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of personal desktop assignment in use by the Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"maximum_sessions_allowed": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of users that can have concurrent sessions on a session host.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"start_vm_on_connect": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Returns `true` if the Start VM on Connection Feature is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"preferred_app_group_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The preferred Application Group type for the Virtual Desktop Host Pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"scheduled_agent_updates": {
@@ -93,18 +105,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) are enabled on session hosts.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"timezone": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The time zone in which the agent update schedule will apply.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"use_session_host_timezone": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether scheduled agent updates are applied based on the timezone of the affected session host.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"schedule": {
@@ -113,13 +128,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"day_of_week": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The day of the week on which agent updates should be performed.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"hour_of_day": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The hour of day the update window should start.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 								},
 							},

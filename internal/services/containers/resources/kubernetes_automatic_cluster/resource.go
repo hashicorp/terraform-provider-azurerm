@@ -28,6 +28,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_automatic_cluster"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Managed Kubernetes Automatic Cluster (a special SKU of AKS / Azure Kubernetes Service)."
+}
+
 func (r Resource) Identity() resourceids.ResourceId {
 	return &commonids.KubernetesClusterId{}
 }

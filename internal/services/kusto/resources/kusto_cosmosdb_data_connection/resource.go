@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_kusto_cosmosdb_data_connection"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Kusto / Cosmos Database Data Connection."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dataconnections.ValidateDataConnectionID
 }

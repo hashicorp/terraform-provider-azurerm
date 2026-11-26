@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Apps Environment Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"container_app_environment_id": {
+			Description:  "The Container App Managed Environment ID to configure this Certificate on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,15 +32,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"certificate_blob_base64": {
+			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsBase64,
-			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			RequiredWith: []string{"certificate_password"},
+			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 		},
 
 		"certificate_password": {
+			Description:  "The password for the Certificate.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -55,16 +59,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  "System",
+						Description: "The Managed Identity to authenticate with Azure Key Vault.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     "System",
 						ValidateFunc: validation.Any(
 							validation.StringInSlice([]string{"System"}, false),
 							commonids.ValidateUserAssignedIdentityID,
 						),
 					},
 					"key_vault_secret_id": {
+						Description:  "The ID of the Key Vault Secret containing the certificate.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -81,33 +87,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subject_name": {
+			Description: "The Subject Name for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Subject Name for the Certificate.",
 		},
 
 		"issuer": {
+			Description: "The Certificate Issuer.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Certificate Issuer.",
 		},
 
 		"issue_date": {
+			Description: "The date of issue for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The date of issue for the Certificate.",
 		},
 
 		"expiration_date": {
+			Description: "The expiration date for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The expiration date for the Certificate.",
 		},
 
 		"thumbprint": {
+			Description: "The Thumbprint of the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Thumbprint of the Certificate.",
 		},
 	}
 }

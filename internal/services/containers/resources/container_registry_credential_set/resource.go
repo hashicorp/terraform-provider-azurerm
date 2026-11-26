@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_container_registry_credential_set"
 }
 
+func (Resource) Description() string {
+	return "Manages a Container Registry Credential Set."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return credentialsets.ValidateCredentialSetID
 }

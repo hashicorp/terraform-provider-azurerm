@@ -126,16 +126,19 @@ func portMapping() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"inbound_nat_rule_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"frontend_port": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The Frontend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 				"backend_port": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The Backend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 			},
 		},

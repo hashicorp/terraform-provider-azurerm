@@ -25,7 +25,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultKeyRead,
+		Description: "Use this data source to access information about an existing Key Vault Key.",
+		Read:        dataSourceKeyVaultKeyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
@@ -34,84 +35,99 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Key Vault Key.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"key_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Key Type of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"key_size": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Size of this Key Vault Key.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"key_opts": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of JSON web key operations assigned to this Key Vault Key.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The current version of the Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"versionless_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Base ID of the Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"curve": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The EC Curve name of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"n": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The RSA modulus of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"e": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The RSA public exponent of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"x": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The EC X component of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"y": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The EC Y component of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_key_pem": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The PEM encoded public key of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_key_openssh": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The OpenSSH encoded public key of this Key Vault Key.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The (Versioned) ID for this Key Vault Key. This property points to a specific version of a Key Vault Key, as such using this won't auto-rotate values if used in other Azure Services.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"resource_versionless_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Versionless ID of the Key Vault Key. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Key is updated.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

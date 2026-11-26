@@ -70,8 +70,8 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Default:  true,
 			},
 
 			"description": {
