@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package ssh_public_key
@@ -20,10 +20,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSshPublicKeyCreate,
-		Read:   resourceSshPublicKeyRead,
-		Update: resourceSshPublicKeyUpdate,
-		Delete: resourceSshPublicKeyDelete,
+		Description: "Manages an SSH Public Key.",
+		Create:      resourceSshPublicKeyCreate,
+		Read:        resourceSshPublicKeyRead,
+		Update:      resourceSshPublicKeyUpdate,
+		Delete:      resourceSshPublicKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := sshpublickeys.ParseSshPublicKeyID(id)

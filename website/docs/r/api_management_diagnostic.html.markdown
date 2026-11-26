@@ -125,6 +125,10 @@ The following arguments are supported:
 
 * `log_client_ip` - (Optional) Log client IP address.
 
+* `metrics_enabled` - (Optional) Whether custom metrics emitted via the `emit-metric` policy are sent to Application Insights.
+
+~> **Note:** `metrics_enabled` can only be set when `identifier` is set to `applicationinsights`.
+
 * `sampling_percentage` - (Optional) Sampling (%). For high traffic APIs, please read this [documentation](https://docs.microsoft.com/azure/api-management/api-management-howto-app-insights#performance-implications-and-log-sampling) to understand performance implications and log sampling. Valid values are between `0.0` and `100.0`.
 
 * `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.

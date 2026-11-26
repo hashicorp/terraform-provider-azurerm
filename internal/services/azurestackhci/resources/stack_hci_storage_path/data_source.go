@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_storage_path
@@ -37,6 +37,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_stack_hci_storage_path"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Stack HCI Storage Path."
+}
+
 func (r DataSource) ModelObject() any {
 	return &StackHCIStoragePathDataSourceModel{}
 }
@@ -44,8 +48,9 @@ func (r DataSource) ModelObject() any {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Stack HCI Storage Path.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{1,78}[a-zA-Z0-9]$`),
 				"name must begin and end with an alphanumeric character, be between 3 and 80 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
@@ -61,13 +66,15 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"custom_location_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Custom Location where the Stack HCI Storage Path exists.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"path": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The file path on the disk where the Stack HCI Storage Path was created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_custom_domain
@@ -6,7 +6,7 @@ package cdn_frontdoor_custom_domain
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -17,10 +17,11 @@ const azurermCdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custo
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorCustomDomainCreate,
-		Read:   resourceCdnFrontDoorCustomDomainRead,
-		Update: resourceCdnFrontDoorCustomDomainUpdate,
-		Delete: resourceCdnFrontDoorCustomDomainDelete,
+		Description: "Manages a Front Door (standard/premium) Custom Domain.",
+		Create:      resourceCdnFrontDoorCustomDomainCreate,
+		Read:        resourceCdnFrontDoorCustomDomainRead,
+		Update:      resourceCdnFrontDoorCustomDomainUpdate,
+		Delete:      resourceCdnFrontDoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// NOTE: These timeouts are extremely long due to the manual

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_ms_teams
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelMsTeamsCreate,
-		Read:   resourceBotChannelMsTeamsRead,
-		Delete: resourceBotChannelMsTeamsDelete,
-		Update: resourceBotChannelMsTeamsUpdate,
+		Description: "Manages an MS Teams integration for a Bot Channel.",
+		Create:      resourceBotChannelMsTeamsCreate,
+		Read:        resourceBotChannelMsTeamsRead,
+		Delete:      resourceBotChannelMsTeamsDelete,
+		Update:      resourceBotChannelMsTeamsUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

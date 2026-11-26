@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_connection
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmBotConnectionCreate,
-		Read:   resourceArmBotConnectionRead,
-		Update: resourceArmBotConnectionUpdate,
-		Delete: resourceArmBotConnectionDelete,
+		Description: "Manages a Bot Connection.",
+		Create:      resourceArmBotConnectionCreate,
+		Read:        resourceArmBotConnectionRead,
+		Update:      resourceArmBotConnectionUpdate,
+		Delete:      resourceArmBotConnectionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BotConnectionID(id)
 			return err

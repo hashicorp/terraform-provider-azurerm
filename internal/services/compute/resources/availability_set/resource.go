@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package availability_set
@@ -23,11 +23,12 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceAvailabilitySetCreateUpdate,
-		Read:     resourceAvailabilitySetRead,
-		Update:   resourceAvailabilitySetCreateUpdate,
-		Delete:   resourceAvailabilitySetDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
+		Description: "Manages an Availability Set for Virtual Machines.",
+		Create:      resourceAvailabilitySetCreateUpdate,
+		Read:        resourceAvailabilitySetRead,
+		Update:      resourceAvailabilitySetCreateUpdate,
+		Delete:      resourceAvailabilitySetDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.AvailabilitySetId{}),

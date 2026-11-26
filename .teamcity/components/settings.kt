@@ -45,11 +45,14 @@ var serviceTestConfigurationOverrides = mapOf(
         // Server is only available in certain locations
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
+        // API Center is only available in certain locations
+        "apicenter" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "canadacentral", true)),
+
         // PremiumV2 tier is only available in certain locations `East US 2`, `Australia East`, `Germany West Central`, `Korea Central`, `Norway East` and `UK South`
         "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("germanywestcentral", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("germanywestcentral", "westus2", "eastus2", true), maxConcurrentBuilds = 1),
+        "appservice" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("germanywestcentral", "westeurope", "eastus2", false), maxConcurrentBuilds = 1),
 
         // Arc Kubernetes Provisioned Cluster is only available in certain locations
         "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
@@ -118,6 +121,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
+
+        // HorizonDB is only available in certain locations
+        "horizondb" to testConfiguration(locationOverride = LocationConfiguration("koreacentral", "japaneast", "eastus", false)),
 
         // IoT Central is only available in certain locations
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_ms_teams
@@ -17,6 +17,7 @@ func botChannelMsTeamsSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,8 +25,9 @@ func botChannelMsTeamsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"calling_web_hook": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The webhook for Microsoft Teams channel calls.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because this field could not update to empty, so add `Computed: true` to avoid diff
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
 			Computed:     true,
@@ -33,9 +35,10 @@ func botChannelMsTeamsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"deployment_environment": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "CommercialDeployment",
+			Description: "The deployment environment for Microsoft Teams channel calls.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "CommercialDeployment",
 			ValidateFunc: validation.StringInSlice([]string{
 				"CommercialDeployment",
 				"GCCModerateDeployment",
@@ -43,9 +46,10 @@ func botChannelMsTeamsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"calling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable Microsoft Teams channel calls.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }

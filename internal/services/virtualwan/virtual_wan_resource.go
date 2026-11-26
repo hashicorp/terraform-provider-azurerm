@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtualwan
@@ -67,8 +67,8 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			"office365_local_breakout_category": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
 				Default:      string(virtualwans.OfficeTrafficCategoryNone),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
 			},
 
 			"type": {

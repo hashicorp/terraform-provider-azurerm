@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package communication_service_email_domain_association
@@ -12,12 +12,14 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"communication_service_id": {
+			Description:  "The ID of the Communication Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: communicationservices.ValidateCommunicationServiceID,
 		},
 		"email_service_domain_id": {
+			Description:  "The ID of the EMail Service Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

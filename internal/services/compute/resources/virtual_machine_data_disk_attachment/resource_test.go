@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_data_disk_attachment_test
@@ -785,11 +785,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "scripts"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "exit 0"
+  name                 = "scripts"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "exit 0"
 }
 
 resource "azurerm_gallery_application_version" "test" {
@@ -851,7 +850,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
-  size                  = "Standard_F4"
+  size                  = "Standard_D2s_v5"
 
   source_image_reference {
     publisher = "Canonical"
