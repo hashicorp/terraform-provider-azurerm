@@ -16,9 +16,10 @@ import (
 func lbSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Load Balancer.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -28,6 +29,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"sku": {
+			Description:  "The SKU of the Azure Load Balancer.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
@@ -36,6 +38,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_tier": {
+			Description:  "`sku_tier` - The SKU tier of this Load Balancer.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(loadbalancers.LoadBalancerSkuTierRegional),
@@ -50,20 +53,23 @@ func lbSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the frontend IP configuration.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the Subnet which should be associated with the IP Configuration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// Note: O+C because Azure assigns a private IP from the subnet when not specified
 						Computed: true,
 						ValidateFunc: validation.Any(
@@ -73,20 +79,23 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"private_ip_address_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The version of IP that the Private IP Address is.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// Not using O+C here causes drift
 						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForIPVersion(), false),
 					},
 
 					"public_ip_address_id": {
+						Description:  "The ID of a Public IP Address which should be associated with the Load Balancer.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
 					"public_ip_prefix_id": {
+						Description:  "The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -94,6 +103,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"private_ip_address_allocation": {
+						Description:      "The allocation method for the Private IP Address used by this Load Balancer.",
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						Computed:         true, // azignore:AZS007 - pre-existing violation
@@ -102,6 +112,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"gateway_load_balancer_frontend_ip_configuration_id": {
+						Description:  "The Frontend IP Configuration ID of a Gateway SKU Load Balancer.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -109,8 +120,9 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"load_balancer_rules": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
+						Description: "The list of IDs of load balancing rules that use this frontend IP.",
+						Type:        pluginsdk.TypeSet,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -118,8 +130,9 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"inbound_nat_rules": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
+						Description: "The list of IDs of inbound rules that use this frontend IP.",
+						Type:        pluginsdk.TypeSet,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -127,8 +140,9 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"outbound_rules": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
+						Description: "The list of IDs outbound rules that use this frontend IP.",
+						Type:        pluginsdk.TypeSet,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -138,20 +152,23 @@ func lbSchema() map[string]*pluginsdk.Schema {
 					"zones": commonschema.ZonesMultipleOptional(),
 
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Frontend IP Configuration.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"private_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"private_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

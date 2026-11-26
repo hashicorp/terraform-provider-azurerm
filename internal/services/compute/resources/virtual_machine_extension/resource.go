@@ -23,11 +23,12 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceVirtualMachineExtensionsCreateUpdate,
-		Read:     resourceVirtualMachineExtensionsRead,
-		Update:   resourceVirtualMachineExtensionsCreateUpdate,
-		Delete:   resourceVirtualMachineExtensionsDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&virtualmachineextensions.ExtensionId{}),
+		Description: "Manages a Virtual Machine Extension to provide post deployment configuration and run automated tasks.",
+		Create:      resourceVirtualMachineExtensionsCreateUpdate,
+		Read:        resourceVirtualMachineExtensionsRead,
+		Update:      resourceVirtualMachineExtensionsCreateUpdate,
+		Delete:      resourceVirtualMachineExtensionsDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&virtualmachineextensions.ExtensionId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachineextensions.ExtensionId{}),

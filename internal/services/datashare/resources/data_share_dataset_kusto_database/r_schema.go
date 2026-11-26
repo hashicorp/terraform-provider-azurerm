@@ -13,6 +13,7 @@ import (
 func dataShareDatasetKustoDatabaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Data Share Kusto Database Dataset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func dataShareDatasetKustoDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"share_id": {
+			Description:  "The resource ID of the Data Share where this Data Share Kusto Database Dataset should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func dataShareDatasetKustoDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kusto_database_id": {
+			Description:  "The resource ID of the Kusto Cluster Database to be shared with the receiver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,13 +37,15 @@ func dataShareDatasetKustoDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Data Share Dataset.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kusto_cluster_location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The location of the Kusto Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

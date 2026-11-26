@@ -12,7 +12,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAutomationVariableStringRead,
+		Description: "Use this data source to access information about an existing Automation String Variable.",
+		Read:        dataSourceAutomationVariableStringRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

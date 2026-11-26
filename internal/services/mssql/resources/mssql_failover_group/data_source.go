@@ -49,6 +49,10 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Microsoft Azure SQL Failover Group."
+}
+
 func (d DataSource) ModelObject() any {
 	return &MsSqlFailoverGroupDataSourceModel{}
 }
@@ -56,12 +60,14 @@ func (d DataSource) ModelObject() any {
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Failover Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 		},
 
 		"server_id": {
+			Description:  "The ID of the primary SQL Server where the Failover Group exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
@@ -77,23 +83,26 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the partner SQL server.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"location": commonschema.LocationComputed(),
 
 					"role": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The replication role of the partner server.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"databases": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
+			Description: "A set of database names in the Failover Group.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -101,8 +110,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"readonly_endpoint_failover_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether failover is enabled for the readonly endpoint.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"read_write_endpoint_failover_policy": {
@@ -111,12 +121,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The failover policy of the read-write endpoint for the Failover Group.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"grace_minutes": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The grace period in minutes, before failover with data loss is attempted for the read-write endpoint.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},

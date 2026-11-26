@@ -15,6 +15,7 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"managed_instance_name": {
+			Description:  "The name of the MS SQL Managed Instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,9 +23,10 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		},
 
 		"disabled_alerts": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Set:      pluginsdk.HashString,
+			Description: "An array of alerts that are disabled.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -39,14 +41,16 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		},
 
 		"email_account_admins_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Boolean flag which specifies if the alert is sent to the account administrators.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"email_addresses": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "An array of email addresses to which the alert is sent.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -54,6 +58,7 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		},
 
 		"retention_days": {
+			Description:  "The number of days to keep in the Threat Detection audit logs.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
@@ -61,11 +66,13 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "The state of the Security Alert Policy, whether it is enabled or disabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"storage_account_access_key": {
+			Description:  "The identifier key of the Threat Detection audit Storage Account. This is mandatory when you use `storage_endpoint` to specify a Storage Account blob endpoint.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -73,6 +80,7 @@ func mssqlManagedInstanceSecurityAlertPolicySchema() map[string]*pluginsdk.Schem
 		},
 
 		"storage_endpoint": {
+			Description:  "The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

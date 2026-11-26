@@ -87,13 +87,15 @@ func GetDimensionNames() []string {
 func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
 		"etag": { // TODO 6.0: this should probably be computed only?
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ETag of the Consumption Budget.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			// Note: O+C because Azure will always return a new value for this
 			Optional: true,
 		},
 
 		"amount": {
+			Description:  "The total amount of cost to track with the budget.",
 			Type:         pluginsdk.TypeFloat,
 			Required:     true,
 			ValidateFunc: validation.FloatAtLeast(1.0),
@@ -112,22 +114,25 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The name of the column to use for the filter.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(GetDimensionNames(), false),
 								},
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "In",
+									Description: "The operator to use for comparison.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     "In",
 									ValidateFunc: validation.StringInSlice([]string{
 										"In",
 									}, false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									MinItems: 1,
-									Required: true,
+									Description: "A list of values for the column.",
+									Type:        pluginsdk.TypeList,
+									MinItems:    1,
+									Required:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -143,20 +148,23 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The name of the tag to use for the filter.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "In",
+									Description: "The operator to use for comparison.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     "In",
 									ValidateFunc: validation.StringInSlice([]string{
 										"In",
 									}, false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
+									Description: "A list of values for the tag.",
+									Type:        pluginsdk.TypeList,
+									Required:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -176,33 +184,38 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the notification is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"threshold": {
+						Description:  "Threshold value associated with a notification. Notification is sent when the cost exceeds the threshold. This is a percentage.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					"threshold_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(budgets.ThresholdTypeActual),
+						Description: "The type of threshold for the notification. This determines whether the notification is triggered by forecasted or actual costs.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     string(budgets.ThresholdTypeActual),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(budgets.ThresholdTypeActual),
 							"Forecasted",
 						}, false),
 					},
 					"operator": {
+						Description:  "The comparison operator for the notification.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForOperatorType(), false),
 					},
 
 					"contact_emails": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of email addresses to send the budget notification to when the threshold is exceeded.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -210,8 +223,9 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 					},
 
 					"contact_groups": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of Action Group IDs to send the budget notification to when the threshold is exceeded.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -219,8 +233,9 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 					},
 
 					"contact_roles": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of contact roles to send the budget notification to when the threshold is exceeded.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -231,6 +246,7 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 		},
 
 		"time_grain": {
+			Description:  "The time covered by a budget. Tracking of the amount will be reset based on the time grain.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(budgets.TimeGrainTypeMonthly),
@@ -246,12 +262,14 @@ func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date": {
+						Description:  "The start date for the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should be selected within the timegrain period.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ConsumptionBudgetTimePeriodStartDate,
 						ForceNew:     true,
 					},
 					"end_date": {
+						Description:  "The end date for the budget. If not set this will be 10 years after the start date.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation

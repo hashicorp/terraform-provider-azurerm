@@ -18,7 +18,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.DaprComponentName,
-			Description:  "The name for this Dapr Component.",
+			Description:  "The name for this Dapr component.",
 		},
 
 		"container_app_environment_id": {
@@ -26,7 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: daprcomponents.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Dapr component on.",
+			Description:  "The ID of the Container App Managed Environment for this Dapr Component.",
 		},
 
 		"component_type": {
@@ -49,14 +49,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      "5s",
 			ValidateFunc: validate.InitTimeout,
-			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`.",
+			Description:  "The timeout for component initialisation as a `ISO8601` formatted string. e.g. `5s`, `2h`, `1m`.",
 		},
 
 		"ignore_errors": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the Dapr sidecar to continue initialisation if the component fails to load?",
+			Description: "Whether the Dapr sidecar should continue initialisation if the component fails to load.",
 		},
 
 		"secret": helpers.SecretsSchema(),
@@ -70,7 +70,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A list of scopes to which this component applies. e.g. a Container App's `dapr.app_id` value.",
+			Description: "A list of scopes to which this component applies.",
 		},
 	}
 }

@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMonitorDiagnosticCategoriesRead,
+		Description: "Use this data source to access information about the Monitor Diagnostics Categories supported by an existing Resource.",
+		Read:        dataSourceMonitorDiagnosticCategoriesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,30 +27,34 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"resource_id": {
+				Description:  "The ID of an existing Resource which Monitor Diagnostics Categories should be retrieved for.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"log_category_types": {
-				Type:     pluginsdk.TypeSet,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
-				Computed: true,
+				Description: "A list of the supported log category types of this resource to send to the destination.",
+				Type:        pluginsdk.TypeSet,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:         pluginsdk.HashString,
+				Computed:    true,
 			},
 
 			"log_category_groups": {
-				Type:     pluginsdk.TypeSet,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
-				Computed: true,
+				Description: "A list of the supported log category groups of this resource to send to the destination.",
+				Type:        pluginsdk.TypeSet,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:         pluginsdk.HashString,
+				Computed:    true,
 			},
 
 			"metrics": {
-				Type:     pluginsdk.TypeSet,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
-				Computed: true,
+				Description: "A list of the Metric Categories supported for this Resource.",
+				Type:        pluginsdk.TypeSet,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:         pluginsdk.HashString,
+				Computed:    true,
 			},
 		},
 	}

@@ -14,22 +14,25 @@ import (
 func dnsAaaaRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the DNS AAAA Record.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The DNS Zone where the resource exists.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"records": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "List of IPv6 Addresses.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv6Address,
@@ -39,18 +42,21 @@ func dnsAaaaRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ttl": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The Time To Live (TTL) of the DNS record in seconds.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS AAAA Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),
 
 		"target_resource_id": {
+			Description:   "The Azure resource ID of the target object.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  azure.ValidateResourceID,

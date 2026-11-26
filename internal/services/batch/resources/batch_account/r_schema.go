@@ -17,6 +17,7 @@ import (
 func batchAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Batch Account. Only lowercase Alphanumeric characters allowed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"storage_account_id": {
+			Description:  "The Storage Account to use for the Batch Account. If not specified, Azure Batch will manage the storage.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
@@ -35,6 +37,7 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_authentication_mode": {
+			Description:  "The Storage Account authentication mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(batchaccount.PossibleValuesForAutoStorageAuthenticationMode(), false),
@@ -42,6 +45,7 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_node_identity": {
+			Description:  "The User Assigned Identity for the Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -49,8 +53,9 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allowed_authentication_modes": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "The allowed authentication mode for the Batch Account.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			// NOTE: O+C This can remain since we need to send an empty slice to properly remove this, which means this can't be set back to
 			// its default which is to return all three values
 			Computed: true,
@@ -61,6 +66,7 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"pool_allocation_mode": {
+			Description:  "The mode to use for pool allocation.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(batchaccount.PoolAllocationModeBatchService),
@@ -68,9 +74,10 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for this server.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"network_profile": {
@@ -93,11 +100,13 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The Azure identifier of the Azure KeyVault to use.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 					"url": {
+						Description:  "The HTTPS URL of the Azure KeyVault to use.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
@@ -109,29 +118,34 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The Batch Account primary access key.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 
 		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The Batch Account secondary access key.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 
 		"account_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The account endpoint used to interact with the Batch service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"encryption": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Description: "Whether customer managed key encryption should be used to encrypt Batch Account data.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			ConfigMode:  pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Description:  "The full URL path to the Azure Key Vault Key ID that should be used to encrypt data, as documented [here](https://learn.microsoft.com/azure/batch/batch-customer-managed-key). Both versioned and versionless keys are supported.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
@@ -153,6 +167,7 @@ func resourceBatchAccountEndpointAccessProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"default_action": {
+					Description:  "The default action.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      batchaccount.EndpointAccessDefaultActionDeny,
@@ -165,12 +180,14 @@ func resourceBatchAccountEndpointAccessProfileSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"ip_range": {
+								Description:  "The CIDR block from which requests will match the rule.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validate.BatchAccountIpRange,
 							},
 
 							"action": {
+								Description:  "The action of the IP rule.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								Default:      string(batchaccount.IPRuleActionAllow),

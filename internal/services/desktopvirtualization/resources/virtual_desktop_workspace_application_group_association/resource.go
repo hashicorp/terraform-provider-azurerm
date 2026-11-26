@@ -17,9 +17,10 @@ var applicationGroupType = "azurerm_virtual_desktop_application_group"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate,
-		Read:   resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead,
-		Delete: resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete,
+		Description: "Manages a Virtual Desktop Workspace Application Group Association.",
+		Create:      resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate,
+		Read:        resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead,
+		Delete:      resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

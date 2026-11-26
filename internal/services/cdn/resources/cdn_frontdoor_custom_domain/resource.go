@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorCustomDomainCreate,
-		Read:   resourceCdnFrontDoorCustomDomainRead,
-		Update: resourceCdnFrontDoorCustomDomainUpdate,
-		Delete: resourceCdnFrontDoorCustomDomainDelete,
+		Description: "Manages a Front Door (standard/premium) Custom Domain.",
+		Create:      resourceCdnFrontDoorCustomDomainCreate,
+		Read:        resourceCdnFrontDoorCustomDomainRead,
+		Update:      resourceCdnFrontDoorCustomDomainUpdate,
+		Delete:      resourceCdnFrontDoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// NOTE: These timeouts are extremely long due to the manual

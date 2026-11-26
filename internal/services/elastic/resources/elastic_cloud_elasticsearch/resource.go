@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceElasticsearchCreate,
-		Read:   resourceElasticsearchRead,
-		Update: resourceElasticsearchUpdate,
-		Delete: resourceElasticsearchDelete,
+		Description: "Manages an Elasticsearch in Elastic Cloud.",
+		Create:      resourceElasticsearchCreate,
+		Read:        resourceElasticsearchRead,
+		Update:      resourceElasticsearchUpdate,
+		Delete:      resourceElasticsearchDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

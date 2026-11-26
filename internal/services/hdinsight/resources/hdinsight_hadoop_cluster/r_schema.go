@@ -13,7 +13,7 @@ import (
 
 func hdinsightHadoopClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": helpers.SchemaHDInsightName(),
+		"name": helpers.SchemaHDInsightName("HDInsight Hadoop Cluster"),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -21,7 +21,7 @@ func hdinsightHadoopClusterSchema() map[string]*pluginsdk.Schema {
 
 		"cluster_version": helpers.SchemaHDInsightClusterVersion(),
 
-		"tier": helpers.SchemaHDInsightTier(),
+		"tier": helpers.SchemaHDInsightTier("HDInsight Hadoop Cluster"),
 
 		"tls_min_version": helpers.SchemaHDInsightTls(),
 
@@ -32,9 +32,10 @@ func hdinsightHadoopClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"hadoop": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The version of Hadoop which should be used for this HDInsight Hadoop Cluster.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 					},
 				},
 			},
@@ -77,12 +78,14 @@ func hdinsightHadoopClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"target_instance_count": {
+									Description:  "The number of instances which should be run for the Worker Nodes.",
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(1, 25),
 								},
 
 								"vm_size": {
+									Description:  "The Size of the Virtual Machine which should be used as the Edge Nodes.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
@@ -95,16 +98,19 @@ func hdinsightHadoopClusterSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"name": {
+												Description:  "The name of the install script action.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 											"uri": {
+												Description:  "The URI pointing to the script to run during the installation of the edge node.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 											"parameters": {
+												Description:  "The parameters for the script.",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
@@ -126,13 +132,15 @@ func hdinsightHadoopClusterSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"https_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The HTTPS Connectivity Endpoint for this HDInsight Hadoop Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ssh_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SSH Connectivity Endpoint for this HDInsight Hadoop Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"monitor": helpers.SchemaHDInsightsMonitor(),

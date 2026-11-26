@@ -26,7 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}, "API Management Workspace"),
 
 		"certificate_data_base64": {
 			Description:  "The base64-encoded string containing the certificate in PKCS#12 (.pfx) format.",

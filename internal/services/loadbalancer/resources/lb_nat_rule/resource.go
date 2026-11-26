@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerNatRuleCreateUpdate,
-		Read:   resourceArmLoadBalancerNatRuleRead,
-		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
-		Delete: resourceArmLoadBalancerNatRuleDelete,
+		Description: "Manages a Load Balancer NAT Rule.",
+		Create:      resourceArmLoadBalancerNatRuleCreateUpdate,
+		Read:        resourceArmLoadBalancerNatRuleRead,
+		Update:      resourceArmLoadBalancerNatRuleCreateUpdate,
+		Delete:      resourceArmLoadBalancerNatRuleDelete,
 
 		Importer: helpers.LoadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
 			id, err := loadbalancers.ParseInboundNatRuleID(input)

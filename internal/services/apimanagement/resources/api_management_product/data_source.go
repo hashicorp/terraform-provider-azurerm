@@ -40,19 +40,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"subscription_required": {
-				Description: "Is a Subscription required to access API's included in this Product?",
+				Description: "Whether a Subscription is required to access API's included in this Product.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"approval_required": {
-				Description: "Do subscribers need to be approved prior to being able to use the Product?",
+				Description: "Whether subscribers need to be approved before being able to use the Product.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"published": {
-				Description: "Is this Product Published?",
+				Description: "Whether this Product is published.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

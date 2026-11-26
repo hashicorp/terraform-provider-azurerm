@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataProtectionResourceGuardCreateUpdate,
-		Read:   resourceDataProtectionResourceGuardRead,
-		Update: resourceDataProtectionResourceGuardCreateUpdate,
-		Delete: resourceDataProtectionResourceGuardDelete,
+		Description: "Manages a Resource Guard.",
+		Create:      resourceDataProtectionResourceGuardCreateUpdate,
+		Read:        resourceDataProtectionResourceGuardRead,
+		Update:      resourceDataProtectionResourceGuardCreateUpdate,
+		Delete:      resourceDataProtectionResourceGuardDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

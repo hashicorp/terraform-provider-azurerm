@@ -81,6 +81,10 @@ func (HorizondbClusterResource) ResourceType() string {
 	return "azurerm_horizondb_cluster"
 }
 
+func (HorizondbClusterResource) Description() string {
+	return "Manages a HorizonDB Cluster."
+}
+
 func (HorizondbClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return clusters.ValidateClusterID
 }
@@ -92,9 +96,10 @@ func (HorizondbClusterResource) Identity() resourceids.ResourceId {
 func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the HorizonDB Cluster.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 63),
 				validation.StringMatch(regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`), "must contain only lowercase letters, numbers and hyphens and start and end with a letter or number"),
@@ -106,6 +111,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"administrator_login": {
+			Description:  "The PostgreSQL administrator login name.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -120,9 +126,10 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The name of the Pool.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.All(
 							validation.StringLenBetween(1, 63),
 							validation.StringMatch(regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`), "must contain only lowercase letters, numbers and hyphens and start and end with a letter or number"),
@@ -137,18 +144,21 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"processor": {
+									Description:  "The processor type.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForComputeProcessorType(), false),
 								},
 
 								"generation": {
+									Description:  "The compute generation.",
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntInSlice([]int{1}),
 								},
 
 								"vcores": {
+									Description:  "The provisioned compute capacity in vCores.",
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntInSlice([]int{2, 4, 8, 16, 20, 32, 48, 64, 96}),
@@ -157,26 +167,30 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"node_count": {
+						Description:  "The number of nodes allocated to the Pool.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 16),
 					},
 
 					"high_availability_mode": {
+						Description:  "The high-availability mode.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(pools.PossibleValuesForPoolHighAvailabilityMode(), false),
 					},
 
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the HorizonDB Pool.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"administrator_password": {
+			Description:   "The PostgreSQL administrator password.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
@@ -186,6 +200,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_password_wo": {
+			Description:   "The PostgreSQL administrator password.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			WriteOnly:     true,
@@ -196,6 +211,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_password_wo_version": {
+			Description:  "A positive integer used to trigger an update for `administrator_password_wo`. Increment this value when updating the write-only password.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			RequiredWith: []string{"administrator_password_wo"},
@@ -203,6 +219,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backup_retention_in_days": {
+			Description:  "The backup retention period in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      7,
@@ -210,10 +227,11 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_redundant_backup_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether `geo redundant backup` is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
@@ -227,15 +245,17 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"point_in_time_utc": {
+						Description:  "The restore timestamp in RFC3339 format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 
-					"source_horizondb_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&clusters.ClusterId{}),
+					"source_horizondb_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&clusters.ClusterId{}, "source HorizonDB Cluster"),
 
 					"source_location": {
+						Description:  "The Azure Region of the source HorizonDB Cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -247,8 +267,9 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"postgresql_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The PostgreSQL major version.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C - Restored clusters inherit their PostgreSQL version from the source backup.
 			Computed:     true,
 			ForceNew:     true,
@@ -257,6 +278,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access": {
+			Description:  "The public network access setting for the HorizonDB Cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(clusters.PublicNetworkAccessStateDisabled),

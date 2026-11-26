@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDatabricksWorkspaceRead,
+		Description: "Use this data source to access information about an existing Databricks Workspace.",
+		Read:        dataSourceDatabricksWorkspaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,8 +27,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Databricks Workspace.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -35,18 +37,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "SKU of this Databricks Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"workspace_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Unique ID of this Databricks Workspace in Databricks management plane.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"workspace_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "URL this Databricks Workspace is accessible on.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"managed_disk_identity": {
@@ -55,20 +60,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
+							Description: "The principal UUID for the internal databricks disks identity needed to provide access to the workspace for enabling Customer Managed Keys.",
+							Type:        pluginsdk.TypeString,
+							Sensitive:   true,
+							Computed:    true,
 						},
 
 						"tenant_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
+							Description: "The UUID of the tenant where the internal databricks disks identity was created.",
+							Type:        pluginsdk.TypeString,
+							Sensitive:   true,
+							Computed:    true,
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the internal databricks disk identity.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -80,20 +88,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
+							Description: "The principal UUID for the internal databricks Storage Account needed to provide access to the workspace for enabling Customer Managed Keys.",
+							Type:        pluginsdk.TypeString,
+							Sensitive:   true,
+							Computed:    true,
 						},
 
 						"tenant_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
+							Description: "The UUID of the tenant where the internal databricks Storage Account was created.",
+							Type:        pluginsdk.TypeString,
+							Sensitive:   true,
+							Computed:    true,
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of the internal databricks Storage Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -105,23 +116,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"automatic_cluster_update_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether automatic cluster updates for this workspace is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"compliance_security_profile_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether compliance security profile for this workspace is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"compliance_security_profile_standards": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of standards enforced on this workspace.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"enhanced_security_monitoring_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether enhanced security monitoring for this workspace is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -133,44 +148,53 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"machine_learning_workspace_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of an Azure Machine Learning Workspace to link with Databricks Workspace.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"nat_gateway_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets (only for workspace with managed Virtual Network).",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"no_public_ip": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether public IP Addresses are not allowed.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"private_subnet_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Private Subnet within the Virtual Network.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_ip_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Name of the Public IP for No Public IP workspace with managed Virtual Network.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"public_subnet_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Public Subnet within the Virtual Network.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"storage_account_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"storage_account_sku_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Storage Account SKU name.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"virtual_network_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of a Virtual Network where this Databricks Cluster should be created.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"vnet_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Address prefix for Managed Virtual Network.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

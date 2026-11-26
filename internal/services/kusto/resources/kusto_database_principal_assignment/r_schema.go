@@ -16,6 +16,7 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"cluster_name": {
+			Description:  "The name of the cluster in which to create the resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"database_name": {
+			Description:  "The name of the database in which to create the resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description:  "The name of the kusto principal assignment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,6 +40,7 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_id": {
+			Description:  "The tenant ID in which the principal resides.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -44,11 +48,13 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the tenant.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"principal_id": {
+			Description:  "The object ID of the principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -56,11 +62,13 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the principal.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"principal_type": {
+			Description:  "The type of the principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -68,6 +76,7 @@ func kustoDatabasePrincipalAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"role": {
+			Description:  "The database role assigned to the principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
