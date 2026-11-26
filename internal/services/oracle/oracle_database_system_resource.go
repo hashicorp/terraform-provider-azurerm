@@ -136,9 +136,9 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForLicenseModel(), false),
 		},
 
-		"network_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkanchors.NetworkAnchorId{}),
+		"network_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkanchors.NetworkAnchorId{}, "Oracle Network Anchor"),
 
-		"resource_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceanchors.ResourceAnchorId{}),
+		"resource_anchor_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceanchors.ResourceAnchorId{}, "Oracle Resource Anchor"),
 
 		"shape": {
 			Type:         pluginsdk.TypeString,

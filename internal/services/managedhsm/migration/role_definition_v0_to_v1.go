@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -59,19 +59,19 @@ func (m ManagedHSMRoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 				},
 			},

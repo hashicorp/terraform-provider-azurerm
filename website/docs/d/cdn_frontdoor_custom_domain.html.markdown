@@ -14,9 +14,9 @@ Gets information about an existing Front Door (standard/premium) Custom Domain.
 
 ```hcl
 data "azurerm_cdn_frontdoor_custom_domain" "example" {
-  name                = "existing-cdn-frontdoor-custom-domain"
-  profile_name        = "existing-cdn-frontdoor-profile"
-  resource_group_name = "existing-resource-group"
+  name                = "example-cdn-frontdoor-custom-domain"
+  profile_name        = "example-cdn-frontdoor-profile"
+  resource_group_name = "example-resources"
 }
 ```
 
@@ -88,4 +88,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2025-12-01
+* `Microsoft.Cdn` - 2026-10-01
