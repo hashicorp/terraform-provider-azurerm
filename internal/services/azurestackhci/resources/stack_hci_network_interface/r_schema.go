@@ -16,9 +16,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Azure Stack HCI Network Interface.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
 				"name must begin and end with an alphanumeric character, be between 2 and 80 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
@@ -29,7 +30,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
@@ -38,9 +39,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(&logicalnetworks.LogicalNetworkId{}),
+					// TODO: Does this want to be changed to `stack_hci_logical_network_id`?
+					"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(&logicalnetworks.LogicalNetworkId{}, "Stack HCI Logical Network"),
 
 					"private_ip_address": {
+						Description:  "The IPv4 address of the IP configuration.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -48,23 +51,26 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"gateway": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The IPv4 address of the gateway for the Network Interface.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"prefix_length": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The prefix length for the address of the Network Interface.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"dns_servers": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MinItems: 1,
+			Description: "A list of IPv4 addresses of DNS servers available to VMs deployed in the Network Interface.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			ForceNew:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv4Address,
@@ -72,6 +78,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"mac_address": {
+			Description:  "The MAC address of the Network Interface.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

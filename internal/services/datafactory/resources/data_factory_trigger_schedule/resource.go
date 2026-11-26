@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerScheduleCreate,
-		Read:   resourceDataFactoryTriggerScheduleRead,
-		Update: resourceDataFactoryTriggerScheduleUpdate,
-		Delete: resourceDataFactoryTriggerScheduleDelete,
+		Description: "Manages a Trigger Schedule inside an Azure Data Factory.",
+		Create:      resourceDataFactoryTriggerScheduleCreate,
+		Read:        resourceDataFactoryTriggerScheduleRead,
+		Update:      resourceDataFactoryTriggerScheduleUpdate,
+		Delete:      resourceDataFactoryTriggerScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)

@@ -173,29 +173,29 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"connection_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnLinkConnectionMode(), false),
 							Default:      string(virtualwans.VpnLinkConnectionModeDefault),
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnLinkConnectionMode(), false),
 						},
 
 						"route_weight": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
 							Default:      0,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"protocol": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVirtualNetworkGatewayConnectionProtocol(), false),
 							Default:      string(virtualwans.VirtualNetworkGatewayConnectionProtocolIKEvTwo),
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVirtualNetworkGatewayConnectionProtocol(), false),
 						},
 
 						"bandwidth_mbps": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
 							Default:      10,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 
 						"shared_key": {
@@ -208,8 +208,8 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 
 						"bgp_enabled": {
 							Type:     pluginsdk.TypeBool,
-							ForceNew: true,
 							Optional: true,
+							ForceNew: true,
 							Default:  false,
 						},
 

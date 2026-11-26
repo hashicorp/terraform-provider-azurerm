@@ -20,3 +20,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_stack_hci_deployment_setting"
 }
+
+func (Resource) Description() string {
+	return "Manages a Stack HCI Deployment Setting."
+}

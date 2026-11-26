@@ -267,7 +267,7 @@ type RoleManagementPolicyNotificationSettings struct {
 func notificationRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"admin_notifications": {
-			Description: "Admin notification settings",
+			Description: "Admin notification settings.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -278,7 +278,7 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"approver_notifications": {
-			Description: "Approver notification settings",
+			Description: "Approver notification settings.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -289,7 +289,7 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"assignee_notifications": {
-			Description: "Assignee notification settings",
+			Description: "Assignee notification settings.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -304,20 +304,20 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"notification_level": {
-			Description:  "What level of notifications are sent",
+			Description:  "What level of notifications should be sent.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"All", "Critical"}, false),
 		},
 
 		"default_recipients": {
-			Description: "Whether the default recipients are notified",
+			Description: "Whether the default recipients should receive these notifications.",
 			Type:        pluginsdk.TypeBool,
 			Required:    true,
 		},
 
 		"additional_recipients": {
-			Description: "The additional recipients to notify",
+			Description: "A list of additional email addresses that will receive these notifications.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation

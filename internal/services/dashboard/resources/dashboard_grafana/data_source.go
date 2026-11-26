@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDashboardGrafanaRead,
+		Description: "Use this data source to access information about an existing Grafana Dashboard.",
+		Read:        dataSourceDashboardGrafanaRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,8 +31,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "Name of the grafana dashboard.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z][-a-zA-Z\d]{0,21}[a-zA-Z\d]$`),
 					`The name length must be from 2 to 23 characters. The name can only contain letters, numbers and dashes, and it must begin with a letter and end with a letter or digit.`,
@@ -43,23 +45,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"api_key_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the API key setting of the Grafana instance is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"auto_generated_domain_name_label_scope": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Scope for DNS deterministic name hash calculation.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"deterministic_outbound_ip_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Grafana instance uses deterministic outbound IPs.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"azure_monitor_workspace_integrations": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Integrations for Azure Monitor Workspace.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"resource_id": {
@@ -73,18 +79,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityOptionalForceNew(),
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether public endpoint access is allowed for this server.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"grafana_major_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Major version of Grafana instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"grafana_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The full Grafana software semantic version deployed.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"outbound_ips": {
@@ -96,18 +105,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The endpoint of the Grafana instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the SKU used for the Grafana instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"zone_redundancy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "The zone redundancy setting of the Grafana instance.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerCreate,
-		Read:   resourceArmLoadBalancerRead,
-		Update: resourceArmLoadBalancerUpdate,
-		Delete: resourceArmLoadBalancerDelete,
+		Description: "Manages a Load Balancer Resource.",
+		Create:      resourceArmLoadBalancerCreate,
+		Read:        resourceArmLoadBalancerRead,
+		Update:      resourceArmLoadBalancerUpdate,
+		Delete:      resourceArmLoadBalancerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := loadbalancers.ParseLoadBalancerID(id)

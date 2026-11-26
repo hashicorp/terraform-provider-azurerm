@@ -277,8 +277,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
-
 ---
 
 A `network_interface` block exports:
@@ -317,10 +315,15 @@ A `private_dns_zone_configs` block exports:
 
 ---
 
-A `private_service_connection` block exports:
+A `private_service_connection` block exports the following:
+
+* `action_required` - Indicates if changes on the service provider require any updates on the consumer.
+
+* `description` - The reason for approval/rejection of the connection.
 
 * `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
+* `status` - The status of the connection between the service consumer and provider.
 
 ---
 

@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDevTestLabRead,
+		Description: "Use this data source to access information about an existing Dev Test Lab.",
+		Read:        dataSourceDevTestLabRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Dev Test Lab.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DevTestLabName(),
@@ -40,40 +42,47 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"storage_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of storage used by the Dev Test Lab.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),
 
 			"artifacts_storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Storage Account used for Artifact Storage.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Default Storage Account for this Dev Test Lab.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_premium_storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Default Premium Storage Account for this Dev Test Lab.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"key_vault_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Key used for this Dev Test Lab.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"premium_data_disk_storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Storage Account used for Storage of Premium Data Disk.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"unique_identifier": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The unique immutable identifier of the Dev Test Lab.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

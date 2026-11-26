@@ -12,12 +12,14 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"communication_service_id": {
+			Description:  "The ID of the Communication Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: communicationservices.ValidateCommunicationServiceID,
 		},
 		"email_service_domain_id": {
+			Description:  "The ID of the EMail Service Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

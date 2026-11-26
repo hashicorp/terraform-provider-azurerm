@@ -35,17 +35,20 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
+			Description:  "The object ID of the Log Analytics Workspace that contains the table.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of a table in a Log Analytics Workspace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"plan": {
+			Description:  "The system how to handle and charge the logs ingested to the table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(tables.TablePlanEnumAnalytics),
@@ -53,12 +56,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_in_days": {
+			Description:  "The table's retention in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
+			Description:  "The table's total retention in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),

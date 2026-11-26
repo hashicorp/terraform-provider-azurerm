@@ -15,9 +15,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": &schema.Schema{
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this EventGrid Partner Registration.",
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
@@ -34,8 +35,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"partner_registration_id": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The immutable ID of the corresponding partner registration.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 	}
 }

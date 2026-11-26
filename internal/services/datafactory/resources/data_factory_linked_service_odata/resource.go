@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDataFactoryLinkedServiceODataCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceODataRead,
-		Update: resourceArmDataFactoryLinkedServiceODataCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceODataDelete,
+		Description: "Manages a Linked Service (connection) between a Database and Azure Data Factory through OData protocol.",
+		Create:      resourceArmDataFactoryLinkedServiceODataCreateUpdate,
+		Read:        resourceArmDataFactoryLinkedServiceODataRead,
+		Update:      resourceArmDataFactoryLinkedServiceODataCreateUpdate,
+		Delete:      resourceArmDataFactoryLinkedServiceODataDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

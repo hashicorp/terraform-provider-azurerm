@@ -35,10 +35,10 @@ func (s SecurityCenterIotSecuritySolutionV0ToV1) Schema() map[string]*pluginsdk.
 		"iothub_ids": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      set.HashStringIgnoreCase,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: set.HashStringIgnoreCase,
 		},
 
 		"additional_workspace": {

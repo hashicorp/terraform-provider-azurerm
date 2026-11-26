@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_log_analytics_query_pack_query"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Log Analytics Query Pack Query."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return querypackqueries.ValidateQueryID
 }
