@@ -105,7 +105,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 	if hasRuleSets {
 		// cannot use network rulesets with the basic SKU
 		if parameters.Sku.Name == ehnamespaces.SkuNameBasic {
-			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			return errors.New("network_rulesets cannot be used when the SKU is basic")
 		}
 
 		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]any))
@@ -117,7 +117,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 		}
 
 		if !strings.EqualFold(string(*rulesets.Properties.PublicNetworkAccess), string(*parameters.Properties.PublicNetworkAccess)) {
-			return fmt.Errorf("the value of public network access of namespace should be the same as of the network rulesets")
+			return errors.New("the value of public network access of namespace should be the same as of the network rulesets")
 		}
 
 		ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient

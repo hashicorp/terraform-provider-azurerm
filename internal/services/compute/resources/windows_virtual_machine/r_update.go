@@ -4,6 +4,7 @@
 package windows_virtual_machine
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -127,7 +128,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 	if d.HasChange("patch_assessment_mode") {
 		assessmentMode := d.Get("patch_assessment_mode").(string)
 		if assessmentMode == string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform) && !d.Get("provision_vm_agent").(bool) {
-			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+			return errors.New("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
 		}
 
 		shouldUpdate = true
@@ -150,7 +151,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform)
 	bypassPlatformSafetyChecksOnUserScheduleEnabled := d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool)
 	if bypassPlatformSafetyChecksOnUserScheduleEnabled && !isPatchModeAutomaticByPlatform {
-		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+		return errors.New("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
 	}
 	if d.HasChange("bypass_platform_safety_checks_on_user_schedule_enabled") {
 		shouldUpdate = true
@@ -178,7 +179,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	rebootSetting := d.Get("reboot_setting").(string)
 	if rebootSetting != "" && !isPatchModeAutomaticByPlatform {
-		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+		return errors.New("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
 	}
 	if d.HasChange("reboot_setting") {
 		shouldUpdate = true
@@ -608,7 +609,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
 		} else {
-			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return errors.New("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 

@@ -4,7 +4,7 @@
 package dns_caa_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -33,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeCAA {
-				return fmt.Errorf("this resource only supports 'CAA' records")
+				return errors.New("this resource only supports 'CAA' records")
 			}
 			return nil
 		}),

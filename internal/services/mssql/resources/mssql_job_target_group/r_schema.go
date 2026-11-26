@@ -5,6 +5,7 @@ package mssql_job_target_group
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -95,7 +96,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, v := range config.JobTargets {
 				if v.DatabaseName != "" && v.ElasticPoolName != "" {
-					return fmt.Errorf("`database_name` and `elastic_pool_name` are mutually exclusive")
+					return errors.New("`database_name` and `elastic_pool_name` are mutually exclusive")
 				}
 			}
 

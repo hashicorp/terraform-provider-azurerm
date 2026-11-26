@@ -4,7 +4,7 @@
 package eventhub
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
@@ -28,7 +28,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("partition_count") {
 		o, n := d.GetChange("partition_count")
 		if o.(int) > n.(int) {
-			return fmt.Errorf("`partition_count` cannot be decreased")
+			return errors.New("`partition_count` cannot be decreased")
 		}
 
 		client := meta.(*clients.Client).Eventhub.NamespacesClient
@@ -39,7 +39,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 		if model := resp.Model; model != nil {
 			if model.Sku.Name != ehnamespaces.SkuNamePremium && model.Properties.ClusterArmId == nil {
-				return fmt.Errorf("`partition_count` cannot be changed on shared namespaces unless the namespace sku is `Premium`")
+				return errors.New("`partition_count` cannot be changed on shared namespaces unless the namespace sku is `Premium`")
 			}
 		}
 	}

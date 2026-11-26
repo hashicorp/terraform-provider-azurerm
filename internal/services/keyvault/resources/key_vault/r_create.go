@@ -196,7 +196,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 		log.Printf("[DEBUG] Waiting for %s to become available", id)
 		deadline, ok := ctx.Deadline()
 		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+			return errors.New("internal-error: context had no deadline")
 		}
 
 		stateConf := &pluginsdk.StateChangeConf{

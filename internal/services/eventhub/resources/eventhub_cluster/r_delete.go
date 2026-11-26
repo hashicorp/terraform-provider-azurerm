@@ -4,6 +4,7 @@
 package eventhub_cluster
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -29,7 +30,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 		future, err := client.Delete(ctx, *id)
 		if err != nil {
 			if strings.Contains(err.Error(), "ClusterMoratoriumInEffect") || response.WasBadRequest(future.HttpResponse) || response.WasStatusCode(future.HttpResponse, http.StatusTooManyRequests) {
-				return pluginsdk.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
+				return pluginsdk.RetryableError(errors.New("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}

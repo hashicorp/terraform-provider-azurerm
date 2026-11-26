@@ -5,6 +5,7 @@ package site_recovery_vmware_replicated_vm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -180,7 +181,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Pending"},
@@ -203,7 +204,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					// The `protectionState` has pretty much enums, and will changes in the duration of replicate.
 					// While failed ones and canceled ones have common pattern.
 					if strings.HasSuffix(protectionState, "Failed") || strings.HasPrefix(protectionState, "Cancel") {
-						return resp, protectionState, fmt.Errorf("replicate failed or canceled")
+						return resp, protectionState, errors.New("replicate failed or canceled")
 					}
 
 					return resp, "Pending", nil

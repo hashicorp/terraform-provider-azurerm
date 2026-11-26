@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -34,7 +35,7 @@ func NewManagedHSMDataPlaneRoleAssignmentID(managedHSMName, domainSuffix, scope,
 
 func ManagedHSMDataPlaneRoleAssignmentID(input string, domainSuffix *string) (*ManagedHSMDataPlaneRoleAssignmentId, error) {
 	if input == "" {
-		return nil, fmt.Errorf("`input` was empty")
+		return nil, errors.New("`input` was empty")
 	}
 	if domainSuffix != nil && !strings.HasPrefix(strings.ToLower(*domainSuffix), "managedhsm.") {
 		return nil, fmt.Errorf("internal-error: the domainSuffix for Managed HSM %q didn't contain `managedhsm.`", *domainSuffix)

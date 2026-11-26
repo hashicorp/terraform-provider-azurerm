@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -318,7 +319,7 @@ func expandBlobInventoryPolicyFilter(input []any, objectType string) (*blobinven
 	// If the objectType is Container, the following values must be nil when passed to the API
 	if objectType == string(blobinventorypolicies.ObjectTypeContainer) {
 		if len(*policyFilter.BlobTypes) > 0 || *policyFilter.IncludeBlobVersions || *policyFilter.IncludeSnapshots {
-			return nil, fmt.Errorf("`blobTypes`, `includeBlobVersions`, `includeSnapshots` cannot be used with objectType `Container`")
+			return nil, errors.New("`blobTypes`, `includeBlobVersions`, `includeSnapshots` cannot be used with objectType `Container`")
 		}
 		policyFilter.BlobTypes = nil
 		policyFilter.IncludeBlobVersions = nil

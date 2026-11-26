@@ -5,6 +5,7 @@ package kusto_database_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -354,6 +355,6 @@ func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client
 
 		return pointer.To(value.Properties != nil), nil
 	} else {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 }

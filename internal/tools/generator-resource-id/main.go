@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -124,11 +125,11 @@ func parseServicePackageName(relativePath string) (*string, error) {
 	}
 
 	if serviceIndex == -1 {
-		return nil, fmt.Errorf("`services` segment was not found")
+		return nil, errors.New("`services` segment was not found")
 	}
 
 	if len(segments) <= serviceIndex {
-		return nil, fmt.Errorf("not enough segments")
+		return nil, errors.New("not enough segments")
 	}
 
 	return pointer.To(segments[serviceIndex+1]), nil

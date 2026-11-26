@@ -5,6 +5,7 @@ package windows_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -93,7 +94,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 						availabilityRequest.IsFqdn = pointer.To(true)
 
 						if !functionApp.VnetImagePullEnabled {
-							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+							return errors.New("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 						}
 					}
 				}
@@ -160,7 +161,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
-							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
+							return errors.New("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}

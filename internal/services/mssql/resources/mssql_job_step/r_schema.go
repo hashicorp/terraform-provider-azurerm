@@ -5,6 +5,7 @@ package mssql_job_step
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -144,7 +145,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if model.MaximumRetryIntervalSeconds <= model.InitialRetryIntervalSeconds {
-				return fmt.Errorf("`maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`")
+				return errors.New("`maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`")
 			}
 
 			// Once set, `job_credential_id` cannot be removed

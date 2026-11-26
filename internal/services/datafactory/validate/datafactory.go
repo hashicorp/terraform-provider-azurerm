@@ -5,7 +5,7 @@ package validate
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"regexp"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,7 +32,7 @@ func CMKIdentityIdRequiredAtCreation(ctx context.Context, d *pluginsdk.ResourceD
 		rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
 
 		if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
-			return fmt.Errorf("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
+			return errors.New("`customer_managed_key_identity_id` is required when creating a new Data Factory with `customer_managed_key_id`")
 		}
 	}
 	return nil

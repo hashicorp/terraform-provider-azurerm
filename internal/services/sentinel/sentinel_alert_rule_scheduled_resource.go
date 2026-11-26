@@ -4,6 +4,7 @@
 package sentinel
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -446,7 +447,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 
 	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 10
 	if entityMappingCount+sentinelEntityMappingCount > 10 {
-		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 10")
+		return errors.New("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 10")
 	}
 
 	if !d.IsNewResource() {

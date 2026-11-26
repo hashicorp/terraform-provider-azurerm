@@ -5,7 +5,7 @@ package container_group
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
@@ -35,7 +35,7 @@ func RegisterResource() *pluginsdk.Resource {
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			if p := d.Get("priority").(string); p == string(containerinstance.ContainerGroupPrioritySpot) {
 				if d.Get("ip_address_type").(string) != "None" {
-					return fmt.Errorf("`ip_address_type` has to be `None` when `priority` is set to `Spot`")
+					return errors.New("`ip_address_type` has to be `None` when `priority` is set to `Spot`")
 				}
 			}
 			return nil

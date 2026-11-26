@@ -5,6 +5,7 @@ package dns_zone
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -80,7 +81,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 
 				if len(id.DnsZoneName+strings.TrimSuffix(*rsParameters.Properties.SOARecord.Email, ".")) > 253 {
-					return fmt.Errorf("`email` which is concatenated with DNS Zone `name` cannot exceed 253 characters excluding a trailing period")
+					return errors.New("`email` which is concatenated with DNS Zone `name` cannot exceed 253 characters excluding a trailing period")
 				}
 
 				soaRecordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")

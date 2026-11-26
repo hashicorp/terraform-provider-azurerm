@@ -5,6 +5,7 @@ package orchestrated_virtual_machine_scale_set_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -639,7 +640,7 @@ func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx cont
 		}
 	}
 
-	return fmt.Errorf("application gateway configuration was missing")
+	return errors.New("application gateway configuration was missing")
 }
 
 // Net new tests for the 2021-07-01 version of the API

@@ -4,6 +4,7 @@
 package postgresql_flexible_server
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -47,7 +48,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any)
 	createMode := d.Get("create_mode").(string)
 
 	if _, ok := d.GetOk("replication_role"); ok {
-		return fmt.Errorf("`replication_role` cannot be set while creating")
+		return errors.New("`replication_role` cannot be set while creating")
 	}
 
 	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore || servers.CreateMode(createMode) == servers.CreateModeGeoRestore {
@@ -61,7 +62,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any)
 
 	if servers.CreateMode(createMode) == servers.CreateModeReplica {
 		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
+			return errors.New("`source_server_id` is required when `create_mode` is `Replica`")
 		}
 	}
 
@@ -84,22 +85,22 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any)
 
 		if pwdEnabled {
 			if !adminLoginSet {
-				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+				return errors.New("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
 
 			if !adminPwdSet && woPassword.IsNull() {
-				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+				return errors.New("`administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
 		} else if adminLoginSet || adminPwdSet || !woPassword.IsNull() {
-			return fmt.Errorf("`administrator_login`, `administrator_password` and `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
+			return errors.New("`administrator_login`, `administrator_password` and `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
 		}
 
 		if _, ok := d.GetOk("sku_name"); !ok {
-			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
+			return errors.New("`sku_name` is required when `create_mode` is `Default`")
 		}
 
 		if _, ok := d.GetOk("version"); !ok {
-			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
+			return errors.New("`version` is required when `create_mode` is `Default`")
 		}
 	}
 
@@ -178,7 +179,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any)
 	if pointInTimeUTC != "" {
 		v, err := time.Parse(time.RFC3339, pointInTimeUTC)
 		if err != nil {
-			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
+			return errors.New("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
 		parameters.Properties.SetPointInTimeUTCAsTime(v)
 	}
@@ -189,7 +190,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any)
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
-		return fmt.Errorf("expanding `identity`")
+		return errors.New("expanding `identity`")
 	}
 	parameters.Identity = identity
 
