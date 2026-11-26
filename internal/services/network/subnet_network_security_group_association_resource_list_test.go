@@ -64,7 +64,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
-  count                    = 3
+  count                     = 3
   subnet_id                 = azurerm_subnet.test[count.index].id
   network_security_group_id = azurerm_network_security_group.test.id
 }
