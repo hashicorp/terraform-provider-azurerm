@@ -150,14 +150,12 @@ func replicationRegionSchema() map[string]*pluginsdk.Schema {
 		"system_created_storage_account_hierarchical_namespace_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 			Default:  false,
 		},
 
 		"system_created_storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  systemCreatedStorageAccountTypeDefault,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard_LRS",
@@ -269,16 +267,22 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 				oldRegions := oldVal.([]any)
 				newRegions := newVal.([]any)
 
-				newLocations := make(map[string]bool)
+				newRegionsByLocation := make(map[string]map[string]any)
 				for _, r := range newRegions {
 					region := r.(map[string]any)
-					newLocations[location.Normalize(region["location"].(string))] = true
+					newRegionsByLocation[location.Normalize(region["location"].(string))] = region
 				}
 
 				for _, r := range oldRegions {
 					oldRegion := r.(map[string]any)
 					oldLocation := location.Normalize(oldRegion["location"].(string))
-					if !newLocations[oldLocation] {
+					newRegion, exists := newRegionsByLocation[oldLocation]
+					if !exists {
+						continue
+					}
+
+					if oldRegion["system_created_storage_account_type"].(string) != newRegion["system_created_storage_account_type"].(string) ||
+						oldRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) != newRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) {
 						if err := metadata.ResourceDiff.ForceNew("replication_region"); err != nil {
 							return err
 						}
@@ -428,7 +432,7 @@ func (r MachineLearningRegistryResource) flatten(metadata sdk.ResourceMetaData, 
 
 func (r MachineLearningRegistryResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.RegistryManagement
 
@@ -451,6 +455,55 @@ func (r MachineLearningRegistryResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
+			var removedRegions []registrymanagement.RegistryRegionArmDetails
+			hasAddedRegions := false
+
+			if metadata.ResourceData.HasChange("replication_region") {
+				oldVal, newVal := metadata.ResourceData.GetChange("replication_region")
+				oldRegions := oldVal.([]any)
+				newRegions := newVal.([]any)
+
+				newLocations := make(map[string]bool)
+				for _, r := range newRegions {
+					region := r.(map[string]any)
+					newLocations[location.Normalize(region["location"].(string))] = true
+				}
+
+				keptCount := 0
+				for _, r := range oldRegions {
+					region := r.(map[string]any)
+					loc := region["location"].(string)
+					if newLocations[location.Normalize(loc)] {
+						keptCount++
+						continue
+					}
+
+					removedRegions = append(removedRegions, expandRegistryRegionDetail(ReplicationRegion{
+						Location:                        loc,
+						SystemCreatedStorageAccountType: region["system_created_storage_account_type"].(string),
+						HierarchicalNamespaceEnabled:    region["system_created_storage_account_hierarchical_namespace_enabled"].(bool),
+					}))
+				}
+
+				hasAddedRegions = len(newRegions) > keptCount
+			}
+
+			if len(removedRegions) > 0 {
+				removeParam := *existing.Model
+				removeParam.Properties.RegionDetails = pointer.To(removedRegions)
+				if err := client.RegistriesRemoveRegionsThenPoll(ctx, *id, removeParam); err != nil {
+					return fmt.Errorf("removing replication regions from %s: %+v", *id, err)
+				}
+
+				existing, err = client.RegistriesGet(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", *id, err)
+				}
+				if existing.Model == nil {
+					return fmt.Errorf("retrieving %s: `model` was nil", *id)
+				}
+			}
+
 			param := *existing.Model
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -470,12 +523,12 @@ func (r MachineLearningRegistryResource) Update() sdk.ResourceFunc {
 				param.Properties.PublicNetworkAccess = pointer.To(model.PublicNetworkAccess)
 			}
 
-			if metadata.ResourceData.HasChange("replication_region") {
+			if hasAddedRegions {
 				param.Properties.RegionDetails = pointer.To(expandRegistryRegions(model))
 			}
 
 			if err := client.RegistriesCreateOrUpdateThenPoll(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil

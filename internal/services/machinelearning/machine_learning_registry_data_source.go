@@ -24,6 +24,8 @@ import (
 
 type MachineLearningRegistryDataSource struct{}
 
+var _ sdk.DataSource = MachineLearningRegistryDataSource{}
+
 type MachineLearningRegistryDataSourceModel struct {
 	Name                                                    string                                     `tfschema:"name"`
 	ResourceGroupName                                       string                                     `tfschema:"resource_group_name"`

@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `public_network_access` - (Optional) The public network access setting for the Machine Learning Registry. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
-* `replication_region` - (Optional) One or more `replication_region` blocks as defined below. Removing an existing `replication_region` forces a new Machine Learning Registry to be created.
+* `replication_region` - (Optional) One or more `replication_region` blocks as defined below.
 
 * `system_created_storage_account_hierarchical_namespace_enabled` - (Optional) Whether to enable the hierarchical namespace feature for the system-created storage account in the primary region. Defaults to `false`. Changing this forces a new Machine Learning Registry to be created.
 
@@ -113,7 +113,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Registry.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Registry.
+* `update` - (Defaults to 1 hour) Used when updating the Machine Learning Registry.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Registry.
 
 ## Import
