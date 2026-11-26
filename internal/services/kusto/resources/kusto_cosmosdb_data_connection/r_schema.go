@@ -6,7 +6,7 @@ package kusto_cosmosdb_data_connection
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -29,7 +29,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: cosmosdb.ValidateContainerID,
+			ValidateFunc: openapis.ValidateContainerID,
 		},
 		"kusto_database_id": {
 			Description:  "The name of the database in the Kusto cluster.",

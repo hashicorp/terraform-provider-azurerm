@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,12 +56,12 @@ func TestAccCosmosDbSqlStoredProcedure_update(t *testing.T) {
 }
 
 func (t CosmosSqlStoredProcedureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := cosmosdb.ParseStoredProcedureID(state.ID)
+	id, err := openapis.ParseStoredProcedureID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CosmosDBClient.SqlResourcesGetSqlStoredProcedure(ctx, *id)
+	resp, err := clients.Cosmos.OpenapisClient.SqlResourcesGetSqlStoredProcedure(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -110,7 +110,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths = ["/definition/id"]
 }
-`, data.Locations.Primary, data.RandomInteger, string(cosmosdb.DatabaseAccountKindGlobalDocumentDB), string(cosmosdb.DefaultConsistencyLevelSession))
+`, data.Locations.Primary, data.RandomInteger, string(openapis.DatabaseAccountKindGlobalDocumentDB), string(openapis.DefaultConsistencyLevelSession))
 }
 
 func (r CosmosSqlStoredProcedureResource) basic(data acceptance.TestData) string {

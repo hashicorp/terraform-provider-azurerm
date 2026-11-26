@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -34,7 +34,7 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseUserDefinedFunctionID(id)
+			_, err := openapis.ParseUserDefinedFunctionID(id)
 			return err
 		}),
 
@@ -51,7 +51,7 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: cosmosdb.ValidateContainerID,
+				ValidateFunc: openapis.ValidateContainerID,
 			},
 
 			"body": {
@@ -65,17 +65,17 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	containerId, err := cosmosdb.ParseContainerID(d.Get("container_id").(string))
+	containerId, err := openapis.ParseContainerID(d.Get("container_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := cosmosdb.NewUserDefinedFunctionID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
+	id := openapis.NewUserDefinedFunctionID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlUserDefinedFunction(ctx, id)
@@ -87,13 +87,13 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) erro
 		}
 	}
 
-	payload := cosmosdb.SqlUserDefinedFunctionCreateUpdateParameters{
-		Properties: cosmosdb.SqlUserDefinedFunctionCreateUpdateProperties{
-			Resource: cosmosdb.SqlUserDefinedFunctionResource{
+	payload := openapis.SqlUserDefinedFunctionCreateUpdateParameters{
+		Properties: openapis.SqlUserDefinedFunctionCreateUpdateProperties{
+			Resource: openapis.SqlUserDefinedFunctionResource{
 				Id:   id.UserDefinedFunctionName,
 				Body: pointer.To(d.Get("body").(string)),
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -106,12 +106,12 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseUserDefinedFunctionID(d.Id())
+	id, err := openapis.ParseUserDefinedFunctionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -120,13 +120,13 @@ func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	payload := cosmosdb.SqlUserDefinedFunctionCreateUpdateParameters{
-		Properties: cosmosdb.SqlUserDefinedFunctionCreateUpdateProperties{
-			Resource: cosmosdb.SqlUserDefinedFunctionResource{
+	payload := openapis.SqlUserDefinedFunctionCreateUpdateParameters{
+		Properties: openapis.SqlUserDefinedFunctionCreateUpdateProperties{
+			Resource: openapis.SqlUserDefinedFunctionResource{
 				Id:   id.UserDefinedFunctionName,
 				Body: pointer.To(d.Get("body").(string)),
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -138,12 +138,12 @@ func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) erro
 }
 
 func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseUserDefinedFunctionID(d.Id())
+	id, err := openapis.ParseUserDefinedFunctionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	d.Set("name", id.UserDefinedFunctionName)
-	d.Set("container_id", cosmosdb.NewContainerID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName).ID())
+	d.Set("container_id", openapis.NewContainerID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName).ID())
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil && props.Resource != nil {
@@ -170,12 +170,12 @@ func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error 
 }
 
 func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseUserDefinedFunctionID(d.Id())
+	id, err := openapis.ParseUserDefinedFunctionID(d.Id())
 	if err != nil {
 		return err
 	}

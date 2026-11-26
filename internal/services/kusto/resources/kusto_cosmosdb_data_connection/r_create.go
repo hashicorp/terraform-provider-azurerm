@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -30,7 +30,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Kusto.DataConnectionsClient
 
-			cosmosDbContainerId, err := cosmosdb.ParseContainerID(model.CosmosDbContainerId)
+			cosmosDbContainerId, err := openapis.ParseContainerID(model.CosmosDbContainerId)
 			if err != nil {
 				return err
 			}
@@ -41,7 +41,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			// SubscriptionId and ResourceGroupName need to align with the CosmosDB container, and those could be different from the Kusto database
-			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(cosmosDbContainerId.SubscriptionId, cosmosDbContainerId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
+			cosmosDbAccountResourceId := openapis.NewDatabaseAccountID(cosmosDbContainerId.SubscriptionId, cosmosDbContainerId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
 
 			id := dataconnections.NewDataConnectionID(kustoDatabaseId.SubscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.KustoClusterName, kustoDatabaseId.KustoDatabaseName, model.Name)
 

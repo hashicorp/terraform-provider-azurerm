@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -86,12 +86,12 @@ func TestAccCosmosDbMongoRoleDefinition_update(t *testing.T) {
 }
 
 func (r CosmosMongoRoleDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := mongorbacs.ParseMongodbRoleDefinitionID(state.ID)
+	id, err := openapis.ParseMongodbRoleDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.MongoRBACClient.MongoDBResourcesGetMongoRoleDefinition(ctx, *id)
+	resp, err := clients.Cosmos.OpenapisClient.MongoDBResourcesGetMongoRoleDefinition(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -35,7 +35,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseTriggerID(id)
+			_, err := openapis.ParseTriggerID(id)
 			return err
 		}),
 
@@ -53,7 +53,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: cosmosdb.ValidateContainerID,
+				ValidateFunc: openapis.ValidateContainerID,
 			},
 
 			"body": {
@@ -67,31 +67,31 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 				Description:  "The operation the trigger is associated with.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerOperation(), false),
+				ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForTriggerOperation(), false),
 			},
 
 			"type": {
 				Description:  "Type of the Trigger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerType(), false),
+				ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForTriggerType(), false),
 			},
 		},
 	}
 }
 
 func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	containerId, err := cosmosdb.ParseContainerID(d.Get("container_id").(string))
+	containerId, err := openapis.ParseContainerID(d.Get("container_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := cosmosdb.NewTriggerID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
+	id := openapis.NewTriggerID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -105,15 +105,15 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any)
 		}
 	}
 
-	createUpdateSqlTriggerParameters := cosmosdb.SqlTriggerCreateUpdateParameters{
-		Properties: cosmosdb.SqlTriggerCreateUpdateProperties{
-			Resource: cosmosdb.SqlTriggerResource{
+	createUpdateSqlTriggerParameters := openapis.SqlTriggerCreateUpdateParameters{
+		Properties: openapis.SqlTriggerCreateUpdateProperties{
+			Resource: openapis.SqlTriggerResource{
 				Id:               id.TriggerName,
 				Body:             pointer.To(d.Get("body").(string)),
-				TriggerType:      pointer.ToEnum[cosmosdb.TriggerType](d.Get("type").(string)),
-				TriggerOperation: pointer.ToEnum[cosmosdb.TriggerOperation](d.Get("operation").(string)),
+				TriggerType:      pointer.ToEnum[openapis.TriggerType](d.Get("type").(string)),
+				TriggerOperation: pointer.ToEnum[openapis.TriggerOperation](d.Get("operation").(string)),
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -132,12 +132,12 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any)
 }
 
 func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseTriggerID(d.Id())
+	id, err := openapis.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.Set("name", id.TriggerName)
-	d.Set("container_id", cosmosdb.NewContainerID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName).ID())
+	d.Set("container_id", openapis.NewContainerID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName).ID())
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
@@ -168,12 +168,12 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseTriggerID(d.Id())
+	id, err := openapis.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
 	}

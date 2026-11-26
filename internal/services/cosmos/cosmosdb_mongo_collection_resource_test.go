@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -232,12 +232,12 @@ func TestAccCosmosDbMongoCollection_autoscaleWithoutShareKey(t *testing.T) {
 }
 
 func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := cosmosdb.ParseMongodbDatabaseCollectionID(state.ID)
+	id, err := openapis.ParseMongodbDatabaseCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CosmosDBClient.MongoDBResourcesGetMongoDBCollection(ctx, *id)
+	resp, err := clients.Cosmos.OpenapisClient.MongoDBResourcesGetMongoDBCollection(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -403,7 +403,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, openapis.DatabaseAccountKindMongoDB, []string{"EnableMongo"}), data.RandomInteger)
 }
 
 func (CosmosMongoCollectionResource) serverless(data acceptance.TestData) string {
@@ -427,7 +427,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, openapis.DatabaseAccountKindMongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
 }
 
 func (CosmosMongoCollectionResource) analyticalStorageTTL(data acceptance.TestData) string {
@@ -453,7 +453,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   analytical_storage_ttl = 600
 }
-`, CosmosDBAccountResource{}.mongoAnalyticalStorage(data, cosmosdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
+`, CosmosDBAccountResource{}.mongoAnalyticalStorage(data, openapis.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
 }
 
 func (CosmosMongoCollectionResource) autoscaleWithoutShareKey(data acceptance.TestData) string {

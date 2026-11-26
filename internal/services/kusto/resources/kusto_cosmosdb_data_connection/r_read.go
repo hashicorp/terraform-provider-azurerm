@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -49,11 +49,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(*cosmosDbModel.Location)
 
 				if properties := cosmosDbModel.Properties; properties != nil {
-					cosmosdbAccountId, err := cosmosdb.ParseDatabaseAccountID(properties.CosmosDbAccountResourceId)
+					cosmosdbAccountId, err := openapis.ParseDatabaseAccountID(properties.CosmosDbAccountResourceId)
 					if err != nil {
 						return err
 					}
-					cosmosDbContainerId := cosmosdb.NewContainerID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
+					cosmosDbContainerId := openapis.NewContainerID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
 					state.CosmosDbContainerId = cosmosDbContainerId.ID()
 					state.TableName = properties.TableName
 					state.ManagedIdentityId = properties.ManagedIdentityResourceId

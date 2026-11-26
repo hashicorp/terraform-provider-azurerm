@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,7 +39,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rbacs.ParseSqlRoleAssignmentID(id)
+			_, err := openapis.ParseSqlRoleAssignmentID(id)
 			return err
 		}),
 
@@ -83,14 +83,14 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 				Description:  "The resource ID of the Cosmos DB SQL Role Definition.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: rbacs.ValidateSqlRoleDefinitionID,
+				ValidateFunc: openapis.ValidateSqlRoleDefinitionID,
 			},
 		},
 	}
 }
 
 func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any
 		name = uuid
 	}
 
-	id := rbacs.NewSqlRoleAssignmentID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
+	id := openapis.NewSqlRoleAssignmentID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
 
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -120,8 +120,8 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any
 		}
 	}
 
-	parameters := rbacs.SqlRoleAssignmentCreateUpdateParameters{
-		Properties: &rbacs.SqlRoleAssignmentResource{
+	parameters := openapis.SqlRoleAssignmentCreateUpdateParameters{
+		Properties: &openapis.SqlRoleAssignmentResource{
 			PrincipalId:      pointer.To(d.Get("principal_id").(string)),
 			RoleDefinitionId: pointer.To(d.Get("role_definition_id").(string)),
 			Scope:            pointer.To(d.Get("scope").(string)),
@@ -137,12 +137,12 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any
 }
 
 func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseSqlRoleAssignmentID(d.Id())
+	id, err := openapis.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,12 +173,12 @@ func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) 
 }
 
 func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseSqlRoleAssignmentID(d.Id())
+	id, err := openapis.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -186,8 +186,8 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-	parameters := rbacs.SqlRoleAssignmentCreateUpdateParameters{
-		Properties: &rbacs.SqlRoleAssignmentResource{
+	parameters := openapis.SqlRoleAssignmentCreateUpdateParameters{
+		Properties: &openapis.SqlRoleAssignmentResource{
 			PrincipalId:      pointer.To(d.Get("principal_id").(string)),
 			RoleDefinitionId: pointer.To(d.Get("role_definition_id").(string)),
 			Scope:            pointer.To(d.Get("scope").(string)),
@@ -202,12 +202,12 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any
 }
 
 func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseSqlRoleAssignmentID(d.Id())
+	id, err := openapis.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -10,8 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,7 +41,7 @@ func (r CosmosDbMongoUserDefinitionResource) ModelObject() any {
 }
 
 func (r CosmosDbMongoUserDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return mongorbacs.ValidateMongodbUserDefinitionID
+	return openapis.ValidateMongodbUserDefinitionID
 }
 
 func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -52,7 +51,7 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: cosmosdb.ValidateMongodbDatabaseID,
+			ValidateFunc: openapis.ValidateMongodbDatabaseID,
 		},
 
 		"username": {
@@ -96,14 +95,14 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
+			client := metadata.Client.Cosmos.OpenapisClient
+			databaseId, err := openapis.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
 
 			mongoUserDefinitionId := fmt.Sprintf("%s.%s", databaseId.MongodbDatabaseName, model.Username)
-			id := mongorbacs.NewMongodbUserDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoUserDefinitionId)
+			id := openapis.NewMongodbUserDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoUserDefinitionId)
 
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -119,8 +118,8 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			properties := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
-				Properties: &mongorbacs.MongoUserDefinitionResource{
+			properties := openapis.MongoUserDefinitionCreateUpdateParameters{
+				Properties: &openapis.MongoUserDefinitionResource{
 					DatabaseName: pointer.To(databaseId.MongodbDatabaseName),
 					Mechanisms:   pointer.To("SCRAM-SHA-256"),
 					Password:     pointer.To(model.Password),
@@ -143,9 +142,9 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := metadata.Client.Cosmos.OpenapisClient
 
-			id, err := mongorbacs.ParseMongodbUserDefinitionID(metadata.ResourceData.Id())
+			id, err := openapis.ParseMongodbUserDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -168,12 +167,12 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
+			databaseId, err := openapis.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
 
-			parameters := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
+			parameters := openapis.MongoUserDefinitionCreateUpdateParameters{
 				Properties: properties.Properties,
 			}
 
@@ -198,9 +197,9 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := metadata.Client.Cosmos.OpenapisClient
 
-			id, err := mongorbacs.ParseMongodbUserDefinitionID(metadata.ResourceData.Id())
+			id, err := openapis.ParseMongodbUserDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -218,7 +217,7 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					databaseId := cosmosdb.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
+					databaseId := openapis.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
 
 					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.Username = pointer.From(properties.UserName)
@@ -236,9 +235,9 @@ func (r CosmosDbMongoUserDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := metadata.Client.Cosmos.OpenapisClient
 
-			id, err := mongorbacs.ParseMongodbUserDefinitionID(metadata.ResourceData.Id())
+			id, err := openapis.ParseMongodbUserDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -255,15 +254,15 @@ func (r CosmosDbMongoUserDefinitionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
+func expandInheritedRole(input []string, dbName string) *[]openapis.Role {
 	if len(input) == 0 {
 		return nil
 	}
 
-	result := make([]mongorbacs.Role, 0)
+	result := make([]openapis.Role, 0)
 
 	for _, v := range input {
-		role := mongorbacs.Role{
+		role := openapis.Role{
 			Db:   pointer.To(dbName),
 			Role: pointer.To(v),
 		}
@@ -274,7 +273,7 @@ func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
 	return &result
 }
 
-func flattenInheritedRole(input *[]mongorbacs.Role) []string {
+func flattenInheritedRole(input *[]openapis.Role) []string {
 	result := make([]string, 0)
 	if input == nil {
 		return result

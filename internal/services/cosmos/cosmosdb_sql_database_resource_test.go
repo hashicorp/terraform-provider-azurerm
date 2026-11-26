@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -105,12 +105,12 @@ func TestAccCosmosDbSqlDatabase_serverless(t *testing.T) {
 }
 
 func (t CosmosSqlDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := cosmosdb.ParseSqlDatabaseID(state.ID)
+	id, err := openapis.ParseSqlDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CosmosDBClient.SqlResourcesGetSqlDatabase(ctx, *id)
+	resp, err := clients.Cosmos.OpenapisClient.SqlResourcesGetSqlDatabase(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -127,7 +127,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basic(data, openapis.DatabaseAccountKindGlobalDocumentDB, openapis.DefaultConsistencyLevelStrong), data.RandomInteger)
 }
 
 func (CosmosSqlDatabaseResource) throughput(data acceptance.TestData, throughput int) string {
@@ -140,7 +140,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
-`, CosmosDBAccountResource{}.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger, throughput)
+`, CosmosDBAccountResource{}.basic(data, openapis.DatabaseAccountKindGlobalDocumentDB, openapis.DefaultConsistencyLevelStrong), data.RandomInteger, throughput)
 }
 
 func (CosmosSqlDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -155,7 +155,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.basic(data, openapis.DatabaseAccountKindGlobalDocumentDB, openapis.DefaultConsistencyLevelStrong), data.RandomInteger, maxThroughput)
 }
 
 func (CosmosSqlDatabaseResource) serverless(data acceptance.TestData) string {
@@ -166,5 +166,5 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, openapis.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"}), data.RandomInteger)
 }

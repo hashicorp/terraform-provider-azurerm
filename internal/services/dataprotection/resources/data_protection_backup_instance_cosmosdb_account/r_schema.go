@@ -5,7 +5,7 @@ package data_protection_backup_instance_cosmosdb_account
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"cosmosdb_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cosmosdb.DatabaseAccountId{}, "CosmosDB Account"),
+		"cosmosdb_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&openapis.DatabaseAccountId{}, "CosmosDB Account"),
 
 		"data_protection_backup_policy_cosmosdb_account_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}, "Backup Policy"),
 	}

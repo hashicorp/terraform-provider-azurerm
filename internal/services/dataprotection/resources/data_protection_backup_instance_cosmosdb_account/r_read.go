@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/basebackuppolicyresources"
@@ -67,7 +67,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresou
 
 	state.Location = model.Location
 
-	accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosdbAccountId)
+	accountId, err := openapis.ParseDatabaseAccountIDInsensitively(model.CosmosdbAccountId)
 	if err != nil {
 		return err
 	}

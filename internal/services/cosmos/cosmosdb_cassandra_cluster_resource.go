@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -36,7 +36,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 		Delete:      resourceCassandraClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedcassandras.ParseCassandraClusterID(id)
+			_, err := openapis.ParseCassandraClusterID(id)
 			return err
 		}),
 
@@ -81,10 +81,10 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				Description: "The authentication method that is used to authenticate clients.",
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				Default:     string(managedcassandras.AuthenticationMethodCassandra),
+				Default:     string(openapis.AuthenticationMethodCassandra),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(managedcassandras.AuthenticationMethodNone),
-					string(managedcassandras.AuthenticationMethodCassandra),
+					string(openapis.AuthenticationMethodNone),
+					string(openapis.AuthenticationMethodCassandra),
 				}, false),
 			},
 
@@ -154,14 +154,14 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 }
 
 func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	id := managedcassandras.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
+	id := openapis.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CassandraClustersGet(ctx, id)
@@ -180,12 +180,12 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	authenticationMethod := managedcassandras.AuthenticationMethod(d.Get("authentication_method").(string))
+	authenticationMethod := openapis.AuthenticationMethod(d.Get("authentication_method").(string))
 
-	body := managedcassandras.ClusterResource{
+	body := openapis.ClusterResource{
 		Identity: expandedIdentity,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Properties: &managedcassandras.ClusterResourceProperties{
+		Properties: &openapis.ClusterResourceProperties{
 			AuthenticationMethod:          &authenticationMethod,
 			CassandraVersion:              pointer.To(d.Get("version").(string)),
 			DelegatedManagementSubnetId:   pointer.To(d.Get("delegated_management_subnet_id").(string)),
@@ -218,11 +218,11 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedcassandras.ParseCassandraClusterID(d.Id())
+	id, err := openapis.ParseCassandraClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -280,26 +280,26 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	id := managedcassandras.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
+	id := openapis.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
 
 	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	authenticationMethod := managedcassandras.AuthenticationMethod(d.Get("authentication_method").(string))
+	authenticationMethod := openapis.AuthenticationMethod(d.Get("authentication_method").(string))
 
-	body := managedcassandras.ClusterResource{
+	body := openapis.ClusterResource{
 		Identity: expandedIdentity,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Properties: &managedcassandras.ClusterResourceProperties{
+		Properties: &openapis.ClusterResourceProperties{
 			AuthenticationMethod:          &authenticationMethod,
 			CassandraVersion:              pointer.To(d.Get("version").(string)),
 			DelegatedManagementSubnetId:   pointer.To(d.Get("delegated_management_subnet_id").(string)),
@@ -333,8 +333,8 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// It has to wait a while after that. Then the property can be updated successfully.
 	stateConf := &pluginsdk.StateChangeConf{
 		Delay:      1 * time.Minute,
-		Pending:    []string{string(managedcassandras.ManagedCassandraProvisioningStateUpdating)},
-		Target:     []string{string(managedcassandras.ManagedCassandraProvisioningStateSucceeded)},
+		Pending:    []string{string(openapis.ManagedCassandraProvisioningStateUpdating)},
+		Target:     []string{string(openapis.ManagedCassandraProvisioningStateSucceeded)},
 		Refresh:    cosmosdbCassandraClusterStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
@@ -348,11 +348,11 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedcassandras.ParseCassandraClusterID(d.Id())
+	id, err := openapis.ParseCassandraClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	return nil
 }
 
-func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *managedcassandras.ManagedCassandrasClient, id managedcassandras.CassandraClusterId) pluginsdk.StateRefreshFunc {
+func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *openapis.OpenapisClient, id openapis.CassandraClusterId) pluginsdk.StateRefreshFunc {
 	return func() (any, string, error) {
 		res, err := client.CassandraClustersGet(ctx, id)
 		if err != nil {
@@ -391,11 +391,11 @@ func expandCassandraClusterIdentity(input []any) (*identity.SystemAssigned, erro
 	}, nil
 }
 
-func expandCassandraClusterCertificate(input []any) *[]managedcassandras.Certificate {
-	results := make([]managedcassandras.Certificate, 0)
+func expandCassandraClusterCertificate(input []any) *[]openapis.Certificate {
+	results := make([]openapis.Certificate, 0)
 
 	for _, pem := range input {
-		result := managedcassandras.Certificate{
+		result := openapis.Certificate{
 			Pem: pointer.To(pem.(string)),
 		}
 		results = append(results, result)
@@ -404,11 +404,11 @@ func expandCassandraClusterCertificate(input []any) *[]managedcassandras.Certifi
 	return &results
 }
 
-func expandCassandraClusterExternalSeedNode(input []any) *[]managedcassandras.SeedNode {
-	results := make([]managedcassandras.SeedNode, 0)
+func expandCassandraClusterExternalSeedNode(input []any) *[]openapis.SeedNode {
+	results := make([]openapis.SeedNode, 0)
 
 	for _, ipAddress := range input {
-		result := managedcassandras.SeedNode{
+		result := openapis.SeedNode{
 			IPAddress: pointer.To(ipAddress.(string)),
 		}
 		results = append(results, result)
@@ -417,7 +417,7 @@ func expandCassandraClusterExternalSeedNode(input []any) *[]managedcassandras.Se
 	return &results
 }
 
-func flattenCassandraClusterCertificate(input *[]managedcassandras.Certificate) []any {
+func flattenCassandraClusterCertificate(input *[]openapis.Certificate) []any {
 	results := make([]any, 0)
 	if input == nil {
 		return results
@@ -430,7 +430,7 @@ func flattenCassandraClusterCertificate(input *[]managedcassandras.Certificate) 
 	return results
 }
 
-func flattenCassandraClusterExternalSeedNode(input *[]managedcassandras.SeedNode) []any {
+func flattenCassandraClusterExternalSeedNode(input *[]openapis.SeedNode) []any {
 	results := make([]any, 0)
 	if input == nil {
 		return results
