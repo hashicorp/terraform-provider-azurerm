@@ -312,5 +312,5 @@ resource "azurerm_subnet" "test" {
 
 func (WindowsVirtualMachineScaleSetResource) vmName(data acceptance.TestData) string {
 	// windows VM names can be up to 15 chars, however the prefix can only be 9 chars
-	return fmt.Sprintf("acctvm%s", strconv.Itoa(data.RandomInteger)[0:2])
+	return "acctvm" + strconv.Itoa(data.RandomInteger)[0:2]
 }

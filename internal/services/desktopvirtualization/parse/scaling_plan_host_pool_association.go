@@ -20,10 +20,10 @@ type ScalingPlanHostPoolAssociationId struct {
 
 func (id ScalingPlanHostPoolAssociationId) String() string {
 	components := []string{
-		fmt.Sprintf("Scaling Plan %s", id.ScalingPlan.String()),
-		fmt.Sprintf("Host Pool %s", id.HostPool.String()),
+		"Scaling Plan " + id.ScalingPlan.String(),
+		"Host Pool " + id.HostPool.String(),
 	}
-	return fmt.Sprintf("Scaling Plan Host Pool Association %s", strings.Join(components, " / "))
+	return "Scaling Plan Host Pool Association " + strings.Join(components, " / ")
 }
 
 func (id ScalingPlanHostPoolAssociationId) ID() string {

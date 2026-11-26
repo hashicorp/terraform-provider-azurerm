@@ -30,7 +30,7 @@ func (id AppConfigurationFeatureId) String() string {
 		fmt.Sprintf("Label %q", id.Label),
 		fmt.Sprintf("Name %q", id.Name),
 	}
-	return fmt.Sprintf("Feature: %s", strings.Join(components, " / "))
+	return "Feature: " + strings.Join(components, " / ")
 }
 
 func FeatureId(input string) (*AppConfigurationFeatureId, error) {

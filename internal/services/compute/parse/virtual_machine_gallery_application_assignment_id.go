@@ -26,10 +26,10 @@ func (v VirtualMachineGalleryApplicationAssignmentId) ID() string {
 
 func (v VirtualMachineGalleryApplicationAssignmentId) String() string {
 	components := []string{
-		fmt.Sprintf("VirtualMachineId %s", v.VirtualMachineId.ID()),
-		fmt.Sprintf("GalleryApplicationVersionId %s", v.GalleryApplicationVersionId.ID()),
+		"VirtualMachineId " + v.VirtualMachineId.ID(),
+		"GalleryApplicationVersionId " + v.GalleryApplicationVersionId.ID(),
 	}
-	return fmt.Sprintf("Virtual Machine Gallery Application Assignment: %s", strings.Join(components, " / "))
+	return "Virtual Machine Gallery Application Assignment: " + strings.Join(components, " / ")
 }
 
 func NewVirtualMachineGalleryApplicationAssignmentID(virtualMachineId virtualmachines.VirtualMachineId, galleryApplicationVersionId galleryapplicationversions.ApplicationVersionId) VirtualMachineGalleryApplicationAssignmentId {

@@ -35,7 +35,7 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta any) erro
 
 	// if disable_generated_rule=true, the generated rule is not automatically deleted.
 	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
-		ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
+		ruleName := "Failure Anomalies - " + id.ComponentName
 		ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
 		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId)
 		if deleteErr != nil && !response.WasNotFound(deleteResp.HttpResponse) {

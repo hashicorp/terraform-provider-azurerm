@@ -95,7 +95,7 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 
 	// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
 	// resource id being `aro-{domain}` so we'll follow that here.
-	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()
+	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, "aro-"+input[0].Domain).ID()
 	if rg := input[0].ManagedResourceGroupName; rg != "" {
 		resourceGroupId = commonids.NewResourceGroupID(subscriptionId, rg).ID()
 	}

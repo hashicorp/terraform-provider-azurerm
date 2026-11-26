@@ -30,7 +30,7 @@ func (id RoleAssignmentId) String() string {
 		fmt.Sprintf("Scope %q", id.Scope),
 		fmt.Sprintf("Data Plane Assignment ID %q", id.DataPlaneAssignmentId),
 	}
-	return fmt.Sprintf("Role Assignment %s", strings.Join(components, " / "))
+	return "Role Assignment " + strings.Join(components, " / ")
 }
 
 func (id RoleAssignmentId) ID() string {
@@ -52,7 +52,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 func SynapseScope(synapseScope string) (string, string, error) {
 	workspaceId, err := WorkspaceID(synapseScope)
 	if err == nil {
-		return workspaceId.Name, fmt.Sprintf("workspaces/%s", workspaceId.Name), nil
+		return workspaceId.Name, "workspaces/" + workspaceId.Name, nil
 	}
 
 	sparkPoolID, err := SparkPoolID(synapseScope)

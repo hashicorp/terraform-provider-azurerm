@@ -5,7 +5,6 @@ package network
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -65,7 +64,7 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(metadata.SubscriptionId, data.ResourceGroupName.ValueString()))
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", VirtualNetworkResourceName), err)
+		sdk.SetResponseErrorDiagnostic(stream, "listing "+VirtualNetworkResourceName, err)
 		return
 	}
 

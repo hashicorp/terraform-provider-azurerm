@@ -6,6 +6,7 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -201,10 +202,11 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 }
 
 func (r CosmosGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
-	capeTf := ""
+	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
-		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)
 	}
+	capeTf := capeTfBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

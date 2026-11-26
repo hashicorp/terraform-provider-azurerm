@@ -35,7 +35,7 @@ func (id AdvancedThreatProtectionId) String() string {
 		fmt.Sprintf("Target Resource ID %q", id.TargetResourceID),
 		fmt.Sprintf("Setting Name %q", id.SettingName),
 	}
-	return fmt.Sprintf("Advanced Protection %s", strings.Join(components, " / "))
+	return "Advanced Protection " + strings.Join(components, " / ")
 }
 
 func AdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, error) {

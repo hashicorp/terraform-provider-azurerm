@@ -54,7 +54,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				model.Tags = make(map[string]string)
 			}
 
-			model.Tags[fmt.Sprintf("hidden-link:%s", appInsightsId.ID())] = "Resource"
+			model.Tags["hidden-link:"+appInsightsId.ID()] = "Resource"
 
 			props := webtestsapis.WebTestProperties{
 				Name:               id.WebTestName, // API requires this to be specified despite ARM spec guidance that it should come from the ID

@@ -46,7 +46,7 @@ func TestAccAttestationProviderDataSource_basic(t *testing.T) {
 
 func (AttestationProviderDataSource) basic(data acceptance.TestData) string {
 	config := AttestationProviderResource{
-		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+		name: "acctestap" + data.RandomStringOfLength(10),
 	}.basic(data)
 	return fmt.Sprintf(`
 %s

@@ -5,7 +5,6 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
@@ -37,7 +36,7 @@ func (AdvancedThreatProtectionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc 
 		oldId := rawState["id"].(string)
 
 		// remove the existing `/` if it's present (2.42+) which'll do nothing if it wasn't (2.38)
-		newId := fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/"))
+		newId := "/" + strings.TrimPrefix(oldId, "/")
 
 		parsedId, err := parse.AdvancedThreatProtectionID(newId)
 		if err != nil {

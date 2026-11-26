@@ -31,7 +31,7 @@ func (id StorageTableEntitiesId) String() string {
 		fmt.Sprintf("TableName %q", id.TableName),
 		fmt.Sprintf("Filter %q", id.Filter),
 	}
-	return fmt.Sprintf("Storage Table %s", strings.Join(components, " / "))
+	return "Storage Table " + strings.Join(components, " / ")
 }
 
 func (id StorageTableEntitiesId) ID() string {

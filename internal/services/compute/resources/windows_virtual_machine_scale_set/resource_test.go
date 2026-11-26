@@ -33,7 +33,7 @@ func (r WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clien
 
 func (WindowsVirtualMachineScaleSetResource) vmName(data acceptance.TestData) string {
 	// windows VM names can be up to 15 chars, however the prefix can only be 9 chars
-	return fmt.Sprintf("acctvm%s", strconv.Itoa(data.RandomInteger)[0:2])
+	return "acctvm" + strconv.Itoa(data.RandomInteger)[0:2]
 }
 
 func (r WindowsVirtualMachineScaleSetResource) template(data acceptance.TestData) string {

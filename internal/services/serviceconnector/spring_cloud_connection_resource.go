@@ -133,7 +133,7 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if storageAccountId, err := commonids.ParseStorageAccountID(model.TargetResourceId); err == nil {
-				targetResourceId := fmt.Sprintf("%s/blobServices/default", storageAccountId.ID())
+				targetResourceId := storageAccountId.ID() + "/blobServices/default"
 				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
 					Id: &targetResourceId,
 				}

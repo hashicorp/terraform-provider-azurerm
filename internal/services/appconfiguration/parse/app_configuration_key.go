@@ -30,7 +30,7 @@ func (id AppConfigurationKeyId) String() string {
 		fmt.Sprintf("Label %q", id.Label),
 		fmt.Sprintf("Key %q", id.Key),
 	}
-	return fmt.Sprintf("Key: %s", strings.Join(components, " / "))
+	return "Key: " + strings.Join(components, " / ")
 }
 
 func KeyId(input string) (*AppConfigurationKeyId, error) {

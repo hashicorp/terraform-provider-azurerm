@@ -1359,7 +1359,7 @@ func ExpandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 				ClientId: pointer.To(v.ClientId),
 				ClientCredential: &webapps.OpenIdConnectClientCredential{
 					Method:                  pointer.To(webapps.ClientCredentialMethodClientSecretPost),
-					ClientSecretSettingName: pointer.To(fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))),
+					ClientSecretSettingName: pointer.To(strings.ToUpper(v.Name) + "_PROVIDER_AUTHENTICATION_SECRET"),
 				},
 				OpenIdConnectConfiguration: &webapps.OpenIdConnectConfig{
 					WellKnownOpenIdConfiguration: pointer.To(v.OpenIDConfigurationEndpoint),

@@ -490,7 +490,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 func (r WindowsVirtualMachineScaleSetResource) scalingCapacityReservationGroupId(data acceptance.TestData, crgId string) string {
 	crgText := ""
 	if crgId != "" {
-		crgText = fmt.Sprintf("capacity_reservation_group_id = %s", crgId)
+		crgText = "capacity_reservation_group_id = " + crgId
 	}
 
 	return fmt.Sprintf(`

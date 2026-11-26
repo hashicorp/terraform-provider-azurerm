@@ -44,7 +44,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			applianceName := fmt.Sprintf("%s-arcbridge", id.ClusterName)
+			applianceName := id.ClusterName + "-arcbridge"
 			applianceId := appliances.NewApplianceID(id.SubscriptionId, id.ResourceGroupName, applianceName)
 
 			applianceClient := metadata.Client.ArcResourceBridge.AppliancesClient

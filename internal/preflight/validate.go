@@ -238,7 +238,7 @@ func extractErrorDetail(resp *http.Response) *string {
 		if errorResp.Error.Code != "" {
 			lines = append(lines, fmt.Sprintf("Error (%s): %s", errorResp.Error.Code, errorResp.Error.Message))
 		} else {
-			lines = append(lines, fmt.Sprintf("Error: %s", errorResp.Error.Message))
+			lines = append(lines, "Error: "+errorResp.Error.Message)
 		}
 	}
 

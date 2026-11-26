@@ -101,13 +101,15 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 		return fmt.Errorf("getting identity: %+v", err)
 	}
 
-	identityString := "/"
+	var identityBuilder strings.Builder
+	identityBuilder.WriteString("/")
+
 	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
 		switch segment.Type {
 		case resourceids.StaticSegmentType, resourceids.ResourceProviderSegmentType:
-			identityString += pointer.From(segment.FixedValue) + "/"
+			identityBuilder.WriteString(pointer.From(segment.FixedValue) + "/")
 		}
 
 		if SegmentTypeSupported(segment.Type) {
@@ -131,11 +133,11 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 				return fmt.Errorf("error setting id: %+v", err)
 			}
 
-			identityString += value + "/"
+			identityBuilder.WriteString(value + "/")
 		}
 	}
 
-	identityString = strings.TrimRight(identityString, "/")
+	identityString := strings.TrimRight(identityBuilder.String(), "/")
 
 	parser := resourceids.NewParserFromResourceIdType(id)
 	if _, err := parser.Parse(identityString, true); err != nil {

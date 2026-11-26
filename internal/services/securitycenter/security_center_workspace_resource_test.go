@@ -23,7 +23,7 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
-	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
+	scope := "/subscriptions/" + os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -40,7 +40,7 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
-	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
+	scope := "/subscriptions/" + os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func testAccSecurityCenterWorkspace_update(t *testing.T) {
 func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
-	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
+	scope := "/subscriptions/" + os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{

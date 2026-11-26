@@ -48,7 +48,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
-		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
+		parentManagementGroupId = "/providers/Microsoft.Management/managementGroups/" + armTenantID
 	}
 
 	recurse := false

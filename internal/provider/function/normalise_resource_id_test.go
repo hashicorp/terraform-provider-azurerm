@@ -5,6 +5,7 @@ package function_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -52,9 +53,9 @@ func TestProviderFunctionNormaliseResourceID_multiple(t *testing.T) {
 }
 
 func testOutputMultiple(cases map[string][]string) string {
-	outputs := ""
+	var outputsBuilder strings.Builder
 	for k, v := range cases {
-		outputs += fmt.Sprintf(`
+		fmt.Fprintf(&outputsBuilder, `
 
 output "%s" {
   value = provider::azurerm::normalise_resource_id("%s")
@@ -62,6 +63,8 @@ output "%s" {
 
 `, k, v[0])
 	}
+	outputs := outputsBuilder.String()
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

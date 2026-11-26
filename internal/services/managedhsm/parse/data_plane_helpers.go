@@ -40,7 +40,7 @@ func parseDataPlaneEndpoint(input *url.URL, domainSuffix *string) (*ManagedHSMDa
 		if port != "443" {
 			return nil, fmt.Errorf("expected port to be '443' but got %q", port)
 		}
-		hostname = strings.TrimSuffix(hostname, fmt.Sprintf(":%s", input.Port()))
+		hostname = strings.TrimSuffix(hostname, ":"+input.Port())
 	}
 	hostnameComponents := strings.Split(hostname, ".")
 	if len(hostnameComponents) <= 2 {

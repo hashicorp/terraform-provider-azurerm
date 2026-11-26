@@ -321,24 +321,23 @@ func (gen documentationGenerator) argumentsBlock() string {
 	// then we need to collect a list of all block names, everywhere
 	blockNames, blocks := gen.uniqueBlockNamesForArgument(gen.resource.Schema)
 
+	var blockFields strings.Builder
 	for _, blockName := range blockNames {
 		block := blocks[blockName]
 
-		fields += "---\n\n"
-		fields += fmt.Sprintf("A `%s` block supports the following:\n\n", blockName)
+		blockFields.WriteString("---\n\n")
+		fmt.Fprintf(&blockFields, "A `%s` block supports the following:\n\n", blockName)
 		// required
-		fields += documentationForArguments(block, true, false, blockName)
+		blockFields.WriteString(documentationForArguments(block, true, false, blockName))
 		// optional
-		fields += documentationForArguments(block, false, true, blockName)
+		blockFields.WriteString(documentationForArguments(block, false, true, blockName))
 	}
+
+	fields += blockFields.String()
 
 	fields = strings.TrimSuffix(fields, "\n\n")
 
-	return fmt.Sprintf(`## Arguments Reference
-
-The following arguments are supported:
-
-%s`, fields)
+	return "## Arguments Reference\n\nThe following arguments are supported:\n\n" + fields
 }
 
 func (gen documentationGenerator) attributesBlock() string {
@@ -372,29 +371,28 @@ func (gen documentationGenerator) attributesBlock() string {
 	// then we need to collect a list of all block names, everywhere
 	blockNames, blocks := gen.uniqueBlockNamesForAttribute(gen.resource.Schema)
 
+	var blockFields strings.Builder
 	for _, blockName := range blockNames {
 		block := blocks[blockName]
 
-		fields += "---\n\n"
-		fields += fmt.Sprintf("A `%s` block exports the following:\n\n", blockName)
-		fields += documentationForAttributes(block, false, blockName)
+		blockFields.WriteString("---\n\n")
+		fmt.Fprintf(&blockFields, "A `%s` block exports the following:\n\n", blockName)
+		blockFields.WriteString(documentationForAttributes(block, false, blockName))
 	}
+
+	fields += blockFields.String()
 
 	fields = strings.TrimSuffix(fields, "\n\n")
 
-	return fmt.Sprintf(`## Attributes Reference
-
-In addition to the Arguments listed above - the following Attributes are exported:
-
-%s`, fields)
+	return "## Attributes Reference\n\nIn addition to the Arguments listed above - the following Attributes are exported:\n\n" + fields
 }
 
 func (gen documentationGenerator) description() string {
 	if gen.isDataSource {
-		return fmt.Sprintf("Use this data source to access information about an existing %s", gen.brandName)
+		return "Use this data source to access information about an existing " + gen.brandName
 	}
 
-	return fmt.Sprintf("Manages a %s", gen.brandName)
+	return "Manages a " + gen.brandName
 }
 
 func (gen documentationGenerator) exampleUsageBlock() string {
@@ -427,16 +425,16 @@ func (gen documentationGenerator) frontMatterBlock() string {
 		if len(gen.websiteCategories) == 1 {
 			category = gen.websiteCategories[0]
 		} else {
-			category = fmt.Sprintf("TODO - pick from: %s", strings.Join(gen.websiteCategories, "|"))
+			category = "TODO - pick from: " + strings.Join(gen.websiteCategories, "|")
 		}
 	}
 
 	title := gen.title()
 	var description string
 	if gen.isDataSource {
-		description = fmt.Sprintf("Gets information about an existing %s", gen.brandName)
+		description = "Gets information about an existing " + gen.brandName
 	} else {
-		description = fmt.Sprintf("Manages a %s", gen.brandName)
+		description = "Manages a " + gen.brandName
 	}
 
 	return fmt.Sprintf(`
@@ -538,7 +536,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 
 func (gen documentationGenerator) title() string {
 	if gen.isDataSource {
-		return fmt.Sprintf("Data Source: %s", gen.resourceName)
+		return "Data Source: " + gen.resourceName
 	}
 
 	return gen.resourceName

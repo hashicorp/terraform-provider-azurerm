@@ -21,10 +21,10 @@ type WorkspaceApplicationGroupAssociationId struct {
 
 func (id WorkspaceApplicationGroupAssociationId) String() string {
 	components := []string{
-		fmt.Sprintf("Workspace %s", id.Workspace.String()),
-		fmt.Sprintf("Application Group %s", id.ApplicationGroup.String()),
+		"Workspace " + id.Workspace.String(),
+		"Application Group " + id.ApplicationGroup.String(),
 	}
-	return fmt.Sprintf("Workspace Application Group Association %s", strings.Join(components, " / "))
+	return "Workspace Application Group Association " + strings.Join(components, " / ")
 }
 
 func (id WorkspaceApplicationGroupAssociationId) ID() string {

@@ -5,7 +5,6 @@ package sdkhacks
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
@@ -30,7 +29,7 @@ func (c StaticSitesClient) CreateOrUpdateBasicAuth(ctx context.Context, id stati
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPut,
-		Path:       fmt.Sprintf("%s/config/basicAuth", id.ID()),
+		Path:       id.ID() + "/config/basicAuth",
 	}
 
 	req, err := c.client.Client.NewRequest(ctx, opts)
@@ -66,7 +65,7 @@ func (c StaticSitesClient) GetBasicAuth(ctx context.Context, id staticsites.Stat
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/basicAuth/default", id.ID()),
+		Path:       id.ID() + "/basicAuth/default",
 	}
 
 	req, err := c.client.Client.NewRequest(ctx, opts)

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -181,22 +182,26 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceIdForImagesDataSource(resourceGroupId commonids.ResourceGroupId, filterTags map[string]string) string {
-	tagsId := ""
 	tagKeys := make([]string, 0)
 	for key := range filterTags {
 		tagKeys = append(tagKeys, key)
 	}
 	sort.Strings(tagKeys)
+
+	var tagsIdBuilder strings.Builder
 	for _, key := range tagKeys {
 		value := ""
 		if v, ok := filterTags[key]; ok {
 			value = v
 		}
-		tagsId += fmt.Sprintf("[%s:%s]", key, value)
+		fmt.Fprintf(&tagsIdBuilder, "[%s:%s]", key, value)
 	}
+
+	tagsId := tagsIdBuilder.String()
 	if tagsId == "" {
 		tagsId = "[]"
 	}
+
 	return fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroupId.ResourceGroupName, tagsId)
 }
 
