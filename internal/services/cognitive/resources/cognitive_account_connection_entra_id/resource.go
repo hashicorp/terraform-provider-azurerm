@@ -33,6 +33,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_entra_id"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services (Microsoft Foundry) Account Connection with Entra ID (formerly Azure Active Directory) authentication."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return accountconnectionresource.ValidateConnectionID
 }

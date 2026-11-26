@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedDiskSasTokenCreate,
-		Read:   resourceManagedDiskSasTokenRead,
-		Delete: resourceManagedDiskSasTokenDelete,
+		Description: "Manages a Disk SAS Token.",
+		Create:      resourceManagedDiskSasTokenCreate,
+		Read:        resourceManagedDiskSasTokenRead,
+		Delete:      resourceManagedDiskSasTokenDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

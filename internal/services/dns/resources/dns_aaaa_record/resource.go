@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsAaaaRecordCreateUpdate,
-		Read:   resourceDnsAaaaRecordRead,
-		Update: resourceDnsAaaaRecordCreateUpdate,
-		Delete: resourceDnsAaaaRecordDelete,
+		Description: "Enables you to manage DNS AAAA Records within Azure DNS.",
+		Create:      resourceDnsAaaaRecordCreateUpdate,
+		Read:        resourceDnsAaaaRecordRead,
+		Update:      resourceDnsAaaaRecordCreateUpdate,
+		Delete:      resourceDnsAaaaRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

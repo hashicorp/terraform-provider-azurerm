@@ -14,6 +14,7 @@ import (
 func (l Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name which should be used for this Log Analytics Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func (l Resource) Arguments() map[string]*schema.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityRequiredForceNew(),
 
 		"size_gb": {
+			Description:  "The capacity of the Log Analytics Cluster is specified in GB/day.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      100,
@@ -40,8 +42,9 @@ func (l Resource) Arguments() map[string]*schema.Schema {
 func (l Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"cluster_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The GUID of the cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

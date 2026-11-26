@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_managed_redis_access_policy_assignment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Managed Redis Access Policy Assignment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return databases.ValidateAccessPolicyAssignmentID
 }

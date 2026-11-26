@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDnsSoaRecordRead,
+		Description: "Use this data source to access information about an existing DNS SOA Record within Azure DNS.",
+		Read:        dataSourceDnsSoaRecordRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,61 +27,72 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "@",
+				Description: "The name of the DNS SOA Record.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				Default:     "@",
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The DNS Zone where the resource exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"email": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The email contact for the SOA record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The domain name of the authoritative name server for the SOA record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"expire_time": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The expire time for the SOA record.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"minimum_ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"refresh_time": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The refresh time for the SOA record.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"retry_time": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The retry time for the SOA record.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"serial_number": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The serial number for the SOA record.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Time To Live (TTL) of the DNS record in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the DNS SOA Record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

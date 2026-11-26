@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryAgentPoolCreate,
-		Read:   resourceContainerRegistryAgentPoolRead,
-		Update: resourceContainerRegistryAgentPoolUpdate,
-		Delete: resourceContainerRegistryAgentPoolDelete,
+		Description: "Manages an Azure Container Registry Agent Pool.",
+		Create:      resourceContainerRegistryAgentPoolCreate,
+		Read:        resourceContainerRegistryAgentPoolRead,
+		Update:      resourceContainerRegistryAgentPoolUpdate,
+		Delete:      resourceContainerRegistryAgentPoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := agentpools.ParseAgentPoolID(id)

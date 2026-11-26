@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_batch_job"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Batch Job."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.JobID
 }
