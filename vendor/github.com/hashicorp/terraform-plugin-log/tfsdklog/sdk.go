@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfsdklog
@@ -229,6 +229,36 @@ func Error(ctx context.Context, msg string, additionalFields ...map[string]inter
 	}
 
 	logger.Error(msg, additionalArgs...)
+}
+
+// IsTrace returns true if the root SDK logger would emit a trace-level log.
+// The check is performed against a cached level for performance.
+func IsTrace(_ context.Context) bool {
+	return rootWouldLog(hclog.Trace)
+}
+
+// IsDebug returns true if the root SDK logger would emit a debug-level log.
+// The check is performed against a cached level for performance.
+func IsDebug(_ context.Context) bool {
+	return rootWouldLog(hclog.Debug)
+}
+
+// IsInfo returns true if the root SDK logger would emit an info-level log.
+// The check is performed against a cached level for performance.
+func IsInfo(_ context.Context) bool {
+	return rootWouldLog(hclog.Info)
+}
+
+// IsWarn returns true if the root SDK logger would emit a warn-level log.
+// The check is performed against a cached level for performance.
+func IsWarn(_ context.Context) bool {
+	return rootWouldLog(hclog.Warn)
+}
+
+// IsError returns true if the root SDK logger would emit an error-level log.
+// The check is performed against a cached level for performance.
+func IsError(_ context.Context) bool {
+	return rootWouldLog(hclog.Error)
 }
 
 // OmitLogWithFieldKeys returns a new context.Context that has a modified logger

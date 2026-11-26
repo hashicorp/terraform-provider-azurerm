@@ -14,8 +14,8 @@ Use this data source to access information about an existing Exadata Database St
 
 ```hcl
 data "azurerm_oracle_exascale_database_storage_vault" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-storage-vault"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
