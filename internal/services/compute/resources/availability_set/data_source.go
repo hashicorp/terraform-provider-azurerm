@@ -1,0 +1,103 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package availability_set
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Description: "Use this data source to access information about an existing Availability Set.",
+		Read:        dataSourceAvailabilitySetRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Description:  "The name of the Availability Set.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"location": commonschema.LocationComputed(),
+
+			"platform_update_domain_count": {
+				Description: "The number of update domains that are used.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
+			},
+
+			"platform_fault_domain_count": {
+				Description: "The number of fault domains that are used.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
+			},
+
+			"managed": {
+				Description: "Whether the Availability Set is managed.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
+		},
+	}
+}
+
+func dataSourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := commonids.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		managed := false
+		if model.Sku != nil && model.Sku.Name != nil {
+			managed = strings.EqualFold(*model.Sku.Name, "Aligned")
+		}
+		d.Set("managed", managed)
+
+		if props := model.Properties; props != nil {
+			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+			d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

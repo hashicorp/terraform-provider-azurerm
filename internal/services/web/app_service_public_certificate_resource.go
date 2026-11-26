@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -40,8 +40,8 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 
 			"app_service_name": {
 				Type:     pluginsdk.TypeString,
-				ForceNew: true,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"certificate_name": {

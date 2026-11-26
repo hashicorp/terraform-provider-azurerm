@@ -77,9 +77,9 @@ The following arguments are supported:
 
 ---
 
-* `dns_config` - (Optional) A `dns_config` block as documented below. Changing this forces a new resource to be created.
+* `dns_config` - (Optional) A `dns_config` block as defined below. Changing this forces a new resource to be created.
 
-* `diagnostics` - (Optional) A `diagnostics` block as documented below. Changing this forces a new resource to be created.
+* `diagnostics` - (Optional) A `diagnostics` block as defined below. Changing this forces a new resource to be created.
 
 * `dns_name_label` - (Optional) The DNS label/name for the container group's IP. Changing this forces a new resource to be created.
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `subnet_ids` - (Optional) The subnet resource IDs for a container group. Changing this forces a new resource to be created.
 
-* `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
+* `image_registry_credential` - (Optional) An `image_registry_credential` block as defined below. Changing this forces a new resource to be created.
 
 * `cce_policy` - (Optional) The base64-encoded Confidential Compute Enforcement (CCE) policy for the Container Group. When `sku` is set to `Confidential` and this is not specified, Azure will generate a default allow-all policy. Changing this forces a new resource to be created.
 
