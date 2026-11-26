@@ -12,47 +12,54 @@ import (
 
 func apiManagementProductSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"product_id": schemaz.SchemaApiManagementChildName(),
+		"product_id": schemaz.SchemaApiManagementChildName("The Identifier for this Product, which must be unique within the API Management Service."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"display_name": {
+			Description:  "The Display Name for this API Management Product.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subscription_required": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether a Subscription is required to access API's included in this Product.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"published": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether this Product is published.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"approval_required": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether subscribers need to be approved before being able to use the Product.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of this Product, which may include HTML formatting tags.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"terms": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Terms and Conditions for this Product, which must be accepted by Developers before they can begin the Subscription process.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"subscriptions_limit": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The number of subscriptions a user can have to this Product at the same time.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 		},
 	}
 }

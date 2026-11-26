@@ -31,8 +31,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"quota_type": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForQuotaType(), false),
 		},
 
@@ -44,8 +44,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"quota_target": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}

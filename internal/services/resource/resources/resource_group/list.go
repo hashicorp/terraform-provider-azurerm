@@ -45,8 +45,8 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"subscription_id": schema.StringAttribute{
+				Description: "The ID of the subscription to query. Defaults to the value specified in the Provider Configuration.", // azignore:AZS014 - a list resource cannot set a Default in its schema
 				Optional:    true,
-				Description: "The ID of the subscription to query. Defaults to the value specified in the Provider Configuration.",
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: validation.IsUUID,
@@ -55,8 +55,8 @@ func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListRes
 			},
 
 			"filter": schema.StringAttribute{
-				Optional:    true,
 				Description: "A filter expression to filter the results by.",
+				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},

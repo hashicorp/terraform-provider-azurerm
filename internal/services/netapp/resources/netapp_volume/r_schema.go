@@ -75,11 +75,11 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"accept_grow_capacity_pool_for_short_term_clone_split": {
+			Description:  "While auto splitting the short term clone volume, if the parent pool does not have enough space to accommodate the volume after split, it will be automatically resized, which will lead to increased billing. To accept capacity pool size auto grow and create a short term clone volume, set the property as accepted. Can only be used in conjunction with `create_from_snapshot_resource_id`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForAcceptGrowCapacityPoolForShortTermCloneSplit(), false),
-			Description:  "While auto splitting the short term clone volume, if the parent pool does not have enough space to accommodate the volume after split, it will be automatically resized, which will lead to increased billing. To accept capacity pool size auto grow and create a short term clone volume, set the property as accepted. Can only be used in conjunction with `create_from_snapshot_resource_id`.",
 		},
 
 		"network_features": {
@@ -109,32 +109,32 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kerberos_enabled": {
-			// Due to large infrastructure requirements, there is not a reliable way to test Kerberos volumes in a shared environment at this time
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			ForceNew:    true,
 			Description: "Enable to allow Kerberos secured volumes. Requires appropriate export rules as well as the parent `azurerm_netapp_account` having a defined AD connection.",
+			// Due to large infrastructure requirements, there is not a reliable way to test Kerberos volumes in a shared environment at this time
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
 		},
 
 		"smb_continuous_availability_enabled": {
+			Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
 			ForceNew:    true,
 		},
 
 		"smb3_protocol_encryption_enabled": {
+			Description: "SMB3 encryption option should be used only for SMB/DualProtocol volumes. Using it for any other workloads is not supported.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Description: "SMB3 encryption option should be used only for SMB/DualProtocol volumes. Using it for any other workloads is not supported.",
 			ForceNew:    true,
 		},
 
 		"security_style": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForSecurityStyle(), false),
 		},
 
@@ -177,8 +177,8 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 					"protocol": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						MaxItems: 1,
 						MinItems: 1,
+						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -261,8 +261,8 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		"data_protection_replication": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"endpoint_type": {
@@ -317,24 +317,24 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"backup_policy_id": {
+						Description:  "The ID of the backup policy to associate with this volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
-						Description:  "The ID of the backup policy to associate with this volume.",
 					},
 
 					"policy_enabled": {
+						Description: "If set to false, the backup policy will not be enabled on this volume, thus disabling scheduled backups.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
-						Description: "If set to false, the backup policy will not be enabled on this volume, thus disabling scheduled backups.",
 					},
 
 					"backup_vault_id": {
+						Description:  "The ID of the Backup Vault to associate with this volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
-						Description:  "The ID of the backup vault to associate with this volume.",
 					},
 				},
 			},
@@ -347,9 +347,9 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"protection_enabled": {
+						Description: "Enable or disable the Advanced Ransomware Protection feature.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
-						Description: "Enable or disable the Advanced Ransomware Protection feature.",
 					},
 				},
 			},
@@ -357,55 +357,55 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 
 		"azure_vmware_data_store_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
 		"encryption_key_source": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 		},
 
 		"key_vault_private_endpoint_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceID,
 			RequiredWith: []string{"encryption_key_source"},
 		},
 
 		"smb_non_browsable_enabled": {
+			Description: "Enable non browsable share setting for SMB/Dual Protocol volume. When enabled, it restricts windows clients to browse the share.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Enable non browsable share setting for SMB/Dual Protocol volume. When enabled, it restricts windows clients to browse the share",
 		},
 
 		"smb_access_based_enumeration_enabled": {
+			Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 		},
 
 		"large_volume_enabled": {
+			Description: "Whether the volume is a large volume.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Indicates whether the volume is a large volume.",
 		},
 
 		"breakthrough_mode_enabled": {
+			Description: "Whether the large volume runs in Breakthrough Mode, placing it on dedicated capacity that delivers higher throughput and larger capacity.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Indicates whether the large volume runs in Breakthrough Mode, placing it on dedicated capacity that delivers higher throughput and larger capacity.",
 		},
 
 		"cool_access": {

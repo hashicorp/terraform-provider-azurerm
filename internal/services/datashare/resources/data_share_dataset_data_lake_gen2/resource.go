@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataShareDataSetDataLakeGen2Create,
-		Read:   resourceDataShareDataSetDataLakeGen2Read,
-		Delete: resourceDataShareDataSetDataLakeGen2Delete,
+		Description: "Manages a Data Share Data Lake Gen2 Dataset.",
+		Create:      resourceDataShareDataSetDataLakeGen2Create,
+		Read:        resourceDataShareDataSetDataLakeGen2Read,
+		Delete:      resourceDataShareDataSetDataLakeGen2Delete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoEventHubDataConnectionCreate,
-		Read:   resourceKustoEventHubDataConnectionRead,
-		Update: resourceKustoEventHubDataConnectionUpdate,
-		Delete: resourceKustoEventHubDataConnectionDelete,
+		Description: "Manages a Kusto (also known as Azure Data Explorer) EventHub Data Connection.",
+		Create:      resourceKustoEventHubDataConnectionCreate,
+		Read:        resourceKustoEventHubDataConnectionRead,
+		Update:      resourceKustoEventHubDataConnectionUpdate,
+		Delete:      resourceKustoEventHubDataConnectionDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

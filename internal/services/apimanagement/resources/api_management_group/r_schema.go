@@ -13,30 +13,34 @@ import (
 
 func apiManagementGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName(),
+		"name": schemaz.SchemaApiManagementChildName("The name of the API Management Group."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"display_name": {
+			Description:  "The display name of this API Management Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of this API Management Group.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"external_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The identifier of the external Group. For example, an Azure Active Directory group `aad://<tenant id>/groups/<group object id>`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"type": {
+			Description:  "The type of this API Management Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

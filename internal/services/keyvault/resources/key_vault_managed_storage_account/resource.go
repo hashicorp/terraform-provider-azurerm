@@ -47,10 +47,11 @@ func (d deleteAndPurgeSecret) NestedItemHasBeenPurged(ctx context.Context) (auto
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultManagedStorageAccountCreateUpdate,
-		Read:   resourceKeyVaultManagedStorageAccountRead,
-		Update: resourceKeyVaultManagedStorageAccountCreateUpdate,
-		Delete: resourceKeyVaultManagedStorageAccountDelete,
+		Description: "Manages a Key Vault Managed Storage Account.",
+		Create:      resourceKeyVaultManagedStorageAccountCreateUpdate,
+		Read:        resourceKeyVaultManagedStorageAccountRead,
+		Update:      resourceKeyVaultManagedStorageAccountCreateUpdate,
+		Delete:      resourceKeyVaultManagedStorageAccountDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := keyvault.ParseNestedItemID(id, keyvault.VersionTypeAny, keyvault.NestedItemTypeStorage)

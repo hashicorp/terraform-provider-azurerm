@@ -39,9 +39,9 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"job_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ID of the job to execute.",
 				MarkdownDescription: "The ID of the job to execute.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: jobexecutions.ValidateJobID,
@@ -50,15 +50,15 @@ func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"wait_for_completion": schema.BoolAttribute{
+				Description:         "Whether to poll the job execution for completion. Defaults to `false`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Whether to poll the job execution for completion. Defaults to `false`.", // azignore:AZS014 - an action cannot set a Default in its schema
 				Optional:            true,
-				Description:         "Whether to poll the job execution for completion. Defaults to `false`",
-				MarkdownDescription: "Whether to poll the job execution for completion. Defaults to `false`",
 			},
 
 			"timeout": schema.StringAttribute{
+				Description:         "Timeout duration for the action to complete. Defaults to `15m`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `15m`.", // azignore:AZS014 - an action cannot set a Default in its schema
 				Optional:            true,
-				Description:         "Timeout duration for the action to complete. Defaults to `15m`.",
-				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `15m`.",
 			},
 		},
 	}

@@ -14,6 +14,7 @@ import (
 func dataFactoryLinkedServiceCosmosdbSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Linked Service. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataFactoryLinkedServiceCosmosdbSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,66 +30,75 @@ func dataFactoryLinkedServiceCosmosdbSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"connection_string": {
+			Description:      "The connection string.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
-			ConflictsWith:    []string{"account_endpoint", "account_key"},
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
+			ConflictsWith:    []string{"account_endpoint", "account_key"},
 		},
 
 		"account_endpoint": {
+			Description:   "The endpoint of the Azure CosmosDB account.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"connection_string"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"connection_string"},
 		},
 
 		"account_key": {
+			Description:   "The account key of the Azure Cosmos DB account.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
-			ConflictsWith: []string{"connection_string"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"connection_string"},
 		},
 
 		"database": {
+			Description:  "The name of the database.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"integration_runtime_name": {
+			Description:  "The integration runtime reference to associate with the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

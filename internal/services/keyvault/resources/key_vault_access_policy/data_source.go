@@ -14,7 +14,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultAccessPolicyRead,
+		Description: "Use this data source to access information about the permissions from the Management Key Vault Templates.",
+		Read:        dataSourceKeyVaultAccessPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -22,8 +23,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Management Template.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Key Management",
 					"Secret Management",
@@ -37,22 +39,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			// Computed
 			"certificate_permissions": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The certificate permissions for the access policy.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 			"key_permissions": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The key permissions for the access policy.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 			"secret_permissions": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The secret permissions for the access policy.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

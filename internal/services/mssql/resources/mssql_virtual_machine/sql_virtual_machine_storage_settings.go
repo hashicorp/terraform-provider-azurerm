@@ -16,13 +16,15 @@ func StorageSettingSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"luns": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
+					Description: "A list of Logical Unit Numbers for the disks.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeInt,
 					},
 				},
 				"default_file_path": {
+					Description:  "The SQL Server default path.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -40,38 +42,45 @@ func SQLTempDBStorageSettingSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"data_file_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  8,
+					Description: "The SQL Server default file count.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Default:     8,
 				},
 				"data_file_size_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  256,
+					Description: "The SQL Server default file size.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Default:     256,
 				},
 				"data_file_growth_in_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  512,
+					Description: "The SQL Server default file size.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Default:     512,
 				},
 				"default_file_path": {
+					Description:  "The SQL Server default path.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"log_file_size_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  256,
+					Description: "The SQL Server default file size.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Default:     256,
 				},
 				"log_file_growth_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  512,
+					Description: "The SQL Server default file size.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					Default:     512,
 				},
 				"luns": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
+					Description: "A list of Logical Unit Numbers for the disks.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeInt,
 					},

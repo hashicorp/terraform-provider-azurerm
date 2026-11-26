@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementSubscriptionCreateUpdate,
-		Read:   resourceApiManagementSubscriptionRead,
-		Update: resourceApiManagementSubscriptionCreateUpdate,
-		Delete: resourceApiManagementSubscriptionDelete,
+		Description: "Manages a Subscription within an API Management Service.",
+		Create:      resourceApiManagementSubscriptionCreateUpdate,
+		Read:        resourceApiManagementSubscriptionRead,
+		Update:      resourceApiManagementSubscriptionCreateUpdate,
+		Delete:      resourceApiManagementSubscriptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := subscription.ParseSubscriptions2ID(id)

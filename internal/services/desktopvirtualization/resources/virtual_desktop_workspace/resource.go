@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopWorkspaceCreateUpdate,
-		Read:   resourceVirtualDesktopWorkspaceRead,
-		Update: resourceVirtualDesktopWorkspaceCreateUpdate,
-		Delete: resourceVirtualDesktopWorkspaceDelete,
+		Description: "Manages a Virtual Desktop Workspace.",
+		Create:      resourceVirtualDesktopWorkspaceCreateUpdate,
+		Read:        resourceVirtualDesktopWorkspaceRead,
+		Update:      resourceVirtualDesktopWorkspaceCreateUpdate,
+		Delete:      resourceVirtualDesktopWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

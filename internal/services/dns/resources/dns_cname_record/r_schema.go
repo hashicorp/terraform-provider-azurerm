@@ -12,36 +12,42 @@ import (
 func dnsCnameRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the DNS CNAME Record.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The DNS Zone where the resource exists.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"record": {
+			Description:  "The target of the CNAME.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"record", "target_resource_id"},
 		},
 
 		"ttl": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The Time To Live (TTL) of the DNS record in seconds.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS CNAME Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_resource_id": {
+			Description:  "The Azure resource ID of the target object.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,

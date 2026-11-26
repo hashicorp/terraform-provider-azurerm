@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementServiceCreate,
-		Read:   resourceApiManagementServiceRead,
-		Update: resourceApiManagementServiceUpdate,
-		Delete: resourceApiManagementServiceDelete,
+		Description: "Manages an API Management Service.",
+		Create:      resourceApiManagementServiceCreate,
+		Read:        resourceApiManagementServiceRead,
+		Update:      resourceApiManagementServiceUpdate,
+		Delete:      resourceApiManagementServiceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apimanagementservice.ParseServiceID(id)
 			return err

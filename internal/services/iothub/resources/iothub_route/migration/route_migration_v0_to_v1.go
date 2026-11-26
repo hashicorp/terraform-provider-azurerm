@@ -40,19 +40,19 @@ func (s IoTHubRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 		"condition": {
 			// The condition is a string value representing device-to-cloud message routes query expression
-			// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+			// https://learn.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "true",
 		},
 		"endpoint_names": {
-			Type: pluginsdk.TypeList,
+			Type:     pluginsdk.TypeList,
+			Required: true,
 			// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Required: true,
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,

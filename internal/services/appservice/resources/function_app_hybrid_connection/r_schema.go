@@ -13,41 +13,41 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"function_app_id": {
+			Description:  "The ID of the Function App for this Hybrid Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateFunctionAppID,
-			Description:  "The ID of the Function App for this Hybrid Connection.",
 		},
 
 		"relay_id": {
+			Description:  "The ID of the Relay Hybrid Connection to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: hybridconnections.ValidateHybridConnectionID,
-			Description:  "The ID of the Relay Hybrid Connection to use.",
 		},
 
 		"hostname": {
+			Description:  "The hostname of the endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The hostname of the endpoint.",
 		},
 
 		"port": {
+			Description:  "The port to use for the endpoint.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IsPortNumberOrZero,
-			Description:  "The port to use for the endpoint",
 		},
 
 		"send_key_name": {
+			Description:  "The name of the Relay key with `Send` permission to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "RootManageSharedAccessKey",
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The name of the Relay key with `Send` permission to use. Defaults to `RootManageSharedAccessKey`",
 		},
 	}
 }
@@ -55,34 +55,34 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"namespace_name": {
+			Description: "The name of the Relay Namespace.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the Relay Namespace.",
 		},
 
 		"relay_name": {
+			Description: "The name of the Relay in use.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the Relay in use.",
 		},
 
 		"service_bus_namespace": {
+			Description: "The Service Bus Namespace.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Service Bus Namespace.",
 		},
 
 		"service_bus_suffix": {
+			Description: "The suffix for the endpoint.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The suffix for the endpoint.",
 		},
 
 		"send_key_value": {
+			Description: "The Primary Access Key for the `send_key_name`.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
-			Description: "The Primary Access Key for the `send_key_name`",
+			Sensitive:   true,
 		},
 	}
 }

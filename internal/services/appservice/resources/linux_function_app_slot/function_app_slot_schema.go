@@ -68,55 +68,55 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "If this Linux Web App is Always On enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
-					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
+					Computed: true,
 				},
 
 				"api_management_api_id": {
+					Description:  "The ID of the API Management API for this Linux Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
-					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
 				"api_definition_url": {
+					Description:  "The URL of the API definition that describes this Linux Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Description:  "The URL of the API definition that describes this Linux Function App.",
 				},
 
 				"app_command_line": {
+					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 				},
 
 				"app_scale_limit": {
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
 				"application_insights_key": {
+					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
+					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
 
 				"application_stack": helpers.LinuxFunctionAppStackSchema(),
@@ -130,41 +130,41 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"container_registry_use_managed_identity": {
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
+					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
-					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 				},
 
 				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "A list of Default Documents for the Linux Web App.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
+					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
 				"http2_enabled": {
+					Description: "Whether the http2 protocol should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -177,10 +177,10 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -193,9 +193,10 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"load_balancing_mode": { // Supported on Function Apps?
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "LeastRequests",
+					Description: "The Site load balancing mode.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "LeastRequests",
 					ValidateFunc: validation.StringInSlice([]string{
 						"LeastRequests", // Service default
 						"WeightedRoundRobin",
@@ -204,140 +205,139 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 				},
 
 				"managed_pipeline_mode": {
+					Description:  "The Managed Pipeline mode.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"pre_warmed_instance_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 					// Note: O+C because Variable defaults depending on plan etc
-					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Computed: true,
 				},
 
 				"remote_debugging_enabled": {
+					Description: "Whether Remote Debugging should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Remote Debugging Version.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
 				},
 
 				"scm_type": {
+					Description: "The SCM Type in use by the Linux Function App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The SCM Type in use by the Linux Function App.",
 				},
 
 				"use_32_bit_worker": {
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
+					Description: "Whether Web Sockets should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
 				},
 
 				"ftps_state": {
+					Description:  "State of FTP / FTPS service for this Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
 				},
 
 				"health_check_path": {
+					Description: "The path to be checked for this Function App health.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The path to be checked for this function app health.",
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
+					Description:  "The number of Workers for this Linux Function App.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
-					Description:  "The number of Workers for this Linux Function App.",
 				},
 
 				"minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
 				},
 
 				"scm_minimum_tls_version": {
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
 				},
 
 				"minimum_tls_cipher_suite": {
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 				},
 
 				"cors": helpers.CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
 				"detailed_error_logging_enabled": {
+					Description: "Whether detailed error logging is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
 				},
 
 				"linux_fx_version": {
+					Description: "The Linux FX Version.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Linux FX Version",
 				},
 			},
 		},

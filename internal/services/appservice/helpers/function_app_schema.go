@@ -72,55 +72,55 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "If this Linux Web App is Always On enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
-					Computed:    true,
-					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
+					Computed: true,
 				},
 
 				"api_management_api_id": {
+					Description:  "The ID of the API Management API for this Linux Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
-					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
 				"api_definition_url": {
+					Description:  "The URL of the API definition that describes this Linux Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Description:  "The URL of the API definition that describes this Linux Function App.",
 				},
 
 				"app_command_line": {
+					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 				},
 
 				"app_scale_limit": {
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
 				"application_insights_key": {
+					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
+					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
 
 				"application_stack": LinuxFunctionAppStackSchema(),
@@ -128,41 +128,41 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
 				"container_registry_use_managed_identity": {
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
+					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
-					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 				},
 
 				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "A list of Default Documents for the Linux Web App.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
+					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
 				"http2_enabled": {
+					Description: "Whether the http2 protocol should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -175,10 +175,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -191,9 +191,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"load_balancing_mode": { // Supported on Function Apps?
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "LeastRequests",
+					Description: "The Site load balancing mode.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "LeastRequests",
 					ValidateFunc: validation.StringInSlice([]string{
 						"LeastRequests", // Service default
 						"WeightedRoundRobin",
@@ -202,141 +203,140 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 				},
 
 				"managed_pipeline_mode": {
+					Description:  "The Managed Pipeline mode.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"pre_warmed_instance_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 					// Note: O+C because Variable defaults depending on plan etc
-					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Computed: true,
 				},
 
 				"remote_debugging_enabled": {
+					Description: "Whether Remote Debugging should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Remote Debugging Version.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
 				},
 
 				"scm_type": {
+					Description: "The SCM Type in use by the Linux Function App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The SCM Type in use by the Linux Function App.",
 				},
 
 				"use_32_bit_worker": {
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
+					Description: "Whether Web Sockets should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
 				},
 
 				"ftps_state": {
+					Description:  "State of FTP / FTPS service for this Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
 				},
 
 				"health_check_path": {
+					Description:  "The path to be checked for this Function App health.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
+					Description:  "The number of Workers for this Linux Function App.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
-					Description:  "The number of Workers for this Linux Function App.",
 				},
 
 				"minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
 				},
 
 				"scm_minimum_tls_version": {
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
 				},
 
 				"minimum_tls_cipher_suite": {
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 				},
 
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
 				"detailed_error_logging_enabled": {
+					Description: "Whether detailed error logging is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
 				},
 
 				"linux_fx_version": {
+					Description: "The Linux FX Version.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Linux FX Version",
 				},
 			},
 		},
@@ -579,79 +579,79 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"api_management_api_id": {
+					Description:  "The ID of the API Management API for this Linux Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
-					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
 				"api_definition_url": {
+					Description:  "The URL of the API definition that describes this Linux Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Description:  "The URL of the API definition that describes this Linux Function App.",
 				},
 
 				"app_command_line": {
+					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 				},
 
 				"application_insights_key": {
+					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
+					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
 
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
 				"container_registry_use_managed_identity": {
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
+					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
-					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 				},
 
 				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "A list of Default Documents for the Linux Web App.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
+					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
 				"http2_enabled": {
+					Description: "Whether the http2 protocol should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -664,10 +664,10 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
+					Description: "Whether the Linux Function App `ip_restriction` configuration should be used for the SCM also.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -680,9 +680,10 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				},
 
 				"load_balancing_mode": { // Supported on Function Apps?
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "LeastRequests",
+					Description: "The Site load balancing mode.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "LeastRequests",
 					ValidateFunc: validation.StringInSlice([]string{
 						"LeastRequests", // Service default
 						"WeightedRoundRobin",
@@ -691,115 +692,113 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 				},
 
 				"managed_pipeline_mode": {
+					Description:  "The Managed Pipeline mode.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"remote_debugging_enabled": {
+					Description: "Whether Remote Debugging should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Remote Debugging Version.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022``",
 				},
 
 				"runtime_scale_monitoring_enabled": {
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
 				},
 
 				"scm_type": {
+					Description: "The SCM Type in use by the Linux Function App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The SCM Type in use by the Linux Function App.",
 				},
 
 				"use_32_bit_worker": {
+					Description: "Whether the Linux Function App should use a 32-bit worker.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App use a 32-bit worker.",
 				},
 
 				"vnet_route_all_enabled": {
+					Description: "Whether the Linux Function App should route all traffic through the Virtual Network.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App route all traffic through the virtual network.",
 				},
 
 				"websockets_enabled": {
+					Description: "Whether Web Sockets should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
 				},
 
 				"health_check_path": {
+					Description:  "The path to be checked for this Function App health.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
+					Description:  "The number of Workers for this Linux Function App.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
-					Description:  "The number of Workers for this Linux Function App.",
 				},
 
 				"minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
 				},
 
 				"scm_minimum_tls_version": {
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
 				},
 
 				"cors": CorsSettingsSchema(),
 
 				"detailed_error_logging_enabled": {
+					Description: "Whether detailed error logging is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
 				},
 			},
 		},
@@ -854,55 +853,55 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "If this Windows Web App is Always On enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
-					Computed:    true,
-					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
+					Computed: true,
 				},
 
 				"api_management_api_id": {
+					Description:  "The ID of the API Management API for this Windows Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
-					Description:  "The ID of the API Management API for this Windows Function App.",
 				},
 
 				"api_definition_url": {
+					Description:  "The URL of the API definition that describes this Windows Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Description:  "The URL of the API definition that describes this Windows Function App.",
 				},
 
 				"app_command_line": {
+					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The program and any arguments used to launch this app via the command line. (Example `node myapp.js`).",
 				},
 
 				"app_scale_limit": {
+					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
 				"application_insights_key": {
+					Description:  "The Instrumentation Key for connecting the Windows Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Instrumentation Key for connecting the Windows Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
+					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
 				},
 
 				"application_stack": WindowsFunctionAppStackSchema(),
@@ -910,27 +909,27 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
 				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "A list of Default Documents for the Windows Web App.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of Default Documents for the Windows Web App.",
 				},
 
 				"elastic_instance_minimum": {
+					Description: "The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.",
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.",
 				},
 
 				"http2_enabled": {
+					Description: "Whether the http2 protocol should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
@@ -943,10 +942,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
+					Description: "Whether the Windows Function App `ip_restriction` configuration should be used for the SCM also.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Windows Function App `ip_restriction` configuration be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -959,9 +958,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"load_balancing_mode": { // Supported on Function Apps?
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "LeastRequests",
+					Description: "The Site load balancing mode.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "LeastRequests",
 					ValidateFunc: validation.StringInSlice([]string{
 						"LeastRequests", // Service default
 						"WeightedRoundRobin",
@@ -970,141 +970,140 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 				},
 
 				"managed_pipeline_mode": {
+					Description:  "The Managed Pipeline mode.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"pre_warmed_instance_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 					// Note: O+C because Variable defaults depending on plan etc
-					Computed:    true,
-					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
+					Computed: true,
 				},
 
 				"remote_debugging_enabled": {
+					Description: "Whether Remote Debugging should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Remote Debugging Version.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
+					Description: "Whether Functions Runtime Scale Monitoring should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
 				},
 
 				"scm_type": {
+					Description: "The SCM Type in use by the Windows Function App.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The SCM Type in use by the Windows Function App.",
 				},
 
 				"use_32_bit_worker": {
+					Description: "Whether the Windows Web App should use a 32-bit worker.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
+					Description: "Whether Web Sockets should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
 				},
 
 				"ftps_state": {
+					Description:  "State of FTP / FTPS service for this Function App.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
 				},
 
 				"health_check_path": {
+					Description:  "The path to be checked for this Function App health.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Description:  "The path to be checked for this function app health.",
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
+					Description:  "The number of Workers for this Windows Function App.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
-					Description:  "The number of Workers for this Windows Function App.",
 				},
 
 				"minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
 				},
 
 				"scm_minimum_tls_version": {
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
 				},
 
 				"minimum_tls_cipher_suite": {
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 				},
 
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
 				"detailed_error_logging_enabled": {
+					Description: "Whether detailed error logging is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled",
 				},
 
 				"windows_fx_version": {
+					Description: "The Windows FX Version string.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Windows FX Version string.",
 				},
 			},
 		},
@@ -1332,8 +1331,9 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of .Net.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.1",
 						"6.0",
@@ -1352,13 +1352,13 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0`, `9.0`, `10.0` and `11.0`",
 				},
 
 				"use_dotnet_isolated_runtime": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the DotNet process should use an isolated runtime.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.java_version",
@@ -1367,12 +1367,12 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
 				},
 
 				"python_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of Python to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.14",
 						"3.13",
@@ -1392,12 +1392,12 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Python to use. Possible values include `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, and `3.7`.",
 				},
 
 				"node_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of Node to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"12", // Deprecated, and removed from portal, but seemingly accepted by API
 						"14",
@@ -1416,12 +1416,12 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`",
 				},
 
 				"powershell_core_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of PowerShell Core to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"7",   // Deprecated / not available in the portal
 						"7.2", // preview LTS Support
@@ -1437,12 +1437,12 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of PowerShell Core to use. Possibles values are `7`, `7.2`, and `7.4`",
 				},
 
 				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of Java to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"8",
 						"11",
@@ -1459,51 +1459,12 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `8`, `11`, `17`, `21` and `25`",
 				},
 
 				"docker": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*schema.Schema{
-							"registry_url": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The URL of the docker registry.",
-							},
-
-							"registry_username": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Sensitive:    true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The username to use for connections to the registry.",
-							},
-
-							"registry_password": {
-								Type:        pluginsdk.TypeString,
-								Optional:    true,
-								Sensitive:   true, // Note: whilst it's not a good idea, this _can_ be blank...
-								Description: "The password for the account to use to connect to the registry.",
-							},
-
-							"image_name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The name of the Docker image to use.",
-							},
-
-							"image_tag": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The image tag of the image to use.",
-							},
-						},
-					},
+					Description: "A docker block.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.python_version",
@@ -1513,7 +1474,45 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "A docker block",
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*schema.Schema{
+							"registry_url": {
+								Description:  "The URL of the docker registry.",
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"registry_username": {
+								Description:  "The username to use for connections to the registry.",
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Sensitive:    true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"registry_password": {
+								Description: "The password for the account to use to connect to the registry.",
+								Type:        pluginsdk.TypeString,
+								Optional:    true,
+								Sensitive:   true, // Note: whilst it's not a good idea, this _can_ be blank...
+							},
+
+							"image_name": {
+								Description:  "The name of the Docker image to use.",
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"image_tag": {
+								Description:  "The image tag of the image to use.",
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
 				},
 
 				"use_custom_runtime": {
@@ -1621,9 +1620,10 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "v4.0",
+					Description: "The version of .Net.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "v4.0",
 					ValidateFunc: validation.StringInSlice([]string{
 						"v3.0",
 						"v4.0",
@@ -1641,25 +1641,25 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0`, `v9.0`, `v10.0` and `v11.0`",
 				},
 
 				"use_dotnet_isolated_runtime": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "Whether the DotNet process should use an isolated runtime.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
 				},
 
 				"node_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of Node to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"~12",
 						"~14",
@@ -1676,12 +1676,12 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`",
 				},
 
 				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of Java to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
@@ -1696,12 +1696,12 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `1.8`, `11`, `17`, `21` and `25`",
 				},
 
 				"powershell_core_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The PowerShell Core version to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"7",   // Deprecated / not available in the portal
 						"7.2", // Deprecated
@@ -1715,13 +1715,13 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The PowerShell Core version to use. Possible values are `7`, `7.2`, `7.4`, and `7.6`",
 				},
 
 				"use_custom_runtime": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "Whether the Function App uses a custom Application Stack.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
@@ -1729,7 +1729,6 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "Does the Function App use a custom Application Stack?",
 				},
 			},
 		},
@@ -1789,17 +1788,17 @@ func FunctionAppAppServiceLogsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"disk_quota_mb": {
+					Description:  "The amount of disk space to use for logs.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      35,
 					ValidateFunc: validation.IntBetween(25, 100),
-					Description:  "The amount of disk space to use for logs. Valid values are between `25` and `100`.",
 				},
 				"retention_period_days": {
+					Description:  "The retention period for logs in days. Defaults to `0` (never delete).", // azignore:AZS014 - the zero value, the schema sets no Default
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 99999),
-					Description:  "The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).",
 				},
 			},
 		},

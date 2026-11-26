@@ -17,12 +17,14 @@ func apiManagementIdentityProviderAadb2cSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"client_id": {
+			Description:  "Client ID of the Application in your B2C tenant.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"client_secret": {
+			Description:  "Client secret of the Application in your B2C tenant.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -31,50 +33,58 @@ func apiManagementIdentityProviderAadb2cSchema() map[string]*pluginsdk.Schema {
 
 		// For AADB2C identity providers, `allowed_tenants` must specify exactly one tenant
 		"allowed_tenant": {
+			Description:  "The allowed AAD tenant, usually your B2C tenant domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"signin_tenant": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The tenant to use instead of Common when logging into Active Directory, usually your B2C tenant domain.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			// B2C tenant domains can be customized, and GUIDs might work here too
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"authority": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "OpenID Connect discovery endpoint hostname, usually your b2clogin.com domain.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			// B2C login domains can be customized and don't necessarily end in b2clogin.com
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"signup_policy": {
+			Description:  "Signup Policy Name.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"signin_policy": {
+			Description:  "Signin Policy Name.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"client_library": {
+			Description:  "The client library to be used in the Azure AD B2C Identity Provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(0, 16),
 		},
 
 		"profile_editing_policy": {
+			Description:  "Profile editing Policy Name.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"password_reset_policy": {
+			Description:  "Password reset Policy Name.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

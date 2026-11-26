@@ -19,27 +19,30 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementApiVersionSetRead,
+		Description: "Uses this data source to access information about an API Version Set within an API Management Service.",
+		Read:        dataSourceApiManagementApiVersionSetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"name": schemaz.SchemaApiManagementChildDataSourceName(),
+			"name": schemaz.SchemaApiManagementChildDataSourceName("The name of the API Version Set."),
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of API Version Set.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The display name of this API Version Set.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"versioning_scheme": {
@@ -48,13 +51,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"version_header_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Header which should be read from Inbound Requests which defines the API Version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"version_query_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Query String which should be read from Inbound Requests which defines the API Version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}
