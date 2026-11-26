@@ -22,10 +22,11 @@ import (
 
 func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLStoredProcedureCreate,
-		Read:   resourceCosmosDbSQLStoredProcedureRead,
-		Update: resourceCosmosDbSQLStoredProcedureUpdate,
-		Delete: resourceCosmosDbSQLStoredProcedureDelete,
+		Description: "Manages a SQL Stored Procedure within a Cosmos DB Account SQL Database.",
+		Create:      resourceCosmosDbSQLStoredProcedureCreate,
+		Read:        resourceCosmosDbSQLStoredProcedureRead,
+		Update:      resourceCosmosDbSQLStoredProcedureUpdate,
+		Delete:      resourceCosmosDbSQLStoredProcedureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseStoredProcedureID(id)
@@ -41,6 +42,7 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB SQL Stored Procedure.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -50,6 +52,7 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account to create the stored procedure within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -57,12 +60,14 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 			},
 
 			"body": {
+				Description:  "The body of the stored procedure.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"container_name": {
+				Description:  "The name of the Cosmos DB SQL Container to create the stored procedure within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -70,6 +75,7 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 			},
 
 			"database_name": {
+				Description:  "The name of the Cosmos DB SQL Database to create the stored procedure within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

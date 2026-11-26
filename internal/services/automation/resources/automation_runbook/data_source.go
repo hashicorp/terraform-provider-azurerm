@@ -39,12 +39,14 @@ var _ sdk.DataSource = DataSource{}
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Automation Runbook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.RunbookName(),
 		},
 
 		"automation_account_name": {
+			Description:  "The name of the Automation Account the runbook belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AutomationAccount(),
@@ -59,33 +61,39 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Runbook.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"log_progress": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "The Progress log option of the Runbook.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"log_verbose": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "The Verbose log option of the Runbook.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"runbook_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of Runbook.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"log_activity_trace_level": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The activity-level tracing of the Runbook.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"content": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The content of the Runbook.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -98,6 +106,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_automation_runbook"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Automation Runbook."
 }
 
 func (d DataSource) Read() sdk.ResourceFunc {

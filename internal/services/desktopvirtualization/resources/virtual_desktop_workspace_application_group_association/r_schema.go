@@ -12,6 +12,7 @@ import (
 func virtualDesktopWorkspaceApplicationGroupAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
+			Description:  "The resource ID for the Virtual Desktop Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func virtualDesktopWorkspaceApplicationGroupAssociationSchema() map[string]*plug
 		},
 
 		"application_group_id": {
+			Description:  "The resource ID for the Virtual Desktop Application Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

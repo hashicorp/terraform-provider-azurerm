@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceSchemaRegistryCreate,
-		Read:   resourceEventHubNamespaceSchemaRegistryRead,
-		Delete: resourceEventHubNamespaceSchemaRegistryDelete,
+		Description: "Manages a Schema Group for an EventHub Namespace.",
+		Create:      resourceEventHubNamespaceSchemaRegistryCreate,
+		Read:        resourceEventHubNamespaceSchemaRegistryRead,
+		Delete:      resourceEventHubNamespaceSchemaRegistryDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schemagroups.ParseSchemaGroupID(id)

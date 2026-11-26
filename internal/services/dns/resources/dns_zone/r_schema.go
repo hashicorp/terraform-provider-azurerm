@@ -15,27 +15,30 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the DNS Zone.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"soa_record": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
+						Description:  "The email contact for the SOA record.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.DnsZoneSOARecordEmail,
 					},
 
 					"expire_time": {
+						Description:  "The expire time for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      2419200,
@@ -43,6 +46,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"minimum_ttl": {
+						Description:  "The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      300,
@@ -50,6 +54,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"refresh_time": {
+						Description:  "The refresh time for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3600,
@@ -57,6 +62,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"retry_time": {
+						Description:  "The retry time for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      300,
@@ -64,6 +70,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"serial_number": {
+						Description:  "The serial number for the SOA record.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
@@ -71,6 +78,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"ttl": {
+						Description:  "The Time To Live of the SOA Record in seconds.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      3600,
@@ -80,13 +88,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					"tags": commonschema.Tags(),
 
 					"fqdn": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The fully qualified domain name.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"host_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/azure/dns/dns-zones-records#soa-records
+						Description: "The domain name of the authoritative name server for the SOA record.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/azure/dns/dns-zones-records#soa-records
 					},
 				},
 			},
@@ -99,20 +109,23 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"number_of_record_sets": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of records already in the zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_number_of_record_sets": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "Maximum number of Records in the zone.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"name_servers": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:      pluginsdk.HashString,
+			Description: "A list of values that make up the NS record for the zone.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
+			Set:         pluginsdk.HashString,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 	}
 }

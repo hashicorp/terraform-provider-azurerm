@@ -24,6 +24,7 @@ nav:
       - Debugging the Provider: topics/debugging-the-provider.md
       - Running Tests: topics/running-the-tests.md
       - Opening a Pull Request: topics/guide-opening-a-pr.md
+      - AI Usage: topics/ai-usage.md
   - Creating New Resources & Data Sources:
       - Adding a new Service Package: topics/guide-new-service-package.md
       - Adding a new Resource: topics/guide-new-resource.md

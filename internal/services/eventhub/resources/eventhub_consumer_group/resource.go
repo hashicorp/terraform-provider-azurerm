@@ -30,6 +30,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_eventhub_consumer_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Event Hubs Consumer Group as a nested resource within an Event Hub."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return consumergroups.ValidateConsumerGroupID
 }

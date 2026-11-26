@@ -47,9 +47,9 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) ResourceType() string {
 func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"managed_hsm_key_id": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"expire_after": {

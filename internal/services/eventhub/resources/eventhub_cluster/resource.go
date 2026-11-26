@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubClusterCreateUpdate,
-		Read:   resourceEventHubClusterRead,
-		Update: resourceEventHubClusterCreateUpdate,
-		Delete: resourceEventHubClusterDelete,
+		Description: "Manages an EventHub Cluster.",
+		Create:      resourceEventHubClusterCreateUpdate,
+		Read:        resourceEventHubClusterRead,
+		Update:      resourceEventHubClusterCreateUpdate,
+		Delete:      resourceEventHubClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := clusters.ParseClusterID(id)
 			return err

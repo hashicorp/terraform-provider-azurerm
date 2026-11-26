@@ -20,7 +20,8 @@ import (
 
 func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCosmosDbSQLRoleDefinitionRead,
+		Description: "Use this data source to access information about an existing Cosmos DB SQL Role Definition.",
+		Read:        dataSourceCosmosDbSQLRoleDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,30 +31,35 @@ func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"role_definition_id": {
+				Description:  "The GUID as the name of the Cosmos DB SQL Role Definition.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The role name of the Cosmos DB SQL Role Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the Cosmos DB SQL Role Definition.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"assignable_scopes": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "A list of fully qualified scopes at or below which Role Assignments may be created using this Cosmos DB SQL Role Definition.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -65,8 +71,9 @@ func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"data_actions": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of data actions that are allowed for the Cosmos DB SQL Role Definition.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},

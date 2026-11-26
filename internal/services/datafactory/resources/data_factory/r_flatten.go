@@ -51,6 +51,7 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 			"account_name":       v.AccountName,
 			"branch_name":        v.CollaborationBranch,
 			"git_url":            pointer.From(v.HostName),
+			"last_commit_id":     pointer.From(v.LastCommitId),
 			"publishing_enabled": publishingEnabled,
 			"repository_name":    v.RepositoryName,
 			"root_folder":        v.RootFolder,
