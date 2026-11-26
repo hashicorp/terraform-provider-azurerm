@@ -13,6 +13,7 @@ import (
 func apiManagementTagSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_management_id": {
+			Description:  "The ID of the API Management.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func apiManagementTagSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description:  "The name which should be used for this API Management Tag. The name must be unique in the API Management Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func apiManagementTagSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of the API Management Tag.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

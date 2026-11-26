@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
-		Read:   resourceApiManagementIdentityProviderMicrosoftRead,
-		Update: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
-		Delete: resourceApiManagementIdentityProviderMicrosoftDelete,
+		Description: "Manages an API Management Microsoft Identity Provider.",
+		Create:      resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
+		Read:        resourceApiManagementIdentityProviderMicrosoftRead,
+		Update:      resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
+		Delete:      resourceApiManagementIdentityProviderMicrosoftDelete,
 
 		Importer: helpers.IdentityProviderImportFunc(identityprovider.IdentityProviderTypeMicrosoft),
 

@@ -25,6 +25,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_virtual_machine_gallery_application_assignment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Virtual Machine Gallery Application Assignment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return parse.VirtualMachineGalleryApplicationAssignmentIDValidation
 }

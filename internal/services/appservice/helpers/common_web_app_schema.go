@@ -340,25 +340,25 @@ func BackupSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name which should be used for this Backup.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name which should be used for this Backup.",
 				},
 
 				"storage_account_url": {
+					Description:  "The SAS URL to the container.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.IsURLWithHTTPS,
-					Description:  "The SAS URL to the container.",
 				},
 
 				"enabled": {
+					Description: "Whether this backup job should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should this backup job be enabled?",
 				},
 
 				"schedule": {
@@ -368,49 +368,49 @@ func BackupSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"frequency_interval": {
+								Description:  "How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).",
 								Type:         pluginsdk.TypeInt,
 								Required:     true,
 								ValidateFunc: validation.IntBetween(0, 1000),
-								Description:  "How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).",
 							},
 
 							"frequency_unit": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The unit of time for how often the backup should take place.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Day",
 									"Hour",
 								}, false),
-								Description: "The unit of time for how often the backup should take place.",
 							},
 
 							"keep_at_least_one_backup": {
+								Description: "Whether the service should keep at least one backup, regardless of age of backup.",
 								Type:        pluginsdk.TypeBool,
 								Optional:    true,
 								Default:     false,
-								Description: "Should the service keep at least one backup, regardless of age of backup?",
 							},
 
 							"retention_period_days": {
+								Description:  "After how many days backups should be deleted.",
 								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								Default:      30,
 								ValidateFunc: validation.IntBetween(0, 9999999),
-								Description:  "After how many days backups should be deleted.",
 							},
 
 							"start_time": {
+								Description:  "When the schedule should start working in RFC-3339 format.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								Computed:     true, // azignore:AZS007 - pre-existing violation
-								Description:  "When the schedule should start working in RFC-3339 format.",
 								ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"last_execution_time": {
+								Description: "The time the backup was last attempted.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The time the backup was last attempted.",
 							},
 						},
 					},
@@ -427,22 +427,22 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of this Backup.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of this Backup.",
 				},
 
 				"storage_account_url": {
+					Description: "The SAS URL to the container.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Sensitive:   true,
-					Description: "The SAS URL to the container.",
 				},
 
 				"enabled": {
+					Description: "Whether this backup job is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is this backup job enabled?",
 				},
 
 				"schedule": {
@@ -451,39 +451,39 @@ func BackupSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"frequency_interval": {
+								Description: "How often the backup should is executed in multiples of the `frequency_unit`.",
 								Type:        pluginsdk.TypeInt,
 								Computed:    true,
-								Description: "How often the backup should is executed in multiples of the `frequency_unit`.",
 							},
 
 							"frequency_unit": {
+								Description: "The unit of time for how often the backup takes place.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The unit of time for how often the backup takes place.",
 							},
 
 							"keep_at_least_one_backup": {
+								Description: "Whether the service keeps at least one backup, regardless of age of backup.",
 								Type:        pluginsdk.TypeBool,
 								Computed:    true,
-								Description: "Does the service keep at least one backup, regardless of age of backup?",
 							},
 
 							"retention_period_days": {
+								Description: "After how many days are backups deleted.",
 								Type:        pluginsdk.TypeInt,
 								Computed:    true,
-								Description: "After how many days are backups deleted.",
 							},
 
 							"start_time": {
+								Description: "When the schedule should start working in RFC-3339 format.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "When the schedule should start working in RFC-3339 format.",
 							},
 
 							"last_execution_time": {
+								Description: "The time the backup was last attempted.",
 								Type:        pluginsdk.TypeString,
 								Computed:    true,
-								Description: "The time the backup was last attempted.",
 							},
 						},
 					},
@@ -506,24 +506,24 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name which should be used for this Connection.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name which should be used for this Connection.",
 				},
 
 				"type": {
+					Description:  "Type of database.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
-					Description:  "Type of database.",
 				},
 
 				"value": {
+					Description: "The connection string value.",
 					Type:        pluginsdk.TypeString,
 					Required:    true,
 					Sensitive:   true,
-					Description: "The connection string value.",
 				},
 			},
 		},
@@ -537,22 +537,22 @@ func ConnectionStringSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description: "The name of this Connection.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The name of this Connection.",
 				},
 
 				"type": {
+					Description: "The type of database.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The type of database.",
 				},
 
 				"value": {
+					Description: "The connection string value.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Sensitive:   true,
-					Description: "The connection string value.",
 				},
 			},
 		},
@@ -648,17 +648,6 @@ func ApplicationLogSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"file_system_level": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
-				},
-
-				"azure_blob_storage": AppLogBlobStorageSchema(),
-			},
-		},
 		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
 			stateLogs, planLogs := d.GetChange("logs.0.application_logs")
 			if stateLogs == nil || planLogs == nil {
@@ -687,6 +676,17 @@ func ApplicationLogSchema() *pluginsdk.Schema {
 			}
 
 			return false
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"file_system_level": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
+				},
+
+				"azure_blob_storage": AppLogBlobStorageSchema(),
+			},
 		},
 	}
 }

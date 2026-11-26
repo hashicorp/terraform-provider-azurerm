@@ -15,7 +15,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmClientConfigRead,
+		Description: "Use this data source to access the configuration of the AzureRM provider.",
+		Read:        dataSourceArmClientConfigRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -23,23 +24,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"client_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure Client ID (Application Object ID).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tenant_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure Tenant ID.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subscription_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure Subscription ID.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"object_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure Object ID.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

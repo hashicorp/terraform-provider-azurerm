@@ -11,9 +11,9 @@ import (
 
 func apiManagementProductApiSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"api_name": schemaz.SchemaApiManagementApiName(),
+		"api_name": schemaz.SchemaApiManagementApiName("The Name of the API Management API within the API Management Service."),
 
-		"product_id": schemaz.SchemaApiManagementChildName(),
+		"product_id": schemaz.SchemaApiManagementChildName("The ID of the API Management Product within the API Management Service."),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 

@@ -57,8 +57,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -149,7 +149,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 					},
 				},
 			},
@@ -167,7 +167,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 					},
 				},
 			},

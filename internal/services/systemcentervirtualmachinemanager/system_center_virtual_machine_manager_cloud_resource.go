@@ -70,9 +70,9 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Arguments() map[string]*
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}, "Custom Location"),
 
-		"system_center_virtual_machine_manager_server_inventory_item_id": commonschema.ResourceIDReferenceRequiredForceNew(&inventoryitems.InventoryItemId{}),
+		"system_center_virtual_machine_manager_server_inventory_item_id": commonschema.ResourceIDReferenceRequiredForceNew(&inventoryitems.InventoryItemId{}, "System Center Virtual Machine Manager Server Inventory Item"),
 
 		"tags": commonschema.Tags(),
 	}

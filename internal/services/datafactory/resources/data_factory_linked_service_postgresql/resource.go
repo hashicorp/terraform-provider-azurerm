@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
-		Read:   resourceDataFactoryLinkedServicePostgreSQLRead,
-		Update: resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
-		Delete: resourceDataFactoryLinkedServicePostgreSQLDelete,
+		Description: "Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
+		Read:        resourceDataFactoryLinkedServicePostgreSQLRead,
+		Update:      resourceDataFactoryLinkedServicePostgreSQLCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServicePostgreSQLDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

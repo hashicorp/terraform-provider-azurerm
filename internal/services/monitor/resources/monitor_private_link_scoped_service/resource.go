@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorPrivateLinkScopedServiceCreate,
-		Read:   resourceMonitorPrivateLinkScopedServiceRead,
-		Delete: resourceMonitorPrivateLinkScopedServiceDelete,
+		Description: "Manages an Azure Monitor Private Link Scoped Service.",
+		Create:      resourceMonitorPrivateLinkScopedServiceCreate,
+		Read:        resourceMonitorPrivateLinkScopedServiceRead,
+		Delete:      resourceMonitorPrivateLinkScopedServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

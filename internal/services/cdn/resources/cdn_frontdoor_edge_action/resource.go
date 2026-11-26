@@ -23,6 +23,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_edge_action"
 }
 
+func (Resource) Description() string {
+	return "Manages a Front Door (standard/premium) Edge Action."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return edgeactions.ValidateEdgeActionID
 }

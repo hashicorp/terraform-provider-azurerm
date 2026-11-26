@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMonitorScheduledQueryRulesAlertRead,
+		Description: "Use this data source to access the properties of an AlertingAction scheduled query rule.",
+		Read:        dataSourceMonitorScheduledQueryRulesAlertRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,8 +29,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the scheduled query rule.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -37,8 +39,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"authorized_resource_ids": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "The list of Resource IDs referred into query.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -67,40 +70,49 @@ func RegisterDataSource() *pluginsdk.Resource {
 				},
 			},
 			"data_source_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The resource URI over which log search query is to be run.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of the scheduled query rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this scheduled query rule is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 			"frequency": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Frequency at which rule condition should be evaluated.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 			"query": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Log search query.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"query_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of query results.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"severity": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Severity of the alert.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 			"throttling": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Time for which alerts should be throttled or suppressed.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 			"time_window": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Time window for which data needs to be fetched for query.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 			"trigger": {
 				Type:     pluginsdk.TypeSet,
@@ -132,12 +144,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Evaluation operation for rule.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"threshold": {
-							Type:     pluginsdk.TypeFloat,
-							Computed: true,
+							Description: "Result or count threshold based on which rule should be triggered.",
+							Type:        pluginsdk.TypeFloat,
+							Computed:    true,
 						},
 					},
 				},

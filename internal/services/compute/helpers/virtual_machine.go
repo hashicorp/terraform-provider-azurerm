@@ -33,15 +33,17 @@ func VirtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
 				"ultra_ssd_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"hibernation_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether to enable the hibernation capability.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -116,15 +118,17 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
+					Description:  "The Type of Caching which should be used for the Internal OS Disk.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 				},
 
 				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Type of Storage Account which should back the Internal OS Disk.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
@@ -155,15 +159,20 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					MaxItems: 1,
+					ConflictsWith: []string{
+						"os_managed_disk_id",
+					},
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
+								Description:  "The Ephemeral Disk Settings for the OS Disk.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
+								Description:  "Where to store the Ephemeral Disk.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
@@ -172,39 +181,40 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 							},
 						},
 					},
-					ConflictsWith: []string{
-						"os_managed_disk_id",
-					},
 				},
 
 				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description:  "The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					ConflictsWith:    []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The name which should be used for the Internal OS Disk.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
+					ForceNew:    true,
 					ConflictsWith: []string{
 						"os_managed_disk_id",
 					},
 				},
 
 				"secure_vm_disk_encryption_set_id": {
+					Description:   "The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk when the Virtual Machine is a Confidential VM.",
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
 					ForceNew:      true,
@@ -213,9 +223,10 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"security_encryption_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
+					Description: "Encryption Type when the Virtual Machine is a Confidential VM.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(virtualmachines.SecurityEncryptionTypesVMGuestStateOnly),
 						string(virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState),
@@ -223,14 +234,16 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether Write Accelerator should be Enabled for this OS Disk.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The ID of the OS disk.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -406,12 +419,13 @@ func VirtualMachineOsImageNotificationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"timeout": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Default:     "PT15M",
 					ValidateFunc: validation.StringInSlice([]string{
 						"PT15M",
 					}, false),
-					Default: "PT15M",
 				},
 			},
 		},
@@ -427,14 +441,16 @@ func VirtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
+					Description: "Whether the termination notification should be enabled on this Virtual Machine.",
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
 				},
 				"timeout": {
+					Description:  "Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 				},
 			},
 		},
@@ -515,28 +531,35 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"version_id": {
+					Description:  "The Gallery Application Version resource ID.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
 				"automatic_upgrade_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the version will be automatically updated for the VM when a new Gallery Application Version is available in PIR/SIG.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
 				"configuration_blob_uri": {
+					Description:  "The URI to an Azure Blob that will replace the default configuration for the package if provided.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"order": {
+					Description:  "The order in which the packages have to be installed.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
@@ -545,20 +568,19 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
 				"tag": {
+					Description:  "A passthrough value for more generic context. This field can be any valid `string` value.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"treat_failure_as_deployment_failure_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether any failure for any operation in the VmApplication will fail the deployment of the VM.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 			},
-		},
-		ConflictsWith: []string{
-			"os_managed_disk_id",
 		},
 	}
 }

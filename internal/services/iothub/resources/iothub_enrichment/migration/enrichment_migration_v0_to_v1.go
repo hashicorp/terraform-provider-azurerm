@@ -41,11 +41,11 @@ func (s IoTHubEnrichmentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"endpoint_names": {
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MaxItems: 100,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Required: true,
 		},
 	}
 }

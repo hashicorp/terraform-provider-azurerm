@@ -33,12 +33,14 @@ func SchemaForDataFlowSourceTransformation() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name for the Data Flow transformation.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"description": {
+					Description:  "The description for the Data Flow transformation.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -51,14 +53,16 @@ func SchemaForDataFlowSourceTransformation() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description:  "The name for the Data Factory Dataset.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
+								Description: "A map of parameters to associate with the Data Factory dataset.",
+								Type:        pluginsdk.TypeMap,
+								Optional:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -74,20 +78,23 @@ func SchemaForDataFlowSourceTransformation() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description:  "The name for the Data Factory Flowlet.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
+								Description: "A map of parameters to associate with the Data Factory Flowlet.",
+								Type:        pluginsdk.TypeMap,
+								Optional:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
 							},
 
 							"dataset_parameters": {
+								Description:  "The reference data flow parameters from dataset.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -103,14 +110,16 @@ func SchemaForDataFlowSourceTransformation() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
+								Description:  "The name for the Data Factory Linked Service.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
+								Description: "A map of parameters to associate with the Data Factory Linked Service.",
+								Type:        pluginsdk.TypeMap,
+								Optional:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -324,12 +333,14 @@ func ResourceSourceAndSink() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name for the Data Flow Source.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
+				Description:  "The description for the Data Flow Source.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -342,14 +353,16 @@ func ResourceSourceAndSink() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name for the Data Factory Dataset.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
+							Description: "A map of parameters to associate with the Data Factory dataset.",
+							Type:        pluginsdk.TypeMap,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -365,20 +378,23 @@ func ResourceSourceAndSink() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name for the Data Factory Flowlet.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
+							Description: "A map of parameters to associate with the Data Factory Flowlet.",
+							Type:        pluginsdk.TypeMap,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"dataset_parameters": {
+							Description:  "The reference data flow parameters from dataset.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -394,14 +410,16 @@ func ResourceSourceAndSink() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name for the Data Factory Linked Service.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
+							Description: "A map of parameters to associate with the Data Factory Linked Service.",
+							Type:        pluginsdk.TypeMap,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -417,14 +435,16 @@ func ResourceSourceAndSink() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name for the Data Factory Linked Service with schema.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
+							Description: "A map of parameters to associate with the Data Factory Linked Service.",
+							Type:        pluginsdk.TypeMap,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -440,14 +460,16 @@ func ResourceSourceAndSink() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
+							Description:  "The name for the Data Factory Linked Service with schema.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
+							Description: "A map of parameters to associate with the Data Factory Linked Service.",
+							Type:        pluginsdk.TypeMap,
+							Optional:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},

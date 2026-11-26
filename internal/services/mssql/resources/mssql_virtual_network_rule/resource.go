@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlVirtualNetworkRuleCreateUpdate,
-		Read:   resourceMsSqlVirtualNetworkRuleRead,
-		Update: resourceMsSqlVirtualNetworkRuleCreateUpdate,
-		Delete: resourceMsSqlVirtualNetworkRuleDelete,
+		Description: "Allows you to manage rules for allowing traffic between an Azure SQL server and a subnet of a Virtual Network.",
+		Create:      resourceMsSqlVirtualNetworkRuleCreateUpdate,
+		Read:        resourceMsSqlVirtualNetworkRuleRead,
+		Update:      resourceMsSqlVirtualNetworkRuleCreateUpdate,
+		Delete:      resourceMsSqlVirtualNetworkRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualnetworkrules.ParseVirtualNetworkRuleID(id)

@@ -15,17 +15,20 @@ import (
 
 func EndpointDeliveryRule() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Description: "Rules for the rules engine. An endpoint can contain up until 4 of those rules that consist of conditions and actions.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The Name which should be used for this Delivery Rule.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.EndpointDeliveryRuleName(),
 				},
 
 				"order": {
+					Description:  "The order used for this rule. The order values should be sequential and begin at `1`.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntAtLeast(1),

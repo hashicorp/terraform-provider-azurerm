@@ -110,8 +110,8 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					"private_ip_address_allocation": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPAllocationMethod(), false),
 						Default:      string(virtualnetworkgateways.IPAllocationMethodDynamic),
+						ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
@@ -314,6 +314,7 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					"root_certificate": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      hashVirtualNetworkGatewayRootCert,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -326,12 +327,12 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						Set: hashVirtualNetworkGatewayRootCert,
 					},
 
 					"revoked_certificate": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      hashVirtualNetworkGatewayRevokedCert,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -344,7 +345,6 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						Set: hashVirtualNetworkGatewayRevokedCert,
 					},
 
 					"radius_server": {
@@ -361,8 +361,8 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								"secret": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringLenBetween(1, 128),
 									Sensitive:    true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
 									// not returned by API - This prevents a diff, however, the state value will be nil so cannot be exported
 									// TODO - Convert this to an Write Only property?
 									DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
@@ -445,10 +445,14 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					// lintignore:XS003
 					"peering_addresses": {
 						Type:     pluginsdk.TypeList,
-						Computed: true, // azignore:AZS007 - pre-existing violation
 						Optional: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						MinItems: 1,
 						MaxItems: 2,
+						AtLeastOneOf: []string{
+							"bgp_settings.0.asn",
+							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"ip_configuration_name": {
@@ -482,10 +486,6 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									},
 								},
 							},
-						},
-						AtLeastOneOf: []string{
-							"bgp_settings.0.asn",
-							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
 						},
 					},
 				},

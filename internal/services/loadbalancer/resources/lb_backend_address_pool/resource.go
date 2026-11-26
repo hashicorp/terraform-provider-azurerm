@@ -17,10 +17,11 @@ const backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
-		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
-		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
-		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
+		Description: "Manages a Load Balancer Backend Address Pool.",
+		Create:      resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
+		Update:      resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
+		Read:        resourceArmLoadBalancerBackendAddressPoolRead,
+		Delete:      resourceArmLoadBalancerBackendAddressPoolDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.LoadBalancerBackendAddressPoolId{}),

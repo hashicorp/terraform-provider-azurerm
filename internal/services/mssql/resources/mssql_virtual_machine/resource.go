@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlVirtualMachineCreateUpdate,
-		Read:   resourceMsSqlVirtualMachineRead,
-		Update: resourceMsSqlVirtualMachineCreateUpdate,
-		Delete: resourceMsSqlVirtualMachineDelete,
+		Description: "Manages a Microsoft SQL Virtual Machine.",
+		Create:      resourceMsSqlVirtualMachineCreateUpdate,
+		Read:        resourceMsSqlVirtualMachineRead,
+		Update:      resourceMsSqlVirtualMachineCreateUpdate,
+		Delete:      resourceMsSqlVirtualMachineDelete,
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceMsSqlVirtualMachineCustomDiff),
 

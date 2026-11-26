@@ -17,10 +17,11 @@ var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubFallbackRouteCreateUpdate,
-		Read:   resourceIotHubFallbackRouteRead,
-		Update: resourceIotHubFallbackRouteCreateUpdate,
-		Delete: resourceIotHubFallbackRouteDelete,
+		Description: "Manages an IotHub Fallback Route.",
+		Create:      resourceIotHubFallbackRouteCreateUpdate,
+		Read:        resourceIotHubFallbackRouteRead,
+		Update:      resourceIotHubFallbackRouteCreateUpdate,
+		Delete:      resourceIotHubFallbackRouteDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

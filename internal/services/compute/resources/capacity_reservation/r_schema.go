@@ -14,6 +14,7 @@ import (
 func capacityReservationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Capacity Reservation.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func capacityReservationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"capacity_reservation_group_id": {
+			Description:  "The ID of the Capacity Reservation Group where the Capacity Reservation exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,6 +38,7 @@ func capacityReservationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "Name of the SKU, such as `Standard_F2`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -43,6 +46,7 @@ func capacityReservationSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"capacity": {
+						Description:  "The number of instances to be reserved.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),

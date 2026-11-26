@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorRulesEngineCreateUpdate,
-		Read:   resourceFrontDoorRulesEngineRead,
-		Update: resourceFrontDoorRulesEngineCreateUpdate,
-		Delete: resourceFrontDoorRulesEngineDelete,
+		Description: "Manages an Azure Front Door (classic) Rules Engine configuration and rules.",
+		Create:      resourceFrontDoorRulesEngineCreateUpdate,
+		Read:        resourceFrontDoorRulesEngineRead,
+		Update:      resourceFrontDoorRulesEngineCreateUpdate,
+		Delete:      resourceFrontDoorRulesEngineDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

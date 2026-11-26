@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetPostgreSQLCreateUpdate,
-		Read:   resourceDataFactoryDatasetPostgreSQLRead,
-		Update: resourceDataFactoryDatasetPostgreSQLCreateUpdate,
-		Delete: resourceDataFactoryDatasetPostgreSQLDelete,
+		Description: "Manages a PostgreSQL Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetPostgreSQLCreateUpdate,
+		Read:        resourceDataFactoryDatasetPostgreSQLRead,
+		Update:      resourceDataFactoryDatasetPostgreSQLCreateUpdate,
+		Delete:      resourceDataFactoryDatasetPostgreSQLDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

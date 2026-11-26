@@ -13,6 +13,7 @@ import (
 func activeDirectoryDomainServiceReplicaSetSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"domain_service_id": {
+			Description:  "The ID of the Domain Service for which to create this Replica Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func activeDirectoryDomainServiceReplicaSetSchema() map[string]*pluginsdk.Schema
 		"location": commonschema.Location(),
 
 		"subnet_id": {
+			Description:  "The ID of the subnet in which to place this Replica Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,21 +31,24 @@ func activeDirectoryDomainServiceReplicaSetSchema() map[string]*pluginsdk.Schema
 		},
 
 		"domain_controller_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of subnet IP addresses for the domain controllers in this Replica Set, typically two.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"external_access_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The publicly routable IP address for the domain controllers in this Replica Set.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"service_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current service status for the replica set.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

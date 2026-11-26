@@ -28,7 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"recovery_vault_id": commonschema.ResourceIDReferenceRequired(&vaults.VaultId{}),
+		"recovery_vault_id": commonschema.ResourceIDReferenceRequired(&vaults.VaultId{}, "Recovery Services Vault"),
 
 		"source_vm_name": {
 			Type:         pluginsdk.TypeString,
@@ -44,7 +44,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"recovery_replication_policy_id": commonschema.ResourceIDReferenceRequired(&replicationpolicies.ReplicationPolicyId{}),
+		"recovery_replication_policy_id": commonschema.ResourceIDReferenceRequired(&replicationpolicies.ReplicationPolicyId{}, "Replication Policy"),
 
 		"physical_server_credential_name": {
 			Type:         pluginsdk.TypeString,
@@ -60,7 +60,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForLicenseType(), false),
 		},
 
-		"target_resource_group_id": commonschema.ResourceIDReferenceRequired(&commonids.ResourceGroupId{}),
+		"target_resource_group_id": commonschema.ResourceIDReferenceRequired(&commonids.ResourceGroupId{}, "Resource Group"),
 
 		"target_vm_name": {
 			Type:         pluginsdk.TypeString,
@@ -79,8 +79,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"default_recovery_disk_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
+			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 		},
 
 		"default_target_disk_encryption_set_id": {
@@ -95,7 +95,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"target_proximity_placement_group_id": commonschema.ResourceIDReferenceOptional(&proximityplacementgroups.ProximityPlacementGroupId{}),
+		"target_proximity_placement_group_id": commonschema.ResourceIDReferenceOptional(&proximityplacementgroups.ProximityPlacementGroupId{}, "Proximity Placement Group"),
 
 		"target_vm_size": {
 			Type:         pluginsdk.TypeString,
@@ -128,9 +128,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"network_interface"},
 		},
 
-		"test_network_id": commonschema.ResourceIDReferenceOptional(&commonids.VirtualNetworkId{}),
+		"test_network_id": commonschema.ResourceIDReferenceOptional(&commonids.VirtualNetworkId{}, "Virtual Network"),
 
-		"target_boot_diagnostics_storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}),
+		"target_boot_diagnostics_storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}, "Storage Account"),
 
 		// managed disk is enabled only if mobility service is already installed. (in most cases, it's not installed)
 		"managed_disk": {

@@ -70,8 +70,8 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			AtLeastOneOf:  []string{"config_file", "package_data"},
 			ConflictsWith: []string{"protected_file", "config_file"},
+			AtLeastOneOf:  []string{"config_file", "package_data"},
 		},
 
 		"root_file": {

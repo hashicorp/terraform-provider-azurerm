@@ -40,6 +40,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"record": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
+				Set:      resourcePrivateDnsMxRecordHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"preference": {
@@ -52,7 +53,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourcePrivateDnsMxRecordHash,
 			},
 
 			"ttl": {

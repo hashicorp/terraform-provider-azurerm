@@ -80,8 +80,8 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.TagsForceNew(),
