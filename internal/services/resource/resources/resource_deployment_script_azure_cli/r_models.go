@@ -1,0 +1,14 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package resource_deployment_script_azure_cli
+
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/helpers"
+)
+
+type ResourceDeploymentScriptAzureCliModel helpers.ResourceDeploymentScriptModel
+
+func (r Resource) ModelObject() any {
+	return &ResourceDeploymentScriptAzureCliModel{}
+}

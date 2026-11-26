@@ -17,12 +17,14 @@ import (
 func logicAppActionHttpSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the HTTP Action to be created within the Logic App Workflow.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"logic_app_id": {
+			Description:  "The ID of the Logic App Workflow.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,8 +32,9 @@ func logicAppActionHttpSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"method": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The HTTP Method which should be used for this HTTP Action.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				http.MethodDelete,
 				http.MethodGet,
@@ -42,13 +45,15 @@ func logicAppActionHttpSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"uri": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The URI which will be called when this HTTP Action is triggered.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"body": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The HTTP Body that should be sent to the `uri` when this HTTP Action is triggered.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
 				if json.Valid([]byte(oldValue)) && json.Valid([]byte(newValue)) {
 					return pluginsdk.SuppressJsonDiff(k, oldValue, newValue, d)
@@ -58,34 +63,39 @@ func logicAppActionHttpSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"headers": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A Map of Key-Value Pairs that should be sent to the `uri` when this HTTP Action is triggered.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"queries": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A Map of Key-Value Pairs that should be sent to the `uri` when this HTTP Action is triggered.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"run_after": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MinItems: 1,
+			Description: "The place of the HTTP Action in the Logic App Workflow. If not specified, the HTTP Action is right after the Trigger.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"action_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the precedent HTTP Action.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 					"action_result": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The expected result of the precedent HTTP Action, only after which the current HTTP Action will be triggered.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(workflowrunactions.WorkflowStatusSucceeded),
 							string(workflowrunactions.WorkflowStatusFailed),

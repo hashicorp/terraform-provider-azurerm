@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerGroupCreate,
-		Read:   resourceContainerGroupRead,
-		Delete: resourceContainerGroupDelete,
-		Update: resourceContainerGroupUpdate,
+		Description: "Manages an Azure Container Group instance.",
+		Create:      resourceContainerGroupCreate,
+		Read:        resourceContainerGroupRead,
+		Delete:      resourceContainerGroupDelete,
+		Update:      resourceContainerGroupUpdate,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := containerinstance.ParseContainerGroupID(id)
 			return err
