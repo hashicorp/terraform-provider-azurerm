@@ -766,14 +766,14 @@ func TestAccKubernetesCluster_osSkuAzureContainerLinux(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, true, true),
+			Config: r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, true, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, false, false),
+			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, false, false, false),
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
 		},
 	})
@@ -786,8 +786,8 @@ func TestAccKubernetesCluster_osSkuAzureContainerLinuxSecurityDisabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, false, true),
-			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
+			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, true, false, true),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.vtpm_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
 		},
 	})
 }
@@ -3266,7 +3266,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
 }
 
-func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData, kubernetesVersion string, securityEnabled, includeOSSKU bool) string {
+func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData, kubernetesVersion string, secureBootEnabled, vtpmEnabled, includeOSSKU bool) string {
 	osSKU := ""
 	if includeOSSKU {
 		osSKU = `os_sku = "AzureContainerLinux"`
@@ -3314,7 +3314,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesVersion, osSKU, securityEnabled, securityEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesVersion, osSKU, secureBootEnabled, vtpmEnabled)
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {

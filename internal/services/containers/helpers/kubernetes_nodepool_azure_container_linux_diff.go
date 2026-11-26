@@ -13,24 +13,19 @@ import (
 
 func NodePoolAzureContainerLinuxCustomizeDiff(pathPrefix string) pluginsdk.CustomizeDiffFunc {
 	osSKUPath := pathPrefix + "os_sku"
-	securityPath := pathPrefix + "security"
+	secureBootPath := pathPrefix + "security.0.secure_boot_enabled"
+	vtpmPath := pathPrefix + "security.0.vtpm_enabled"
 
 	return func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
-		osSKU, ok := d.GetOkExists(osSKUPath)
-		if !ok || osSKU.(string) != string(agentpools.OSSKUAzureContainerLinux) {
+		if d.Get(osSKUPath).(string) != string(agentpools.OSSKUAzureContainerLinux) {
 			return nil
 		}
 
-		if !d.NewValueKnown(securityPath) {
-			return nil
+		if !d.Get(secureBootPath).(bool) {
+			return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", secureBootPath, osSKUPath)
 		}
-
-		for _, flag := range []string{"secure_boot_enabled", "vtpm_enabled"} {
-			path := securityPath + ".0." + flag
-			value, ok := d.GetOkExists(path)
-			if ok && !value.(bool) {
-				return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
-			}
+		if !d.Get(vtpmPath).(bool) {
+			return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", vtpmPath, osSKUPath)
 		}
 		return nil
 	}
