@@ -77,8 +77,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"cluster_scoped_resources_enabled": {
 						Description: "Whether to include cluster scope resources during backup.",
 						Type:        pluginsdk.TypeBool,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 						Default:     false,
 					},
 					"included_namespaces": {
@@ -111,8 +111,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"volume_snapshot_enabled": {
 						Description: "Whether to take volume snapshots during backup.",
 						Type:        pluginsdk.TypeBool,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 						Default:     false,
 					},
 				},

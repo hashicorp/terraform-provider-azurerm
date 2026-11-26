@@ -61,13 +61,13 @@ func iothubRouteSchema() map[string]*pluginsdk.Schema {
 		"endpoint_names": {
 			Description: "The list of endpoints to which messages that satisfy the condition are routed. Currently only one endpoint is allowed.",
 			Type:        pluginsdk.TypeList,
+			Required:    true,
 			// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Required: true,
 		},
 		"enabled": {
 			Description: "Whether a route is enabled.",

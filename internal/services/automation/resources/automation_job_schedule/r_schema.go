@@ -39,14 +39,14 @@ func automationJobScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"parameters": {
-			Description: "A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.",
-			Type:        pluginsdk.TypeMap,
-			Optional:    true,
-			ForceNew:    true,
+			Description:  "A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.",
+			Type:         pluginsdk.TypeMap,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ParameterNames,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			ValidateFunc: validate.ParameterNames,
 		},
 
 		"run_on": {

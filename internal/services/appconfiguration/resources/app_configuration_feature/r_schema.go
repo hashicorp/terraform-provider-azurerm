@@ -16,13 +16,13 @@ import (
 func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 			// User-specified segments are lowercased in the API response
 			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -48,9 +48,9 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
+			Computed: true,
 		},
 		"label": {
 			Type:     pluginsdk.TypeString,

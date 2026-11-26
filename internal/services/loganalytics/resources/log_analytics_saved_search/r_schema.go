@@ -32,8 +32,8 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 		"category": {
 			Description:  "The category that the Saved Search will be listed under.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

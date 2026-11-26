@@ -56,8 +56,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:      "The end of life date in RFC3339 format of the Gallery Application Version.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"exclude_from_latest": {
@@ -160,8 +160,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "The Storage Account type for the Gallery Application Version.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(galleryapplicationversions.PossibleValuesForStorageAccountType(), false),
 						Default:      string(galleryapplicationversions.StorageAccountTypeStandardLRS),
+						ValidateFunc: validation.StringInSlice(galleryapplicationversions.PossibleValuesForStorageAccountType(), false),
 					},
 				},
 			},

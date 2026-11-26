@@ -54,15 +54,15 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol": {
-			Description:      "The transport protocol for the external endpoint.",
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Description: "The transport protocol for the external endpoint.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(loadbalancers.TransportProtocolAll),
 				string(loadbalancers.TransportProtocolTcp),
 				string(loadbalancers.TransportProtocolUdp),
 			}, false),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"frontend_port": {

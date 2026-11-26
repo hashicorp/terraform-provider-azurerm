@@ -33,8 +33,8 @@ func dataFactoryLinkedServiceMysqlSchema() map[string]*pluginsdk.Schema {
 			Description:      "The connection string in which to authenticate with MySQL.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 		},
 
 		"description": {

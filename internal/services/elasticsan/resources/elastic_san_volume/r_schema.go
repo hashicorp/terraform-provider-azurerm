@@ -82,26 +82,26 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_iqn": {
 			Description: "The iSCSI Target IQN of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_portal_hostname": {
 			Description: "The iSCSI Target Portal Host Name of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_portal_port": {
 			Description: "The iSCSI Target Portal Port of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_id": {
 			Description: "The UUID of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

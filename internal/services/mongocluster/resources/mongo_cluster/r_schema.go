@@ -24,9 +24,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Description: "The name which should be used for the MongoDB Cluster.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-z\d]([-a-z\d]{1,38}[a-z\d])$`),
 				"`name` must be between 3 and 40 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
@@ -134,8 +134,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The number of shards to provision on the MongoDB Cluster.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
 			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"source_location": {
@@ -143,9 +143,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
+			ValidateFunc:     validation.StringIsNotEmpty,
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			ValidateFunc:     validation.StringIsNotEmpty,
 			RequiredWith:     []string{"source_server_id"},
 		},
 
@@ -261,8 +261,8 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"connection_strings": {
 			Type:      pluginsdk.TypeList,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

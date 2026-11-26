@@ -33,8 +33,8 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 			Description:  "The number of update domains that are used.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      5,
 			ForceNew:     true,
+			Default:      5,
 			ValidateFunc: validation.IntBetween(1, 20),
 		},
 
@@ -42,8 +42,8 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 			Description:  "The number of fault domains that are used.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      3,
 			ForceNew:     true,
+			Default:      3,
 			ValidateFunc: validation.IntBetween(1, 3),
 		},
 
@@ -51,8 +51,8 @@ func availabilitySetSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether the Availability Set is managed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		"proximity_placement_group_id": {

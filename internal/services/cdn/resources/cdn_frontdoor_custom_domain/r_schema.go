@@ -42,8 +42,8 @@ func cdnFrontdoorCustomDomainSchema() map[string]*pluginsdk.Schema {
 		"host_name": {
 			Description:  "The host name of the domain.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.FrontDoorCustomDomainHostName,
 		},
 
@@ -127,13 +127,13 @@ func cdnFrontdoorCustomDomainSchema() map[string]*pluginsdk.Schema {
 											"tls13": {
 												Description: "A set of TLS 1.3 cipher suites.",
 												Type:        pluginsdk.TypeSet,
+												Optional:    true,
+												// NOTE: O+C Azure Front Door returns TLS 1.3 cipher suites even when `tls13` is not specified (see https://learn.microsoft.com/azure/frontdoor/standard-premium/tls-policy#custom-tls-policy)
+												Computed: true,
 												AtLeastOneOf: []string{
 													"tls.0.cipher_suite.0.custom_ciphers.0.tls12",
 													"tls.0.cipher_suite.0.custom_ciphers.0.tls13",
 												},
-												Optional: true,
-												// NOTE: O+C Azure Front Door returns TLS 1.3 cipher suites even when `tls13` is not specified (see https://learn.microsoft.com/azure/frontdoor/standard-premium/tls-policy#custom-tls-policy)
-												Computed: true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice(

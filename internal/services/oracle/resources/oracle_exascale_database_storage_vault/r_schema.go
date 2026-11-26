@@ -53,10 +53,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"high_capacity_database_storage": {
 			Type:     pluginsdk.TypeList,
-			MinItems: 1,
-			MaxItems: 1,
 			Required: true,
 			ForceNew: true,
+			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_size_in_gb": {

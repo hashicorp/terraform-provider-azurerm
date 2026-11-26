@@ -13,33 +13,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 		"name": {
 			Description: "The name of this Kubernetes Fleet Manager.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"hub_profile": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ForceNew:   true,
+			MaxItems:   1,
 			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_prefix": {
-						Required: true,
 						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 					"fqdn": {
-						Computed: true,
 						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 					"kubernetes_version": {
-						Computed: true,
 						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
-			ForceNew: true,
-			MaxItems: 1,
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"tags": commonschema.Tags(),
 	}

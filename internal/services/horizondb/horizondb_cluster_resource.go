@@ -194,9 +194,9 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
+			ValidateFunc:  validation.StringLenBetween(8, 128),
 			ConflictsWith: []string{"administrator_password_wo"},
 			AtLeastOneOf:  []string{"administrator_password", "administrator_password_wo"},
-			ValidateFunc:  validation.StringLenBetween(8, 128),
 		},
 
 		"administrator_password_wo": {
@@ -204,18 +204,18 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			WriteOnly:     true,
+			ValidateFunc:  validation.StringLenBetween(8, 128),
+			RequiredWith:  []string{"administrator_password_wo_version"},
 			ConflictsWith: []string{"administrator_password"},
 			AtLeastOneOf:  []string{"administrator_password", "administrator_password_wo"},
-			RequiredWith:  []string{"administrator_password_wo_version"},
-			ValidateFunc:  validation.StringLenBetween(8, 128),
 		},
 
 		"administrator_password_wo_version": {
 			Description:  "A positive integer used to trigger an update for `administrator_password_wo`. Increment this value when updating the write-only password.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			RequiredWith: []string{"administrator_password_wo"},
 			ValidateFunc: validation.IntAtLeast(1),
+			RequiredWith: []string{"administrator_password_wo"},
 		},
 
 		"backup_retention_in_days": {
@@ -259,8 +259,8 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						StateFunc:    location.StateFunc,
 						ValidateFunc: validation.StringIsNotEmpty,
+						StateFunc:    location.StateFunc,
 					},
 				},
 			},
@@ -273,8 +273,8 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			// NOTE: O+C - Restored clusters inherit their PostgreSQL version from the source backup.
 			Computed:     true,
 			ForceNew:     true,
-			ExactlyOneOf: []string{"postgresql_version", "point_in_time_restore"},
 			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPostgreSqlVersion(), false),
+			ExactlyOneOf: []string{"postgresql_version", "point_in_time_restore"},
 		},
 
 		"public_network_access": {

@@ -99,8 +99,8 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "A description of the Automation Runtime Environment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"runtime_default_packages": {

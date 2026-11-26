@@ -56,8 +56,8 @@ func dataFactoryDatasetParquetSchema() map[string]*pluginsdk.Schema {
 		// Parquet Specific Field, one option for 'location'
 		"azure_blob_fs_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -104,8 +104,8 @@ func dataFactoryDatasetParquetSchema() map[string]*pluginsdk.Schema {
 		// Parquet Specific Field, one option for 'location'
 		"azure_blob_storage_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -192,8 +192,8 @@ func dataFactoryDatasetParquetSchema() map[string]*pluginsdk.Schema {
 		// Parquet Specific Field, one option for 'location'
 		"http_server_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

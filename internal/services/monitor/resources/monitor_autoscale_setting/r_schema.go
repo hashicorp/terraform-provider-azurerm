@@ -42,9 +42,9 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 
 		"predictive": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			MinItems: 1,
 			Optional: true,
+			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"scale_mode": {
@@ -352,9 +352,10 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						MaxItems:     1,
+						AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"send_to_subscription_administrator": {
@@ -380,11 +381,11 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 					},
 					"webhook": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"service_uri": {
@@ -403,7 +404,6 @@ func monitorAutoscaleSettingSchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 					},
 				},
 			},

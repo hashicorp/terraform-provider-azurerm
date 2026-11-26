@@ -87,8 +87,8 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 									Description:      "The end time of the schedule, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Optional:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"schedule": {
@@ -118,9 +118,10 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 											},
 
 											"month_days": {
-												Description: "A list of days of the month that the job should execute on.",
-												Type:        pluginsdk.TypeSet,
-												Optional:    true,
+												Description:   "A list of days of the month that the job should execute on.",
+												Type:          pluginsdk.TypeSet,
+												Optional:      true,
+												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeInt,
 													ValidateFunc: validation.All(
@@ -128,12 +129,12 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 														validation.IntNotInSlice([]int{0}),
 													),
 												},
-												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 											},
 
 											"monthly": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Type:          pluginsdk.TypeSet,
+												Optional:      true,
+												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"weekday": {
@@ -154,18 +155,17 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 														},
 													},
 												},
-												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 											},
 
 											"week_days": {
-												Description: "A list of days of the week that the job should execute on.",
-												Type:        pluginsdk.TypeSet,
-												Optional:    true,
+												Description:   "A list of days of the week that the job should execute on.",
+												Type:          pluginsdk.TypeSet,
+												Optional:      true,
+												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice(integrationaccountbatchconfigurations.PossibleValuesForDaysOfWeek(), false),
 												},
-												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 											},
 										},
 									},
@@ -175,8 +175,8 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 									Description:      "The start time of the schedule, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Optional:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"time_zone": {

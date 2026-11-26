@@ -73,31 +73,31 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"base_size_in_tib": {
 			Description: "The base size of the Elastic SAN resource in TiB.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"extended_size_in_tib": {
 			Description: "The base size of the Elastic SAN resource in TiB.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"sku": {
-			Computed: true,
 			Type:     pluginsdk.TypeList,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Description: "The SKU name.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"tier": {
 						Description: "The SKU tier.",
-						Computed:    true,
 						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -105,32 +105,32 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"total_iops": {
 			Description: "Total Provisioned IOPS of the Elastic SAN resource.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"total_mbps": {
 			Description: "Total Provisioned MBps of the Elastic SAN resource.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"total_size_in_tib": {
 			Description: "Total size of the Elastic SAN resource in TB.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"total_volume_size_in_gib": {
 			Description: "Total size of the provisioned Volumes in GiB.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_group_count": {
 			Description: "Total number of volume groups in this Elastic SAN resource.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

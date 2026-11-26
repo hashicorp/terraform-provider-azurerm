@@ -80,8 +80,8 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 					"enhanced_authentication_enabled": {
 						Description: "Enables additional security measures for this site, see [Direct Line enhanced authentication](https://learn.microsoft.com/azure/bot-service/bot-builder-security-enhanced?view=azure-bot-service-4.0). Disabled by default.",
 						Type:        pluginsdk.TypeBool,
-						Default:     false,
 						Optional:    true,
+						Default:     false,
 					},
 
 					"trusted_origins": {
