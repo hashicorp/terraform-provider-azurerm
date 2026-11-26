@@ -17,9 +17,10 @@ import (
 func virtualDesktopApplicationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Virtual Desktop Application.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				// NOTE: name string length is incorrect in the API specs, see: https://github.com/Azure/azure-rest-api-specs/issues/46813
 				validation.StringLenBetween(1, 260),
@@ -31,6 +32,7 @@ func virtualDesktopApplicationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"application_group_id": {
+			Description:  "Resource ID for a Virtual Desktop Application Group to associate with the Virtual Desktop Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,6 +40,7 @@ func virtualDesktopApplicationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"command_line_argument_policy": {
+			Description:  "Whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
@@ -52,32 +55,37 @@ func virtualDesktopApplicationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"command_line_arguments": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Command Line Arguments for Virtual Desktop Application.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"description": {
+			Description:  "Option to set a description for the Virtual Desktop Application.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 512),
 		},
 
 		"friendly_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(1, 64),
+			Description: "Option to set a friendly name for the Virtual Desktop Application.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C The API will use the value in `name` as the default
-			Computed: true,
+			Computed:     true,
+			ValidateFunc: validation.StringLenBetween(1, 64),
 		},
 
 		"icon_index": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Description: "The index of the icon you wish to use.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
 		},
 
 		"icon_path": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The path for an icon which will be used for this Virtual Desktop Application.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C The API will use the value in `path` as the default
 			Computed: true,
 		},
@@ -97,14 +105,16 @@ func virtualDesktopApplicationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"path": {
+			Description:  "The file path location of the app on the Virtual Desktop OS.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"show_in_portal": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to show the RemoteApp program in the RD Web Access server.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 	}
 }

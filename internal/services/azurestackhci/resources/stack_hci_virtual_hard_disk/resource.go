@@ -23,3 +23,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_stack_hci_virtual_hard_disk"
 }
+
+func (Resource) Description() string {
+	return "Manages an Azure Stack HCI Virtual Hard Disk."
+}

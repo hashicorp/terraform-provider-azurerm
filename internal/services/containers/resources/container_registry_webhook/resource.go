@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryWebhookCreate,
-		Read:   resourceContainerRegistryWebhookRead,
-		Update: resourceContainerRegistryWebhookUpdate,
-		Delete: resourceContainerRegistryWebhookDelete,
+		Description: "Manages an Azure Container Registry Webhook.",
+		Create:      resourceContainerRegistryWebhookCreate,
+		Read:        resourceContainerRegistryWebhookRead,
+		Update:      resourceContainerRegistryWebhookUpdate,
+		Delete:      resourceContainerRegistryWebhookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webhooks.ParseWebHookID(id)

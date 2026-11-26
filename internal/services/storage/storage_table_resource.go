@@ -103,9 +103,9 @@ func resourceStorageTable() *pluginsdk.Resource {
 			},
 
 			"resource_manager_id": {
+				Description: "The Resource Manager ID of this Storage Table.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The Resource Manager ID of this Storage Table.",
 			},
 		},
 	}

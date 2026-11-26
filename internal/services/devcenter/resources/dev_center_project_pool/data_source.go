@@ -38,42 +38,48 @@ type DevCenterProjectPoolDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Project Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DevCenterProjectPoolName,
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&pools.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&pools.ProjectId{}, "Dev Center Project"),
 	}
 }
 
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_box_definition_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Dev Center Dev Box Definition.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dev_center_attached_network_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Dev Center Attached Network in parent Project of the Dev Center Project Pool.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"local_administrator_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether owners of Dev Boxes in the Dev Center Project Pool are added as local administrators on the Dev Box.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"single_sign_on_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Dev Boxes in the Pool will have SSO enabled or disabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -86,6 +92,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_project_pool"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Project Pool."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

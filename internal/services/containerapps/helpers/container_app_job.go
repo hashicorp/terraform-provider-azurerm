@@ -80,6 +80,7 @@ func ContainerAppsJobsScaleSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_executions": {
+					Description:  "Maximum number of job executions that are created for a trigger.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      100,
@@ -87,6 +88,7 @@ func ContainerAppsJobsScaleSchema() *pluginsdk.Schema {
 				},
 
 				"min_executions": {
+					Description:  "Minimum number of job executions that are created for a trigger.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
@@ -94,6 +96,7 @@ func ContainerAppsJobsScaleSchema() *pluginsdk.Schema {
 				},
 
 				"polling_interval_in_seconds": {
+					Description:  "Interval to check each event source in seconds.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      30,

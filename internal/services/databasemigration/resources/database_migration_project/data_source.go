@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDatabaseMigrationProjectRead,
+		Description: "Use this data source to access information about an existing Database Migration Project.",
+		Read:        dataSourceDatabaseMigrationProjectRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,12 +29,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "Name of the database migration project.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ProjectName,
 			},
 
 			"service_name": {
+				Description:  "Name of the database migration service where resource belongs to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ServiceName,
@@ -44,13 +47,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"source_platform": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The platform type of the migration source.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"target_platform": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The platform type of the migration target.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

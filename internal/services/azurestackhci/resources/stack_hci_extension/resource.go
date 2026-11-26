@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_stack_hci_extension"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Stack HCI Extension."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return extensions.ValidateExtensionID
 }

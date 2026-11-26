@@ -14,6 +14,7 @@ import (
 func logicAppIntegrationAccountMapSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Logic App Integration Account Map.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func logicAppIntegrationAccountMapSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"integration_account_name": {
+			Description:  "The name of the Logic App Integration Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,20 +32,23 @@ func logicAppIntegrationAccountMapSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"content": {
+			Description:  "The content of the Logic App Integration Account Map.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"map_type": {
+			Description:  "The type of the Logic App Integration Account Map.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(integrationaccountmaps.PossibleValuesForMapType(), false),
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "The metadata of the Logic App Integration Account Map.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

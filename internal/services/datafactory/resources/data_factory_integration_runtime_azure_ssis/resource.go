@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeAzureSsisCreate,
-		Read:   resourceDataFactoryIntegrationRuntimeAzureSsisRead,
-		Update: resourceDataFactoryIntegrationRuntimeAzureSsisUpdate,
-		Delete: resourceDataFactoryIntegrationRuntimeAzureSsisDelete,
+		Description: "Manages a Data Factory Azure-SSIS Integration Runtime.",
+		Create:      resourceDataFactoryIntegrationRuntimeAzureSsisCreate,
+		Read:        resourceDataFactoryIntegrationRuntimeAzureSsisRead,
+		Update:      resourceDataFactoryIntegrationRuntimeAzureSsisUpdate,
+		Delete:      resourceDataFactoryIntegrationRuntimeAzureSsisDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

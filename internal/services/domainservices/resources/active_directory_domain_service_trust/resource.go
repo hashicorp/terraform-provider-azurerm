@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_active_directory_domain_service_trust"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Active Directory Domain Service Trust."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.DomainServiceTrustID
 }
