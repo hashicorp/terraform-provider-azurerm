@@ -14,12 +14,12 @@ Manages a Cloud Hardware Security Module Cluster.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
+  name     = "example-resource-group"
   location = "West Europe"
 }
 
 resource "azurerm_cloud_hardware_security_module_cluster" "example" {
-  name                = "example-cloudhsm-cluster"
+  name                = "example-cloud-hardware"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
@@ -41,9 +41,9 @@ The following arguments are supported:
 
 ---
 
-* `identity` - (Optional) An `identity` block as defined below.
-
 * `domain_name_reuse` - (Optional) Specifies the scope for auto-generated domain name labels. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse`, and `NoReuse`. Defaults to `TenantReuse`. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Cloud Hardware Security Module Cluster.
 
@@ -51,9 +51,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cloud Hardware Security Module Cluster. The only supported value is `UserAssigned`.
-
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Cloud Hardware Security Module Cluster.
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cloud Hardware Security Module Cluster. The only possible value is `UserAssigned`.
 
 ## Attributes Reference
 
@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `hardware_security_module` block exports the following:
 
-* `fqdn` - The fully qualified domain name of the HSM instance.
+* `fully_qualified_domain_name` - The fully qualified domain name of the Hardware Security Module.
 
 ## Timeouts
 
@@ -80,10 +80,10 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Cloud Hardware Security Module Clusters can be imported using the `resource id`, e.g.
+A Cloud Hardware Security Module Cluster can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cloud_hardware_security_module_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/cluster1
+terraform import azurerm_cloud_hardware_security_module_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/cloudHsmCluster1
 ```
 
 ## API Providers
