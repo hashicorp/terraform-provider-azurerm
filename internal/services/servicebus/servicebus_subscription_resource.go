@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -154,8 +154,8 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 					"is_client_scoped_subscription_shareable": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
 						ForceNew: true,
+						Default:  true,
 					},
 
 					"is_client_scoped_subscription_durable": {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -130,8 +130,8 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 						"scope": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 							Default:      "access",
+							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 						},
 						"type": {
 							Type:         pluginsdk.TypeString,

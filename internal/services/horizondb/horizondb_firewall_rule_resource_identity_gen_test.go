@@ -1,0 +1,42 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package horizondb_test
+
+import (
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
+)
+
+func TestAccHorizondbFirewallRule_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_horizondb_firewall_rule", "test")
+	r := HorizondbFirewallRuleResource{}
+
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"cluster_name":        {},
+		"pool_name":           {},
+		"resource_group_name": {},
+		"subscription_id":     {},
+	}
+
+	data.ResourceIdentityTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_horizondb_firewall_rule.test", checkedFields),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_horizondb_firewall_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_horizondb_firewall_rule.test", tfjsonpath.New("cluster_name"), tfjsonpath.New("horizondb_pool_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_horizondb_firewall_rule.test", tfjsonpath.New("pool_name"), tfjsonpath.New("horizondb_pool_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_horizondb_firewall_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("horizondb_pool_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_horizondb_firewall_rule.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("horizondb_pool_id")),
+			},
+		},
+		data.ImportBlockWithResourceIdentityStep(false),
+		data.ImportBlockWithIDStep(false),
+	}, false)
+}
