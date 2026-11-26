@@ -40,11 +40,11 @@ func storageShareSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
+			Default:  string(shares.SMB),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(shares.SMB),
 				string(shares.NFS),
 			}, false),
-			Default: string(shares.SMB),
 		},
 
 		"acl": {
@@ -91,8 +91,8 @@ func storageShareSchema() map[string]*pluginsdk.Schema {
 
 		"access_tier": {
 			Type:     pluginsdk.TypeString,
-			Computed: true, // azignore:AZS007 - pre-existing violation
 			Optional: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					string(shares.PremiumAccessTier),

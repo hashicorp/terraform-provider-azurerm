@@ -31,12 +31,12 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 		"account_kind": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(storageaccounts.KindStorageVTwo),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(storageaccounts.KindBlockBlobStorage),
 				string(storageaccounts.KindFileStorage),
 				string(storageaccounts.KindStorageVTwo),
 			}, false),
-			Default: string(storageaccounts.KindStorageVTwo),
 		},
 
 		"account_tier": {
@@ -48,8 +48,8 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 
 		"provisioned_billing_model_version": {
 			Type:     pluginsdk.TypeString,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 			// There are two billing model in Azure Storage (at least for File): Provisioned (V1 or V2) and PAYG.
 			// (https://learn.microsoft.com/azure/storage/files/understanding-billing)
 			// The version only applies to Provisioned model. When reflecting to the API payload, Provisioned V1 and PAYG
@@ -66,13 +66,6 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 		"account_replication_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			DiffSuppressFunc: func(_, _, n string, d *schema.ResourceData) bool {
-				// Migration of a storage account to/from zonal can take days
-				// so the provider doesn't poll and wait for it to complete.
-				// While in queue for migration/actively migrating, the Storage Account will return the old `account_replication_type`
-				// which we'll suppress here if the configured type matches the target migration type.
-				return d.Get("account_replication_type_migration_in_progress").(bool) && n == d.Get("account_replication_type_migrating_to").(string)
-			},
 			ValidateFunc: validation.StringInSlice([]string{
 				"LRS",
 				"ZRS",
@@ -81,6 +74,13 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 				"GZRS",
 				"RAGZRS",
 			}, false),
+			DiffSuppressFunc: func(_, _, n string, d *schema.ResourceData) bool {
+				// Migration of a storage account to/from zonal can take days
+				// so the provider doesn't poll and wait for it to complete.
+				// While in queue for migration/actively migrating, the Storage Account will return the old `account_replication_type`
+				// which we'll suppress here if the configured type matches the target migration type.
+				return d.Get("account_replication_type_migration_in_progress").(bool) && n == d.Get("account_replication_type_migrating_to").(string)
+			},
 		},
 
 		"access_tier": {
@@ -227,8 +227,8 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 		"immutability_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allow_protected_append_writes": {
@@ -260,15 +260,15 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 		"is_hns_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"nfsv3_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"allow_nested_items_to_be_public": {
@@ -315,32 +315,32 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true, // azignore:AZS007 - pre-existing violation
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"ip_rules": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true, // azignore:AZS007 - pre-existing violation
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.StorageAccountIpRule,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"virtual_network_subnet_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Computed: true, // azignore:AZS007 - pre-existing violation
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"default_action": {
@@ -446,9 +446,10 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"restore_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						MaxItems:     1,
+						RequiredWith: []string{"blob_properties.0.delete_retention_policy"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"days": {
@@ -458,7 +459,6 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						RequiredWith: []string{"blob_properties.0.delete_retention_policy"},
 					},
 
 					"versioning_enabled": {
@@ -492,8 +492,8 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 					"choice": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForRoutingChoice(), false),
 						Default:      string(storageaccounts.RoutingChoiceMicrosoftRouting),
+						ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForRoutingChoice(), false),
 					},
 				},
 			},
@@ -596,23 +596,23 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKeyType(), false),
 			Default:      string(storageaccounts.KeyTypeService),
+			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKeyType(), false),
 		},
 
 		"table_encryption_key_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKeyType(), false),
 			Default:      string(storageaccounts.KeyTypeService),
+			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKeyType(), false),
 		},
 
 		"infrastructure_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"sas_policy": {
@@ -1003,8 +1003,8 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 
 		"primary_access_key": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_access_key": {

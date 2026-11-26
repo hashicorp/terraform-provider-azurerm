@@ -29,8 +29,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Sensitive:    true,
 			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

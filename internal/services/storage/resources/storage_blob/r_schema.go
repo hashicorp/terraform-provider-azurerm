@@ -111,8 +111,8 @@ func storageBlobSchema() map[string]*pluginsdk.Schema {
 			// TODO: @tombuildsstuff - a note this only works for Page blobs
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      8,
 			ForceNew:     true,
+			Default:      8,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 

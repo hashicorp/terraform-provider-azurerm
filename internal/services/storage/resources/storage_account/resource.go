@@ -203,6 +203,7 @@ func RegisterResource() *pluginsdk.Resource {
 		r.Schema["account_kind"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(storageaccounts.KindStorageVTwo),
 			ValidateFunc: validation.All(
 				validation.StringInSlice(storageaccounts.PossibleValuesForKind(), false),
 				func(i any, k string) ([]string, []error) {
@@ -218,7 +219,6 @@ func RegisterResource() *pluginsdk.Resource {
 					return nil, nil
 				},
 			),
-			Default: string(storageaccounts.KindStorageVTwo),
 		}
 
 		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
@@ -235,8 +235,8 @@ func RegisterResource() *pluginsdk.Resource {
 			Optional: true,
 			// Note: O+C because in 5.x this value may be affected by `public_network_access_enabled`
 			Computed:      true,
-			ConflictsWith: []string{"public_network_access_enabled"},
 			ValidateFunc:  validation.StringInSlice(storageaccounts.PossibleValuesForPublicNetworkAccess(), false),
+			ConflictsWith: []string{"public_network_access_enabled"},
 		}
 	}
 

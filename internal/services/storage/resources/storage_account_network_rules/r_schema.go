@@ -27,31 +27,31 @@ func storageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// Note: O+C because this defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
 			Computed: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"ip_rules": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.StorageAccountIpRule,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"virtual_network_subnet_ids": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"default_action": {

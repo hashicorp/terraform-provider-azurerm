@@ -63,8 +63,8 @@ func storageDataLakeGen2PathSchema() map[string]*pluginsdk.Schema {
 					"scope": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 						Default:      "access",
+						ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 					},
 					"type": {
 						Type:         pluginsdk.TypeString,

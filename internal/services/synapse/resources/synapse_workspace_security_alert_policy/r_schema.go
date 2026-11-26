@@ -44,10 +44,10 @@ func synapseWorkspaceSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		"email_addresses": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"retention_days": {

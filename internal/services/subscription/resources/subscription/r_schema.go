@@ -15,41 +15,41 @@ import (
 func subscriptionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subscription_name": {
+			Description:  "The Display Name for the Subscription.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Description:  "The Display Name for the Subscription.",
 			ValidateFunc: validate.SubscriptionName,
 		},
 
 		"alias": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C - This value is supplied by the provider if omitted so must remain `Computed`
 			Computed:     true,
 			ForceNew:     true,
-			Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"billing_scope_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ExactlyOneOf: []string{
-				"subscription_id",
-				"billing_scope_id",
-			},
 			ValidateFunc: validation.Any(
 				billingValidate.MicrosoftCustomerAccountBillingScopeID,
 				billingValidate.EnrollmentBillingScopeID,
 				billingValidate.MicrosoftPartnerAccountBillingScopeID,
 			),
+			ExactlyOneOf: []string{
+				"subscription_id",
+				"billing_scope_id",
+			},
 		},
 
 		"workload": {
+			Description: "The workload type for the Subscription.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "The workload type for the Subscription.",
 			// Other RP's have updated Constants with contextual prefixes so these are likely to change
 			ValidateFunc: validation.StringInSlice(subscriptions.PossibleValuesForWorkload(), false),
 			// Workload is not exposed in any way, so must be ignored if the resource is imported.
@@ -59,22 +59,22 @@ func subscriptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_id": {
-			Type:        pluginsdk.TypeString,
 			Description: "The GUID of the Subscription.",
-			ForceNew:    true,
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C because Azure returns a computed value when a new subscription is created
-			Computed: true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
 			ExactlyOneOf: []string{
 				"subscription_id",
 				"billing_scope_id",
 			},
-			ValidateFunc: validation.IsUUID,
 		},
 
 		"tenant_id": {
-			Type:        pluginsdk.TypeString,
 			Description: "The Tenant ID to which the subscription belongs.",
+			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 

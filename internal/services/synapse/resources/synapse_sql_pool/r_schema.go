@@ -63,8 +63,8 @@ func synapseSqlPoolSchema() map[string]*pluginsdk.Schema {
 		"create_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  DefaultCreateMode,
 			ForceNew: true,
+			Default:  DefaultCreateMode,
 			ValidateFunc: validation.StringInSlice([]string{
 				DefaultCreateMode,
 				RecoveryCreateMode,
@@ -82,22 +82,22 @@ func synapseSqlPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_database_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"restore"},
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
 			ValidateFunc: validation.Any(
 				validate.SqlPoolID,
 				validate.SqlPoolRecoverableDatabaseID,
 				commonids.ValidateSqlDatabaseID,
 				mssqlValidate.RecoverableDatabaseID,
 			),
+			ConflictsWith: []string{"restore"},
 		},
 
 		"restore": {
 			Type:          pluginsdk.TypeList,
-			ForceNew:      true,
 			Optional:      true,
+			ForceNew:      true,
 			MaxItems:      1,
 			ConflictsWith: []string{"recovery_database_id"},
 			Elem: &pluginsdk.Resource{
@@ -129,8 +129,8 @@ func synapseSqlPoolSchema() map[string]*pluginsdk.Schema {
 
 		"geo_backup_policy_enabled": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
 			Optional: true,
+			Default:  true,
 		},
 
 		"tags": commonschema.Tags(),
