@@ -10,9 +10,9 @@ import (
 
 type LookupActivityTypeProperties struct {
 	Dataset              DatasetReference `json:"dataset"`
-	FirstRowOnly         *bool            `json:"firstRowOnly,omitempty"`
+	FirstRowOnly         *interface{}     `json:"firstRowOnly,omitempty"`
 	Source               CopySource       `json:"source"`
-	TreatDecimalAsString *bool            `json:"treatDecimalAsString,omitempty"`
+	TreatDecimalAsString *interface{}     `json:"treatDecimalAsString,omitempty"`
 }
 
 var _ json.Unmarshaler = &LookupActivityTypeProperties{}
@@ -20,8 +20,8 @@ var _ json.Unmarshaler = &LookupActivityTypeProperties{}
 func (s *LookupActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Dataset              DatasetReference `json:"dataset"`
-		FirstRowOnly         *bool            `json:"firstRowOnly,omitempty"`
-		TreatDecimalAsString *bool            `json:"treatDecimalAsString,omitempty"`
+		FirstRowOnly         *interface{}     `json:"firstRowOnly,omitempty"`
+		TreatDecimalAsString *interface{}     `json:"treatDecimalAsString,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

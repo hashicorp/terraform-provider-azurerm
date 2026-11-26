@@ -62,9 +62,20 @@ func (c ConfigurationsClient) UpdateOnCoordinator(ctx context.Context, id Coordi
 
 // UpdateOnCoordinatorThenPoll performs UpdateOnCoordinator then polls until it's completed
 func (c ConfigurationsClient) UpdateOnCoordinatorThenPoll(ctx context.Context, id CoordinatorConfigurationId, input ServerConfiguration) error {
+	return c.UpdateOnCoordinatorCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateOnCoordinatorCallbackThenPoll performs UpdateOnCoordinator, runs the optional callback function, then polls until it's completed
+func (c ConfigurationsClient) UpdateOnCoordinatorCallbackThenPoll(ctx context.Context, id CoordinatorConfigurationId, input ServerConfiguration, callback func() error) error {
 	result, err := c.UpdateOnCoordinator(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateOnCoordinator: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

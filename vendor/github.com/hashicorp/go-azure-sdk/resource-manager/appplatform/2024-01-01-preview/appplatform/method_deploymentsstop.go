@@ -57,9 +57,20 @@ func (c AppPlatformClient) DeploymentsStop(ctx context.Context, id DeploymentId)
 
 // DeploymentsStopThenPoll performs DeploymentsStop then polls until it's completed
 func (c AppPlatformClient) DeploymentsStopThenPoll(ctx context.Context, id DeploymentId) error {
+	return c.DeploymentsStopCallbackThenPoll(ctx, id, nil)
+}
+
+// DeploymentsStopCallbackThenPoll performs DeploymentsStop, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsStopCallbackThenPoll(ctx context.Context, id DeploymentId, callback func() error) error {
 	result, err := c.DeploymentsStop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsStop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

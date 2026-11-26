@@ -90,9 +90,20 @@ func (c BackupInstanceResourcesClient) BackupInstancesStopProtection(ctx context
 
 // BackupInstancesStopProtectionThenPoll performs BackupInstancesStopProtection then polls until it's completed
 func (c BackupInstanceResourcesClient) BackupInstancesStopProtectionThenPoll(ctx context.Context, id BackupInstanceId, input StopProtectionRequest, options BackupInstancesStopProtectionOperationOptions) error {
+	return c.BackupInstancesStopProtectionCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// BackupInstancesStopProtectionCallbackThenPoll performs BackupInstancesStopProtection, runs the optional callback function, then polls until it's completed
+func (c BackupInstanceResourcesClient) BackupInstancesStopProtectionCallbackThenPoll(ctx context.Context, id BackupInstanceId, input StopProtectionRequest, options BackupInstancesStopProtectionOperationOptions, callback func() error) error {
 	result, err := c.BackupInstancesStopProtection(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing BackupInstancesStopProtection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

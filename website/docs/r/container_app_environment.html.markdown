@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
-~> **Note:** The Subnet must have a `/21` or larger address space.
+~> **Note:** The minimum required subnet size is /23 for Consumption only environment type and /27 for Workload profiles environment type.
 
 * `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -98,6 +98,8 @@ A `workload_profile` block supports the following:
 * `maximum_count` - (Optional) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
 * `minimum_count` - (Optional) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
+
+~> **Note:** The `maximum_count` and `minimum_count` arguments are not supported when `workload_profile_type` is set to `Consumption`, `Consumption-GPU-NC24-A100`, or `Consumption-GPU-NC8as-T4`.
 
 ---
 

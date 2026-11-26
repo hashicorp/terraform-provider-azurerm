@@ -56,9 +56,20 @@ func (c RunbookClient) Publish(ctx context.Context, id RunbookId) (result Publis
 
 // PublishThenPoll performs Publish then polls until it's completed
 func (c RunbookClient) PublishThenPoll(ctx context.Context, id RunbookId) error {
+	return c.PublishCallbackThenPoll(ctx, id, nil)
+}
+
+// PublishCallbackThenPoll performs Publish, runs the optional callback function, then polls until it's completed
+func (c RunbookClient) PublishCallbackThenPoll(ctx context.Context, id RunbookId, callback func() error) error {
 	result, err := c.Publish(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Publish: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

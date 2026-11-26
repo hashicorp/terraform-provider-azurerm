@@ -62,9 +62,20 @@ func (c ManagedNetworkClient) ProvisionsProvisionManagedNetwork(ctx context.Cont
 
 // ProvisionsProvisionManagedNetworkThenPoll performs ProvisionsProvisionManagedNetwork then polls until it's completed
 func (c ManagedNetworkClient) ProvisionsProvisionManagedNetworkThenPoll(ctx context.Context, id WorkspaceId, input ManagedNetworkProvisionOptions) error {
+	return c.ProvisionsProvisionManagedNetworkCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ProvisionsProvisionManagedNetworkCallbackThenPoll performs ProvisionsProvisionManagedNetwork, runs the optional callback function, then polls until it's completed
+func (c ManagedNetworkClient) ProvisionsProvisionManagedNetworkCallbackThenPoll(ctx context.Context, id WorkspaceId, input ManagedNetworkProvisionOptions, callback func() error) error {
 	result, err := c.ProvisionsProvisionManagedNetwork(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ProvisionsProvisionManagedNetwork: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

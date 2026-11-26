@@ -87,6 +87,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
       key  = "value"
       key2 = "value2"
     }
+    email_subject = "Email Header"
   }
 
   identity {
@@ -164,6 +165,8 @@ An `action` block supports the following:
 
 * `custom_properties` - (Optional) Specifies the properties of an alert payload.
 
+* `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
+
 ---
 
 A `criteria` block supports the following:
@@ -216,7 +219,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Scheduled Query Rule.
 
-~> **Note:** This is required when `type` is set to `UserAssigned`. The identity associated must have required roles, read the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule#configure-the-alert-rule-details) for more information.
+~> **Note:** This is required when `type` is set to `UserAssigned`. The identity associated must have required roles, read the [Azure documentation](https://learn.microsoft.com/azure/azure-monitor/alerts/alerts-create-log-alert-rule#configure-the-alert-rule-details) for more information.
 
 ## Attributes Reference
 

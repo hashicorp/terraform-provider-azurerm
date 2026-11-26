@@ -23,7 +23,7 @@ type SnowflakeLinkedV2ServiceTypeProperties struct {
 	Schema               *interface{}                 `json:"schema,omitempty"`
 	Scope                *interface{}                 `json:"scope,omitempty"`
 	TenantId             *interface{}                 `json:"tenantId,omitempty"`
-	UseUtcTimestamps     *bool                        `json:"useUtcTimestamps,omitempty"`
+	UseUtcTimestamps     *interface{}                 `json:"useUtcTimestamps,omitempty"`
 	User                 *interface{}                 `json:"user,omitempty"`
 	Warehouse            interface{}                  `json:"warehouse"`
 }
@@ -42,7 +42,7 @@ func (s *SnowflakeLinkedV2ServiceTypeProperties) UnmarshalJSON(bytes []byte) err
 		Schema              *interface{}                 `json:"schema,omitempty"`
 		Scope               *interface{}                 `json:"scope,omitempty"`
 		TenantId            *interface{}                 `json:"tenantId,omitempty"`
-		UseUtcTimestamps    *bool                        `json:"useUtcTimestamps,omitempty"`
+		UseUtcTimestamps    *interface{}                 `json:"useUtcTimestamps,omitempty"`
 		User                *interface{}                 `json:"user,omitempty"`
 		Warehouse           interface{}                  `json:"warehouse"`
 	}

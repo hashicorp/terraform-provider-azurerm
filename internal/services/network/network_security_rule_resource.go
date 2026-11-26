@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securityrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/securityrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_rule -service-package-name network -properties "name,network_security_group_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -65,16 +67,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleProtocolAny),
-					string(securityrules.SecurityRuleProtocolTcp),
-					string(securityrules.SecurityRuleProtocolUdp),
-					string(securityrules.SecurityRuleProtocolIcmp),
-					string(securityrules.SecurityRuleProtocolAh),
-					string(securityrules.SecurityRuleProtocolEsp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleProtocol(), false),
 			},
 
 			"source_port_range": {
@@ -86,9 +81,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			"source_port_ranges": {
 				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"source_port_range"},
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"destination_port_range": {
@@ -100,9 +95,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			"destination_port_ranges": {
 				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"destination_port_range"},
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"source_address_prefix": {
@@ -114,9 +109,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			"source_address_prefixes": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:          pluginsdk.HashString,
 				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
+				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"destination_address_prefix": {
@@ -128,38 +123,41 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			"destination_address_prefixes": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:          pluginsdk.HashString,
 				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
+				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			// lintignore:S018
 			"source_application_security_group_ids": {
 				Type:         pluginsdk.TypeSet,
-				MaxItems:     10,
 				Optional:     true,
+				MaxItems:     10,
+				Set:          pluginsdk.HashStringInsensitively,
 				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
 			},
 
 			// lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:         pluginsdk.TypeSet,
-				MaxItems:     10,
 				Optional:     true,
+				MaxItems:     10,
+				Set:          pluginsdk.HashStringInsensitively,
 				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
 			},
 
 			"access": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleAccessAllow),
-					string(securityrules.SecurityRuleAccessDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleAccess(), false),
 			},
 
 			"priority": {
@@ -169,18 +167,15 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"direction": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleDirectionInbound),
-					string(securityrules.SecurityRuleDirectionOutbound),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleDirection(), false),
 			},
 		},
 	}
 }
 
-func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityRules
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -188,15 +183,17 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := securityrules.NewSecurityRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_security_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		}
 	}
 
 	rule := securityrules.SecurityRule{
@@ -214,8 +211,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		description := v.(string)
-		rule.Properties.Description = &description
+		rule.Properties.Description = pointer.To(v.(string))
 	}
 
 	if r, ok := d.GetOk("source_port_ranges"); ok {
@@ -280,7 +276,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 		rule.Properties.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, rule); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, rule, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -292,7 +288,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceNetworkSecurityRuleRead(d, meta)
 }
 
-func resourceNetworkSecurityRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityRules
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -423,7 +419,7 @@ func resourceNetworkSecurityRuleUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceNetworkSecurityRuleRead(d, meta)
 }
 
-func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityRules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -485,7 +481,7 @@ func resourceNetworkSecurityRuleFlatten(d *pluginsdk.ResourceData, id *securityr
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityRules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

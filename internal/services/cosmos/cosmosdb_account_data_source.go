@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -22,8 +22,9 @@ import (
 )
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
-	dataSource := &pluginsdk.Resource{
-		Read: dataSourceCosmosDbAccountRead,
+	return &pluginsdk.Resource{
+		Description: "Use this data source to access information about an existing CosmosDB (formally DocumentDB) Account.",
+		Read:        dataSourceCosmosDbAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,8 +32,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -42,28 +44,36 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"offer_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Offer Type to be used by this CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Kind of the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A list of IP ranges associated with this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"free_tier_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"automatic_failover_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If automatic failover is enabled for this CosmosDB Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"consistency_policy": {
@@ -113,8 +123,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"capabilities": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Capabilities enabled on this Cosmos DB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -126,13 +137,15 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"is_virtual_network_filter_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If Virtual Network filtering is enabled for this Cosmos DB account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"virtual_network_rule": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Subnets that are allowed to access this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -144,114 +157,129 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Key Vault Key URI for CMK encryption.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"multiple_write_locations_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If multiple write locations are enabled for this Cosmos DB account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The endpoint used to connect to the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"read_endpoints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of read endpoints available for this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"write_endpoints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of write endpoints available for this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_readonly_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary read-only Key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_readonly_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary read-only key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary SQL connection string for the CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary SQL connection string for the CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_readonly_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary read-only SQL connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_readonly_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary read-only SQL connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_readonly_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary readonly Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_readonly_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary readonly Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}
-
-	return dataSource
 }
 
-func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -275,11 +303,11 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("kind", string(pointer.From(model.Kind)))
+		d.Set("kind", pointer.FromEnum(model.Kind))
 
 		if props := model.Properties; props != nil {
-			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
-			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterDataSource(props.IPRules))
+			d.Set("offer_type", pointer.FromEnum(props.DatabaseAccountOfferType))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
 			d.Set("free_tier_enabled", props.EnableFreeTier)
@@ -294,7 +322,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `consistency_policy`: %+v", err)
 			}
 
-			locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
+			locations := make([]map[string]any, len(*props.FailoverPolicies))
 
 			// the original procedure leads to a sorted locations slice by using failover priority as index
 			// sort `geo_locations` by failover priority if we found priorities were not within limitation.
@@ -304,7 +332,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return *policies[i].FailoverPriority < *policies[j].FailoverPriority
 				})
 				for i, l := range policies {
-					locations[i] = map[string]interface{}{
+					locations[i] = map[string]any{
 						"id":                *l.Id,
 						"location":          location.NormalizeNilable(l.LocationName),
 						"failover_priority": int(*l.FailoverPriority),
@@ -312,7 +340,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			} else {
 				for _, l := range *props.FailoverPolicies {
-					locations[*l.FailoverPriority] = map[string]interface{}{
+					locations[*l.FailoverPriority] = map[string]any{
 						"id":                *l.Id,
 						"location":          location.NormalizeNilable(l.LocationName),
 						"failover_priority": int(*l.FailoverPriority),
@@ -419,12 +447,12 @@ func anyUnexpectedFailoverPriority(failoverPolicies []cosmosdb.FailoverPolicy) b
 	return false
 }
 
-func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]interface{} {
-	slice := make([]map[string]interface{}, 0)
+func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]any {
+	slice := make([]map[string]any, 0)
 
 	for _, c := range *capabilities {
 		if v := c.Name; v != nil {
-			e := map[string]interface{}{
+			e := map[string]any{
 				"name": *v,
 			}
 			slice = append(slice, e)
@@ -434,14 +462,14 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Ca
 	return &slice
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]interface{} {
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]any {
 	if rules == nil {
-		return []map[string]interface{}{}
+		return []map[string]any{}
 	}
 
-	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	virtualNetworkRules := make([]map[string]any, len(*rules))
 	for i, r := range *rules {
-		virtualNetworkRules[i] = map[string]interface{}{
+		virtualNetworkRules[i] = map[string]any{
 			"id": *r.Id,
 		}
 	}

@@ -61,9 +61,20 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsUpdate(ctx contex
 
 // SystemTopicEventSubscriptionsUpdateThenPoll performs SystemTopicEventSubscriptionsUpdate then polls until it's completed
 func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsUpdateThenPoll(ctx context.Context, id SystemTopicEventSubscriptionId, input EventSubscriptionUpdateParameters) error {
+	return c.SystemTopicEventSubscriptionsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SystemTopicEventSubscriptionsUpdateCallbackThenPoll performs SystemTopicEventSubscriptionsUpdate, runs the optional callback function, then polls until it's completed
+func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsUpdateCallbackThenPoll(ctx context.Context, id SystemTopicEventSubscriptionId, input EventSubscriptionUpdateParameters, callback func() error) error {
 	result, err := c.SystemTopicEventSubscriptionsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SystemTopicEventSubscriptionsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

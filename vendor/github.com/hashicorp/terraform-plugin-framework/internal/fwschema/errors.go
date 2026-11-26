@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwschema
@@ -15,6 +15,10 @@ var (
 	// ErrPathIsBlock is used when AttributeAtPath is called on a path is a
 	// block, not an attribute. Use blockAtPath on the path instead.
 	ErrPathIsBlock = errors.New("path leads to block, not an attribute")
+
+	// ErrPathIsAttribute is used when BlockAtPath is called on a path that is
+	// an attribute, not a block. Use attributeAtPath on the path instead.
+	ErrPathIsAttribute = errors.New("path leads to attribute, not a block")
 
 	// ErrPathInsideDynamicAttribute is used when AttributeAtPath is called on a path that doesn't
 	// have a schema associated with it because it's nested in a dynamic attribute.

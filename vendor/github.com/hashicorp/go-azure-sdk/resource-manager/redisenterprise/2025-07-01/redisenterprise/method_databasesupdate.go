@@ -62,9 +62,20 @@ func (c RedisEnterpriseClient) DatabasesUpdate(ctx context.Context, id DatabaseI
 
 // DatabasesUpdateThenPoll performs DatabasesUpdate then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesUpdateThenPoll(ctx context.Context, id DatabaseId, input DatabaseUpdate) error {
+	return c.DatabasesUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesUpdateCallbackThenPoll performs DatabasesUpdate, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesUpdateCallbackThenPoll(ctx context.Context, id DatabaseId, input DatabaseUpdate, callback func() error) error {
 	result, err := c.DatabasesUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c VirtualMachinesClient) RestartHosts(ctx context.Context, id commonids.HD
 
 // RestartHostsThenPoll performs RestartHosts then polls until it's completed
 func (c VirtualMachinesClient) RestartHostsThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input []string) error {
+	return c.RestartHostsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestartHostsCallbackThenPoll performs RestartHosts, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) RestartHostsCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input []string, callback func() error) error {
 	result, err := c.RestartHosts(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestartHosts: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

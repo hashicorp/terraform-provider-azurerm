@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -18,6 +18,8 @@ import (
 )
 
 type SignalRServiceResource struct{}
+
+type SignalrServiceResource = SignalRServiceResource
 
 func TestAccSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")

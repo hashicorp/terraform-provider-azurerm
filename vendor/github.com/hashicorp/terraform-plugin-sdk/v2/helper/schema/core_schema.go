@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -162,15 +162,16 @@ func (s *Schema) coreConfigSchemaAttribute() *configschema.Attribute {
 	}
 
 	return &configschema.Attribute{
-		Type:            s.coreConfigSchemaType(),
-		Optional:        opt,
-		Required:        reqd,
-		Computed:        s.Computed,
-		Sensitive:       s.Sensitive,
-		Description:     desc,
-		DescriptionKind: descKind,
-		Deprecated:      s.Deprecated != "",
-		WriteOnly:       s.WriteOnly,
+		Type:               s.coreConfigSchemaType(),
+		Optional:           opt,
+		Required:           reqd,
+		Computed:           s.Computed,
+		Sensitive:          s.Sensitive,
+		Description:        desc,
+		DescriptionKind:    descKind,
+		Deprecated:         s.Deprecated != "",
+		DeprecationMessage: s.Deprecated,
+		WriteOnly:          s.WriteOnly,
 		// For Identity Attributes only
 		OptionalForImport: s.OptionalForImport,
 		RequiredForImport: s.RequiredForImport,
@@ -195,6 +196,7 @@ func (s *Schema) coreConfigSchemaBlock() *configschema.NestedBlock {
 		ret.Block.Description = desc
 		ret.Block.DescriptionKind = descKind
 		ret.Block.Deprecated = s.Deprecated != ""
+		ret.Block.DeprecationMessage = s.Deprecated
 	}
 	switch s.Type {
 	case TypeList:
@@ -305,6 +307,7 @@ func (r *Resource) CoreConfigSchema() *configschema.Block {
 	block.Description = desc
 	block.DescriptionKind = descKind
 	block.Deprecated = r.DeprecationMessage != ""
+	block.DeprecationMessage = r.DeprecationMessage
 
 	if block.Attributes == nil {
 		block.Attributes = map[string]*configschema.Attribute{}

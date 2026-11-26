@@ -56,9 +56,20 @@ func (c PoolsClient) RunHealthChecks(ctx context.Context, id PoolId) (result Run
 
 // RunHealthChecksThenPoll performs RunHealthChecks then polls until it's completed
 func (c PoolsClient) RunHealthChecksThenPoll(ctx context.Context, id PoolId) error {
+	return c.RunHealthChecksCallbackThenPoll(ctx, id, nil)
+}
+
+// RunHealthChecksCallbackThenPoll performs RunHealthChecks, runs the optional callback function, then polls until it's completed
+func (c PoolsClient) RunHealthChecksCallbackThenPoll(ctx context.Context, id PoolId, callback func() error) error {
 	result, err := c.RunHealthChecks(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RunHealthChecks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

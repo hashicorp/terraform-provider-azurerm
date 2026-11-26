@@ -62,9 +62,20 @@ func (c PrefixListResourcesClient) PrefixListLocalRulestackCreateOrUpdate(ctx co
 
 // PrefixListLocalRulestackCreateOrUpdateThenPoll performs PrefixListLocalRulestackCreateOrUpdate then polls until it's completed
 func (c PrefixListResourcesClient) PrefixListLocalRulestackCreateOrUpdateThenPoll(ctx context.Context, id LocalRulestackPrefixListId, input PrefixListResource) error {
+	return c.PrefixListLocalRulestackCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PrefixListLocalRulestackCreateOrUpdateCallbackThenPoll performs PrefixListLocalRulestackCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c PrefixListResourcesClient) PrefixListLocalRulestackCreateOrUpdateCallbackThenPoll(ctx context.Context, id LocalRulestackPrefixListId, input PrefixListResource, callback func() error) error {
 	result, err := c.PrefixListLocalRulestackCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PrefixListLocalRulestackCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

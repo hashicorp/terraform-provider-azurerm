@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -44,7 +44,11 @@ func (r CosmosDbMongoRoleDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_role_definition"
 }
 
-func (r CosmosDbMongoRoleDefinitionResource) ModelObject() interface{} {
+func (r CosmosDbMongoRoleDefinitionResource) Description() string {
+	return "Manages a Cosmos DB Mongo Role Definition."
+}
+
+func (r CosmosDbMongoRoleDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoRoleDefinitionResourceModel{}
 }
 
@@ -55,13 +59,15 @@ func (r CosmosDbMongoRoleDefinitionResource) IDValidationFunc() pluginsdk.Schema
 func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cosmos_mongo_database_id": {
+			Description:  "The resource ID of the Mongo DB.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.MongodbDatabaseID,
+			ValidateFunc: cosmosdb.ValidateMongodbDatabaseID,
 		},
 
 		"role_name": {
+			Description:  "The user-friendly name for the Mongo Role Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -69,8 +75,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"inherited_role_names": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of Mongo Roles which are inherited to the Mongo Role Definition.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -83,8 +90,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"actions": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "A list of actions that are allowed.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -98,12 +106,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"collection_name": {
+									Description:  "The name of the Mongo DB Collection that the Role Definition is applied to.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.CosmosEntityName,
 								},
 
 								"db_name": {
+									Description:  "The name of the Mongo DB that the Role Definition is applied to.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.CosmosEntityName,
@@ -131,38 +141,40 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
+			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
 
-			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", databaseId.Name, model.RoleName)
-			id := mongorbacs.NewMongodbRoleDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.DatabaseAccountName, mongoRoleDefinitionId)
+			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", databaseId.MongodbDatabaseName, model.RoleName)
+			id := mongorbacs.NewMongodbRoleDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoRoleDefinitionId)
 
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
-					DatabaseName: pointer.To(databaseId.Name),
-					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.Name),
+					DatabaseName: pointer.To(databaseId.MongodbDatabaseName),
+					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.MongodbDatabaseName),
 					RoleName:     pointer.To(model.RoleName),
 					Privileges:   expandPrivilege(model.Privileges),
 					Type:         pointer.To(roleType),
 				},
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, parameters); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -201,7 +213,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
+			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
@@ -209,9 +221,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
-					DatabaseName: pointer.To(databaseId.Name),
+					DatabaseName: pointer.To(databaseId.MongodbDatabaseName),
 					RoleName:     pointer.To(model.RoleName),
-					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.Name),
+					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.MongodbDatabaseName),
 					Privileges:   expandPrivilege(model.Privileges),
 					Type:         pointer.To(roleType),
 				},
@@ -250,7 +262,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					databaseId := parse.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
+					databaseId := cosmosdb.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, pointer.From(properties.DatabaseName))
 
 					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.RoleName = pointer.From(properties.RoleName)
@@ -345,7 +357,7 @@ func expandResource(input []Resource) *mongorbacs.PrivilegeResource {
 func flattenResource(input *mongorbacs.PrivilegeResource) []Resource {
 	var result []Resource
 	if input == nil {
-		return result
+		return []Resource{}
 	}
 
 	resource := Resource{

@@ -41,9 +41,9 @@ func pollingUriForLongRunningOperation(resp *client.Response) string {
 	return pollingUrl
 }
 
-func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
+func longRunningOperationPollerFromResponse(resp *client.Response, c *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
-		client:                client,
+		client:                c,
 		initialRetryDuration:  10 * time.Second,
 		maxDroppedConnections: 3,
 	}
@@ -70,6 +70,10 @@ func longRunningOperationPollerFromResponse(resp *client.Response, client *clien
 		if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 			poller.initialRetryDuration = time.Second * time.Duration(sleep)
 		}
+	}
+
+	if s, ok := resp.Header[client.SkipPollingDelayHeader]; ok && s[0] == "true" {
+		poller.initialRetryDuration = 0
 	}
 
 	return &poller, nil

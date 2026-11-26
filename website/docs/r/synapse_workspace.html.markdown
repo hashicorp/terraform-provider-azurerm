@@ -77,12 +77,13 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "example"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "deployer" {
@@ -257,7 +258,7 @@ A `github_repo` block supports the following:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
-* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>.
+* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: `https://github.<mydomain>.com`.
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 

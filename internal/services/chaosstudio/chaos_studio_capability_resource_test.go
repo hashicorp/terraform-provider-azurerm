@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package chaosstudio_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ChaosStudioCapabilityTestResource struct{}
+
+func TestAccChaosStudioCapability_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_capability", "test")
+	r := ChaosStudioCapabilityTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccChaosStudioCapability_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_capability", "test")
@@ -153,6 +163,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -31,7 +31,11 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_firewall_rule"
 }
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLFirewallRuleResource) Description() string {
+	return "Manages an Azure Cosmos DB for PostgreSQL Firewall Rule."
+}
+
+func (r CosmosDbPostgreSQLFirewallRuleResource) ModelObject() any {
 	return &CosmosDbPostgreSQLFirewallRuleResourceModel{}
 }
 
@@ -42,6 +46,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) IDValidationFunc() pluginsdk.Sch
 func (r CosmosDbPostgreSQLFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for the Azure Cosmos DB for PostgreSQL Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,6 +54,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Arguments() map[string]*pluginsd
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -56,12 +62,14 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Arguments() map[string]*pluginsd
 		},
 
 		"end_ip_address": {
+			Description:  "The end IP address of the Azure Cosmos DB for PostgreSQL Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
 
 		"start_ip_address": {
+			Description:  "The start IP address of the Azure Cosmos DB for PostgreSQL Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
@@ -89,13 +97,16 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			id := firewallrules.NewFirewallRuleID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ServerGroupsv2Name, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := firewallrules.FirewallRule{
@@ -105,7 +116,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

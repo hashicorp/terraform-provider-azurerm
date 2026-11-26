@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -6,6 +6,7 @@ package provider
 import (
 	"os"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -15,6 +16,55 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
+		"persist_id_on_create_before_polling_for_completion": {
+			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion.",
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
+		"skip_import_check_on_create_and_allow_overwriting_existing_resources": {
+			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present.",
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
+		// lintignore:XS003
+		"enhanced_validation": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"locations": {
+						Description: "Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
+					},
+					"resource_providers": {
+						Description: "Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
+					},
+					"preflight_enabled": {
+						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
+					},
+					"preflight_location_fallback": {
+						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_preflight_location_fallback", nil),
+					},
+				},
+			},
+		},
+
 		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
@@ -95,77 +145,77 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"purge_soft_delete_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_certificates_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_keys_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_secrets_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_hardware_security_modules_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_hardware_security_module_keys_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_certificates": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_key_vaults": {
-						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_keys": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_secrets": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_hardware_security_module_keys": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -348,6 +398,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
 		"machine_learning": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -397,13 +448,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"delete_backups_on_backup_vault_destroy": {
-						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"prevent_volume_destruction": {
-						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -419,7 +470,23 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"force_delete": {
-						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Description: "When enabled, the managed Resource Group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
+
+		"servicebus": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"auto_delete_subscription_default_rule": {
+						Description: "When enabled, the $Default rule is automatically deleted after creating a Service Bus subscription, preventing unfiltered message delivery.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -429,23 +496,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
-		featuresMap["virtual_machine"].Elem.(*pluginsdk.Resource).Schema["graceful_shutdown"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
-		}
-	}
-
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
@@ -455,28 +513,42 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: featuresMap,
 		},
 	}
 }
 
-func expandFeatures(input []interface{}) features.UserFeatures {
+func expandFeatures(input []any) features.UserFeatures {
 	// these are the defaults if omitted from the config
 	featuresMap := features.Default()
+
+	// populate settings that can be set by env vars _before_ we take the escape hatch for an empty `features` block
+	featuresMap.EnhancedValidation.Locations = features.EnhancedValidationLocationsEnabled()
+	featuresMap.EnhancedValidation.ResourceProviders = features.EnhancedValidationResourceProvidersEnabled()
+	featuresMap.EnhancedValidation.PreflightEnabled = features.EnhancedValidationPreflightEnabled()
+	featuresMap.EnhancedValidation.LocationFallback = features.EnhancedValidationLocationFallback()
 
 	if len(input) == 0 || input[0] == nil {
 		return featuresMap
 	}
 
-	val := input[0].(map[string]interface{})
+	val := input[0].(map[string]any)
+
+	if v, ok := val["persist_id_on_create_before_polling_for_completion"]; ok {
+		featuresMap.PersistIDOnCreateBeforePollingForCompletion = v.(bool)
+	}
+
+	if v, ok := val["skip_import_check_on_create_and_allow_overwriting_existing_resources"]; ok {
+		featuresMap.SkipImportCheckOnCreateAndAllowOverwritingExistingResources = v.(bool)
+	}
 
 	if raw, ok := val["api_management"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			apimRaw := items[0].(map[string]interface{})
+			apimRaw := items[0].(map[string]any)
 			if v, ok := apimRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -487,9 +559,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["app_configuration"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			appConfRaw := items[0].(map[string]interface{})
+			appConfRaw := items[0].(map[string]any)
 			if v, ok := appConfRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.AppConfiguration.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -500,9 +572,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["application_insights"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			applicationInsightsRaw := items[0].(map[string]interface{})
+			applicationInsightsRaw := items[0].(map[string]any)
 			if v, ok := applicationInsightsRaw["disable_generated_rule"]; ok {
 				featuresMap.ApplicationInsights.DisableGeneratedRule = v.(bool)
 			}
@@ -510,9 +582,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["cognitive_account"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			cognitiveRaw := items[0].(map[string]interface{})
+			cognitiveRaw := items[0].(map[string]any)
 			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -520,9 +592,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["key_vault"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			keyVaultRaw := items[0].(map[string]interface{})
+			keyVaultRaw := items[0].(map[string]any)
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -560,9 +632,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["log_analytics_workspace"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
+			logAnalyticsWorkspaceRaw := items[0].(map[string]any)
 			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
 				featuresMap.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
 			}
@@ -570,9 +642,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["template_deployment"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			templateRaw := items[0].(map[string]interface{})
+			templateRaw := items[0].(map[string]any)
 			if v, ok := templateRaw["delete_nested_items_during_deletion"]; ok {
 				featuresMap.TemplateDeployment.DeleteNestedItemsDuringDeletion = v.(bool)
 			}
@@ -580,9 +652,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["virtual_machine"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			virtualMachinesRaw := items[0].(map[string]interface{})
+			virtualMachinesRaw := items[0].(map[string]any)
 			if v, ok := virtualMachinesRaw["detach_implicit_data_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DetachImplicitDataDiskOnDeletion = v.(bool)
 			}
@@ -596,9 +668,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["virtual_machine_scale_set"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			scaleSetRaw := items[0].(map[string]interface{})
+			scaleSetRaw := items[0].(map[string]any)
 			if v, ok := scaleSetRaw["reimage_on_manual_upgrade"]; ok {
 				featuresMap.VirtualMachineScaleSet.ReimageOnManualUpgrade = v.(bool)
 			}
@@ -615,9 +687,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["resource_group"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			resourceGroupRaw := items[0].(map[string]interface{})
+			resourceGroupRaw := items[0].(map[string]any)
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
 			}
@@ -625,9 +697,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["recovery_services_vaults"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			appConfRaw := items[0].(map[string]interface{})
+			appConfRaw := items[0].(map[string]any)
 			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
 				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM = v.(bool)
 			}
@@ -635,18 +707,18 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["managed_disk"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			managedDiskRaw := items[0].(map[string]interface{})
+			managedDiskRaw := items[0].(map[string]any)
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
 			}
 		}
 	}
 	if raw, ok := val["storage"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			storageRaw := items[0].(map[string]interface{})
+			storageRaw := items[0].(map[string]any)
 			if v, ok := storageRaw["data_plane_available"]; ok {
 				featuresMap.Storage.DataPlaneAvailable = v.(bool)
 			}
@@ -654,9 +726,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["subscription"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			subscriptionRaw := items[0].(map[string]interface{})
+			subscriptionRaw := items[0].(map[string]any)
 			if v, ok := subscriptionRaw["prevent_cancellation_on_destroy"]; ok {
 				featuresMap.Subscription.PreventCancellationOnDestroy = v.(bool)
 			}
@@ -664,9 +736,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["postgresql_flexible_server"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			subscriptionRaw := items[0].(map[string]interface{})
+			subscriptionRaw := items[0].(map[string]any)
 			if v, ok := subscriptionRaw["restart_server_on_configuration_value_change"]; ok {
 				featuresMap.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = v.(bool)
 			}
@@ -674,9 +746,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["machine_learning"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			subscriptionRaw := items[0].(map[string]interface{})
+			subscriptionRaw := items[0].(map[string]any)
 			if v, ok := subscriptionRaw["purge_soft_deleted_workspace_on_destroy"]; ok {
 				featuresMap.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy = v.(bool)
 			}
@@ -684,9 +756,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["recovery_service"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			recoveryServicesRaw := items[0].(map[string]interface{})
+			recoveryServicesRaw := items[0].(map[string]any)
 			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
 			}
@@ -700,9 +772,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["netapp"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			netappRaw := items[0].(map[string]interface{})
+			netappRaw := items[0].(map[string]any)
 			if v, ok := netappRaw["delete_backups_on_backup_vault_destroy"]; ok {
 				featuresMap.NetApp.DeleteBackupsOnBackupVaultDestroy = v.(bool)
 			}
@@ -713,11 +785,42 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["databricks_workspace"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			databricksRaw := items[0].(map[string]interface{})
+			databricksRaw := items[0].(map[string]any)
 			if v, ok := databricksRaw["force_delete"]; ok {
 				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["enhanced_validation"]; ok {
+		items := raw.([]any)
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]any)
+			if v, ok := evRaw["locations"]; ok {
+				featuresMap.EnhancedValidation.Locations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				featuresMap.EnhancedValidation.ResourceProviders = v.(bool)
+			}
+			if v, ok := evRaw["preflight_enabled"]; ok {
+				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool)
+			}
+			if v, ok := evRaw["preflight_location_fallback"]; ok {
+				if vStr, ok := v.(string); ok && vStr != "" {
+					featuresMap.EnhancedValidation.LocationFallback = pointer.To(vStr)
+				}
+			}
+		}
+	}
+
+	if raw, ok := val["servicebus"]; ok {
+		items := raw.([]any)
+		if len(items) > 0 {
+			servicebusRaw := items[0].(map[string]any)
+			if v, ok := servicebusRaw["auto_delete_subscription_default_rule"]; ok {
+				featuresMap.ServiceBus.AutoDeleteSubscriptionDefaultRule = v.(bool)
 			}
 		}
 	}

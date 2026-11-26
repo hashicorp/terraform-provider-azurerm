@@ -15,7 +15,7 @@ Use this data source to access information about an existing shared dashboard in
 ```hcl
 
 data "azurerm_portal_dashboard" "example" {
-  name                = "existing-dashboard"
+  name                = "example-dashboard"
   resource_group_name = "dashboard-rg"
 }
 

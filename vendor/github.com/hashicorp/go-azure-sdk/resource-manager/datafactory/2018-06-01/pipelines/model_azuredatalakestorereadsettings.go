@@ -11,23 +11,23 @@ import (
 var _ StoreReadSettings = AzureDataLakeStoreReadSettings{}
 
 type AzureDataLakeStoreReadSettings struct {
-	DeleteFilesAfterCompletion *bool        `json:"deleteFilesAfterCompletion,omitempty"`
-	EnablePartitionDiscovery   *bool        `json:"enablePartitionDiscovery,omitempty"`
+	DeleteFilesAfterCompletion *interface{} `json:"deleteFilesAfterCompletion,omitempty"`
+	EnablePartitionDiscovery   *interface{} `json:"enablePartitionDiscovery,omitempty"`
 	FileListPath               *interface{} `json:"fileListPath,omitempty"`
 	ListAfter                  *interface{} `json:"listAfter,omitempty"`
 	ListBefore                 *interface{} `json:"listBefore,omitempty"`
 	ModifiedDatetimeEnd        *interface{} `json:"modifiedDatetimeEnd,omitempty"`
 	ModifiedDatetimeStart      *interface{} `json:"modifiedDatetimeStart,omitempty"`
 	PartitionRootPath          *interface{} `json:"partitionRootPath,omitempty"`
-	Recursive                  *bool        `json:"recursive,omitempty"`
+	Recursive                  *interface{} `json:"recursive,omitempty"`
 	WildcardFileName           *interface{} `json:"wildcardFileName,omitempty"`
 	WildcardFolderPath         *interface{} `json:"wildcardFolderPath,omitempty"`
 
 	// Fields inherited from StoreReadSettings
 
-	DisableMetricsCollection *bool  `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64 `json:"maxConcurrentConnections,omitempty"`
-	Type                     string `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s AzureDataLakeStoreReadSettings) StoreReadSettings() BaseStoreReadSettingsImpl {

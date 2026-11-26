@@ -13,7 +13,7 @@ type CassandraLinkedServiceTypeProperties struct {
 	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
 	Host                interface{}  `json:"host"`
 	Password            SecretBase   `json:"password"`
-	Port                *int64       `json:"port,omitempty"`
+	Port                *interface{} `json:"port,omitempty"`
 	Username            *interface{} `json:"username,omitempty"`
 }
 
@@ -24,7 +24,7 @@ func (s *CassandraLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error
 		AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
 		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
 		Host                interface{}  `json:"host"`
-		Port                *int64       `json:"port,omitempty"`
+		Port                *interface{} `json:"port,omitempty"`
 		Username            *interface{} `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

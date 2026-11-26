@@ -62,9 +62,20 @@ func (c ExadbVMClustersClient) CreateOrUpdate(ctx context.Context, id ExadbVMClu
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c ExadbVMClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id ExadbVMClusterId, input ExadbVMCluster) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ExadbVMClustersClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id ExadbVMClusterId, input ExadbVMCluster, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

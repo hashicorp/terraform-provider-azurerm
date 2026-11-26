@@ -128,6 +128,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "example"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -189,6 +190,8 @@ The following arguments are supported:
 
 ~> **Note:** In order to use customer managed keys, the identity of the MSSQL Managed Instance must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey'
 
+~> **Note:** When `auto_rotation_enabled` is `true`, `key_vault_key_id` can be either a versioned or versionless Key Vault Key ID. When using a versionless `key_vault_key_id`, the principal running Terraform must have permission to read the latest key version from Key Vault. When `auto_rotation_enabled` is `false`, `key_vault_key_id` must be a versioned Key Vault Key ID.
+
 ~> **Note:** If `managed_instance_id` denotes a secondary instance deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary instance's transparent data encryption. Both primary and secondary instances should be encrypted with same key material.
 
 * `auto_rotation_enabled` - (Optional) When enabled, the SQL Managed Instance will continuously check the key vault for any new versions of the key being used as the TDE protector. If a new version of the key is detected, the TDE protector on the SQL Managed Instance will be automatically rotated to the latest key version within 60 minutes.
@@ -222,4 +225,4 @@ terraform import azurerm_mssql_managed_instance_transparent_data_encryption.exam
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

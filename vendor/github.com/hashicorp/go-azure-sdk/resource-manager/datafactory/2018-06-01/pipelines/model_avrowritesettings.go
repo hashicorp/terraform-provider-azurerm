@@ -12,7 +12,7 @@ var _ FormatWriteSettings = AvroWriteSettings{}
 
 type AvroWriteSettings struct {
 	FileNamePrefix  *interface{} `json:"fileNamePrefix,omitempty"`
-	MaxRowsPerFile  *int64       `json:"maxRowsPerFile,omitempty"`
+	MaxRowsPerFile  *interface{} `json:"maxRowsPerFile,omitempty"`
 	RecordName      *string      `json:"recordName,omitempty"`
 	RecordNamespace *string      `json:"recordNamespace,omitempty"`
 

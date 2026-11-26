@@ -25,9 +25,9 @@ func (s BaseFormatWriteSettingsImpl) FormatWriteSettings() BaseFormatWriteSettin
 
 var _ FormatWriteSettings = RawFormatWriteSettingsImpl{}
 
-// RawFormatWriteSettingsImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawFormatWriteSettingsImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawFormatWriteSettingsImpl struct {
 	formatWriteSettings BaseFormatWriteSettingsImpl
 	Type                string
@@ -36,6 +36,10 @@ type RawFormatWriteSettingsImpl struct {
 
 func (s RawFormatWriteSettingsImpl) FormatWriteSettings() BaseFormatWriteSettingsImpl {
 	return s.formatWriteSettings
+}
+
+func (s RawFormatWriteSettingsImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalFormatWriteSettingsImplementation(input []byte) (FormatWriteSettings, error) {

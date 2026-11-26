@@ -58,9 +58,20 @@ func (c ServerMigrationClient) ServersMigrationCutoverMigration(ctx context.Cont
 
 // ServersMigrationCutoverMigrationThenPoll performs ServersMigrationCutoverMigration then polls until it's completed
 func (c ServerMigrationClient) ServersMigrationCutoverMigrationThenPoll(ctx context.Context, id FlexibleServerId) error {
+	return c.ServersMigrationCutoverMigrationCallbackThenPoll(ctx, id, nil)
+}
+
+// ServersMigrationCutoverMigrationCallbackThenPoll performs ServersMigrationCutoverMigration, runs the optional callback function, then polls until it's completed
+func (c ServerMigrationClient) ServersMigrationCutoverMigrationCallbackThenPoll(ctx context.Context, id FlexibleServerId, callback func() error) error {
 	result, err := c.ServersMigrationCutoverMigration(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServersMigrationCutoverMigration: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

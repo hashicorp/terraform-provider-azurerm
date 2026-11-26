@@ -14,8 +14,8 @@ Use this data source to access information about an existing NGINX Deployment.
 
 ```hcl
 data "azurerm_nginx_deployment" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-nginx-deployment"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -40,8 +40,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `capacity` - The number of NGINX capacity units for this NGINX Deployment.
 
 * `auto_scale_profile` - An `auto_scale_profile` block as defined below.
-
-* `diagnose_support_enabled` - Whether metrics are exported to Azure Monitor.
 
 * `email` - Preferred email associated with the NGINX Deployment.
 

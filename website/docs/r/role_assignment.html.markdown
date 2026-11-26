@@ -175,7 +175,9 @@ EOT
 
 The following arguments are supported:
 
-* `name` - (Optional) A unique UUID/GUID for this Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
+* `name` - (Optional) The UUID for this Role Assignment. If omitted, a UUID will be generated. Changing this forces a new resource to be created.
+
+-> **Note:** When `name` is omitted, a deterministic UUIDv5 is generated from the `scope`, `principal_id`, and `role_definition_id`, matching the naming behavior used by ARM templates, Bicep, and the Azure CLI.
 
 * `scope` - (Required) The scope at which the Role Assignment applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`, or `/providers/Microsoft.Management/managementGroups/myMG`. Changing this forces a new resource to be created.
 
@@ -191,9 +193,9 @@ The following arguments are supported:
 
 * `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
-* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
+* `condition` - (Optional) The condition that limits the resources that the role can be assigned to.
 
-* `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`. Changing this forces a new resource to be created.
+* `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`.
 
 ~> **Note:** `condition` is required when `condition_version` is set.
 
@@ -201,7 +203,7 @@ The following arguments are supported:
 
 ~> **Note:** This field is only used in cross tenant scenarios.
 
-* `description` - (Optional) The description for this Role Assignment. Changing this forces a new resource to be created.
+* `description` - (Optional) The description for this Role Assignment.
 
 * `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. Defaults to `false`.
 
@@ -219,6 +221,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Role Assignment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Role Assignment.
 
 ## Import

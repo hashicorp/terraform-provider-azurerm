@@ -62,9 +62,20 @@ func (c ConfigurationsClient) UpdateOnNode(ctx context.Context, id NodeConfigura
 
 // UpdateOnNodeThenPoll performs UpdateOnNode then polls until it's completed
 func (c ConfigurationsClient) UpdateOnNodeThenPoll(ctx context.Context, id NodeConfigurationId, input ServerConfiguration) error {
+	return c.UpdateOnNodeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateOnNodeCallbackThenPoll performs UpdateOnNode, runs the optional callback function, then polls until it's completed
+func (c ConfigurationsClient) UpdateOnNodeCallbackThenPoll(ctx context.Context, id NodeConfigurationId, input ServerConfiguration, callback func() error) error {
 	result, err := c.UpdateOnNode(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateOnNode: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

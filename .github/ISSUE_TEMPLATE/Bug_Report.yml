@@ -66,6 +66,14 @@ body:
       placeholder: azurerm_XXXXX
     validations:
       required: true
+  - type: input
+    id: location
+    attributes:
+      label: Affected Location(s)
+      description: Please list the location(s) you were targeting.
+      placeholder: location1, location2
+    validations:
+      required: true
   - type: textarea
     id: config
     attributes:

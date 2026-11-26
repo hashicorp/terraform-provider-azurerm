@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,19 +6,21 @@ package network
 import (
 	"fmt"
 	"log"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Resource {
@@ -60,12 +62,10 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 	}
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
 
 	applicationSecurityGroupId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(d.Get("application_security_group_id").(string))
 	if err != nil {
@@ -76,8 +76,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 		return err
 	}
 
-	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -105,16 +105,21 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	info := parseFieldsFromNetworkInterface(*props)
 	id := commonids.NewCompositeResourceID(networkInterfaceId, applicationSecurityGroupId)
 
-	if utils.SliceContainsValue(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID()) {
-		return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", id.ID())
+	exists := false
+	if slices.Contains(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID()) {
+		exists = true
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", id.ID())
+		}
 	}
 
-	info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID())
+	if !exists {
+		info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId.ID())
+	}
 
 	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	err = client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *read.Model)
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating Application Security Group Association for %s: %+v", *networkInterfaceId, err)
 	}
 
@@ -123,7 +128,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	return resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +176,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 	return nil
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,8 +186,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 		return err
 	}
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(id.First.ID()))
+	defer locks.UnlockByID(strings.ToLower(id.First.ID()))
 
 	read, err := client.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -217,8 +222,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 	info.applicationSecurityGroupIDs = applicationSecurityGroupIds
 	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id.First, *read.Model)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id.First, *read.Model); err != nil {
 		return fmt.Errorf("removing Application Security Group for %s: %+v", id.First, err)
 	}
 

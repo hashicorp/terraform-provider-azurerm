@@ -17,7 +17,7 @@ type ListResultContainerGroupPropertiesProperties struct {
 	InitContainers                *[]InitContainerDefinition                `json:"initContainers,omitempty"`
 	IsCreatedFromStandbyPool      *bool                                     `json:"isCreatedFromStandbyPool,omitempty"`
 	OsType                        OperatingSystemTypes                      `json:"osType"`
-	Priority                      *Priority                                 `json:"priority,omitempty"`
+	Priority                      *ContainerGroupPriority                   `json:"priority,omitempty"`
 	ProvisioningState             *ContainerGroupProvisioningState          `json:"provisioningState,omitempty"`
 	RestartPolicy                 *ContainerGroupRestartPolicy              `json:"restartPolicy,omitempty"`
 	SecretReferences              *[]SecretReference                        `json:"secretReferences,omitempty"`

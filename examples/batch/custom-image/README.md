@@ -5,9 +5,9 @@ This example provisions the following Resources:
 ## Creates
 
 1. A Resource Group
-2. A [Batch Account](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#account)
+2. A [Batch Account](https://docs.microsoft.com/azure/batch/batch-api-basics#account)
 3. A Custom Virtual Machine image to be used by the Azure Batch Pool
-4. A [Batch pool that uses a custom VM image for virtual machines](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images)
+4. A [Batch pool that uses a custom VM image for virtual machines](https://docs.microsoft.com/azure/batch/batch-custom-images)
 
 ## Usage
 

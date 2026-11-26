@@ -14,8 +14,8 @@ Use this data source to access information about an existing Backup Vault.
 
 ```hcl
 data "azurerm_data_protection_backup_vault" "example" {
-  name                = "existing-backup-vault"
-  resource_group_name = "existing-resource-group"
+  name                = "example-backup-vault"
+  resource_group_name = "example-resources"
 }
 
 output "azurerm_data_protection_backup_vault_id" {

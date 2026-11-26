@@ -62,9 +62,20 @@ func (c AutonomousDatabasesClient) ChangeDisasterRecoveryConfiguration(ctx conte
 
 // ChangeDisasterRecoveryConfigurationThenPoll performs ChangeDisasterRecoveryConfiguration then polls until it's completed
 func (c AutonomousDatabasesClient) ChangeDisasterRecoveryConfigurationThenPoll(ctx context.Context, id AutonomousDatabaseId, input DisasterRecoveryConfigurationDetails) error {
+	return c.ChangeDisasterRecoveryConfigurationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ChangeDisasterRecoveryConfigurationCallbackThenPoll performs ChangeDisasterRecoveryConfiguration, runs the optional callback function, then polls until it's completed
+func (c AutonomousDatabasesClient) ChangeDisasterRecoveryConfigurationCallbackThenPoll(ctx context.Context, id AutonomousDatabaseId, input DisasterRecoveryConfigurationDetails, callback func() error) error {
 	result, err := c.ChangeDisasterRecoveryConfiguration(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ChangeDisasterRecoveryConfiguration: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

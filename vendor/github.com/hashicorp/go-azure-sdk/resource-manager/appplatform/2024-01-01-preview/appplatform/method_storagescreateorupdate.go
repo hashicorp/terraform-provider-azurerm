@@ -63,9 +63,20 @@ func (c AppPlatformClient) StoragesCreateOrUpdate(ctx context.Context, id Storag
 
 // StoragesCreateOrUpdateThenPoll performs StoragesCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) StoragesCreateOrUpdateThenPoll(ctx context.Context, id StorageId, input StorageResource) error {
+	return c.StoragesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StoragesCreateOrUpdateCallbackThenPoll performs StoragesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) StoragesCreateOrUpdateCallbackThenPoll(ctx context.Context, id StorageId, input StorageResource, callback func() error) error {
 	result, err := c.StoragesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StoragesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

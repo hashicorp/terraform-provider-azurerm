@@ -33,9 +33,9 @@ func (s BaseCertificatePropertiesImpl) CertificateProperties() BaseCertificatePr
 
 var _ CertificateProperties = RawCertificatePropertiesImpl{}
 
-// RawCertificatePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawCertificatePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawCertificatePropertiesImpl struct {
 	certificateProperties BaseCertificatePropertiesImpl
 	Type                  string
@@ -44,6 +44,10 @@ type RawCertificatePropertiesImpl struct {
 
 func (s RawCertificatePropertiesImpl) CertificateProperties() BaseCertificatePropertiesImpl {
 	return s.certificateProperties
+}
+
+func (s RawCertificatePropertiesImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalCertificatePropertiesImplementation(input []byte) (CertificateProperties, error) {

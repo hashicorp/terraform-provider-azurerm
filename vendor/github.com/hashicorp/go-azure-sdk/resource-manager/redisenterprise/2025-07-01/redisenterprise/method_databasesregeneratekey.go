@@ -62,9 +62,20 @@ func (c RedisEnterpriseClient) DatabasesRegenerateKey(ctx context.Context, id Da
 
 // DatabasesRegenerateKeyThenPoll performs DatabasesRegenerateKey then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesRegenerateKeyThenPoll(ctx context.Context, id DatabaseId, input RegenerateKeyParameters) error {
+	return c.DatabasesRegenerateKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesRegenerateKeyCallbackThenPoll performs DatabasesRegenerateKey, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesRegenerateKeyCallbackThenPoll(ctx context.Context, id DatabaseId, input RegenerateKeyParameters, callback func() error) error {
 	result, err := c.DatabasesRegenerateKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesRegenerateKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

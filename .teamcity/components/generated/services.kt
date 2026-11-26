@@ -1,14 +1,16 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
         "aadb2c" to "AAD B2C",
+        "apicenter" to "API Center",
         "apimanagement" to "API Management",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
         "appconfiguration" to "App Configuration",
         "appservice" to "AppService",
+        "appgateway" to "Application Gateway",
         "applicationinsights" to "Application Insights",
         "arcresourcebridge" to "Arc Resource Bridge",
         "arckubernetes" to "ArcKubernetes",
@@ -53,6 +55,7 @@ var services = mapOf(
         "elasticsan" to "ElasticSan",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
+        "expressroute" to "ExpressRoute",
         "extendedlocation" to "ExtendedLocation",
         "fabric" to "Fabric",
         "firewall" to "Firewall",
@@ -62,6 +65,7 @@ var services = mapOf(
         "hdinsight" to "HDInsight",
         "hsm" to "Hardware Security Module",
         "healthcare" to "Health Care",
+        "horizondb" to "HorizonDB",
         "hybridcompute" to "Hybrid Compute",
         "iotcentral" to "IoT Central",
         "iothub" to "IoT Hub",
@@ -76,6 +80,7 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "manageddevopspools" to "Managed DevOps Pools",
         "managedhsm" to "Managed HSM",
         "managedredis" to "Managed Redis",
         "managedidentity" to "ManagedIdentity",
@@ -89,11 +94,12 @@ var services = mapOf(
         "netapp" to "NetApp",
         "network" to "Network",
         "networkfunction" to "Network Function",
+        "networkgateway" to "Network Gateway",
+        "networkmanager" to "Network Manager",
         "newrelic" to "New Relic",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
         "oracle" to "Oracle",
-        "orbital" to "Orbital",
         "paloalto" to "Palo Alto",
         "policy" to "Policy",
         "portal" to "Portal",
@@ -106,7 +112,6 @@ var services = mapOf(
         "recoveryservices" to "Recovery Services",
         "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",
-        "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
         "resource" to "Resources",
         "search" to "Search",
@@ -130,7 +135,7 @@ var services = mapOf(
         "codesigning" to "Trusted Signing",
         "vmware" to "VMware",
         "videoindexer" to "VideoIndexer",
-        "voiceservices" to "Voice Services",
+        "virtualwan" to "Virtual WAN",
         "web" to "Web",
         "workloads" to "Workloads"
 )

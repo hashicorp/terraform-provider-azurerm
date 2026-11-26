@@ -1,0 +1,30 @@
+name: Go Vulnerability Check
+
+# Runs govulncheck over the provider so known CVEs in our dependencies (or the Go toolchain) get
+# flagged. It only reports vulnerabilities in code paths we actually call, so it is quiet unless
+# something needs attention. Runs on pushes to main and weekly, not on PRs: a CVE published
+# against a dependency we already use produces no new commit, so only a schedule can catch it,
+# and contributors should not be blocked by a vulnerability that is already on main.
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+  schedule:
+    - cron: '17 4 * * 1' # weekly (Monday 04:17 UTC)
+
+concurrency:
+  group: 'main-govulncheck-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+        with:
+          go-version-file: ./.go-version
