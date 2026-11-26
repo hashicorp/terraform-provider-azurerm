@@ -1004,10 +1004,10 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 
 func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, subscriptionId string, vhd *virtualmachines.VirtualHardDisk) error {
 	if vhd == nil {
-		return fmt.Errorf("`vhd` was nil`")
+		return errors.New("`vhd` was nil`")
 	}
 	if vhd.Uri == nil {
-		return fmt.Errorf("`vhd.Uri` was nil`")
+		return errors.New("`vhd.Uri` was nil`")
 	}
 
 	uri := *vhd.Uri
@@ -1039,10 +1039,10 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 
 func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *virtualmachines.ManagedDiskParameters, meta any) error {
 	if disk == nil {
-		return fmt.Errorf("`disk` was nil`")
+		return errors.New("`disk` was nil`")
 	}
 	if disk.Id == nil {
-		return fmt.Errorf("`disk.Id` was nil`")
+		return errors.New("`disk.Id` was nil`")
 	}
 	managedDiskID := *disk.Id
 
@@ -1399,7 +1399,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if profile.LinuxConfiguration == nil && profile.WindowsConfiguration == nil {
-		return nil, fmt.Errorf("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified")
+		return nil, errors.New("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified")
 	}
 
 	if _, ok := d.GetOk("os_profile_secrets"); ok {
@@ -1601,13 +1601,13 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if vhdURI != "" && managedDiskID != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+			return nil, errors.New("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 		}
 		if vhdURI != "" && managedDiskType != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+			return nil, errors.New("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
 		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(virtualmachines.DiskCreateOptionTypesAttach)) {
-			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
+			return nil, errors.New("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
 		if v := config["caching"].(string); v != "" {
@@ -1668,7 +1668,7 @@ func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*virt
 	imageReference := virtualmachines.ImageReference{}
 
 	if imageID != "" && publisher != "" {
-		return nil, fmt.Errorf("conflict between `id` and `publisher` (only one or the other can be used)")
+		return nil, errors.New("conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
 	if imageID != "" {
@@ -1746,14 +1746,14 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 
 	// BEGIN: code to be removed after GH-13016 is merged
 	if vhdURI != "" && managedDiskID != "" {
-		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+		return nil, errors.New("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 	}
 	if vhdURI != "" && managedDiskType != "" {
-		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+		return nil, errors.New("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
 	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(virtualmachines.DiskCreateOptionTypesAttach)) {
-		return nil, fmt.Errorf("must specify `vhd_uri` or `managed_disk_id` to attach")
+		return nil, errors.New("must specify `vhd_uri` or `managed_disk_id` to attach")
 	}
 
 	if v := config["image_uri"].(string); v != "" {
@@ -1938,5 +1938,5 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta any, props *virt
 		}
 	}
 
-	return "", fmt.Errorf("no Public or Private IP Address found on the Primary Network Interface")
+	return "", errors.New("no Public or Private IP Address found on the Primary Network Interface")
 }

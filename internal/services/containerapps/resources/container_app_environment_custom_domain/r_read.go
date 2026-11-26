@@ -5,6 +5,7 @@ package container_app_environment_custom_domain
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -65,11 +66,11 @@ func findLogAnalyticsWorkspaceSecret(ctx context.Context, client *workspaces.Wor
 	}
 
 	if resp.Model == nil {
-		return "", fmt.Errorf("model was nil")
+		return "", errors.New("model was nil")
 	}
 
 	if resp.Model.Value == nil {
-		return "", fmt.Errorf("value was nil")
+		return "", errors.New("value was nil")
 	}
 
 	for _, law := range *resp.Model.Value {
@@ -89,5 +90,5 @@ func findLogAnalyticsWorkspaceSecret(ctx context.Context, client *workspaces.Wor
 		}
 	}
 
-	return "", fmt.Errorf("no matching workspace found")
+	return "", errors.New("no matching workspace found")
 }

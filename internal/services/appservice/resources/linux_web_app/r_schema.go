@@ -5,6 +5,7 @@ package linux_web_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -244,7 +245,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
 						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *aspModel.Properties.HostingEnvironmentProfile.Id != "" && !newValue.(bool) {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						return errors.New("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 				}
 			}

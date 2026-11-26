@@ -4,6 +4,7 @@
 package machinelearning
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -173,7 +174,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	aksModel := aks.Model
 	if aksModel == nil {
-		return fmt.Errorf("AKS not found")
+		return errors.New("AKS not found")
 	}
 
 	identity, err := expandIdentity(d.Get("identity").([]any))

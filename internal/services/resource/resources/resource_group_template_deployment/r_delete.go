@@ -4,6 +4,7 @@
 package resource_group_template_deployment
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -33,7 +34,7 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 	if template.Properties == nil {
-		return fmt.Errorf("`properties` was nil for template`")
+		return errors.New("`properties` was nil for template`")
 	}
 
 	deleteItemsInTemplate := meta.(*clients.Client).Features.TemplateDeployment.DeleteNestedItemsDuringDeletion

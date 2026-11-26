@@ -5,6 +5,7 @@ package backup_policy_vm_workload
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -91,7 +92,7 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 
 	for _, item := range input {
 		if workloadType == string(protectionpolicies.WorkloadTypeSQLDataBase) && item.PolicyType == string(protectionpolicies.PolicyTypeIncremental) {
-			return nil, fmt.Errorf("the Incremental backup isn't supported when `workload_type` is `SQLDataBase`")
+			return nil, errors.New("the Incremental backup isn't supported when `workload_type` is `SQLDataBase`")
 		}
 
 		backupBlock := item.Backup[0]
@@ -110,23 +111,23 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 		switch backupBlock.Frequency {
 		case string(protectionpolicies.ScheduleRunTypeDaily):
 			if len(item.RetentionDaily) == 0 {
-				return nil, fmt.Errorf("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
+				return nil, errors.New("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
 			}
 
 			if weekdays := backupBlock.Weekdays; len(weekdays) > 0 {
-				return nil, fmt.Errorf("`backup.0.weekdays` should be not set when `backup.0.frequency` is `Daily`")
+				return nil, errors.New("`backup.0.weekdays` should be not set when `backup.0.frequency` is `Daily`")
 			}
 		case string(protectionpolicies.ScheduleRunTypeWeekly):
 			if len(item.RetentionDaily) > 0 {
-				return nil, fmt.Errorf("`retention_daily` must be not set when `backup.0.frequency` is `Weekly`")
+				return nil, errors.New("`retention_daily` must be not set when `backup.0.frequency` is `Weekly`")
 			}
 
 			if item.PolicyType != string(protectionpolicies.PolicyTypeLog) && len(backupBlock.Weekdays) == 0 {
-				return nil, fmt.Errorf("`backup.weekdays` must be set when `policy_type` is not `Log` and `backup.frequency` is `Weekly`")
+				return nil, errors.New("`backup.weekdays` must be set when `policy_type` is not `Log` and `backup.frequency` is `Weekly`")
 			}
 
 			if item.PolicyType == string(protectionpolicies.PolicyTypeFull) && len(item.RetentionWeekly) == 0 {
-				return nil, fmt.Errorf("`retention_weekly` must be set when `policy_type` is `Full` and `backup.frequency` is `Weekly`")
+				return nil, errors.New("`retention_weekly` must be set when `policy_type` is `Full` and `backup.frequency` is `Weekly`")
 			}
 		}
 
@@ -220,15 +221,15 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			retentionMonthly := input.RetentionMonthly[0]
 
 			if input.Backup[0].Frequency == string(protectionpolicies.ScheduleRunTypeWeekly) && retentionMonthly.FormatType != string(protectionpolicies.RetentionScheduleFormatWeekly) {
-				return nil, fmt.Errorf("`retention_monthly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
+				return nil, errors.New("`retention_monthly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
 			}
 
 			if retentionMonthly.FormatType == string(protectionpolicies.RetentionScheduleFormatDaily) && (len(retentionMonthly.Monthdays) == 0) {
-				return nil, fmt.Errorf("`retention_monthly.monthdays` must be set when `retention_monthly.format_type` is `Daily`")
+				return nil, errors.New("`retention_monthly.monthdays` must be set when `retention_monthly.format_type` is `Daily`")
 			}
 
 			if retentionMonthly.FormatType == string(protectionpolicies.RetentionScheduleFormatWeekly) && (len(retentionMonthly.Weeks) == 0 || len(retentionMonthly.Weekdays) == 0) {
-				return nil, fmt.Errorf("`retention_monthly.weeks` and `retention_monthly.weekdays` must be set when `retention_monthly.format_type` is `Weekly`")
+				return nil, errors.New("`retention_monthly.weeks` and `retention_monthly.weekdays` must be set when `retention_monthly.format_type` is `Weekly`")
 			}
 
 			retentionPolicy.MonthlySchedule = &protectionpolicies.MonthlyRetentionSchedule{
@@ -247,15 +248,15 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			retentionYearly := input.RetentionYearly[0]
 
 			if input.Backup[0].Frequency == string(protectionpolicies.ScheduleRunTypeWeekly) && retentionYearly.FormatType != string(protectionpolicies.RetentionScheduleFormatWeekly) {
-				return nil, fmt.Errorf("`retention_yearly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
+				return nil, errors.New("`retention_yearly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
 			}
 
 			if retentionYearly.FormatType == string(protectionpolicies.RetentionScheduleFormatDaily) && (len(retentionYearly.Monthdays) == 0) {
-				return nil, fmt.Errorf("`retention_yearly.monthdays` must be set when `retention_yearly.format_type` is `Daily`")
+				return nil, errors.New("`retention_yearly.monthdays` must be set when `retention_yearly.format_type` is `Daily`")
 			}
 
 			if retentionYearly.FormatType == string(protectionpolicies.RetentionScheduleFormatWeekly) && (len(retentionYearly.Weeks) == 0 || len(retentionYearly.Weekdays) == 0) {
-				return nil, fmt.Errorf("`retention_yearly.weeks` and `retention_yearly.weekdays` must be set when `retention_yearly.format_type` is `Weekly`")
+				return nil, errors.New("`retention_yearly.weeks` and `retention_yearly.weekdays` must be set when `retention_yearly.format_type` is `Weekly`")
 			}
 
 			retentionPolicy.YearlySchedule = &protectionpolicies.YearlyRetentionSchedule{

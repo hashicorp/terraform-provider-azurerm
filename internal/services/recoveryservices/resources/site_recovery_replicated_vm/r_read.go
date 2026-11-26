@@ -6,6 +6,7 @@ package site_recovery_replicated_vm
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -210,7 +211,7 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return nil, fmt.Errorf("context had no deadline")
+		return nil, errors.New("context had no deadline")
 	}
 	stateConf.Timeout = time.Until(deadline)
 
@@ -223,7 +224,7 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 	if ok {
 		return &protectedItem, nil
 	} else {
-		return nil, fmt.Errorf("waiting for site recovery return incompatible type")
+		return nil, errors.New("waiting for site recovery return incompatible type")
 	}
 }
 

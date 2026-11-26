@@ -4,6 +4,7 @@
 package data_factory_integration_runtime_azure
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -70,7 +71,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 			return err
 		}
 		if virtualNetworkName == nil {
-			return fmt.Errorf("virtual network feature for azure integration runtime is only available after managed virtual network for this data factory is enabled")
+			return errors.New("virtual network feature for azure integration runtime is only available after managed virtual network for this data factory is enabled")
 		}
 		managedIntegrationRuntime.ManagedVirtualNetwork = &integrationruntimes.ManagedVirtualNetworkReference{
 			Type:          integrationruntimes.ManagedVirtualNetworkReferenceTypeManagedVirtualNetworkReference,

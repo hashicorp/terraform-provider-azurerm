@@ -4,6 +4,7 @@
 package key_vault_access_policy
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -73,7 +74,7 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta any) err
 	}
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"notfound", "vaultnotfound"},

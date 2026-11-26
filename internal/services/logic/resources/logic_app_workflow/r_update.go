@@ -4,6 +4,7 @@
 package logic_app_workflow
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -43,7 +44,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if read.Model == nil || read.Model.Properties == nil {
-		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
+		return errors.New("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
 	location := location.Normalize(d.Get("location").(string))

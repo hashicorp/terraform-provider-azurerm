@@ -4,6 +4,7 @@
 package kubernetes_flux_configuration
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -215,7 +216,7 @@ func flattenRepositoryRefDefinitionModel(input *fluxconfiguration.RepositoryRefD
 		referenceType = FluxGitReferenceTag
 		referenceValue = *input.Tag
 	default:
-		return "", "", fmt.Errorf("failed to retrieve git reference")
+		return "", "", errors.New("failed to retrieve git reference")
 	}
 
 	return referenceType, referenceValue, nil

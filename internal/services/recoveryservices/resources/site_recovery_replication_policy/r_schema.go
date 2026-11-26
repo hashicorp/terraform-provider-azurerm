@@ -5,7 +5,7 @@ package site_recovery_replication_policy
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -47,7 +47,7 @@ func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *plu
 	frequency := d.Get("application_consistent_snapshot_frequency_in_minutes").(int)
 
 	if retention == 0 && frequency > 0 {
-		return fmt.Errorf("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero")
+		return errors.New("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero")
 	}
 
 	return nil

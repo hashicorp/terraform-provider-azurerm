@@ -5,6 +5,7 @@ package pim_eligible_role_assignment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -37,7 +38,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal error: context has no deadline")
+				return errors.New("internal error: context has no deadline")
 			}
 
 			schedule, err := findRoleEligibilitySchedule(ctx, schedulesClient, *id)

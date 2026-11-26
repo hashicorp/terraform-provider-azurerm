@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -40,7 +41,7 @@ func NewManagedHSMDataPlaneVersionlessKeyID(managedHsmName, domainSuffix, keyNam
 // ManagedHSMDataPlaneVersionlessKeyID parses the Data Plane Managed HSM Key ID without a Version.
 func ManagedHSMDataPlaneVersionlessKeyID(input string, domainSuffix *string) (*ManagedHSMDataPlaneVersionlessKeyId, error) {
 	if input == "" {
-		return nil, fmt.Errorf("`input` was empty")
+		return nil, errors.New("`input` was empty")
 	}
 	if domainSuffix != nil && !strings.HasPrefix(strings.ToLower(*domainSuffix), "managedhsm.") {
 		return nil, fmt.Errorf("internal-error: the domainSuffix for Managed HSM %q didn't contain `managedhsm.`", *domainSuffix)

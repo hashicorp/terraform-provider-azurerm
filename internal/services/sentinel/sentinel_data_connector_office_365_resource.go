@@ -4,6 +4,7 @@
 package sentinel
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -117,7 +118,7 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceDat
 
 	// Service will not create the DC in case non of the toggle is enabled.
 	if !exchangeEnabled && !sharePointEnabled && !teamsEnabled {
-		return fmt.Errorf("one of `exchange_enabled`, `sharepoint_enabled` and `teams_enabled` should be `true`")
+		return errors.New("one of `exchange_enabled`, `sharepoint_enabled` and `teams_enabled` should be `true`")
 	}
 
 	exchangeState := dataconnectors.DataTypeStateEnabled
