@@ -95,6 +95,106 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
+			name:  "GP_Standard_D2s_v5",
+			input: "GP_Standard_D2s_v5",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D96as_v5",
+			input: "GP_Standard_D96as_v5",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D4s_v6",
+			input: "GP_Standard_D4s_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D192s_v6",
+			input: "GP_Standard_D192s_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D2as_v6",
+			input: "GP_Standard_D2as_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D128as_v6",
+			input: "GP_Standard_D128as_v6",
+			valid: false,
+		},
+		{
+			name:  "GP_Standard_D20s_v6",
+			input: "GP_Standard_D20s_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E20s_v5",
+			input: "MO_Standard_E20s_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E20ads_v5",
+			input: "MO_Standard_E20ads_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E96as_v5",
+			input: "MO_Standard_E96as_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E104is_v5",
+			input: "MO_Standard_E104is_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E112ias_v5",
+			input: "MO_Standard_E112ias_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E128s_v6",
+			input: "MO_Standard_E128s_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E20as_v6",
+			input: "MO_Standard_E20as_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E192is_v6",
+			input: "MO_Standard_E192is_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E192ids_v6",
+			input: "MO_Standard_E192ids_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E192s_v6",
+			input: "MO_Standard_E192s_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E104is_v6",
+			input: "MO_Standard_E104is_v6",
+			valid: false,
+		},
+		{
+			name:  "GP_Standard_E4s_v6",
+			input: "GP_Standard_E4s_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_D4s_v6",
+			input: "MO_Standard_D4s_v6",
+			valid: false,
+		},
+		{
 			name:  "Standard",
 			input: "Standard",
 			valid: false,
@@ -133,6 +233,66 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			name:  "B_Standard_B1ms",
 			input: "B_Standard_B1ms",
 			valid: true,
+		},
+		{
+			name:  "B_Standard_B2ats_v2",
+			input: "B_Standard_B2ats_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B2afs_v2",
+			input: "B_Standard_B2afs_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B2als_v2",
+			input: "B_Standard_B2als_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B2as_v2",
+			input: "B_Standard_B2as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B4as_v2",
+			input: "B_Standard_B4as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B8as_v2",
+			input: "B_Standard_B8as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B16as_v2",
+			input: "B_Standard_B16as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B32as_v2",
+			input: "B_Standard_B32as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B1as_v2",
+			input: "B_Standard_B1as_v2",
+			valid: false,
+		},
+		{
+			name:  "B_Standard_B2ats",
+			input: "B_Standard_B2ats",
+			valid: false,
+		},
+		{
+			name:  "B_Standard_B64as_v2",
+			input: "B_Standard_B64as_v2",
+			valid: false,
+		},
+		{
+			name:  "B_Standard_B2ats_v3",
+			input: "B_Standard_B2ats_v3",
+			valid: false,
 		},
 		{
 			name:  "B_Standard_B1",

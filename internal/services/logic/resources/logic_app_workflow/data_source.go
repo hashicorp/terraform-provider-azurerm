@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceLogicAppWorkflowRead,
+		Description: "Use this data source to access information about an existing Logic App Workflow.",
+		Read:        dataSourceLogicAppWorkflowRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,8 +30,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Logic App Workflow.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -38,55 +40,64 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"logic_app_integration_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the integration account linked by this Logic App Workflow.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "A map of Key-Value pairs.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"workflow_schema": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Schema used for this Logic App Workflow.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"workflow_version": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The version of the Schema used for this Logic App Workflow.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"access_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Access Endpoint for the Logic App Workflow.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"connector_endpoint_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of access endpoint IP addresses of connector.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 			"connector_outbound_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of outgoing IP addresses of connector.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 			"workflow_endpoint_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of access endpoint IP addresses of workflow.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 			"workflow_outbound_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of outgoing IP addresses of workflow.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": commonschema.TagsDataSource(),

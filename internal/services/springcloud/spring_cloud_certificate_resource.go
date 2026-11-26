@@ -71,8 +71,8 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 			},
 
 			"exclude_private_key": {
@@ -85,8 +85,8 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
+				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 			},
 
 			"thumbprint": {

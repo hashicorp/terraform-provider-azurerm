@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisDicomServiceCreate,
-		Read:   resourceHealthcareApisDicomServiceRead,
-		Update: resourceHealthcareApisDicomServiceUpdate,
-		Delete: resourceHealthcareApisDicomServiceDelete,
+		Description: "Manages a Healthcare DICOM Service.",
+		Create:      resourceHealthcareApisDicomServiceCreate,
+		Read:        resourceHealthcareApisDicomServiceRead,
+		Update:      resourceHealthcareApisDicomServiceUpdate,
+		Delete:      resourceHealthcareApisDicomServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),

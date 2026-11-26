@@ -17,10 +17,11 @@ var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubEndpointStorageContainerCreateUpdate,
-		Read:   resourceIotHubEndpointStorageContainerRead,
-		Update: resourceIotHubEndpointStorageContainerCreateUpdate,
-		Delete: resourceIotHubEndpointStorageContainerDelete,
+		Description: "Manages an IotHub Storage Container Endpoint.",
+		Create:      resourceIotHubEndpointStorageContainerCreateUpdate,
+		Read:        resourceIotHubEndpointStorageContainerRead,
+		Update:      resourceIotHubEndpointStorageContainerCreateUpdate,
+		Delete:      resourceIotHubEndpointStorageContainerDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

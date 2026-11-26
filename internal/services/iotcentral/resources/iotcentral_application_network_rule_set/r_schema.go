@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"iotcentral_application_id": {
+			Description:  "The ID of the IoT Central Application.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,12 +21,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"apply_to_device": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether these IP Rules apply for device connectivity to IoT Hub and Device Provisioning Service associated with this IoT Central Application.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"default_action": {
+			Description:  "The default action for the IoT Central Application Network Rule Set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(apps.NetworkActionDeny),
@@ -38,11 +41,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the IP Rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.IoTHubIpRuleName,
 					},
 					"ip_mask": {
+						Description:  "The IP address range in CIDR notation for the IP Rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsCIDRIPv4,

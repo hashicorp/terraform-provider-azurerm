@@ -19,10 +19,11 @@ const azureDnsCNameRecordResourceName = "azurerm_dns_cname_record"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsCNameRecordCreate,
-		Read:   resourceDnsCNameRecordRead,
-		Update: resourceDnsCNameRecordUpdate,
-		Delete: resourceDnsCNameRecordDelete,
+		Description: "Enables you to manage DNS CNAME Records within Azure DNS.",
+		Create:      resourceDnsCNameRecordCreate,
+		Read:        resourceDnsCNameRecordRead,
+		Update:      resourceDnsCNameRecordUpdate,
+		Delete:      resourceDnsCNameRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

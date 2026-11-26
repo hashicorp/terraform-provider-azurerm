@@ -40,8 +40,8 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 
 		"path": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "",
 			ValidateFunc: validate.StorageShareDirectoryName,
 		},
@@ -74,16 +74,16 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 		"source": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  validation.StringIsNotEmpty,
 			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
 			ConflictsWith: []string{"source_content"},
 		},
 
 		"source_content": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  validation.StringIsNotEmpty,
 			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
 			ConflictsWith: []string{"source"},
 		},
 

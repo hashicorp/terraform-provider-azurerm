@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSharedImageGalleryRead,
+		Description: "Use this data source to access information about an existing Shared Image Gallery.",
+		Read:        dataSourceSharedImageGalleryRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Shared Image Gallery.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
@@ -39,19 +41,22 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A description for the Shared Image Gallery.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"image_names": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "A list of Shared Image names within this Shared Image Gallery.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"unique_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The unique name assigned to the Shared Image Gallery.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

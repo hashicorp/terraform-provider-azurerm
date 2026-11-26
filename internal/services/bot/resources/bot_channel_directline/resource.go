@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelDirectlineCreate,
-		Read:   resourceBotChannelDirectlineRead,
-		Delete: resourceBotChannelDirectlineDelete,
-		Update: resourceBotChannelDirectlineUpdate,
+		Description: "Manages a Directline integration for a Bot Channel.",
+		Create:      resourceBotChannelDirectlineCreate,
+		Read:        resourceBotChannelDirectlineRead,
+		Delete:      resourceBotChannelDirectlineDelete,
+		Update:      resourceBotChannelDirectlineUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

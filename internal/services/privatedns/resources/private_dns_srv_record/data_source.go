@@ -40,6 +40,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"record": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
+				Set:      resourcePrivateDnsSrvRecordHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"priority": {
@@ -63,7 +64,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourcePrivateDnsSrvRecordHash,
 			},
 
 			"ttl": {

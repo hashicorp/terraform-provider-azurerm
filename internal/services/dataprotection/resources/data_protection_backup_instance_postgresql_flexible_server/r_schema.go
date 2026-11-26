@@ -20,6 +20,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	arguments := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Backup Instance for the PostgreSQL Flexible Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,11 +29,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}, "Backup Vault"),
 
-		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
+		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}, "Backup Policy"),
 
-		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}),
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}, "MySQL Flexible Server"),
 
 		"backup_solution_type": {
 			Type:         pluginsdk.TypeString,
@@ -57,8 +58,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The protection state of the Backup Instance PostgreSQL Flexible Server.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

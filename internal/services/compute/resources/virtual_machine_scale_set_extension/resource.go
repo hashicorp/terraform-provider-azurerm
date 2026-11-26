@@ -22,10 +22,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualMachineScaleSetExtensionCreate,
-		Read:   resourceVirtualMachineScaleSetExtensionRead,
-		Update: resourceVirtualMachineScaleSetExtensionUpdate,
-		Delete: resourceVirtualMachineScaleSetExtensionDelete,
+		Description: "Manages an Extension for a Virtual Machine Scale Set.",
+		Create:      resourceVirtualMachineScaleSetExtensionCreate,
+		Read:        resourceVirtualMachineScaleSetExtensionRead,
+		Update:      resourceVirtualMachineScaleSetExtensionUpdate,
+		Delete:      resourceVirtualMachineScaleSetExtensionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualmachinescalesetextensions.ParseVirtualMachineScaleSetExtensionID(id)

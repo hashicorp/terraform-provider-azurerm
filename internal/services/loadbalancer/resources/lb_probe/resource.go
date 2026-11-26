@@ -17,10 +17,11 @@ const azureLoadBalancerProbeResourceName = "azurerm_lb_probe"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmLoadBalancerProbeCreateUpdate,
-		Read:   resourceArmLoadBalancerProbeRead,
-		Update: resourceArmLoadBalancerProbeCreateUpdate,
-		Delete: resourceArmLoadBalancerProbeDelete,
+		Description: "Manages a LoadBalancer Probe Resource.",
+		Create:      resourceArmLoadBalancerProbeCreateUpdate,
+		Read:        resourceArmLoadBalancerProbeRead,
+		Update:      resourceArmLoadBalancerProbeCreateUpdate,
+		Delete:      resourceArmLoadBalancerProbeDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.ProbeId{}),

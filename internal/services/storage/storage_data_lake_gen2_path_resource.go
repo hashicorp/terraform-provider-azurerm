@@ -130,8 +130,8 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 						"scope": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 							Default:      "access",
+							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
 						},
 						"type": {
 							Type:         pluginsdk.TypeString,

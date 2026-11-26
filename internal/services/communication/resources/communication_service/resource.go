@@ -38,6 +38,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_communication_service"
 }
 
+func (Resource) Description() string {
+	return "Manages a Communication Service."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return communicationservices.ValidateCommunicationServiceID
 }

@@ -51,6 +51,7 @@ var _ sdk.DataSource = DataSource{}
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -59,9 +60,10 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"read_secrets": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the data source should read the secrets from the Container App.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }
@@ -69,15 +71,17 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"container_app_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Container App Environment this Container App is linked to.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"template": helpers.ContainerTemplateSchemaComputed(),
 
 		"revision_mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The revision mode of the Container App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ingress": helpers.ContainerAppIngressSchemaComputed(),
@@ -103,32 +107,34 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"latest_revision_name": {
+			Description: "The name of the latest Container Revision.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the latest Container Revision.",
 		},
 
 		"latest_revision_fqdn": {
+			Description: "The fully qualified domain name of the latest Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The fully qualified domain name of the latest Container App.",
 		},
 
 		"custom_domain_verification_id": {
+			Description: "The ID of the Custom Domain Verification for this Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
-			Description: "The ID of the Custom Domain Verification for this Container App.",
 		},
 
 		"workload_profile_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Workload Profile in the Container App Environment in which this Container App is running.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"max_inactive_revisions": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The max inactive revisions for this Container App.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 	}
 }
@@ -139,6 +145,10 @@ func (r DataSource) ModelObject() any {
 
 func (r DataSource) ResourceType() string {
 	return "azurerm_container_app"
+}
+
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Container App."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

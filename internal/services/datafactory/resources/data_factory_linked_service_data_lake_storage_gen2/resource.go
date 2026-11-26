@@ -20,10 +20,11 @@ type ServicePrincipalKey struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceDataLakeStorageGen2Read,
-		Update: resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete,
+		Description: "Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceDataLakeStorageGen2Read,
+		Update:      resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

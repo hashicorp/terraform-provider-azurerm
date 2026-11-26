@@ -29,6 +29,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_postgresql_flexible_server"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backup Instance to back up PostgreSQL Flexible Server."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backupinstanceresources.ValidateBackupInstanceID
 }
