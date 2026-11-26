@@ -41,6 +41,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"golang.org/x/sync/errgroup"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -1623,17 +1624,21 @@ func waitForStorageAccountServicesToBecomeAvailable(ctx context.Context, client 
 		},
 	}
 
+	g, ctx := errgroup.WithContext(ctx)
 	for _, service := range services {
 		if !service.supported {
 			continue
 		}
-		poller := custompollers.NewEventualConsistencyPoller(1, service.get, custompollers.DefaultCreationEventualConsistencyPollerOptions())
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the %s Service for %s to become available: %+v", service.name, id, err)
-		}
+		g.Go(func() error {
+			poller := custompollers.NewEventualConsistencyPoller(1, service.get, custompollers.DefaultCreationEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for the %s Service for %s to become available: %+v", service.name, id, err)
+			}
+			return nil
+		})
 	}
 
-	return nil
+	return g.Wait()
 }
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
