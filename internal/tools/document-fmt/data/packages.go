@@ -1,9 +1,10 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -47,7 +48,7 @@ type sdkMethod struct {
 var (
 	sdkRegex             = regexp.MustCompile(`github\.com/hashicorp/go-azure-sdk/resource-manager/.*$`)
 	sdkMethodSuffixRegex = regexp.MustCompile(`ThenPoll|Complete|CompleteMatchingPredicate`)
-	servicePackageRegex  = regexp.MustCompile(`github\.com/hashicorp/terraform-provider-azurerm/internal/services/(\w*)$`)
+	servicePackageRegex  = regexp.MustCompile(`github\.com/hashicorp/terraform-provider-azurerm/internal/services/([^/]+)`)
 )
 
 // loadPackages - Loads all service packages
@@ -142,7 +143,12 @@ func findRegistrationFuncs(pkg *packages.Package, fn *types.Func, registrationFu
 
 			name, _ := strconv.Unquote(lit.Value)
 
-			fn := pkg.TypesInfo.ObjectOf(rhs.Fun.(*ast.Ident))
+			ident := identFromFun(rhs.Fun)
+			if ident == nil {
+				return false
+			}
+
+			fn := pkg.TypesInfo.ObjectOf(ident)
 			if fn == nil {
 				return false
 				// todo err
@@ -163,7 +169,12 @@ func findRegistrationFuncs(pkg *packages.Package, fn *types.Func, registrationFu
 				return false
 			}
 
-			fn := pkg.TypesInfo.ObjectOf(v.Fun.(*ast.Ident))
+			ident := identFromFun(v.Fun)
+			if ident == nil {
+				return false
+			}
+
+			fn := pkg.TypesInfo.ObjectOf(ident)
 			if fn == nil {
 				return false
 				// todo err
@@ -180,6 +191,17 @@ func findRegistrationFuncs(pkg *packages.Package, fn *types.Func, registrationFu
 	})
 }
 
+func identFromFun(fun ast.Expr) *ast.Ident {
+	switch e := fun.(type) {
+	case *ast.Ident:
+		return e
+	case *ast.SelectorExpr:
+		return e.Sel
+	default:
+		return nil
+	}
+}
+
 func findUntypedSSAFunc(pkg pkg, e ast.Expr) *ssa.Function {
 	switch e := e.(type) {
 	case *ast.Ident:
@@ -189,7 +211,7 @@ func findUntypedSSAFunc(pkg pkg, e ast.Expr) *ssa.Function {
 		if !ok {
 			return nil
 		}
-		return findResourceFunc(pkg.ssa.Prog, pkg.pkg, pkg.ssa, pkg.ssa.Func(fn.Name))
+		return findResourceFunc(pkg.ssa.Prog, pkg.pkg, pkg.ssa, pkg.ssa.Func(fn.Name), []*packages.Package{pkg.pkg})
 	}
 
 	return nil
@@ -199,10 +221,17 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 	result := make(map[string][]API)
 
 	servicePackages, ok := d.packages[s.Name]
-	// todo: refactor loadPackages to only return the service package and ignore others such as `client`
-	servicePackage := servicePackages[0]
-	if !ok {
+	if !ok || len(servicePackages) == 0 {
 		return nil // err?
+	}
+
+	servicePackage := servicePackages[0]
+	rootPkgPath := fmt.Sprintf("github.com/hashicorp/terraform-provider-azurerm/internal/services/%s", s.Name)
+	for _, p := range servicePackages {
+		if p.pkg.PkgPath == rootPkgPath {
+			servicePackage = p
+			break
+		}
 	}
 
 	registration := servicePackage.pkg.Types.Scope().Lookup("Registration")
@@ -228,12 +257,25 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 	// Resources
 	findRegistrationFuncs(servicePackage.pkg, rsRegistration, registrationFuncs, ResourceTypeResource)
 
+	allServicePkgs := make([]*packages.Package, 0, len(servicePackages))
+	for _, sp := range servicePackages {
+		allServicePkgs = append(allServicePkgs, sp.pkg)
+	}
+
 	for _, fn := range registrationFuncs {
 		filenames := make(map[string]struct{})
 		resourceFileName := d.fset.Position(d.prog.FuncValue(fn).Pos()).Filename
 		filenames[resourceFileName] = struct{}{} // for most resources this is all we need
 
-		fnDecl := funcToFuncDeclWithPkgs([]*packages.Package{servicePackage.pkg}, fn)
+		fnPkg := servicePackage
+		for _, sp := range servicePackages {
+			if fn.Pkg() != nil && sp.pkg.PkgPath == fn.Pkg().Path() {
+				fnPkg = sp
+				break
+			}
+		}
+
+		fnDecl := funcToFuncDeclWithPkgs(allServicePkgs, fn)
 		if fnDecl == nil {
 			continue
 		}
@@ -262,13 +304,13 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 
 				switch k.Name {
 				case "Create":
-					resourceFn = findUntypedSSAFunc(servicePackage, n.Value)
+					resourceFn = findUntypedSSAFunc(fnPkg, n.Value)
 				case "Read":
-					resourceFn = findUntypedSSAFunc(servicePackage, n.Value)
+					resourceFn = findUntypedSSAFunc(fnPkg, n.Value)
 				case "Update":
-					resourceFn = findUntypedSSAFunc(servicePackage, n.Value)
+					resourceFn = findUntypedSSAFunc(fnPkg, n.Value)
 				case "Delete":
-					resourceFn = findUntypedSSAFunc(servicePackage, n.Value)
+					resourceFn = findUntypedSSAFunc(fnPkg, n.Value)
 				}
 
 				if resourceFn != nil {
@@ -279,7 +321,7 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 			return false
 		})
 
-		sdkMethods := usedMethods(d.fset, servicePackage.pkg, util.MapKeys2Slice(filenames))
+		sdkMethods := usedMethods(d.fset, fnPkg.pkg, util.MapKeys2Slice(filenames))
 		result[resourceFileName] = methodsToAPIs(sdkMethods)
 	}
 
@@ -292,65 +334,77 @@ func findAPIsForTypedResources(d packageData, s *Service) map[string][]API {
 	result := make(map[string][]API)
 
 	servicePackages, ok := d.packages[s.Name]
-	// todo: refactor loadPackages to only return the service package and ignore others such as `client`
-	servicePackage := servicePackages[0]
 	if !ok {
 		return nil // err?
 	}
 
-	ssaPkg := servicePackage.ssa
-	scope := ssaPkg.Pkg.Scope()
+	allServicePkgs := make([]*packages.Package, 0, len(servicePackages))
+	for _, sp := range servicePackages {
+		allServicePkgs = append(allServicePkgs, sp.pkg)
+	}
 
-	for _, scopeName := range scope.Names() {
-		obj := scope.Lookup(scopeName)
-		typeName, ok := obj.(*types.TypeName)
-		if !ok {
-			continue
-		}
+	for _, servicePackage := range servicePackages {
+		ssaPkg := servicePackage.ssa
+		scope := ssaPkg.Pkg.Scope()
 
-		named, ok := typeName.Type().(*types.Named)
-		if !ok {
-			continue
-		}
+		for _, scopeName := range scope.Names() {
+			obj := scope.Lookup(scopeName)
+			typeName, ok := obj.(*types.TypeName)
+			if !ok {
+				continue
+			}
 
-		sel := d.prog.MethodSets.MethodSet(named).Lookup(servicePackage.pkg.Types, "ResourceType") // if contains `ResourceType` method then we know we want to parse this file for used sdk methods
-		if sel == nil {
-			continue
-		}
+			named, ok := typeName.Type().(*types.Named)
+			if !ok {
+				continue
+			}
 
-		filenames := make(map[string]struct{})
-		fPos := d.fset.Position(d.prog.MethodValue(sel).Pos())
-		resourceFileName := fPos.Filename
-		filenames[resourceFileName] = struct{}{}
-
-		for _, n := range possibleFunctionNames {
-			sel := d.prog.MethodSets.MethodSet(named).Lookup(servicePackage.pkg.Types, n)
+			sel := d.prog.MethodSets.MethodSet(named).Lookup(servicePackage.pkg.Types, "ResourceType") // if contains `ResourceType` method then we know we want to parse this file for used sdk methods
 			if sel == nil {
 				continue
 			}
 
-			ssaFn := d.prog.MethodValue(sel)
+			filenames := make(map[string]struct{})
+			fPos := d.fset.Position(d.prog.MethodValue(sel).Pos())
+			resourceFileName := fPos.Filename
+			filenames[resourceFileName] = struct{}{}
 
-			rfn := findResourceFunc(d.prog, servicePackage.pkg, servicePackage.ssa, ssaFn)
-			if rfn == nil {
-				continue // err or debug log?
+			for _, n := range possibleFunctionNames {
+				sel := d.prog.MethodSets.MethodSet(named).Lookup(servicePackage.pkg.Types, n)
+				if sel == nil {
+					continue
+				}
+
+				ssaFn := d.prog.MethodValue(sel)
+
+				rfn := findResourceFunc(d.prog, servicePackage.pkg, servicePackage.ssa, ssaFn, allServicePkgs)
+				if rfn == nil {
+					continue // err or debug log?
+				}
+
+				// for the SSA func, get file name and add to map, most of the time this is exactly the same as `resourceFileName`
+				ssaFnPos := d.fset.Position(rfn.Pos())
+				filenames[ssaFnPos.Filename] = struct{}{} // overwrite ok
 			}
 
-			// for the SSA func, get file name and add to map, most of the time this is exactly the same as `resourceFileName`
-			ssaFnPos := d.fset.Position(rfn.Pos())
-			filenames[ssaFnPos.Filename] = struct{}{} // overwrite ok
+			sdkMethods := usedMethods(d.fset, servicePackage.pkg, util.MapKeys2Slice(filenames))
+			result[resourceFileName] = methodsToAPIs(sdkMethods)
 		}
-
-		sdkMethods := usedMethods(d.fset, servicePackage.pkg, util.MapKeys2Slice(filenames))
-		result[resourceFileName] = methodsToAPIs(sdkMethods)
 	}
 	return result
 }
 
-func findResourceFunc(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Package, fn *ssa.Function) *ssa.Function {
+func findResourceFunc(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Package, fn *ssa.Function, allServicePkgs []*packages.Package) *ssa.Function {
+	if fn == nil {
+		return nil
+	}
 	switch len(fn.AnonFuncs) {
 	case 0:
-		return findResourceFuncDigDeeper(prog, pkg, ssaPkg, fn.Object().(*types.Func))
+		fnObj, ok := fn.Object().(*types.Func)
+		if !ok || fnObj == nil {
+			return nil
+		}
+		return findResourceFuncDigDeeper(prog, pkg, ssaPkg, fnObj, allServicePkgs)
 	case 1:
 		return fn.AnonFuncs[0]
 	default:
@@ -364,7 +418,7 @@ func findResourceFunc(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Pack
 	return nil
 }
 
-func findResourceFuncDigDeeper(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Package, fn *types.Func) *ssa.Function {
+func findResourceFuncDigDeeper(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Package, fn *types.Func, allServicePkgs []*packages.Package) *ssa.Function {
 	debugLog := func(t any, msg string) {
 		logrus.WithFields(logrus.Fields{
 			"type":     reflect.TypeOf(t),
@@ -373,22 +427,77 @@ func findResourceFuncDigDeeper(prog *ssa.Program, pkg *packages.Package, ssaPkg 
 		}).Debug(msg)
 	}
 
-	fnDecl := funcToFuncDeclWithPkgs([]*packages.Package{pkg}, fn)
+	pkgsToSearch := allServicePkgs
+	if len(pkgsToSearch) == 0 {
+		pkgsToSearch = []*packages.Package{pkg}
+	}
 
-	r := fnDecl.Body.List[0].(*ast.ReturnStmt).Results[0]
-	c, ok := r.(*ast.CallExpr)
+	fnDecl := funcToFuncDeclWithPkgs(pkgsToSearch, fn)
+	if fnDecl == nil || fnDecl.Body == nil || len(fnDecl.Body.List) == 0 {
+		debugLog(fn, "unable to find valid *ast.FuncDecl with body")
+		return nil
+	}
+
+	retStmt, ok := fnDecl.Body.List[0].(*ast.ReturnStmt)
+	if !ok || len(retStmt.Results) == 0 {
+		debugLog(fnDecl.Body.List[0], "expected first statement to be a non-empty *ast.ReturnStmt")
+		return nil
+	}
+
+	c, ok := retStmt.Results[0].(*ast.CallExpr)
 	if !ok {
-		debugLog(c, "expected return value to be of type `*ast.CallExpr`")
+		debugLog(retStmt.Results[0], "expected return value to be of type `*ast.CallExpr`")
 		return nil
 	}
 
 	switch f := c.Fun.(type) {
 	case *ast.SelectorExpr:
-		ssaFn := prog.LookupMethod(pkg.TypesInfo.TypeOf(f.X).(*types.Named), pkg.Types, f.Sel.Name)
-		return findResourceFunc(prog, pkg, ssaPkg, ssaFn)
+		var ssaFn *ssa.Function
+		// 1. If f.Sel resolves to a *types.Func (e.g. package function helpers.UpdateDeploymentScript or method)
+		if obj := pkg.TypesInfo.ObjectOf(f.Sel); obj != nil {
+			if fnObj, ok := obj.(*types.Func); ok {
+				ssaFn = prog.FuncValue(fnObj)
+			}
+		}
+		// 2. If not resolved via FuncValue, check method sets on f.X
+		if ssaFn == nil {
+			var named *types.Named
+			if t := pkg.TypesInfo.TypeOf(f.X); t != nil {
+				if n, ok := t.(*types.Named); ok {
+					named = n
+				} else if ptr, ok := t.(*types.Pointer); ok {
+					if n, ok := ptr.Elem().(*types.Named); ok {
+						named = n
+					}
+				}
+			}
+			if named != nil {
+				ssaFn = prog.LookupMethod(named, pkg.Types, f.Sel.Name)
+			}
+		}
+		if ssaFn == nil {
+			debugLog(f, fmt.Sprintf("unable to resolve SSA function for selector %s.%s", f.X, f.Sel.Name))
+			return nil
+		}
+		return findResourceFunc(prog, pkg, ssaPkg, ssaFn, allServicePkgs)
+
 	case *ast.Ident:
-		fnObj := pkg.TypesInfo.ObjectOf(f).(*types.Func)
-		return findResourceFunc(prog, pkg, ssaPkg, ssaPkg.Func(fnObj.Name()))
+		obj := pkg.TypesInfo.ObjectOf(f)
+		fnObj, ok := obj.(*types.Func)
+		if !ok || fnObj == nil {
+			debugLog(f, "expected identifier to resolve to *types.Func")
+			return nil
+		}
+		ssaFn := prog.FuncValue(fnObj)
+		if ssaFn == nil && ssaPkg != nil {
+			ssaFn = ssaPkg.Func(fnObj.Name())
+		}
+		if ssaFn == nil {
+			debugLog(f, "unable to resolve SSA function for identifier")
+			return nil
+		}
+		return findResourceFunc(prog, pkg, ssaPkg, ssaFn, allServicePkgs)
+
 	default:
 		debugLog(f, "unexpected type")
 		return nil
@@ -571,6 +680,7 @@ func funcToFuncDeclWithPkgs(pkgs []*packages.Package, fn *types.Func) *ast.FuncD
 			"function": fn.Name(),
 			"scope":    fn.Scope().String(),
 		}).Debug("unable to find AST File object for function in provided packages")
+		return nil
 	}
 
 	return funcToFuncDeclWithFile(file, fn)

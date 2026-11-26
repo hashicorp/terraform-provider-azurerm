@@ -1,0 +1,250 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package express_route_circuit
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Description: "Use this data source to access information about an existing ExpressRoute circuit.",
+		Read:        dataSourceExpressRouteCircuitRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Description:  "The name of the ExpressRoute circuit.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"location": commonschema.LocationComputed(),
+
+			"peerings": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"peering_type": {
+							Description: "The type of the ExpressRoute Circuit Peering.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"primary_peer_address_prefix": {
+							Description: "A `/30` subnet for the primary link.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"secondary_peer_address_prefix": {
+							Description: "A `/30` subnet for the secondary link.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"azure_asn": {
+							Description: "Either a 16-bit or a 32-bit ASN for Azure.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
+						},
+						"peer_asn": {
+							Description: "Either a 16-bit or a 32-bit ASN. Can either be public or private.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
+						},
+						"vlan_id": {
+							Description: "A valid VLAN ID to establish this peering on.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
+						},
+						"shared_key": {
+							Description: "The shared key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+					},
+				},
+			},
+
+			"service_key": {
+				Description: "The string needed by the service provider to provision the ExpressRoute circuit.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+			},
+
+			"service_provider_properties": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"service_provider_name": {
+							Description: "The name of the ExpressRoute Service Provider.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"peering_location": {
+							Description: "The name of the peering location and **not** the Azure resource location.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"bandwidth_in_mbps": {
+							Description: "The bandwidth in Mbps of the ExpressRoute circuit.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
+						},
+					},
+				},
+			},
+
+			"service_provider_provisioning_state": {
+				Description: "The ExpressRoute circuit provisioning state from your chosen service provider.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"tier": {
+							Description: "The service tier.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+
+						"family": {
+							Description: "The billing mode for bandwidth.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).ExpressRoute.ExpressRouteCircuits
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := expressroutecircuits.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
+		}
+		if props := model.Properties; props != nil {
+			if err := d.Set("peerings", flattenExpressRouteCircuitPeerings(props.Peerings)); err != nil {
+				return err
+			}
+
+			d.Set("service_key", props.ServiceKey)
+			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
+
+			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
+				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
+					return fmt.Errorf("setting `service_provider_properties`: %+v", err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRouteCircuitPeering) []any {
+	peerings := make([]any, 0)
+
+	if input != nil {
+		for _, peering := range *input {
+			props := peering.Properties
+			p := make(map[string]any)
+
+			p["peering_type"] = pointer.FromEnum(props.PeeringType)
+
+			if primaryPeerAddressPrefix := props.PrimaryPeerAddressPrefix; primaryPeerAddressPrefix != nil {
+				p["primary_peer_address_prefix"] = *primaryPeerAddressPrefix
+			}
+
+			if secondaryPeerAddressPrefix := props.SecondaryPeerAddressPrefix; secondaryPeerAddressPrefix != nil {
+				p["secondary_peer_address_prefix"] = *secondaryPeerAddressPrefix
+			}
+
+			if azureAsn := props.AzureASN; azureAsn != nil {
+				p["azure_asn"] = *azureAsn
+			}
+
+			if peerAsn := props.PeerASN; peerAsn != nil {
+				p["peer_asn"] = *peerAsn
+			}
+
+			if vlanID := props.VlanId; vlanID != nil {
+				p["vlan_id"] = *vlanID
+			}
+
+			if sharedKey := props.SharedKey; sharedKey != nil {
+				p["shared_key"] = *sharedKey
+			}
+
+			peerings = append(peerings, p)
+		}
+	}
+
+	return peerings
+}
+
+func flattenExpressRouteCircuitServiceProviderProperties(input *expressroutecircuits.ExpressRouteCircuitServiceProviderProperties) []any {
+	serviceProviderProperties := make([]any, 0)
+
+	if input != nil {
+		p := make(map[string]any)
+
+		if serviceProviderName := input.ServiceProviderName; serviceProviderName != nil {
+			p["service_provider_name"] = *serviceProviderName
+		}
+
+		if peeringLocation := input.PeeringLocation; peeringLocation != nil {
+			p["peering_location"] = *peeringLocation
+		}
+
+		if bandwidthInMbps := input.BandwidthInMbps; bandwidthInMbps != nil {
+			p["bandwidth_in_mbps"] = *bandwidthInMbps
+		}
+
+		serviceProviderProperties = append(serviceProviderProperties, p)
+	}
+
+	return serviceProviderProperties
+}
