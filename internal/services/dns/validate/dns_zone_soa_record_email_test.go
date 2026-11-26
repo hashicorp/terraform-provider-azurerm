@@ -27,6 +27,18 @@ func TestDNSZoneSOARecordEmail(t *testing.T) {
 		},
 		{
 			Value:  "a.com.",
+			Errors: 0,
+		},
+		{
+			Value:  "a.com..",
+			Errors: 1,
+		},
+		{
+			Value:  ".",
+			Errors: 1,
+		},
+		{
+			Value:  "a.",
 			Errors: 1,
 		},
 		{
@@ -46,7 +58,15 @@ func TestDNSZoneSOARecordEmail(t *testing.T) {
 			Errors: 0,
 		},
 		{
+			Value:  strings.Repeat("a.", 33) + "com.",
+			Errors: 0,
+		},
+		{
 			Value:  strings.Repeat("a.", 34) + "com",
+			Errors: 1,
+		},
+		{
+			Value:  strings.Repeat("a.", 34) + "com.",
 			Errors: 1,
 		},
 		{
