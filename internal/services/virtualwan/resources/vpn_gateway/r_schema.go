@@ -33,8 +33,8 @@ func vpnGatewaySchema() map[string]*pluginsdk.Schema {
 		"routing_preference": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "Microsoft Network",
 			ForceNew: true,
+			Default:  "Microsoft Network",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Microsoft Network",
 				"Internet",

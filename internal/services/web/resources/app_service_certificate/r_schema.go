@@ -28,16 +28,16 @@ func appServiceCertificateSchema() map[string]*pluginsdk.Schema {
 		"pfx_blob": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true,
 			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"password": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true,
 			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 		},
 
@@ -53,8 +53,8 @@ func appServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 			ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+			DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 			ConflictsWith:    []string{"pfx_blob", "password"},
 			ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
 		},

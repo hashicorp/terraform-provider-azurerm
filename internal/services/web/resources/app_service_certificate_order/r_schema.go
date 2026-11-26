@@ -24,8 +24,8 @@ func appServiceCertificateOrderSchema() map[string]*pluginsdk.Schema {
 
 		"auto_renew": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
 			Optional: true,
+			Default:  true,
 		},
 
 		"certificates": {

@@ -244,8 +244,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
-									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: validation.StringLenBetween(1, 13),
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 								},
 
 								"network_interface_names": {
@@ -263,16 +263,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
-									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: validation.StringLenBetween(1, 80),
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 								},
 
 								"virtual_machine_name": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
-									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: computeValidate.VirtualMachineName,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 								},
 							},
 						},

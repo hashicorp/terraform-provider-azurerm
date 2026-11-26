@@ -39,8 +39,8 @@ func trafficManagerProfileSchema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"relative_name": {
 						Type:     pluginsdk.TypeString,
-						ForceNew: true,
 						Required: true,
+						ForceNew: true,
 					},
 					"ttl": {
 						Type:         pluginsdk.TypeInt,
@@ -104,22 +104,22 @@ func trafficManagerProfileSchema() map[string]*pluginsdk.Schema {
 					"interval_in_seconds": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntInSlice([]int{10, 30}),
 						Default:      30,
+						ValidateFunc: validation.IntInSlice([]int{10, 30}),
 					},
 
 					"timeout_in_seconds": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(5, 10),
 						Default:      10,
+						ValidateFunc: validation.IntBetween(5, 10),
 					},
 
 					"tolerated_number_of_failures": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 9),
 						Default:      3,
+						ValidateFunc: validation.IntBetween(0, 9),
 					},
 				},
 			},

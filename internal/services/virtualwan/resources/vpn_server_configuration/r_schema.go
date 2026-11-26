@@ -168,8 +168,8 @@ func vpnServerConfigurationSchema() map[string]*pluginsdk.Schema {
 								"secret": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
 									Sensitive:    true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"score": {

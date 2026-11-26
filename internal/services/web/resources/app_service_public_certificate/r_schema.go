@@ -16,8 +16,8 @@ func appServicePublicCertificateSchema() map[string]*pluginsdk.Schema {
 
 		"app_service_name": {
 			Type:     pluginsdk.TypeString,
-			ForceNew: true,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"certificate_name": {

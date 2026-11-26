@@ -38,8 +38,8 @@ func virtualWanSchema() map[string]*pluginsdk.Schema {
 		"office365_local_breakout_category": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
 			Default:      string(virtualwans.OfficeTrafficCategoryNone),
+			ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
 		},
 
 		"type": {

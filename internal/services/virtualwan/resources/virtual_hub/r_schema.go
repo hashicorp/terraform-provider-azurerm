@@ -106,8 +106,8 @@ func virtualHubSchema() map[string]*pluginsdk.Schema {
 		"virtual_router_auto_scale_min_capacity": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(2),
 			Default:      2,
+			ValidateFunc: validation.IntAtLeast(2),
 		},
 	}
 }
