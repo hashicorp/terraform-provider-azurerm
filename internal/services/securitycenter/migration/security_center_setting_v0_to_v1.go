@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -18,12 +18,12 @@ type SecurityCenterSettingsV0ToV1 struct{}
 func (SecurityCenterSettingsV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"enabled": {
-			Required: true,
 			Type:     pluginsdk.TypeBool,
+			Required: true,
 		},
 		"setting_name": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 	}
 }

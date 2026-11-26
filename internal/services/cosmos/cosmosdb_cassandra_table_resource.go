@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -23,10 +23,11 @@ import (
 
 func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbCassandraTableCreate,
-		Read:   resourceCosmosDbCassandraTableRead,
-		Update: resourceCosmosDbCassandraTableUpdate,
-		Delete: resourceCosmosDbCassandraTableDelete,
+		Description: "Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.",
+		Create:      resourceCosmosDbCassandraTableCreate,
+		Read:        resourceCosmosDbCassandraTableRead,
+		Update:      resourceCosmosDbCassandraTableUpdate,
+		Delete:      resourceCosmosDbCassandraTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseCassandraKeyspaceTableID(id)
@@ -42,6 +43,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Cassandra Table.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -49,6 +51,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			},
 
 			"cassandra_keyspace_id": {
+				Description:  "The ID of the Cosmos DB Cassandra Keyspace to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,15 +59,17 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			},
 
 			"default_ttl": {
+				Description:  "Time to live of the Cosmos DB Cassandra table. `-1` means the Cassandra table never expires.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"analytical_storage_ttl": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
+				Description: "Time to live of the Analytical Storage. `-1` means the Analytical Storage never expires.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
+				ForceNew:    true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
@@ -74,6 +79,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"schema": common.CassandraTableSchemaPropertySchema(),
 
 			"throughput": {
+				Description:  "The throughput of Cassandra KeySpace (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
