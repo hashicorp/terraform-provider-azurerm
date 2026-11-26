@@ -62,9 +62,9 @@ func resourceRouteTable() *pluginsdk.Resource {
 
 			"route": {
 				Type:       pluginsdk.TypeSet,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true, // azignore:AZS007 - pre-existing violation
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -103,8 +103,8 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"subnets": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": commonschema.Tags(),

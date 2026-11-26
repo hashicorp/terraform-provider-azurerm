@@ -86,9 +86,14 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_orchestrated_virtual_machine_scale_set"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Orchestrated Virtual Machine Scale Set."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Orchestrated Virtual Machine Scale Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.VirtualMachineName,
@@ -108,38 +113,44 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the network interface configuration.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"ip_configuration": helpers.VirtualMachineScaleSetIPConfigurationSchemaForDataSource(),
 
 					"dns_servers": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "An array of the DNS servers in use.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"accelerated_networking_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether accelerated networking is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"ip_forwarding_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether IP forwarding is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"network_security_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The identifier for the Network Security Group.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"primary": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 				},
 			},
@@ -151,8 +162,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allocation_strategy": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The allocation strategy used by this Orchestrated Virtual Machine Scale Set.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"virtual_machine_size": {
@@ -161,13 +173,15 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The name of the VM size.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"rank": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
+									Description: "The rank of the VM size when `allocation_strategy` is set to `Prioritized`.",
+									Type:        pluginsdk.TypeInt,
+									Computed:    true,
 								},
 							},
 						},

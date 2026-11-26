@@ -38,6 +38,7 @@ type CommunicationServiceDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Communication Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.CommunicationServiceName,
@@ -50,43 +51,50 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The location where the Communication Service stores its data at rest.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary connection string of the Communication Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary key of the Communication Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary connection string of the Communication Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary key of the Communication Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The hostname of the Communication Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"immutable_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The immutable resource ID of the Communication Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -97,6 +105,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_communication_service"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Communication Service."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

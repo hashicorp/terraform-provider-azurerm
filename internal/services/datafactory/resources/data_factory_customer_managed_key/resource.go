@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_factory_customer_managed_key"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Customer Managed Key for a Data Factory."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return factories.ValidateFactoryID
 }
