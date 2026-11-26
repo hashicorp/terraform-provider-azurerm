@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDigitalTwinsEndpointServiceBusCreateUpdate,
-		Read:   resourceDigitalTwinsEndpointServiceBusRead,
-		Update: resourceDigitalTwinsEndpointServiceBusCreateUpdate,
-		Delete: resourceDigitalTwinsEndpointServiceBusDelete,
+		Description: "Manages a Digital Twins Service Bus Endpoint.",
+		Create:      resourceDigitalTwinsEndpointServiceBusCreateUpdate,
+		Read:        resourceDigitalTwinsEndpointServiceBusRead,
+		Update:      resourceDigitalTwinsEndpointServiceBusCreateUpdate,
+		Delete:      resourceDigitalTwinsEndpointServiceBusDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

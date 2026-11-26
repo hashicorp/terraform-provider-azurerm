@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceOperationalinsightsDataExportCreateUpdate,
-		Read:   resourceOperationalinsightsDataExportRead,
-		Update: resourceOperationalinsightsDataExportCreateUpdate,
-		Delete: resourceOperationalinsightsDataExportDelete,
+		Description: "Manages a Log Analytics Data Export Rule.",
+		Create:      resourceOperationalinsightsDataExportCreateUpdate,
+		Read:        resourceOperationalinsightsDataExportRead,
+		Update:      resourceOperationalinsightsDataExportCreateUpdate,
+		Delete:      resourceOperationalinsightsDataExportDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dataexport.ParseDataExportID(id)

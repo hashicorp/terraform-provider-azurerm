@@ -13,6 +13,7 @@ import (
 func logicAppIntegrationAccountSchemaSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Logic App Integration Account Schema.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func logicAppIntegrationAccountSchemaSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"integration_account_name": {
+			Description:  "The name of the Logic App Integration Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,18 +31,21 @@ func logicAppIntegrationAccountSchemaSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"content": {
+			Description:  "The content of the Logic App Integration Account Schema.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"file_name": {
+			Description:  "The file name of the Logic App Integration Account Schema.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.IntegrationAccountSchemaFileName(),
 		},
 
 		"metadata": {
+			Description:      "The metadata of the Logic App Integration Account Schema.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,

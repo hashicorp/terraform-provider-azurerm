@@ -94,7 +94,7 @@ The following arguments are supported:
 
 -> **Note:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
 
-* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `BlockBlobStorage` and `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
+* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `BlockBlobStorage` accounts only `Premium` is valid. For `FileStorage` accounts only `Premium` is valid, unless `provisioned_billing_model_version` is set to `V2`, in which case `Standard` is also valid. Changing this forces a new resource to be created.
 
 -> **Note:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
@@ -163,6 +163,8 @@ The following arguments are supported:
 * `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
 
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
+
+* `smb_oauth_enabled` - (Optional) Whether managed identities can access SMB Azure file shares using OAuth. Defaults to `false`.
 
 * `routing` - (Optional) A `routing` block as defined below.
 
@@ -259,7 +261,7 @@ A `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
-~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
+~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `FileStorage` with `provisioned_billing_model_version` set to `V2`, or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
 
 ---
 

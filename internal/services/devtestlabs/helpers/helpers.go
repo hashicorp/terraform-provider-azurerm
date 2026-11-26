@@ -19,12 +19,14 @@ func SchemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
+					Description:  "The Protocol used for this NAT Rule.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForTransportProtocol(), false),
 				},
 
 				"backend_port": {
+					Description:  "The Backend Port associated with this NAT Rule.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ForceNew:     true,
@@ -32,8 +34,9 @@ func SchemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 				},
 
 				"frontend_port": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Description: "The frontend port associated with this Inbound NAT Rule.",
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
 				},
 			},
 		},
@@ -89,24 +92,28 @@ func SchemaDevTestVirtualMachineGalleryImageReference() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"offer": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The Offer of the Gallery Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"publisher": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The Publisher of the Gallery Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"sku": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The SKU of the Gallery Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The Version of the Gallery Image.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 				},
 			},
 		},

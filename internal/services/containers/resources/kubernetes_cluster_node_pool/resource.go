@@ -21,10 +21,11 @@ const azureKubernetesClusterNodePoolResourceName = "azurerm_kubernetes_cluster_n
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKubernetesClusterNodePoolCreate,
-		Read:   resourceKubernetesClusterNodePoolRead,
-		Update: resourceKubernetesClusterNodePoolUpdate,
-		Delete: resourceKubernetesClusterNodePoolDelete,
+		Description: "Manages a Node Pool within a Kubernetes Cluster.",
+		Create:      resourceKubernetesClusterNodePoolCreate,
+		Read:        resourceKubernetesClusterNodePoolRead,
+		Update:      resourceKubernetesClusterNodePoolUpdate,
+		Delete:      resourceKubernetesClusterNodePoolDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&agentpools.AgentPoolId{}),

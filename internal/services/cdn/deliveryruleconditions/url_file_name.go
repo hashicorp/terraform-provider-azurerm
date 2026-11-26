@@ -38,9 +38,10 @@ func URLFileName() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of string values.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -48,8 +49,9 @@ func URLFileName() *pluginsdk.Resource {
 			},
 
 			"transforms": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of transforms.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),

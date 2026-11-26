@@ -111,8 +111,8 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"partitioning_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"forward_dead_lettered_messages_to": {
@@ -159,15 +159,15 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"requires_duplicate_detection": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"requires_session": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"status": {

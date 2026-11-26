@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsSavedSearchCreate,
-		Read:   resourceLogAnalyticsSavedSearchRead,
-		Delete: resourceLogAnalyticsSavedSearchDelete,
+		Description: "Manages a Log Analytics (formally Operational Insights) Saved Search.",
+		Create:      resourceLogAnalyticsSavedSearchCreate,
+		Read:        resourceLogAnalyticsSavedSearchRead,
+		Delete:      resourceLogAnalyticsSavedSearchDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := savedsearches.ParseSavedSearchID(id)

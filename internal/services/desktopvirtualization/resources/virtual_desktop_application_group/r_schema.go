@@ -15,6 +15,7 @@ import (
 func virtualDesktopApplicationGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Virtual Desktop Application Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func virtualDesktopApplicationGroupSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"type": {
+			Description:  "Type of Virtual Desktop Application Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func virtualDesktopApplicationGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"host_pool_id": {
+			Description:  "Resource ID for a Virtual Desktop Host Pool to associate with the Virtual Desktop Application Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,18 +43,21 @@ func virtualDesktopApplicationGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"friendly_name": {
+			Description:  "Option to set a friendly name for the Virtual Desktop Application Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 64),
 		},
 
 		"default_desktop_display_name": {
+			Description:  "Option to set the display name for the default sessionDesktop desktop when `type` is set to `Desktop`. A value here is mandatory for connections to the desktop using the Windows 365 portal. Without it the connection will hang at 'Loading Client'.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
+			Description:  "Option to set a description for the Virtual Desktop Application Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 512),
