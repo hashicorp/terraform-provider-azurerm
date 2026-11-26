@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -15,7 +16,7 @@ import (
 )
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resourceSchema := map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -567,11 +568,16 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Computed:    true,
 		},
 
-		"tenant_access": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			MaxItems: 1,
+		"tags": commonschema.Tags(),
+	}
+
+	if !features.SixPointOh() {
+		resourceSchema["tenant_access"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true, // azignore:AZS007 - pre-existing violation
+			MaxItems:   1,
+			Deprecated: "`tenant_access` has been deprecated and will be removed in v6.0 of the AzureRM provider as the direct management API of API Management has been retired.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
@@ -598,8 +604,8 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"tags": commonschema.Tags(),
+		}
 	}
+
+	return resourceSchema
 }

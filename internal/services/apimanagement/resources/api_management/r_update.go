@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -224,7 +225,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		}
 	}
 
-	if d.HasChange("tenant_access") {
+	if !features.SixPointOh() && d.HasChange("tenant_access") {
 		tenantAccessRaw := d.Get("tenant_access").([]any)
 		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
 			return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
@@ -234,8 +235,11 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
 			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-			if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
-				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+			if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+				// skip error if direct management API is disabled and tenant access is not enabled
+				if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
+					return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+				}
 			}
 		}
 	}

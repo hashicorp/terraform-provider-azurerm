@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -297,17 +298,22 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 		}
 	}
 
-	tenantAccessRaw := d.Get("tenant_access").([]any)
-	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
-		return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
-	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
-		tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
-		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
-		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
-		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-		if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
-			return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+	if !features.SixPointOh() {
+		tenantAccessRaw := d.Get("tenant_access").([]any)
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
+			return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
+		}
+		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
+			tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
+			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
+			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+			if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+				// skip error if direct management API is disabled and tenant access is not enabled
+				if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
+					return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+				}
+			}
 		}
 	}
 

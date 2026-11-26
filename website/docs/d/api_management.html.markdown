@@ -69,8 +69,6 @@ output "api_management_id" {
 
 * `sku_name` - The SKU of the API Management Service consisting of the name and capacity, separated by an underscore.
 
-* `tenant_access` - A `tenant_access` block as defined below.
-
 * `tags` - A mapping of tags assigned to the resource.
 
 ---
@@ -168,18 +166,6 @@ A `scm` block exports the following:
 * `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
-
----
-
-A `tenant_access` block exports the following:
-
-* `enabled` - Is access to the Management API enabled (presumably "for this Tenant")?
-
-* `tenant_id` - The ID of the Tenant which has access to this API Management instance.
-
-* `primary_key` - Primary access key for the tenant access information contract.
-
-* `secondary_key` - Secondary access key for the tenant access information contract.
 
 ---
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type ApiManagementDataSource struct{}
@@ -36,13 +37,16 @@ func TestAccDataSourceApiManagement_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
-				check.That(data.ResourceName).Key("tenant_access.#").HasValue("1"),
 			),
 		},
 	})
 }
 
 func TestAccDataSourceApiManagement_tenantAccess(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping since `tenant_access` is deprecated and will be removed in 6.0")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
 	r := ApiManagementDataSource{}
 

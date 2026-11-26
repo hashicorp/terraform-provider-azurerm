@@ -6,6 +6,7 @@ package api_management
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -166,13 +168,21 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error
 				return fmt.Errorf("setting `delegation`: %+v", err)
 			}
 
-			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
-			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
-			if err != nil {
-				return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
-			}
-			if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)); err != nil {
-				return fmt.Errorf("setting `tenant_access`: %+v", err)
+			if !features.SixPointOh() {
+				tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+				tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
+				var tenantAccess []any
+				switch {
+				case err == nil:
+					tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
+				case wasDirectManagementApiDisabled(tenantAccessInformationContract.HttpResponse, err):
+					tenantAccess = flattenApiManagementTenantAccessSettings(tenantaccess.AccessInformationSecretsContract{Enabled: pointer.To(false)})
+				default:
+					return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
+				}
+				if err := d.Set("tenant_access", tenantAccess); err != nil {
+					return fmt.Errorf("setting `tenant_access`: %+v", err)
+				}
 			}
 		} else {
 			d.Set("sign_in", []any{})
@@ -241,4 +251,9 @@ Alternatively you can manually recover this (e.g. using the Azure CLI) and then 
 this into Terraform via "terraform import", or pick a different name/location.
 `
 	return fmt.Sprintf(message, name, location)
+}
+
+// The service rejects every `tenant/access` operation with a 405 once the retired direct management API is disabled for the instance
+func wasDirectManagementApiDisabled(resp *http.Response, err error) bool {
+	return response.WasStatusCode(resp, http.StatusMethodNotAllowed) && strings.Contains(strings.ToLower(err.Error()), "direct management api is disabled")
 }

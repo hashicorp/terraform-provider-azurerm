@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -931,6 +932,10 @@ func TestAccApiManagement_identitySystemAssignedUserAssignedUpdateUserAssigned(t
 }
 
 func TestAccApiManagement_tenantAccess(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping since `tenant_access` is deprecated and will be removed in 6.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -939,10 +944,6 @@ func TestAccApiManagement_tenantAccess(t *testing.T) {
 			Config: r.tenantAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tenant_access.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("tenant_access.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("tenant_access.0.primary_key").Exists(),
-				check.That(data.ResourceName).Key("tenant_access.0.secondary_key").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -2718,7 +2719,7 @@ resource "azurerm_api_management" "test" {
   sku_name = "Developer_1"
 
   tenant_access {
-    enabled = true
+    enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -89,8 +89,6 @@ The following arguments are supported:
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
 
-* `tenant_access` - (Optional) A `tenant_access` block as defined below.
-
 * `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
 ~> **Note:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
@@ -309,12 +307,6 @@ A `sign_up` block supports the following:
 
 ---
 
-A `tenant_access` block supports the following:
-
-* `enabled` - (Required) Should the access to the management API be enabled?
-
----
-
 A `virtual_network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
@@ -357,8 +349,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
-* `tenant_access` - The `tenant_access` block as defined below.
-
 ---
 
 An `additional_location` block exports the following:
@@ -376,16 +366,6 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
----
-
-A `tenant_access` block exports the following:
-
-* `tenant_id` - The identifier for the tenant access information contract.
-
-* `primary_key` - Primary access key for the tenant access information contract.
-
-* `secondary_key` - Secondary access key for the tenant access information contract.
 
 ---
 
