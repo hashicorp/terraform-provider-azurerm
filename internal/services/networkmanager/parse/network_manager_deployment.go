@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/networkmanagers"
 )
 
 type ManagerDeploymentId struct {
