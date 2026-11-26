@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -28,12 +28,12 @@ func DNSSettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 2,
+					ConflictsWith: []string{
+						"dns_settings.0.use_azure_dns",
+					},
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsIPv4Address,
-					},
-					ConflictsWith: []string{
-						"dns_settings.0.use_azure_dns",
 					},
 				},
 

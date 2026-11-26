@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -77,24 +77,24 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(publicipprefixes.PublicIPPrefixSkuTierRegional),
 				ForceNew:     true,
+				Default:      string(publicipprefixes.PublicIPPrefixSkuTierRegional),
 				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForPublicIPPrefixSkuTier(), false),
 			},
 
 			"prefix_length": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      28,
 				ForceNew:     true,
+				Default:      28,
 				ValidateFunc: validation.IntBetween(0, 127),
 			},
 
 			"ip_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(publicipprefixes.IPVersionIPvFour),
 				ForceNew:     true,
+				Default:      string(publicipprefixes.IPVersionIPvFour),
 				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForIPVersion(), false),
 			},
 

@@ -18,9 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -88,25 +86,25 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"selectors": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"chaos_studio_target_ids": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidateChaosStudioTargetID,
@@ -116,36 +114,36 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 		"steps": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Required:     true,
 									Type:         pluginsdk.TypeString,
+									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"actions": {
-									Required: true,
 									Type:     pluginsdk.TypeList,
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"action_type": {
-												Required: true,
 												Type:     pluginsdk.TypeString,
+												Required: true,
 												ValidateFunc: validation.StringInSlice([]string{
 													continuousActionType,
 													delayActionType,
@@ -155,16 +153,16 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 											// the different types of actions require different properties to be set
 											// which is why the validation for these is done in expandActions
 											"urn": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"selector_name": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"duration": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"parameters": {
 												Type:     pluginsdk.TypeMap,
@@ -376,14 +374,6 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			// the PUT method for updates returns a 200 instead of a 201/202 which means we don't build the poller property
-			// this can be removed when https://github.com/Azure/azure-rest-api-specs/issues/27659 is fixed
-			pollerType := custompollers.NewChaosStudioExperimentPoller(client, *id)
-			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return err
 			}
 
 			return nil
