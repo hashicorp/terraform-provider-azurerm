@@ -14,12 +14,12 @@ Use this data source to access information about an existing Container App Envir
 
 ```hcl
 data "azurerm_container_app_environment" "example" {
-  name                = "existing-environment"
-  resource_group_name = "existing-resources"
+  name                = "example-environment"
+  resource_group_name = "example-resources"
 }
 
 data "azurerm_container_app_environment_storage" "example" {
-  name                         = "existing-storage"
+  name                         = "example-storage"
   container_app_environment_id = data.azurerm_container_app_environment.example.id
 }
 ```
