@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -94,9 +94,10 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"cors_rule": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 5,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     5,
+			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {
@@ -111,8 +112,8 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 					"exposed_headers": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 64,
 						MinItems: 1,
+						MaxItems: 64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -120,8 +121,8 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 					"allowed_headers": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 64,
 						MinItems: 1,
+						MaxItems: 64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -150,14 +151,14 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 					},
 				},
 			},
-			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 		},
 
 		"hour_metrics": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			MaxItems:     1,
+			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"version": {
@@ -177,13 +178,13 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 					},
 				},
 			},
-			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 		},
 		"logging": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			MaxItems:     1,
+			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"version": {
@@ -210,13 +211,13 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 					},
 				},
 			},
-			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 		},
 		"minute_metrics": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			MaxItems:     1,
+			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"version": {
@@ -236,7 +237,6 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 					},
 				},
 			},
-			AtLeastOneOf: []string{"minute_metrics", "hour_metrics", "logging", "cors_rule"},
 		},
 	}
 }

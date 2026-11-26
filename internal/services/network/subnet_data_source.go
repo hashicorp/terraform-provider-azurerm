@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -48,8 +48,8 @@ func dataSourceSubnet() *pluginsdk.Resource {
 
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"network_security_group_id": {
