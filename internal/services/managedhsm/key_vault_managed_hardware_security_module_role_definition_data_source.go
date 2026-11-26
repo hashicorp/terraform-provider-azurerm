@@ -44,8 +44,8 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.
 
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: managedhsms.ValidateManagedHSMID,
 			Required:     true,
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
 		},
 	}
 }

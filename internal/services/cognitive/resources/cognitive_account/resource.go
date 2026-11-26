@@ -21,10 +21,11 @@ const azureCognitiveAccountResourceName = "azurerm_cognitive_account"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCognitiveAccountCreate,
-		Read:   resourceCognitiveAccountRead,
-		Update: resourceCognitiveAccountUpdate,
-		Delete: resourceCognitiveAccountDelete,
+		Description: "Manages a Cognitive Services Account.",
+		Create:      resourceCognitiveAccountCreate,
+		Read:        resourceCognitiveAccountRead,
+		Update:      resourceCognitiveAccountUpdate,
+		Delete:      resourceCognitiveAccountDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

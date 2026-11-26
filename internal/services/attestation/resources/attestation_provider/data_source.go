@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmAttestationProviderRead,
+		Description: "Use this data source to access information about an existing Attestation Provider.",
+		Read:        dataSourceArmAttestationProviderRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,8 +30,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this Attestation Provider.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -38,32 +40,38 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"attestation_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The (Endpoint|URI) of the Attestation Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"trust_model": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Trust model used for the Attestation Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sev_snp_policy_base64": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"open_enclave_policy_base64": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"sgx_enclave_policy_base64": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tpm_policy_base64": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

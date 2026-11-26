@@ -267,10 +267,10 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 		"access_policy": {
 			Type:       pluginsdk.TypeList,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true,
 			MaxItems:   1024,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
@@ -355,14 +355,14 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 					"ip_rules": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"virtual_network_subnet_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      set.HashStringIgnoreCase,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 				},
 			},
@@ -450,7 +450,7 @@ func (KeyVaultV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			// > Once a secret, key, certificate, or key vault is deleted, it will remain recoverable
 			// > for a configurable period of 7 to 90 calendar days. If no configuration is specified
 			// > the default recovery period will be set to 90 days
-			// https://docs.microsoft.com/azure/key-vault/general/soft-delete-overview
+			// https://learn.microsoft.com/azure/key-vault/general/soft-delete-overview
 			//
 			// Notably this value cannot be updated once it's initially been configured, meaning that we
 			// must not send this during creation if it's the default value, to allow users to change

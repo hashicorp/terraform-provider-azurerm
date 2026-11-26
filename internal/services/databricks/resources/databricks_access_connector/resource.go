@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_databricks_access_connector"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Databricks Access Connector."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return accessconnector.ValidateAccessConnectorID
 }

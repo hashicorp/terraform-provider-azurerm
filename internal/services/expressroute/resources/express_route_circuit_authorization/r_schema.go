@@ -11,28 +11,32 @@ import (
 func expressRouteCircuitAuthorizationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the ExpressRoute circuit.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"express_route_circuit_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Express Route Circuit in which to create the Authorization.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"authorization_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Authorization Key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"authorization_use_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The authorization use status.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

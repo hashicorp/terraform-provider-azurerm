@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_iothub_file_upload"
 }
 
+func (r Resource) Description() string {
+	return "Manages the File Upload of an IoT Hub."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.IotHubID
 }

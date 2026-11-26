@@ -33,15 +33,15 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"shape": {
+			Description:  "Filter the versions by system shape.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(giversions.PossibleValuesForSystemShapes(), false),
-			Description:  "Filter the versions by system shape. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.",
 		},
 		"zone": {
+			Description: "Filter the versions by zone.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Filter the versions by zone",
 		},
 	}
 }

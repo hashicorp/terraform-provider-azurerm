@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubCertificateCreate,
-		Read:   resourceIotHubCertificateRead,
-		Update: resourceIotHubCertificateUpdate,
-		Delete: resourceIotHubCertificateDelete,
+		Description: "Manages an IotHub Certificate.",
+		Create:      resourceIotHubCertificateCreate,
+		Read:        resourceIotHubCertificateRead,
+		Update:      resourceIotHubCertificateUpdate,
+		Delete:      resourceIotHubCertificateDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

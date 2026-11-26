@@ -17,6 +17,10 @@ func (s Resource) ResourceType() string {
 	return "azurerm_fluid_relay_server"
 }
 
+func (s Resource) Description() string {
+	return "Manages a Fluid Relay Server."
+}
+
 func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fluidrelayservers.ValidateFluidRelayServerID
 }

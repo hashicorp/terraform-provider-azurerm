@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultCertificateIssuerCreateOrUpdate,
-		Update: resourceKeyVaultCertificateIssuerCreateOrUpdate,
-		Read:   resourceKeyVaultCertificateIssuerRead,
-		Delete: resourceKeyVaultCertificateIssuerDelete,
+		Description: "Manages a Key Vault Certificate Issuer.",
+		Create:      resourceKeyVaultCertificateIssuerCreateOrUpdate,
+		Update:      resourceKeyVaultCertificateIssuerCreateOrUpdate,
+		Read:        resourceKeyVaultCertificateIssuerRead,
+		Delete:      resourceKeyVaultCertificateIssuerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.IssuerID(id)
 			return err

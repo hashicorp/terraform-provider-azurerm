@@ -16,8 +16,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -31,7 +31,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
-		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
+		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}, "source (primary) Autonomous Database"),
 
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,

@@ -41,6 +41,7 @@ func (SRVRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"record": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      resourceDnsSrvRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"priority": {
@@ -64,7 +65,6 @@ func (SRVRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceDnsSrvRecordHash,
 		},
 
 		"ttl": {

@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDnsCNameRecordRead,
+		Description: "Use this data source to access information about an existing DNS CNAME Record within Azure DNS.",
+		Read:        dataSourceDnsCNameRecordRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,35 +27,41 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the DNS CNAME Record.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The DNS Zone where the resource exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"record": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The target of the CNAME.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Time To Live (TTL) of the DNS record in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the DNS CNAME Record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"target_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure resource ID of the target object from where the DNS resource value is taken.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

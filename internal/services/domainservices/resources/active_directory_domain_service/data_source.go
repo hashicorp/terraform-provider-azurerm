@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceActiveDirectoryDomainServiceRead,
+		Description: "Gets information about an Active Directory Domain Service.",
+		Read:        dataSourceActiveDirectoryDomainServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The display name for your managed Active Directory Domain Service resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -38,23 +40,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"deployment_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A unique ID for the managed domain deployment.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"domain_configuration_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The forest type used by the managed domain. One of `ResourceTrusting`, for a _Resource Forest_, or blank, for a _User Forest_.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"domain_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Active Directory domain of the Domain Service. See [official documentation](https://learn.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"filtered_sync_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether group-based filtered sync (also called scoped synchronisation) is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -65,19 +71,22 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"additional_recipients": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of additional email addresses to notify when there are alerts in the managed domain.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"notify_dc_admins": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether members of the _AAD DC Administrators_ group are notified when there are alerts in the managed domain.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"notify_global_admins": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether all Global Administrators are notified when there are alerts in the managed domain.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -102,13 +111,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether secure LDAP is enabled for the managed domain.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"external_access_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether external access to LDAPS over the Internet, is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"certificate_expiry": {
@@ -135,46 +146,54 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"kerberos_armoring_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the Kerberos Armoring is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"kerberos_rc4_encryption_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the Kerberos RC4 Encryption is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"ntlm_v1_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether legacy NTLM v1 support is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"sync_kerberos_passwords": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether Kerberos password hashes are synchronized to the managed domain.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"sync_ntlm_passwords": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether NTLM password hashes are synchronized to the managed domain.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"sync_on_prem_passwords": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether on-premises password hashes are synchronized to the managed domain.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"tls_v1_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether legacy TLS v1 support is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the Domain Service resource.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sync_owner": {
@@ -202,16 +221,18 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 		// TODO: add health-related attributes
 
 		"domain_controller_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of subnet IP addresses for the domain controllers in the replica set, typically two.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"external_access_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The publicly routable IP address for the domain controllers in the replica set.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"id": {
@@ -222,13 +243,15 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 		"location": commonschema.ResourceGroupNameForDataSource(),
 
 		"service_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current service status for the replica set.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the subnet in which the replica set resides.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

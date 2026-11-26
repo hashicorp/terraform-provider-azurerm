@@ -81,8 +81,8 @@ func notificationHubSchema() map[string]*pluginsdk.Schema {
 					"vapid_private_key": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"vapid_public_key": {
 						Type:         pluginsdk.TypeString,

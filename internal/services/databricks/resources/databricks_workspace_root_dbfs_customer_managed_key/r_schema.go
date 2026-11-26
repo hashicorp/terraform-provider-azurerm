@@ -12,12 +12,14 @@ import (
 func databricksWorkspaceRootDbfsCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
+			Description:  "The Resource ID of the Databricks Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"key_vault_key_id": {
+			Description:  "The ID of the Key Vault Key to be used.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),

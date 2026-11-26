@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceHealthcareIotConnectorRead,
+		Description: "Use this data source to access information about an existing Healthcare Med Tech Service.",
+		Read:        dataSourceHealthcareIotConnectorRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,12 +32,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Healthcare Med Tech Service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.MedTechServiceName(),
 			},
 
 			"workspace_id": {
+				Description:  "The ID of the Healthcare Workspace in which the Healthcare Med Tech Service exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -45,23 +48,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"eventhub_namespace_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The namespace name of the Event Hub of the Healthcare Med Tech Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"eventhub_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Event Hub of the Healthcare Med Tech Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"eventhub_consumer_group_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Consumer Group of the Event Hub of the Healthcare Med Tech Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"device_mapping_json": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Device Mappings of the Med Tech Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

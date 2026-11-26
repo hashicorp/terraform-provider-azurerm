@@ -165,6 +165,9 @@ service/hdinsight:
 service/healthcare:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_healthcare_((.|\n)*)###'
 
+service/horizondb:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_horizondb_((.|\n)*)###'
+
 service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
 

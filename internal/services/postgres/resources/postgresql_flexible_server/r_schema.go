@@ -9,12 +9,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+const (
+	postgresqlVersion11 = "11"
+	postgresqlVersion12 = "12"
+	postgresqlVersion13 = "13"
+	postgresqlVersion14 = "14"
+	postgresqlVersion15 = "15"
+	postgresqlVersion16 = "16"
+	postgresqlVersion17 = "17"
+	postgresqlVersion18 = "18"
 )
 
 func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
@@ -50,8 +61,8 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			WriteOnly:     true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"administrator_password"},
 			RequiredWith:  []string{"administrator_password_wo_version"},
+			ConflictsWith: []string{"administrator_password"},
 		},
 
 		"administrator_password_wo_version": {
@@ -62,9 +73,9 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 
 		"authentication": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"active_directory_auth_enabled": {
@@ -131,8 +142,8 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		"storage_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(servers.StorageTypePremiumLRS),
 			ForceNew: true,
+			Default:  string(servers.StorageTypePremiumLRS),
 			// NOTE: not using `servers.PossibleValuesForStorageType()` because it includes `UltraSSD_LRS`, which is not GA yet
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servers.StorageTypePremiumLRS),
@@ -160,8 +171,17 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// Note: O+C because Azure assigns a version when not explicitly set
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice(servers.PossibleValuesForPostgresMajorVersion(), false),
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				postgresqlVersion11,
+				postgresqlVersion12,
+				postgresqlVersion13,
+				postgresqlVersion14,
+				postgresqlVersion15,
+				postgresqlVersion16,
+				postgresqlVersion17,
+				postgresqlVersion18,
+			}, false),
 		},
 
 		"zone": commonschema.ZoneSingleOptional(),
@@ -190,12 +210,12 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
-			// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
-			DiffSuppressFunc: suppress.CaseDifference,
 			// This is `computed`, because there is a breaking change to require this field when setting vnet.
 			// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
 			// We need to ignore the diff when remote is set private dns zone
 			ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
+			// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"point_in_time_restore_time_in_utc": {
@@ -252,8 +272,8 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		"geo_redundant_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"high_availability": {
@@ -297,8 +317,8 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
@@ -336,8 +356,8 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		"cluster": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"size": {
