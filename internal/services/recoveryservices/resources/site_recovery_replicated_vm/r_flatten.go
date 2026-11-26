@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -153,7 +153,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 
 			d.Set("target_virtual_machine_size", pointer.From(a2aDetails.RecoveryAzureVMSize))
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
-			d.Set("target_edge_zone", helpers.FlattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
+			d.Set("target_edge_zone", edgezones.Flatten(a2aDetails.RecoveryExtendedLocation))
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
 			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
 			if a2aDetails.ProtectedDisks != nil {

@@ -6,6 +6,7 @@ package site_recovery_replication_recovery_plan
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 )
 
@@ -106,8 +107,8 @@ func flattenRecoveryPlanProviderSpecificInput(input *[]replicationrecoveryplans.
 			o := ReplicationRecoveryPlanA2ASpecificInputModel{
 				PrimaryZone:      pointer.From(a2aInput.PrimaryZone),
 				RecoveryZone:     pointer.From(a2aInput.RecoveryZone),
-				PrimaryEdgeZone:  helpers.FlattenEdgeZone(a2aInput.PrimaryExtendedLocation),
-				RecoveryEdgeZone: helpers.FlattenEdgeZone(a2aInput.RecoveryExtendedLocation),
+				PrimaryEdgeZone:  edgezones.Flatten(a2aInput.PrimaryExtendedLocation),
+				RecoveryEdgeZone: edgezones.Flatten(a2aInput.RecoveryExtendedLocation),
 			}
 			output = append(output, o)
 		}

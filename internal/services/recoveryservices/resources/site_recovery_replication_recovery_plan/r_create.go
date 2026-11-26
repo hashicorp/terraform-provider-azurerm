@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -178,8 +178,8 @@ func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]re
 		replicationrecoveryplans.RecoveryPlanA2AInput{
 			PrimaryZone:              pointer.To(input.PrimaryZone),
 			RecoveryZone:             pointer.To(input.RecoveryZone),
-			PrimaryExtendedLocation:  helpers.ExpandEdgeZone(input.PrimaryEdgeZone),
-			RecoveryExtendedLocation: helpers.ExpandEdgeZone(input.RecoveryEdgeZone),
+			PrimaryExtendedLocation:  edgezones.Expand(input.PrimaryEdgeZone),
+			RecoveryExtendedLocation: edgezones.Expand(input.RecoveryEdgeZone),
 		},
 	}
 }
