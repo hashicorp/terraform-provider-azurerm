@@ -32,14 +32,14 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 	// source_vm_id must be specified at creation time but can be removed during update
 	if _, ok := d.GetOk("source_vm_id"); !ok {
-		return fmt.Errorf("`source_vm_id` must be specified when creating")
+		return errors.New("`source_vm_id` must be specified when creating")
 	}
 
 	vmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("backup_policy_id").(string)
 
 	if policyId == "" {
-		return fmt.Errorf("`backup_policy_id` must be specified during creation")
+		return errors.New("`backup_policy_id` must be specified during creation")
 	}
 
 	// get VM name from id

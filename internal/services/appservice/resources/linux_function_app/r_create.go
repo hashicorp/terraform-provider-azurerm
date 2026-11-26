@@ -5,6 +5,7 @@ package linux_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -89,7 +90,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					availabilityRequest.IsFqdn = pointer.To(true)
 
 					if !functionApp.VnetImagePullEnabled {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						return errors.New("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 				}
 			}
@@ -159,7 +160,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled || contentShareOverVnetEnabledSiteSetting {
-							return fmt.Errorf("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
+							return errors.New("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}

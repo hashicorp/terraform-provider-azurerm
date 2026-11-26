@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -90,7 +91,7 @@ func dataSourceIpGroupRead(d *pluginsdk.ResourceData, meta any) error {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			if props.IPAddresses == nil {
-				return fmt.Errorf("list of ipAddresses returned is nil")
+				return errors.New("list of ipAddresses returned is nil")
 			}
 			if err := d.Set("cidrs", props.IPAddresses); err != nil {
 				return fmt.Errorf("setting `cidrs`: %+v", err)

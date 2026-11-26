@@ -6,7 +6,6 @@ package linux_virtual_machine_scale_set
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 	"time"
 
@@ -76,11 +75,11 @@ func RegisterResource() *pluginsdk.Resource {
 					auxiliarySku := raw["auxiliary_sku"].(string)
 
 					if auxiliaryMode != "" && auxiliarySku == "" {
-						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+						return errors.New("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
 					}
 
 					if auxiliarySku != "" && auxiliaryMode == "" {
-						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+						return errors.New("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
 					}
 				}
 

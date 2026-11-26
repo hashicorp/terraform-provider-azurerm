@@ -6,6 +6,7 @@ package attestation_provider
 import (
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -54,7 +55,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta any) erro
 	if policySigningCertificate != "" {
 		block, _ := pem.Decode([]byte(policySigningCertificate))
 		if block == nil {
-			return fmt.Errorf("invalid X.509 certificate, unable to decode")
+			return errors.New("invalid X.509 certificate, unable to decode")
 		}
 
 		v := base64.StdEncoding.EncodeToString(block.Bytes)

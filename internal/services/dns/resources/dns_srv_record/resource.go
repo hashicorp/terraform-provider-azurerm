@@ -4,7 +4,7 @@
 package dns_srv_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -33,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeSRV {
-				return fmt.Errorf("this resource only supports 'SRV' records")
+				return errors.New("this resource only supports 'SRV' records")
 			}
 			return nil
 		}),

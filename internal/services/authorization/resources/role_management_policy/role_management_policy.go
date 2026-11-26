@@ -5,6 +5,7 @@ package role_management_policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -54,7 +55,7 @@ func FindRoleManagementPolicyId(ctx context.Context, client *rolemanagementpolic
 
 func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanagementpolicies.RoleManagementPolicy) (*rolemanagementpolicies.RoleManagementPolicy, error) {
 	if rolePolicy == nil {
-		return nil, fmt.Errorf("existing Role Management Policy was nil")
+		return nil, errors.New("existing Role Management Policy was nil")
 	}
 
 	var model RoleManagementPolicyModel
@@ -159,7 +160,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 			if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
 				if len(model.ActivationRules) == 1 {
 					if model.ActivationRules[0].RequireApproval && len(model.ActivationRules[0].ApprovalStages) != 1 {
-						return nil, fmt.Errorf("require_approval is true, but no approval_stages are provided")
+						return nil, errors.New("require_approval is true, but no approval_stages are provided")
 					}
 				}
 

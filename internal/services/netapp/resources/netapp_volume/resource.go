@@ -5,7 +5,7 @@ package netapp_volume
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -43,31 +43,31 @@ func RegisterResource() *pluginsdk.Resource {
 
 			// Breakthrough Mode places the volume on dedicated capacity and is only supported on large volumes
 			if isBreakthroughMode && !isLargeVolume {
-				return fmt.Errorf("`breakthrough_mode_enabled` can only be used on large volumes; set `large_volume_enabled` to true")
+				return errors.New("`breakthrough_mode_enabled` can only be used on large volumes; set `large_volume_enabled` to true")
 			}
 
 			// Breakthrough Mode and cool access cannot both be requested when the volume is created, cool access can
 			// however be enabled on a subsequent update of a Breakthrough Mode volume
 			if isBreakthroughMode && len(coolAccessConfig) > 0 && d.Id() == "" {
-				return fmt.Errorf("`cool_access` cannot be configured when `breakthrough_mode_enabled` is true at creation time; enable `cool_access` in a subsequent update instead")
+				return errors.New("`cool_access` cannot be configured when `breakthrough_mode_enabled` is true at creation time; enable `cool_access` in a subsequent update instead")
 			}
 
 			switch {
 			case isBreakthroughMode && storageQuotaInGB < 2400:
 				// Breakthrough Mode volumes must be at least 2,400 GiB
-				return fmt.Errorf("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must be at least 2,400 GB (2,400 GiB)")
+				return errors.New("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must be at least 2,400 GB (2,400 GiB)")
 			case isBreakthroughMode && storageQuotaInGB > 2457600:
 				// Breakthrough Mode volumes can grow up to 2,400 TiB (2,457,600 GB)
-				return fmt.Errorf("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must not exceed 2,457,600 GB (2,400 TiB)")
+				return errors.New("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must not exceed 2,457,600 GB (2,400 TiB)")
 			case !isBreakthroughMode && isLargeVolume && storageQuotaInGB < 51200:
 				// Large volumes must be at least 50 TiB (51,200 GB)
-				return fmt.Errorf("when `large_volume_enabled` is true, `storage_quota_in_gb` must be at least 51,200 GB (50 TiB)")
+				return errors.New("when `large_volume_enabled` is true, `storage_quota_in_gb` must be at least 51,200 GB (50 TiB)")
 			case !isBreakthroughMode && isLargeVolume && storageQuotaInGB > 1048576:
 				// Validate against the maximum (1 PiB / 1,048,576 GB)
-				return fmt.Errorf("`storage_quota_in_gb` must not exceed 1,048,576 GB (1 PiB); larger sizes require requesting special quota or setting `breakthrough_mode_enabled` to true")
+				return errors.New("`storage_quota_in_gb` must not exceed 1,048,576 GB (1 PiB); larger sizes require requesting special quota or setting `breakthrough_mode_enabled` to true")
 			case !isLargeVolume && storageQuotaInGB > 102400:
 				// Non-large volumes cannot be larger than 100 TiB (102,400 GB)
-				return fmt.Errorf("when `large_volume_enabled` is false, `storage_quota_in_gb` must not exceed 102,400 GB (100 TiB); set `large_volume_enabled` to true for larger volumes")
+				return errors.New("when `large_volume_enabled` is false, `storage_quota_in_gb` must not exceed 102,400 GB (100 TiB); set `large_volume_enabled` to true for larger volumes")
 			default:
 				// All validations passed - no action needed
 			}
@@ -81,18 +81,18 @@ func RegisterResource() *pluginsdk.Resource {
 				// Check if create_from_snapshot_resource_id is explicitly null or empty
 				// Allow computed values (where value is empty but raw config is not null)
 				if rawConfig["create_from_snapshot_resource_id"].IsNull() {
-					return fmt.Errorf("`accept_grow_capacity_pool_for_short_term_clone_split` can only be used in conjunction with `create_from_snapshot_resource_id`")
+					return errors.New("`accept_grow_capacity_pool_for_short_term_clone_split` can only be used in conjunction with `create_from_snapshot_resource_id`")
 				}
 			}
 
 			// Validate that short-term clones are not supported on large volumes
 			if acceptGrowCapacityPool != "" && isLargeVolume {
-				return fmt.Errorf("short-term clones are not supported on large volumes; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `large_volume_enabled` is true")
+				return errors.New("short-term clones are not supported on large volumes; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `large_volume_enabled` is true")
 			}
 
 			// Validate that short-term clones are not supported with cool access
 			if acceptGrowCapacityPool != "" && len(coolAccessConfig) > 0 {
-				return fmt.Errorf("short-term clones are not supported on volumes enabled for cool access; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `cool_access` is configured")
+				return errors.New("short-term clones are not supported on volumes enabled for cool access; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `cool_access` is configured")
 			}
 
 			if d.HasChanges("service_level", "pool_name") {
@@ -153,7 +153,7 @@ func RegisterResource() *pluginsdk.Resource {
 					// Cross-zone replication: both source and destination must have zones assigned
 					zone := d.Get("zone").(string)
 					if zone == "" {
-						return fmt.Errorf("when configuring cross-zone replication (data_protection_replication with same region), the destination volume must have a `zone` assigned")
+						return errors.New("when configuring cross-zone replication (data_protection_replication with same region), the destination volume must have a `zone` assigned")
 					}
 					// Note: We cannot validate the source volume's zone here since we don't have access to it during plan/diff
 					// The documentation states the source must also have a zone, which users must ensure separately

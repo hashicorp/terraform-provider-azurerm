@@ -5,6 +5,7 @@ package lb_backend_address_pool_address_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -212,13 +213,13 @@ func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(exp
 			return err
 		}
 		if pool.Model == nil {
-			return fmt.Errorf("`model` is nil")
+			return errors.New("`model` is nil")
 		}
 		if pool.Model.Properties == nil {
-			return fmt.Errorf("`properties` is nil")
+			return errors.New("`properties` is nil")
 		}
 		if pool.Model.Properties.LoadBalancerBackendAddresses == nil {
-			return fmt.Errorf("`properties.loadBalancerBackendAddresses` is nil")
+			return errors.New("`properties.loadBalancerBackendAddresses` is nil")
 		}
 
 		actual := len(*pool.Model.Properties.LoadBalancerBackendAddresses)

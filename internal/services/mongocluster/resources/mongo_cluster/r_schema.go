@@ -322,21 +322,21 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			case string(mongoclusters.CreateModeGeoReplica):
 				if state.SourceLocation == "" {
-					return fmt.Errorf("`source_location` is required when `create_mode` is `GeoReplica`")
+					return errors.New("`source_location` is required when `create_mode` is `GeoReplica`")
 				}
 			case string(mongoclusters.CreateModePointInTimeRestore):
 				if len(state.Restore) == 0 {
-					return fmt.Errorf("`restore` is required when `create_mode` is `PointInTimeRestore`")
+					return errors.New("`restore` is required when `create_mode` is `PointInTimeRestore`")
 				}
 			}
 
 			if state.ComputeTier == "Free" || state.ComputeTier == "M25" {
 				if state.HighAvailabilityMode == string(mongoclusters.HighAvailabilityModeZoneRedundantPreferred) {
-					return fmt.Errorf("high Availability is not available with the `Free` or `M25` Compute Tier")
+					return errors.New("high Availability is not available with the `Free` or `M25` Compute Tier")
 				}
 
 				if state.ShardCount > 1 {
-					return fmt.Errorf("the value of `shard_count` cannot exceed 1 for the `Free` or `M25` Compute Tier")
+					return errors.New("the value of `shard_count` cannot exceed 1 for the `Free` or `M25` Compute Tier")
 				}
 			}
 
@@ -358,7 +358,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["data_api_mode_enabled"].IsNull() && state.CreateMode != string(mongoclusters.CreateModeDefault) {
-				return fmt.Errorf("`data_api_mode_enabled` can only be set when `create_mode` is `Default`")
+				return errors.New("`data_api_mode_enabled` can only be set when `create_mode` is `Default`")
 			}
 
 			if err := validateMongoClusterCosmosDBNetworkBypassEnabled(metadata, state); err != nil {

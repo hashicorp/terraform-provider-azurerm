@@ -5,6 +5,7 @@ package healthcare_medtech_service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -79,7 +80,7 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta any) e
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
 	if !ok {
-		return fmt.Errorf("unable to retrieve the Domain Suffix for ServiceBus, this is not configured for this Cloud Environment")
+		return errors.New("unable to retrieve the Domain Suffix for ServiceBus, this is not configured for this Cloud Environment")
 	}
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

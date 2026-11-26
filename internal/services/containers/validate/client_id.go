@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -25,7 +26,7 @@ func ClientID(i any, k string) ([]string, []error) {
 	// since we can instead omit the `service_principal` block
 	if strings.EqualFold(v, "msi") {
 		return nil, []error{
-			fmt.Errorf("to define an AKS cluster with authentication via MSI - remove the `service_principal` block"),
+			errors.New("to define an AKS cluster with authentication via MSI - remove the `service_principal` block"),
 		}
 	}
 

@@ -5,6 +5,7 @@ package dev_center_project_environment_type
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -105,7 +106,7 @@ func expandDevCenterProjectEnvironmentTypeUserRoleAssignment(input []DevCenterPr
 
 	for _, v := range input {
 		if _, exists := result[v.UserId]; exists {
-			return nil, fmt.Errorf("`user_id` is duplicate")
+			return nil, errors.New("`user_id` is duplicate")
 		}
 
 		result[v.UserId] = environmenttypes.UserRoleAssignment{

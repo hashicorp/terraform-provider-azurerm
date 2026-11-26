@@ -4,7 +4,7 @@
 package validate
 
 import (
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -30,7 +30,7 @@ func FlexibleServerSkuNameChange(skuOld string, skuNew string) error {
 	isConfidentialNew := regexp.MustCompile(confidentialComputeRegex).MatchString(skuNewParts[2])
 
 	if isConfidentialOld != isConfidentialNew {
-		return fmt.Errorf("migration of Postgres flexible server between `non-confidential` and `confidential` compute types requires manual intervention, suggestion is to deploy new server in parallel with old, consult official Azure documentation for migration then remove old server")
+		return errors.New("migration of Postgres flexible server between `non-confidential` and `confidential` compute types requires manual intervention, suggestion is to deploy new server in parallel with old, consult official Azure documentation for migration then remove old server")
 	}
 
 	return nil

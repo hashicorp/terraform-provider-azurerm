@@ -5,6 +5,7 @@ package data_protection_backup_policy_kubernetes_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -174,7 +175,7 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 
 func expandBackupPolicyKubernetesClusterCriteriaArray(input []Criteria) (*[]basebackuppolicyresources.BackupCriteria, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("criteria is a required field, cannot leave blank")
+		return nil, errors.New("criteria is a required field, cannot leave blank")
 	}
 
 	results := make([]basebackuppolicyresources.BackupCriteria, 0)

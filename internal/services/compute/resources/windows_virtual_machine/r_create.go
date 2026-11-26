@@ -4,6 +4,7 @@
 package windows_virtual_machine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -142,7 +143,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 		}
 
 		if !provisionVMAgent && allowExtensionOperations {
-			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+			return errors.New("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 		}
 
 		autoUpdatesEnabled := true
@@ -181,7 +182,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 		}
 
 		if assessmentMode == string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
-			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+			return errors.New("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
 		}
 
 		if isHotpatchImage && patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
@@ -218,7 +219,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 
 		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
 			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+				return errors.New("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
 			}
 
 			if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
@@ -230,7 +231,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 
 		if v, ok := d.GetOk("reboot_setting"); ok {
 			if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+				return errors.New("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
 			}
 
 			if params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
@@ -300,10 +301,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
 		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			return errors.New("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
+			return errors.New("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
 		if params.Properties.SecurityProfile == nil {
@@ -342,12 +343,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Properties.Priority != nil && *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return errors.New("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.Properties.EvictionPolicy = pointer.ToEnum[virtualmachines.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return errors.New("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
@@ -356,7 +357,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if priority != virtualmachines.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return errors.New("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		params.Properties.BillingProfile = &virtualmachines.BillingProfile{

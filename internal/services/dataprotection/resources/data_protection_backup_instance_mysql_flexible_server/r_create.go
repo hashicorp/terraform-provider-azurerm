@@ -5,6 +5,7 @@ package data_protection_backup_instance_mysql_flexible_server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -95,7 +96,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			// Service will continue to configure the protection after the resource is created and `provisioningState` returns `Succeeded`. At this time, service doesn't allow to change the resource until it is configured completely
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			stateConf := &pluginsdk.StateChangeConf{

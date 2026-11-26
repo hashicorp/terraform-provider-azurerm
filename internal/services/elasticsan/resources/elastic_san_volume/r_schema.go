@@ -5,7 +5,7 @@ package elastic_san_volume
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -111,7 +111,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("size_in_gib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("new size_in_gib should be greater than the existing one")
+				return errors.New("new size_in_gib should be greater than the existing one")
 			}
 
 			return nil

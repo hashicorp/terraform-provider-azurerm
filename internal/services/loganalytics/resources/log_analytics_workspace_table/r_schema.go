@@ -5,7 +5,7 @@ package log_analytics_workspace_table
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
@@ -23,7 +23,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 			if string(tables.TablePlanEnumBasic) == rd.Get("plan").(string) {
 				if v, ok := rd.GetOk("retention_in_days"); ok && v.(int) != 30 {
-					return fmt.Errorf("cannot set retention_in_days because the retention is fixed at 30 days on Basic plan")
+					return errors.New("cannot set retention_in_days because the retention is fixed at 30 days on Basic plan")
 				}
 			}
 

@@ -5,6 +5,7 @@ package schemaz
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -153,7 +154,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if contentTypeIsFormData {
 			output.FormParameters = formParameters
 		} else if len(*formParameters) > 0 {
-			return nil, fmt.Errorf("`form_parameter` can only be specified for form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, errors.New("`form_parameter` can only be specified for form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		}
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
@@ -163,9 +164,9 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 			output.SchemaId = pointer.To(schemaId)
 			output.TypeName = pointer.To(typeName)
 		} else if schemaId != "" {
-			return nil, fmt.Errorf("`schema_id` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, errors.New("`schema_id` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		} else if typeName != "" {
-			return nil, fmt.Errorf("`type_name` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, errors.New("`type_name` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		}
 
 		outputs = append(outputs, output)

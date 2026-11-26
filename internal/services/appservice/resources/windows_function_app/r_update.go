@@ -5,6 +5,7 @@ package windows_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -184,7 +185,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled || contentShareOverVnetEnabledSiteSetting {
-							return fmt.Errorf("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
+							return errors.New("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
 						}
 						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
 					}

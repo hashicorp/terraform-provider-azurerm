@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -59,5 +60,5 @@ func SynapseScope(synapseScope string) (string, string, error) {
 		return sparkPoolID.WorkspaceName, fmt.Sprintf("workspaces/%s/bigDataPools/%s", sparkPoolID.WorkspaceName, sparkPoolID.BigDataPoolName), nil
 	}
 
-	return "", "", fmt.Errorf("synapseScope format error")
+	return "", "", errors.New("synapseScope format error")
 }
