@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data
@@ -46,10 +46,10 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 		Service:      service,
 		Type:         resourceType,
 	}
-	result.Path = expectedResourceCodePath(resourceFilePathPattern, result.ShortName, service, resourceType)
+	result.Path = expectedResourceCodePath(fs, resourceFilePathPattern, result.ShortName, service, resourceType)
 
 	// skip if generated resource
-	if util.FileExists(fs, expectedResourceCodePath(resourceFileGenPathPattern, result.ShortName, service, resourceType)) {
+	if util.FileExists(fs, expectedResourceCodePath(fs, resourceFileGenPathPattern, result.ShortName, service, resourceType)) {
 		return nil, fmt.Errorf("skipping generated resource") // TODO debug msg, no error?
 	}
 

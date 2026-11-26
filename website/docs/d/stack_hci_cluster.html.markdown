@@ -14,8 +14,8 @@ Use this data source to access information about an existing Azure Stack HCI Clu
 
 ```hcl
 data "azurerm_stack_hci_cluster" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-cluster"
+  resource_group_name = "example-resources"
 }
 
 

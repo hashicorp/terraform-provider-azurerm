@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-func TestAccountDetails_DataPlaneEndpoint(t *testing.T) {
+func TestDataPlaneEndpoint_accountDetails(t *testing.T) {
 	StorageDomainSuffix = pointer.To("core.windows.net")
 	ad := AccountDetails{
 		StorageAccountId: commonids.StorageAccountId{
