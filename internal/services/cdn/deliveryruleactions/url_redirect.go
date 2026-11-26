@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -17,12 +17,14 @@ func URLRedirect() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"redirect_type": {
+				Description:  "Type of the redirect.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleRedirectTypeValues(), false),
 			},
 
 			"protocol": {
+				Description:  "The protocol part of the URL.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(cdn.DestinationProtocolMatchRequest),
@@ -30,23 +32,27 @@ func URLRedirect() *pluginsdk.Resource {
 			},
 
 			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The hostname part of the URL.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"path": {
+				Description:  "The path part of the URL. This value must begin with a `/`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectPath(),
 			},
 
 			"query_string": {
+				Description:  "The query string part of the URL. This value must not start with a `?` or `&` and must be in `<key>=<value>` format separated by `&`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectQueryString(),
 			},
 
 			"fragment": {
+				Description:  "The fragment part of the URL. This value must not start with a `#`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectFragment(),
