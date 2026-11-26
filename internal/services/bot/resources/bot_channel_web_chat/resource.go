@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_web_chat
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelWebChatCreate,
-		Read:   resourceBotChannelWebChatRead,
-		Delete: resourceBotChannelWebChatDelete,
-		Update: resourceBotChannelWebChatUpdate,
+		Description: "Manages a Web Chat integration for a Bot Channel.",
+		Create:      resourceBotChannelWebChatCreate,
+		Read:        resourceBotChannelWebChatRead,
+		Delete:      resourceBotChannelWebChatDelete,
+		Update:      resourceBotChannelWebChatUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

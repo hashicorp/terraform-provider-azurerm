@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_email
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelEmailCreate,
-		Read:   resourceBotChannelEmailRead,
-		Delete: resourceBotChannelEmailDelete,
-		Update: resourceBotChannelEmailUpdate,
+		Description: "Manages an Email integration for a Bot Channel.",
+		Create:      resourceBotChannelEmailCreate,
+		Read:        resourceBotChannelEmailRead,
+		Delete:      resourceBotChannelEmailDelete,
+		Update:      resourceBotChannelEmailUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

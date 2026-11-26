@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -74,88 +74,88 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 func (FeatureResourceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"description": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"enabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 		"etag": {
-			Computed: true,
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 		"label": {
-			ForceNew: true,
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
 		},
 		"locked": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"percentage_filter_value": {
-			Optional: true,
 			Type:     pluginsdk.TypeInt,
+			Optional: true,
 		},
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Optional: true,
 			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 		"targeting_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 				"default_rollout_percentage": {
-					Required: true,
 					Type:     pluginsdk.TypeInt,
+					Required: true,
 				},
 				"groups": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Required: true,
 							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"rollout_percentage": {
-							Required: true,
 							Type:     pluginsdk.TypeInt,
+							Required: true,
 						},
 					}},
-					Optional: true,
-					Type:     pluginsdk.TypeList,
 				},
 				"users": {
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Optional: true,
 					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 			}},
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"timewindow_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 				"end": {
-					Optional: true,
 					Type:     pluginsdk.TypeString,
+					Optional: true,
 				},
 				"start": {
-					Optional: true,
 					Type:     pluginsdk.TypeString,
+					Optional: true,
 				},
 			}},
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 		},
 	}
 }

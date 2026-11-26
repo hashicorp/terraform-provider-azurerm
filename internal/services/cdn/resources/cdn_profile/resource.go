@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_profile
@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_profile/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnProfileCreate,
-		Read:   resourceCdnProfileRead,
-		Update: resourceCdnProfileUpdate,
-		Delete: resourceCdnProfileDelete,
+		Description: "Manages a CDN (classic) Profile to create a collection of CDN Endpoints.",
+		Create:      resourceCdnProfileCreate,
+		Read:        resourceCdnProfileRead,
+		Update:      resourceCdnProfileUpdate,
+		Delete:      resourceCdnProfileDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

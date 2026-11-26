@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_runbook
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationRunbookCreateUpdate,
-		Read:   resourceAutomationRunbookRead,
-		Update: resourceAutomationRunbookCreateUpdate,
-		Delete: resourceAutomationRunbookDelete,
+		Description: "Manages an Automation Runbook.",
+		Create:      resourceAutomationRunbookCreateUpdate,
+		Read:        resourceAutomationRunbookRead,
+		Update:      resourceAutomationRunbookCreateUpdate,
+		Delete:      resourceAutomationRunbookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := runbook.ParseRunbookID(id)

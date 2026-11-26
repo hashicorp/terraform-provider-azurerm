@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -156,8 +156,8 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 						"interval_in_minutes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntInSlice([]int{10, 60}),
 							Default:      60,
+							ValidateFunc: validation.IntInSlice([]int{10, 60}),
 						},
 					},
 				},

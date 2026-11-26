@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -90,22 +90,22 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"management_group_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ManagementGroupID,
 						},
-						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 					},
 					"subscription_ids": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidateSubscriptionID,
 						},
-						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 					},
 				},
 			},

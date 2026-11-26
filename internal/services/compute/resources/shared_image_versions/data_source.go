@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package shared_image_versions
@@ -34,7 +34,8 @@ type Output struct {
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSharedImageVersionsRead,
+		Description: "Use this data source to access information about existing Versions of a Shared Image within a Shared Image Gallery.",
+		Read:        dataSourceSharedImageVersionsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -42,12 +43,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"gallery_name": {
+				Description:  "The name of the Shared Image in which the Shared Image exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
 			"image_name": {
+				Description:  "The name of the Shared Image in which this Version exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageName,
@@ -63,20 +66,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of this Shared Image Version.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Image Version.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"location": commonschema.LocationComputed(),
 
 						"managed_image_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Managed Image which was the source of this Shared Image Version.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"target_region": {
@@ -85,26 +91,30 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Azure Region in which this Image Version exists.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"regional_replica_count": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The number of replicas of the Image Version to be created per region.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 
 									"storage_account_type": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Storage Account type for the image version.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
 						},
 
 						"exclude_from_latest": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether this Image Version is excluded from the `latest` filter.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"tags": commonschema.TagsDataSource(),

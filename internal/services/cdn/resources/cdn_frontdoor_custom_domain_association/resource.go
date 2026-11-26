@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_custom_domain_association
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorCustomDomainAssociationCreate,
-		Read:   resourceCdnFrontDoorCustomDomainAssociationRead,
-		Update: resourceCdnFrontDoorCustomDomainAssociationUpdate,
-		Delete: resourceCdnFrontDoorCustomDomainAssociationDelete,
+		Description: "Manages the association between a Front Door (standard/premium) Custom Domain and one or more Front Door (standard/premium) Routes.",
+		Create:      resourceCdnFrontDoorCustomDomainAssociationCreate,
+		Read:        resourceCdnFrontDoorCustomDomainAssociationRead,
+		Update:      resourceCdnFrontDoorCustomDomainAssociationUpdate,
+		Delete:      resourceCdnFrontDoorCustomDomainAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

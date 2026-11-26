@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -39,8 +39,8 @@ func (SubscriptionConsumptionBudgetV0ToV1) Schema() map[string]*pluginsdk.Schema
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"amount": {
@@ -266,8 +266,8 @@ func (SubscriptionConsumptionBudgetV1ToV2) Schema() map[string]*pluginsdk.Schema
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"amount": {

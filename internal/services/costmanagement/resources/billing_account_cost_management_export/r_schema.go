@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package billing_account_cost_management_export
@@ -11,6 +11,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cost Management Export.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,6 +19,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"billing_account_id": {
+			Description:  "The ID of the billing account on which to create an export.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

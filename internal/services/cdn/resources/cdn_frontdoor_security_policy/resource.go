@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_security_policy
@@ -6,16 +6,17 @@ package cdn_frontdoor_security_policy
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorSecurityPolicyCreate,
-		Read:   resourceCdnFrontdoorSecurityPolicyRead,
-		Update: resourceCdnFrontdoorSecurityPolicyUpdate,
-		Delete: resourceCdnFrontdoorSecurityPolicyDelete,
+		Description: "Manages a Front Door (standard/premium) Security Policy.",
+		Create:      resourceCdnFrontdoorSecurityPolicyCreate,
+		Read:        resourceCdnFrontdoorSecurityPolicyRead,
+		Update:      resourceCdnFrontdoorSecurityPolicyUpdate,
+		Delete:      resourceCdnFrontdoorSecurityPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
