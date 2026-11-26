@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -73,11 +73,11 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"iothub_ids": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				Set:      set.HashStringIgnoreCase,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: iothubValidate.IotHubID,
 				},
-				Set: set.HashStringIgnoreCase,
 			},
 
 			"additional_workspace": {
