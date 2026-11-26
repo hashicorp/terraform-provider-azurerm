@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channels_registration
@@ -18,10 +18,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelsRegistrationCreate,
-		Read:   resourceBotChannelsRegistrationRead,
-		Delete: resourceBotChannelsRegistrationDelete,
-		Update: resourceBotChannelsRegistrationUpdate,
+		Description: "Manages a Bot Channels Registration.",
+		Create:      resourceBotChannelsRegistrationCreate,
+		Read:        resourceBotChannelsRegistrationRead,
+		Delete:      resourceBotChannelsRegistrationDelete,
+		Update:      resourceBotChannelsRegistrationUpdate,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

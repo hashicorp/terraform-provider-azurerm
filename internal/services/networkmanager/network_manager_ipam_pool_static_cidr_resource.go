@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -54,7 +54,7 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 			),
 		},
 
-		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}),
+		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}, "Network Manager IP Address Management (IPAM) Pool"),
 
 		"address_prefixes": {
 			Type:         pluginsdk.TypeList,

@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 import argparse
@@ -228,7 +228,7 @@ def install_agent():
 
     # Retrieving Helm chart OCI Artifact location
     registry_path = get_helm_registry("https://westeurope.dp.kubernetesconfiguration.azure.com")
-    
+
     # Get helm chart path
     chart_path = get_chart_path(
         registry_path, None, None, helm_client_location)

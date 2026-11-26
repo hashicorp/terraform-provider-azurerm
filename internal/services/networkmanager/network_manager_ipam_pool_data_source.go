@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -49,7 +49,7 @@ func (r ManagerIpamPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"network_manager_id": commonschema.ResourceIDReferenceRequired(&ipampools.NetworkManagerId{}),
+		"network_manager_id": commonschema.ResourceIDReferenceRequired(&ipampools.NetworkManagerId{}, "Network Manager"),
 	}
 }
 

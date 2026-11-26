@@ -116,7 +116,10 @@ tools: $(ACTIONLINT) $(CHANGELOGGY) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(G
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
 
+# Generated files are deleted first, so one that has lost its go:generate line shows up as a deleted file in gencheck.
 generate: $(GOFUMPT) $(GOIMPORTS) $(TERRAFMT) ## Regenerate auto-generated code
+	find ./internal/services -name '*resource_identity_gen_test.go' -delete
+	grep -rl --include='*.go' "NOTE: this file is generated via 'go:generate'" ./internal/services | xargs rm
 	go generate ./internal/services/...
 	go generate ./internal/provider/
 

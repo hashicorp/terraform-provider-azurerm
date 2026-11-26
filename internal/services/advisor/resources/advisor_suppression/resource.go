@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package advisor_suppression
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_advisor_suppression"
+}
+
+func (Resource) Description() string {
+	return "A suppression for an Azure Advisor recommendation."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
