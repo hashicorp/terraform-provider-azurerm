@@ -4,12 +4,12 @@
 package helpers_test
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/linux_web_app_slot"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app_slot"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/linux_web_app_slot"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_web_app_slot"
 )
 
 var dockerFxStringCases = []struct {
