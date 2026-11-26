@@ -131,25 +131,25 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"groups": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												ForceNew: true,
+												Type:         pluginsdk.TypeList,
+												Optional:     true,
+												ForceNew:     true,
+												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.IsEmailAddress,
 												},
-												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
 
 											"users": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												ForceNew: true,
+												Type:         pluginsdk.TypeList,
+												Optional:     true,
+												ForceNew:     true,
+												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.IsEmailAddress,
 												},
-												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
 										},
 									},
@@ -161,7 +161,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}, "Dev Center Project"),
 
 		"maximum_concurrency": {
 			Type:         pluginsdk.TypeInt,
@@ -253,8 +253,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										Schema: map[string]*pluginsdk.Schema{
 											"key_export_enabled": {
 												Type:     pluginsdk.TypeBool,
-												Default:  false,
 												Optional: true,
+												Default:  false,
 											},
 
 											"key_vault_certificate_ids": {
@@ -286,8 +286,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"storage": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"caching": {
@@ -330,9 +330,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"stateful_agent": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"grace_period_time_span": {
@@ -354,13 +355,13 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					"automatic_resource_prediction": automaticResourcePredictionSchema("stateful_agent.0"),
 				},
 			},
-			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
 		"stateless_agent": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"manual_resource_prediction": manualResourcePredictionSchema("stateless_agent.0"),
@@ -368,7 +369,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					"automatic_resource_prediction": automaticResourcePredictionSchema("stateless_agent.0"),
 				},
 			},
-			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
 		"work_folder": {

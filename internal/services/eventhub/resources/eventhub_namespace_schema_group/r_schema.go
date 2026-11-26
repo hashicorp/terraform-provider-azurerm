@@ -14,6 +14,7 @@ import (
 func eventhubNamespaceSchemaGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this schema group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func eventhubNamespaceSchemaGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"namespace_id": {
+			Description:  "The ID of the EventHub Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func eventhubNamespaceSchemaGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"schema_compatibility": {
+			Description:  "The compatibility of this schema group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,9 +38,10 @@ func eventhubNamespaceSchemaGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"schema_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Type of this schema group.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(schemaregistry.SchemaTypeUnknown),
 				string(schemaregistry.SchemaTypeAvro),

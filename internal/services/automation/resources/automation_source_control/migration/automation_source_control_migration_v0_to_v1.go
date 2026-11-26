@@ -67,8 +67,8 @@ func (s AutomationSourceControlV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"security": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"token": {

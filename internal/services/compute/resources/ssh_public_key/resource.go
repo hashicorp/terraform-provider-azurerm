@@ -20,10 +20,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSshPublicKeyCreate,
-		Read:   resourceSshPublicKeyRead,
-		Update: resourceSshPublicKeyUpdate,
-		Delete: resourceSshPublicKeyDelete,
+		Description: "Manages an SSH Public Key.",
+		Create:      resourceSshPublicKeyCreate,
+		Read:        resourceSshPublicKeyRead,
+		Update:      resourceSshPublicKeyUpdate,
+		Delete:      resourceSshPublicKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := sshpublickeys.ParseSshPublicKeyID(id)

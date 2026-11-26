@@ -6,7 +6,7 @@ package email_communication_service_domain
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -14,12 +14,14 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Email Communication Service resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"email_service_id": {
+			Description:  "The resource ID of the Email Communication Service where the Domain belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain_management": {
+			Description:  "Describes how a Domains resource is being managed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,8 +37,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"user_engagement_tracking_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether user engagement tracking is enabled or disabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -45,13 +49,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"from_sender_domain": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "P2 sender domain that is displayed to the email recipients [RFC 5322].",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"mail_from_sender_domain": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "P1 sender domain that is present on the email envelope [RFC 5321].",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"verification_records": {
@@ -59,11 +65,11 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"domain": helper.DomainVerificationRecordsCommonSchema(),
-					"dkim":   helper.DomainVerificationRecordsCommonSchema(),
-					"dkim2":  helper.DomainVerificationRecordsCommonSchema(),
-					"dmarc":  helper.DomainVerificationRecordsCommonSchema(),
-					"spf":    helper.DomainVerificationRecordsCommonSchema(),
+					"domain": helpers.DomainVerificationRecordsCommonSchema(),
+					"dkim":   helpers.DomainVerificationRecordsCommonSchema(),
+					"dkim2":  helpers.DomainVerificationRecordsCommonSchema(),
+					"dmarc":  helpers.DomainVerificationRecordsCommonSchema(),
+					"spf":    helpers.DomainVerificationRecordsCommonSchema(),
 				},
 			},
 		},

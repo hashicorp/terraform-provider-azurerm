@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceLogicAppIntegrationAccountRead,
+		Description: "Use this data source to access information about an existing Logic App Integration Account.",
+		Read:        dataSourceLogicAppIntegrationAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,8 +28,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this Logic App Integration Account.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -36,8 +38,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU name of the Logic App Integration Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

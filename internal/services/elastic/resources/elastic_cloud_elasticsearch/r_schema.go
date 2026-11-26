@@ -14,6 +14,7 @@ import (
 func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Elasticsearch resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,12 +26,14 @@ func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the SKU for this Elasticsearch.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"elastic_cloud_email_address": {
+			Description:  "The Email Address which should be associated with this Elasticsearch account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,10 +41,11 @@ func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"monitoring_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
+			Description: "Whether the Elasticsearch should have monitoring configured.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     true,
 		},
 
 		"logs": {
@@ -56,16 +60,19 @@ func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The name (key) of the Tag which should be filtered.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"value": {
+									Description:  "The value of the Tag which should be filtered.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"action": {
+									Description:  "The type of action which should be taken when the Tag matches the `name` and `value`.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
@@ -75,21 +82,24 @@ func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"send_activity_logs": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the Azure Activity Logs should be sent to the Elasticsearch cluster.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"send_azuread_logs": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the AzureAD Logs should be sent to the Elasticsearch cluster.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"send_subscription_logs": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the Azure Subscription Logs should be sent to the Elasticsearch cluster.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -98,28 +108,33 @@ func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"elastic_cloud_deployment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Deployment within Elastic Cloud.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"elastic_cloud_sso_default_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"elastic_cloud_user_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the User Account within Elastic Cloud.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"elasticsearch_service_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL to the Elasticsearch Service associated with this Elasticsearch.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"kibana_service_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL to the Kibana Dashboard associated with this Elasticsearch.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"kibana_sso_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URI used for SSO to the Kibana Dashboard associated with this Elasticsearch.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

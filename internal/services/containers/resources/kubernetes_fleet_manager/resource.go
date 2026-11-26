@@ -23,3 +23,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_fleet_manager"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Kubernetes Fleet Manager."
+}
