@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -397,7 +397,7 @@ func flattenEntity(entity map[string]any) map[string]any {
 			result[k+"@odata.type"] = dtype
 		} else {
 			// special handling for property types that do not require the annotation to be present
-			// https://docs.microsoft.com/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
+			// https://learn.microsoft.com/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
 			switch c := v.(type) {
 			case bool:
 				result[k] = fmt.Sprint(v)

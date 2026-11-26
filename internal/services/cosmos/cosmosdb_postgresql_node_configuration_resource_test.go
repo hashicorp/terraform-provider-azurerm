@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -19,7 +19,7 @@ import (
 
 type CosmosDbPostgreSQLNodeConfigurationResource struct{}
 
-func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
 	r := CosmosDbPostgreSQLNodeConfigurationResource{}
 
@@ -34,7 +34,7 @@ func TestCosmosDbPostgreSQLNodeConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLNodeConfiguration_update(t *testing.T) {
+func TestAccCosmosDbPostgreSQLNodeConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_node_configuration", "test")
 	r := CosmosDbPostgreSQLNodeConfigurationResource{}
 

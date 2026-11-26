@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -37,8 +37,8 @@ func (s SpringCloudV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "S0",
 			ForceNew: true,
+			Default:  "S0",
 		},
 
 		"build_agent_pool_size": {
