@@ -4,6 +4,7 @@
 package postgresql_flexible_server
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -53,17 +54,17 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any)
 
 		if pwdEnabled {
 			if !adminLoginSet {
-				return fmt.Errorf("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
+				return errors.New("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
 			}
 			if !adminPwdSet && woPassword.IsNull() {
-				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `authentication.password_auth_enabled` is set to `true`")
+				return errors.New("`administrator_password` or `administrator_password_wo` is required when `authentication.password_auth_enabled` is set to `true`")
 			}
 		}
 
 		if d.HasChange("administrator_login") {
 			requireUpdateOnLogin = true
 			if adminLoginSet && !pwdEnabled {
-				return fmt.Errorf("when `administrator_login` is first set, `authentication.password_auth_enabled` must be set to `true`")
+				return errors.New("when `administrator_login` is first set, `authentication.password_auth_enabled` must be set to `true`")
 			}
 		}
 	}
@@ -83,7 +84,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any)
 
 		if d.HasChange("zone") {
 			if !d.HasChange("high_availability.0.standby_availability_zone") {
-				return fmt.Errorf("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
+				return errors.New("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
 			} else {
 				// zone can only be changed when it is swapped for an existing high_availability.0.standby_availability_zone - a failover is triggered to make it the new primary availability zone
 				// compare current values of zone and high_availability.0.standby_availability_zone with new values and only allow update/failover if the values of zone and an existing high_availability.0.standby_availability_zone have been swapped
@@ -94,7 +95,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any)
 					if newZone == *props.HighAvailability.StandbyAvailabilityZone && newHAStandbyZone == *props.AvailabilityZone {
 						requireFailover = true
 					} else {
-						return fmt.Errorf("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
+						return errors.New("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
 					}
 				}
 			}
@@ -104,7 +105,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any)
 			if props != nil && props.HighAvailability != nil && props.HighAvailability.Mode != nil {
 				// if HA Mode is currently "ZoneRedundant" and is still set to "ZoneRedundant", high_availability.0.standby_availability_zone cannot be changed
 				if *props.HighAvailability.Mode == servers.PostgreSqlFlexibleServerHighAvailabilityModeZoneRedundant && !d.HasChange("high_availability.0.mode") {
-					return fmt.Errorf("an existing `high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`")
+					return errors.New("an existing `high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`")
 				}
 				// if high_availability.0.mode changes from "ZoneRedundant", an existing high_availability block has been removed as this is a required field
 				// if high_availability.0.mode is not currently "ZoneRedundant", this must be a newly added block
@@ -126,7 +127,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any)
 				return fmt.Errorf("updating `replication_role` for %s: %+v", *id, err)
 			}
 		} else {
-			return fmt.Errorf("`replication_role` only can be updated to `None` for replica server")
+			return errors.New("`replication_role` only can be updated to `None` for replica server")
 		}
 	}
 

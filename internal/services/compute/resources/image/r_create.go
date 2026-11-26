@@ -4,6 +4,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -59,7 +60,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if sourceVM.Id == nil {
 		// if both sourceVM and storageProfile are empty, return an error
 		if storageProfile.OsDisk == nil && (storageProfile.DataDisks == nil || len(*storageProfile.DataDisks) == 0) {
-			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
+			return errors.New("[ERROR] Cannot create image when both source VM and storage profile are empty")
 		}
 
 		props.StorageProfile = &storageProfile

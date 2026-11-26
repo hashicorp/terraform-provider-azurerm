@@ -4,6 +4,7 @@
 package kusto_cluster
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -54,7 +55,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
 		if sku.Capacity == nil {
-			return fmt.Errorf("sku.capacity could not be empty")
+			return errors.New("sku.capacity could not be empty")
 		}
 		// Ensure that requested Capacity is always between min and max to support updating to not overlapping autoscale ranges
 		if *sku.Capacity < optimizedAutoScale.Minimum {
@@ -64,7 +65,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 			sku.Capacity = pointer.To(optimizedAutoScale.Maximum)
 		}
 		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
-			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+			return errors.New("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
 		}
 	}
 

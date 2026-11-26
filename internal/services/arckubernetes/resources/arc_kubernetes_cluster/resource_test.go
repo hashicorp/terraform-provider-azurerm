@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -369,7 +370,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 func (r ArcKubernetesClusterResource) generateKey() (string, string, error) {
 	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to generate RSA key")
+		return "", "", errors.New("failed to generate RSA key")
 	}
 
 	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
@@ -380,7 +381,7 @@ func (r ArcKubernetesClusterResource) generateKey() (string, string, error) {
 
 	privatePem := pem.EncodeToMemory(privateKeyBlock)
 	if privatePem == nil {
-		return "", "", fmt.Errorf("failed to encode pem")
+		return "", "", errors.New("failed to encode pem")
 	}
 
 	return string(privatePem), base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)), nil

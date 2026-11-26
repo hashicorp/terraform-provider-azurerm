@@ -5,6 +5,7 @@ package sentinel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -618,7 +619,7 @@ func expandAlertRuleAnomalyMultiSelectObservations(builtInInput *securitymlanaly
 	output := make([]securitymlanalyticssettings.AnomalySecurityMLAnalyticsMultiSelectObservations, 0)
 	for _, v := range *builtInRule {
 		if v.Name == nil {
-			return nil, fmt.Errorf("the name of built in `multi_select_observation` is nil")
+			return nil, errors.New("the name of built in `multi_select_observation` is nil")
 		}
 		// copy from built in rule
 		o := securitymlanalyticssettings.AnomalySecurityMLAnalyticsMultiSelectObservations{
@@ -667,7 +668,7 @@ func expandAlertRuleAnomalySingleSelectObservations(builtInInput *securitymlanal
 	output := make([]securitymlanalyticssettings.AnomalySecurityMLAnalyticsSingleSelectObservations, 0)
 	for _, v := range *builtInRule {
 		if v.Name == nil {
-			return nil, fmt.Errorf("the name of built in `multi_select_observation` is nil")
+			return nil, errors.New("the name of built in `multi_select_observation` is nil")
 		}
 		// copy from built in rule
 		o := securitymlanalyticssettings.AnomalySecurityMLAnalyticsSingleSelectObservations{
@@ -715,7 +716,7 @@ func expandAlertRuleAnomalyPrioritizeExcludeObservations(builtInInput *securitym
 	output := make([]securitymlanalyticssettings.AnomalySecurityMLAnalyticsPrioritizeExcludeObservations, 0)
 	for _, v := range *builtInRule {
 		if v.Name == nil {
-			return nil, fmt.Errorf("the name of built in `multi_select_observation` is nil")
+			return nil, errors.New("the name of built in `multi_select_observation` is nil")
 		}
 		// copy from built in rule
 		o := securitymlanalyticssettings.AnomalySecurityMLAnalyticsPrioritizeExcludeObservations{
@@ -764,7 +765,7 @@ func expandAlertRuleAnomalyThresholdObservations(builtInInput *securitymlanalyti
 	output := make([]securitymlanalyticssettings.AnomalySecurityMLAnalyticsThresholdObservations, 0)
 	for _, v := range *builtInRule {
 		if v.Name == nil {
-			return nil, fmt.Errorf("the name of built in `multi_select_observation` is nil")
+			return nil, errors.New("the name of built in `multi_select_observation` is nil")
 		}
 		// copy from built in rule
 		o := securitymlanalyticssettings.AnomalySecurityMLAnalyticsThresholdObservations{

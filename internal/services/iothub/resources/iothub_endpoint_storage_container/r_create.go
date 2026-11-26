@@ -4,6 +4,7 @@
 package iothub_endpoint_storage_container
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -79,13 +80,13 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		if v, ok := d.GetOk("connection_string"); ok {
 			storageContainerEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
-			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+			return errors.New("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
 			storageContainerEndpoint.EndpointURI = pointer.To(v.(string))
 		} else {
-			return fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
+			return errors.New("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {

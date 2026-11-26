@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -15,7 +16,7 @@ import (
 // all fields contain `tfschema` struct tags
 func (rmd ResourceMetaData) Encode(input any) error {
 	if reflect.TypeOf(input).Kind() != reflect.Pointer {
-		return fmt.Errorf("need a pointer")
+		return errors.New("need a pointer")
 	}
 
 	objType := reflect.TypeOf(input).Elem()

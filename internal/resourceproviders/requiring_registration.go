@@ -4,14 +4,14 @@
 package resourceproviders
 
 import (
-	"fmt"
+	"errors"
 	"log"
 )
 
 // DetermineWhichRequiredResourceProvidersRequireRegistration determines which Resource Providers require registration to be able to be used
 func DetermineWhichRequiredResourceProvidersRequireRegistration(requiredResourceProviders ResourceProviders) (*[]string, error) {
 	if registeredResourceProviders == nil || unregisteredResourceProviders == nil {
-		return nil, fmt.Errorf("internal-error: the registered/unregistered Resource Provider cache isn't populated")
+		return nil, errors.New("internal-error: the registered/unregistered Resource Provider cache isn't populated")
 	}
 
 	requiringRegistration := make([]string, 0)

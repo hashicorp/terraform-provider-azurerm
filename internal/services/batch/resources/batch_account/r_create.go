@@ -4,6 +4,7 @@
 package batch_account
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -97,12 +98,12 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	authMode := d.Get("storage_account_authentication_mode").(string)
 	if batchaccount.AutoStorageAuthenticationMode(authMode) == batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity && identity.Type == "None" {
-		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
+		return errors.New(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
 	}
 
 	if storageAccountId != "" {
 		if authMode == "" {
-			return fmt.Errorf("`storage_account_authentication_mode` is required when `storage_account_id` ")
+			return errors.New("`storage_account_authentication_mode` is required when `storage_account_id` ")
 		}
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
 			StorageAccountId:   storageAccountId,

@@ -5,6 +5,7 @@ package custompollers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -134,7 +135,7 @@ func TestDatabaseStatePoller_GetError(t *testing.T) {
 	id := databases.NewDatabaseID("12345678-1234-1234-1234-123456789012", "test-rg", "test-cluster", "default")
 
 	mockClient := &mockDatabasesClient{
-		getError: fmt.Errorf("API error"),
+		getError: errors.New("API error"),
 	}
 
 	pollerType := &dbStatePoller{
@@ -210,7 +211,7 @@ func (m *mockDatabasesClient) Get(ctx context.Context, id databases.DatabaseId) 
 	if m.getResponse != nil {
 		return *m.getResponse, nil
 	}
-	return databases.GetOperationResponse{}, fmt.Errorf("no mock response configured")
+	return databases.GetOperationResponse{}, errors.New("no mock response configured")
 }
 
 type statefulMockDatabaseClient struct {

@@ -6,6 +6,7 @@ package function_app_function
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -66,7 +67,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			// Check and wait for the Function to have no in flight operations
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			createWait := &pluginsdk.StateChangeConf{

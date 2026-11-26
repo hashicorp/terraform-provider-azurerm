@@ -5,6 +5,7 @@ package netapp_volume_quota_rule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -62,7 +63,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 func waitForQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -101,7 +102,7 @@ func netAppVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequ
 func waitForQuotaRuleDelete(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

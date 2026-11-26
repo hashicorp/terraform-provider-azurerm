@@ -4,6 +4,7 @@
 package application_insights_api_key
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -53,7 +54,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta any
 	linkedReadProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID())
 	linkedWriteProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID())
 	if len(*linkedReadProperties) == 0 && len(*linkedWriteProperties) == 0 {
-		return fmt.Errorf("at least one read or write permission must be defined")
+		return errors.New("at least one read or write permission must be defined")
 	}
 	apiKeyProperties := componentapikeysapis.APIKeyRequest{
 		Name:                  &name,

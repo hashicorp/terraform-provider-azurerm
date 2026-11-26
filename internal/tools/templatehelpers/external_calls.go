@@ -18,7 +18,7 @@ func CallTerraform(opts ...string) ([]byte, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("missing terraform binary, please ensure Terraform is installed and discoverable in your PATH")
+			return nil, errors.New("missing terraform binary, please ensure Terraform is installed and discoverable in your PATH")
 		}
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func Terrafmt(path string) error {
 	cmd := exec.CommandContext(context.Background(), "terrafmt", "fmt", "-f", path)
 	if _, err := cmd.Output(); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("missing terrafmt, please run via make (which builds the pinned .tools/bin/terrafmt and adds it to PATH) or ensure katbyte/terrafmt is discoverable in your PATH")
+			return errors.New("missing terrafmt, please run via make (which builds the pinned .tools/bin/terrafmt and adds it to PATH) or ensure katbyte/terrafmt is discoverable in your PATH")
 		}
 		return err
 	}

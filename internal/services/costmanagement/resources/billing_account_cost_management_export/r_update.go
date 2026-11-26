@@ -5,6 +5,7 @@ package billing_account_cost_management_export
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -86,7 +87,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 				}
 				if deliveryInfo == nil {
-					return fmt.Errorf("`export_data_storage_location` was empty")
+					return errors.New("`export_data_storage_location` was empty")
 				}
 				props.DeliveryInfo = *deliveryInfo
 			}
@@ -98,7 +99,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("export_data_options") {
 				definition := helpers.ExpandExportDataOptionsFromModel(config.ExportDataOptions)
 				if definition == nil {
-					return fmt.Errorf("`export_data_options` was empty")
+					return errors.New("`export_data_options` was empty")
 				}
 				props.Definition = *definition
 			}

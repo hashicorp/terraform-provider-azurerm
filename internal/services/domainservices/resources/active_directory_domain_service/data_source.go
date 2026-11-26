@@ -4,6 +4,7 @@
 package active_directory_domain_service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -277,11 +278,11 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("reading Domain Service: model was returned nil")
+		return errors.New("reading Domain Service: model was returned nil")
 	}
 
 	if model.Id == nil {
-		return fmt.Errorf("reading Domain Service: ID was returned nil")
+		return errors.New("reading Domain Service: ID was returned nil")
 	}
 
 	d.SetId(idsdk.ID())
