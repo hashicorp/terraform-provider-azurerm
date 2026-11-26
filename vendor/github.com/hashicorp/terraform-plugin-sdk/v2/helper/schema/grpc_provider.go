@@ -1799,6 +1799,7 @@ func (s *GRPCProviderServer) GenerateResourceConfig(ctx context.Context, req *tf
 	resp := &tfprotov5.GenerateResourceConfigResponse{}
 
 	schemaBlock := s.getResourceSchemaBlock(req.TypeName)
+	res := s.provider.ResourcesMap[req.TypeName]
 
 	stateVal, err := msgpack.Unmarshal(req.State.MsgPack, schemaBlock.ImpliedType())
 	if err != nil {
@@ -1816,12 +1817,16 @@ func (s *GRPCProviderServer) GenerateResourceConfig(ctx context.Context, req *tf
 			},
 		}
 
+		return resp, nil
 	}
 
 	newConfigVal := stateVal
+	markedForNullification := cty.NewPathSet()
 
-	// Handle top level attributes and defaults
 	newConfigVal, err = cty.Transform(newConfigVal, func(path cty.Path, val cty.Value) (cty.Value, error) {
+		if path == nil {
+			return val, nil
+		}
 		if val.IsNull() {
 			return val, nil
 		}
@@ -1834,12 +1839,12 @@ func (s *GRPCProviderServer) GenerateResourceConfig(ctx context.Context, req *tf
 		null := cty.NullVal(ty)
 
 		// find the attribute or block schema representing the value
-		attr := schemaBlock.AttributeByPath(path)
-		block := schemaBlock.BlockByPath(path)
+		attr := schemaMap(res.Schema).AttributeByPath(path)
+		block := schemaMap(res.Schema).BlockByPath(path)
 		switch {
 		case attr != nil:
 			// deprecated attributes
-			if attr.Deprecated {
+			if attr.Deprecated != "" {
 				return null, nil
 			}
 
@@ -1865,14 +1870,70 @@ func (s *GRPCProviderServer) GenerateResourceConfig(ctx context.Context, req *tf
 					return null, nil
 				}
 			}
+
+			conflictsWithPaths := processConflictsWith(attr.ConflictsWith, newConfigVal, path)
+			markedForNullification = markedForNullification.Union(conflictsWithPaths)
+			if markedForNullification.Has(path) {
+				return null, nil
+			}
+
+			exactlyOneOfPaths := processExactlyOneOf(attr.ExactlyOneOf, newConfigVal, path)
+			markedForNullification = markedForNullification.Union(exactlyOneOfPaths)
+			if markedForNullification.Has(path) {
+				return null, nil
+			}
+
+			requiredWithPaths := processRequiredWith(attr.RequiredWith, newConfigVal, path)
+			markedForNullification = markedForNullification.Union(requiredWithPaths)
+			if markedForNullification.Has(path) {
+				return null, nil
+			}
+
 			return val, nil
 
 		case block != nil:
-			if block.Deprecated {
+			if block.Deprecated != "" {
+				return null, nil
+			}
+
+			if path.Equals(cty.GetAttrPath("timeouts")) {
+				return null, nil
+			}
+
+			conflictsWithPaths := processConflictsWith(block.ConflictsWith, newConfigVal, path)
+			markedForNullification = markedForNullification.Union(conflictsWithPaths)
+			if markedForNullification.Has(path) {
+				return null, nil
+			}
+
+			exactlyOneOfPaths := processExactlyOneOf(block.ExactlyOneOf, newConfigVal, path)
+			markedForNullification = markedForNullification.Union(exactlyOneOfPaths)
+			if markedForNullification.Has(path) {
+				return null, nil
+			}
+
+			requiredWithPaths := processRequiredWith(block.RequiredWith, newConfigVal, path)
+			markedForNullification = markedForNullification.Union(requiredWithPaths)
+			if markedForNullification.Has(path) {
 				return null, nil
 			}
 		}
 
+		return val, nil
+	})
+	if err != nil {
+		configErr := fmt.Errorf("An unexpected error occurred while trying to generate resource configuration. "+
+			"This is an error in terraform-plugin-sdk used by the provider. "+
+			"Please report the following to the provider developers.\n\n"+
+			"Original Error: %s", err.Error())
+		resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, configErr)
+		return resp, nil
+	}
+
+	newConfigVal, err = cty.Transform(newConfigVal, func(path cty.Path, val cty.Value) (cty.Value, error) {
+		if markedForNullification.Has(path) {
+			return cty.NullVal(val.Type()), nil
+		}
 		return val, nil
 	})
 	if err != nil {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -6,9 +6,8 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -17,6 +16,7 @@ func Cookies() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"selector": {
+				Description:  "Name of the cookie.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -45,9 +45,10 @@ func Cookies() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of values for the cookie.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -55,8 +56,9 @@ func Cookies() *pluginsdk.Resource {
 			},
 
 			"transforms": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of transforms.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
@@ -66,10 +68,10 @@ func Cookies() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionCookies(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionCookies(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 		cookiesCondition := cdn.DeliveryRuleCookiesCondition{
 			Name: cdn.NameCookies,
 			Parameters: &cdn.CookiesMatchConditionParameters{
@@ -77,11 +79,11 @@ func ExpandArmCdnEndpointConditionCookies(input []interface{}) []cdn.BasicDelive
 				Selector:        pointer.To(item["selector"].(string)),
 				Operator:        cdn.CookiesOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     helpers.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     pluginsdk.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -95,7 +97,7 @@ func ExpandArmCdnEndpointConditionCookies(input []interface{}) []cdn.BasicDelive
 	return output
 }
 
-func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleCookiesCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule cookie condition")
@@ -104,7 +106,7 @@ func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition)
 	selector := ""
 	operator := ""
 	negateCondition := false
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	transforms := make([]string, 0)
 
 	if params := condition.Parameters; params != nil {
@@ -119,7 +121,7 @@ func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition)
 		}
 
 		if params.MatchValues != nil {
-			matchValues = helpers.FlattenStringSlice(params.MatchValues)
+			matchValues = pluginsdk.FlattenSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
@@ -129,7 +131,7 @@ func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition)
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,
 		"operator":         operator,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -44,9 +44,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 	return map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
-			Required:     true,
 		},
 
 		"name": {
@@ -97,7 +97,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) StateUpgraders() sdk.StateUpgr
 	}
 }
 
-func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() interface{} {
+func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() any {
 	return &KeyVaultManagedHSMRoleAssignmentModel{}
 }
 
