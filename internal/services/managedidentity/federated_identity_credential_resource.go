@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity
@@ -28,7 +28,7 @@ var (
 
 type FederatedIdentityCredentialResource struct{}
 
-func (r FederatedIdentityCredentialResource) ModelObject() interface{} {
+func (r FederatedIdentityCredentialResource) ModelObject() any {
 	return &FederatedIdentityCredentialResourceSchema{}
 }
 
@@ -55,9 +55,9 @@ func (r FederatedIdentityCredentialResource) ResourceType() string {
 func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			Type:     pluginsdk.TypeString,
 		},
 
 		"user_assigned_identity_id": {
@@ -68,22 +68,22 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"audience": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Required: true,
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 		},
 
 		"issuer": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"subject": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -23,10 +23,11 @@ import (
 
 func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLDatabaseCreate,
-		Read:   resourceCosmosDbSQLDatabaseRead,
-		Update: resourceCosmosDbSQLDatabaseUpdate,
-		Delete: resourceCosmosDbSQLDatabaseDelete,
+		Description: "Manages a SQL Database within a Cosmos DB Account.",
+		Create:      resourceCosmosDbSQLDatabaseCreate,
+		Read:        resourceCosmosDbSQLDatabaseRead,
+		Update:      resourceCosmosDbSQLDatabaseUpdate,
+		Delete:      resourceCosmosDbSQLDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseSqlDatabaseID(id)
@@ -47,6 +48,7 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB SQL Database.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,6 +58,7 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB SQL Database to create the table within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -63,6 +66,7 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 			},
 
 			"throughput": {
+				Description:  "The throughput of SQL database (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Do not set when `azurerm_cosmosdb_account` is configured with `EnableServerless` capability.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -74,7 +78,7 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -118,7 +122,7 @@ func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCosmosDbSQLDatabaseRead(d, meta)
 }
 
-func resourceCosmosDbSQLDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -146,7 +150,7 @@ func resourceCosmosDbSQLDatabaseUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCosmosDbSQLDatabaseRead(d, meta)
 }
 
-func resourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -195,7 +199,7 @@ func resourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCosmosDbSQLDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

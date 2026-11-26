@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -37,7 +37,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Identity() resourceids.Re
 	return &namespaces.NamespaceId{}
 }
 
-func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() interface{} {
+func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() any {
 	return &ServiceBusNamespaceCustomerManagedKeyModel{}
 }
 

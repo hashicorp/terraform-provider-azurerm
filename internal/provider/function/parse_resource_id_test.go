@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function_test
@@ -23,7 +23,7 @@ func TestProviderFunctionParseResourceID_basic(t *testing.T) {
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
 		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
-			"azurerm": func() (tfprotov5.ProviderServer, error) { // nolint:unparam
+			"azurerm": func() (tfprotov5.ProviderServer, error) {
 				return framework.V5ProviderWithoutPluginSDK()(), nil
 			},
 		},
@@ -54,7 +54,7 @@ func TestProviderFunctionParseResourceID_scopedAtSubscription(t *testing.T) {
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
 		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
-			"azurerm": func() (tfprotov5.ProviderServer, error) { // nolint:unparam
+			"azurerm": func() (tfprotov5.ProviderServer, error) {
 				return framework.V5ProviderWithoutPluginSDK()(), nil
 			},
 		},
@@ -81,7 +81,7 @@ func TestProviderFunctionParseResourceID_scopedAtResource(t *testing.T) {
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
 		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
-			"azurerm": func() (tfprotov5.ProviderServer, error) { // nolint:unparam
+			"azurerm": func() (tfprotov5.ProviderServer, error) {
 				return framework.V5ProviderWithoutPluginSDK()(), nil
 			},
 		},

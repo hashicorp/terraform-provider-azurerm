@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,12 +17,14 @@ func URLRedirect() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"redirect_type": {
+				Description:  "Type of the redirect.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleRedirectTypeValues(), false),
 			},
 
 			"protocol": {
+				Description:  "The protocol part of the URL.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(cdn.DestinationProtocolMatchRequest),
@@ -30,23 +32,27 @@ func URLRedirect() *pluginsdk.Resource {
 			},
 
 			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The hostname part of the URL.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"path": {
+				Description:  "The path part of the URL. This value must begin with a `/`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectPath(),
 			},
 
 			"query_string": {
+				Description:  "The query string part of the URL. This value must not start with a `?` or `&` and must be in `<key>=<value>` format separated by `&`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectQueryString(),
 			},
 
 			"fragment": {
+				Description:  "The fragment part of the URL. This value must not start with a `#`.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectFragment(),
@@ -55,11 +61,11 @@ func URLRedirect() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionUrlRedirect(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		params := cdn.URLRedirectActionParameters{
 			OdataType:    pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
@@ -95,7 +101,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule url redirect action")
@@ -129,7 +135,7 @@ func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"fragment":      fragment,
 		"hostname":      customHostname,
 		"query_string":  queryString,

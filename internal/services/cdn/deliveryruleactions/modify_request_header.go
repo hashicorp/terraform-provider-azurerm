@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -16,29 +16,32 @@ func ModifyRequestHeader() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"action": {
+				Description:  "Action to be executed on a header value.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleHeaderActionValues(), false),
 			},
 
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The header name.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"value": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The value of the header. Only needed when `action` is set to `Append` or `overwrite`.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 		},
 	}
 }
 
-func ExpandArmCdnEndpointActionModifyRequestHeader(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionModifyRequestHeader(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		requestHeaderAction := cdn.DeliveryRuleRequestHeaderAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameModifyRequestHeader,
@@ -59,7 +62,7 @@ func ExpandArmCdnEndpointActionModifyRequestHeader(input []interface{}) (*[]cdn.
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsDeliveryRuleRequestHeaderAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule request header action")
@@ -80,7 +83,7 @@ func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleA
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"action": headerAction,
 		"name":   headerName,
 		"value":  value,

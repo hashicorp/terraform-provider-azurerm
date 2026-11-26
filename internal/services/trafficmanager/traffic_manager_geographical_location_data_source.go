@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -33,7 +33,7 @@ func dataSourceArmTrafficManagerGeographicalLocation() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.GeographialHierarchiesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

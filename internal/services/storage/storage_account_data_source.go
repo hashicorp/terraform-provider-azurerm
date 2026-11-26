@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -537,6 +537,11 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"smb_oauth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"dns_endpoint_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -547,7 +552,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -583,7 +588,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("account_kind", string(pointer.From(model.Kind)))
+		d.Set("account_kind", pointer.FromEnum(model.Kind))
 
 		// NOTE: we should expose EdgeZone in the future
 
@@ -655,6 +660,11 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 			}
+			smbOAuthEnabled := false
+			if afa := props.AzureFilesIdentityBasedAuthentication; afa != nil && afa.SmbOAuthSettings != nil {
+				smbOAuthEnabled = pointer.From(afa.SmbOAuthSettings.IsSmbOAuthEnabled)
+			}
+			d.Set("smb_oauth_enabled", smbOAuthEnabled)
 		}
 	}
 
