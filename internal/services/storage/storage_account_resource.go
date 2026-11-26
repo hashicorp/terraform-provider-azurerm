@@ -1633,7 +1633,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		AllowedCopyScope:                      existing.Model.Properties.AllowedCopyScope,
 		AllowSharedKeyAccess:                  existing.Model.Properties.AllowSharedKeyAccess,
 		AllowCrossTenantReplication:           existing.Model.Properties.AllowCrossTenantReplication,
-		AzureFilesIdentityBasedAuthentication: existing.Model.Properties.AzureFilesIdentityBasedAuthentication,
+		AzureFilesIdentityBasedAuthentication: normalizeAzureFilesAuthentication(existing.Model.Properties.AzureFilesIdentityBasedAuthentication),
 		CustomDomain:                          existing.Model.Properties.CustomDomain,
 		DefaultToOAuthAuthentication:          existing.Model.Properties.DefaultToOAuthAuthentication,
 		DnsEndpointType:                       existing.Model.Properties.DnsEndpointType,
@@ -2462,8 +2462,10 @@ func expandAccountActiveDirectoryProperties(input []any) *storageaccounts.Active
 	m := input[0].(map[string]any)
 
 	output := &storageaccounts.ActiveDirectoryProperties{
-		DomainGuid: pointer.To(m["domain_guid"].(string)),
 		DomainName: pointer.To(m["domain_name"].(string)),
+	}
+	if v := m["domain_guid"].(string); v != "" {
+		output.DomainGuid = pointer.To(v)
 	}
 	if v := m["storage_sid"]; v != "" {
 		output.AzureStorageSid = pointer.To(v.(string))
@@ -2554,6 +2556,20 @@ func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIde
 			"default_share_level_permission": input.DefaultSharePermission,
 		},
 	}
+}
+
+// `domainGuid` is returned as an empty string for accounts using `AADDS` authentication, which the API rejects when the properties are sent back during an update
+func normalizeAzureFilesAuthentication(input *storageaccounts.AzureFilesIdentityBasedAuthentication) *storageaccounts.AzureFilesIdentityBasedAuthentication {
+	if input == nil || input.ActiveDirectoryProperties == nil || pointer.From(input.ActiveDirectoryProperties.DomainGuid) != "" {
+		return input
+	}
+
+	output := *input
+	activeDirectoryProperties := *input.ActiveDirectoryProperties
+	activeDirectoryProperties.DomainGuid = nil
+	output.ActiveDirectoryProperties = &activeDirectoryProperties
+
+	return &output
 }
 
 func expandAccountRoutingPreference(input []any) *storageaccounts.RoutingPreference {
