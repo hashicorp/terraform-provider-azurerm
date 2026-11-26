@@ -79,31 +79,35 @@ func (r Resource) Read() sdk.ResourceFunc {
 func CatalogPropertiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"uri": {
+					Description:  "The Git URI of the Dev Center Catalog.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"branch": {
+					Description:  "The Git branch of the Dev Center Catalog.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"key_vault_key_url": {
+					Description:  "A reference to the Key Vault Secret containing a security token to authenticate to a Git repository.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"path": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The folder where the catalog items can be found inside the repository.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 			},
 		},

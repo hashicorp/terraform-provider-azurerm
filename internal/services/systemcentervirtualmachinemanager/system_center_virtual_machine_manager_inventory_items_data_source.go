@@ -51,7 +51,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Arguments() m
 			ValidateFunc: validation.StringInSlice(inventoryitems.PossibleValuesForInventoryType(), false),
 		},
 
-		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequired(&vmmservers.VMmServerId{}),
+		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequired(&vmmservers.VMmServerId{}, "System Center Virtual Machine Manager Server"),
 	}
 }
 

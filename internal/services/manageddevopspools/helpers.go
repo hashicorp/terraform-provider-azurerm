@@ -44,7 +44,7 @@ func manualResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 				"all_week_schedule": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					AtLeastOneOf: allScheduleFields,
+					ValidateFunc: validation.IntAtLeast(1),
 					ConflictsWith: []string{
 						basePath + "sunday_schedule",
 						basePath + "monday_schedule",
@@ -54,7 +54,7 @@ func manualResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 						basePath + "friday_schedule",
 						basePath + "saturday_schedule",
 					},
-					ValidateFunc: validation.IntAtLeast(1),
+					AtLeastOneOf: allScheduleFields,
 				},
 
 				"sunday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
@@ -97,8 +97,10 @@ func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 
 func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
+		Type:          pluginsdk.TypeSet,
+		Optional:      true,
+		ConflictsWith: conflictsWith,
+		AtLeastOneOf:  atLeastOneOf,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"time": {
@@ -117,8 +119,6 @@ func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *
 				},
 			},
 		},
-		AtLeastOneOf:  atLeastOneOf,
-		ConflictsWith: conflictsWith,
 	}
 }
 

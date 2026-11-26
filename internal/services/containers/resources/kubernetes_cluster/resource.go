@@ -21,10 +21,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceKubernetesClusterCreate,
-		Read:   resourceKubernetesClusterRead,
-		Update: resourceKubernetesClusterUpdate,
-		Delete: resourceKubernetesClusterDelete,
+		Description: "Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service).",
+		Create:      resourceKubernetesClusterCreate,
+		Read:        resourceKubernetesClusterRead,
+		Update:      resourceKubernetesClusterUpdate,
+		Delete:      resourceKubernetesClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseKubernetesClusterID(id)

@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDataShareDatasetBlobStorageRead,
+		Description: "Use this data source to access information about an existing Data Share Blob Storage Dataset.",
+		Read:        dataSourceDataShareDatasetBlobStorageRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,20 +26,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Data Share Blob Storage Dataset.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DataSetName(),
 			},
 
 			"data_share_id": {
+				Description:  "The ID of the Data Share in which this Data Share Blob Storage Dataset should be created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: share.ValidateShareID,
 			},
 
 			"container_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Storage Account container to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage_account": {
@@ -47,36 +51,42 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Storage Account to be shared with the receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"resource_group_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Resource Group name of the Storage Account to be shared with the receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"subscription_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The subscription ID of the Storage Account to be shared with the receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"file_path": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The path of the file in the Storage Container to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"folder_path": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The folder path of the file in the Storage Container to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Data Share Dataset.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

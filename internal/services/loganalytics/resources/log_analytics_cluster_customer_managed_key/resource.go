@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsClusterCustomerManagedKeyCreate,
-		Read:   resourceLogAnalyticsClusterCustomerManagedKeyRead,
-		Update: resourceLogAnalyticsClusterCustomerManagedKeyUpdate,
-		Delete: resourceLogAnalyticsClusterCustomerManagedKeyDelete,
+		Description: "Manages a Log Analytics Cluster Customer Managed Key.",
+		Create:      resourceLogAnalyticsClusterCustomerManagedKeyCreate,
+		Read:        resourceLogAnalyticsClusterCustomerManagedKeyRead,
+		Update:      resourceLogAnalyticsClusterCustomerManagedKeyUpdate,
+		Delete:      resourceLogAnalyticsClusterCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(6 * time.Hour),

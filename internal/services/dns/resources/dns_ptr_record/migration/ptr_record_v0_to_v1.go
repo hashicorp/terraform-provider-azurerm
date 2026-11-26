@@ -39,10 +39,10 @@ func (PTRRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"records": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"ttl": {

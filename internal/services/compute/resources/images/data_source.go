@@ -29,7 +29,8 @@ type Output struct {
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceImagesRead,
+		Description: "Use this data source to access information about existing Images within a Resource Group.",
+		Read:        dataSourceImagesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -46,15 +47,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Image.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"location": commonschema.LocationComputed(),
 
 						"zone_resilient": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether zone resiliency is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"os_disk": {
@@ -63,33 +66,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"blob_uri": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The URI in Azure storage of the blob used to create the image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"caching": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The caching mode for the OS Disk.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"managed_disk_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the Managed Disk used as the OS Disk Image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"os_state": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The State of the OS used in the Image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"os_type": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The type of Operating System used on the OS Disk.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"size_gb": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The size of the OS Disk in GB.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 
 									"disk_encryption_set_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the Disk Encryption Set used to encrypt this image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -101,24 +111,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"blob_uri": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The URI in Azure storage of the blob used to create the image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"caching": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The caching mode for the Data Disk.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"lun": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The logical unit number of the data disk.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"managed_disk_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the Managed Disk used as the Data Disk Image.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"size_gb": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The size of this Data Disk in GB.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 								},
 							},

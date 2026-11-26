@@ -32,6 +32,7 @@ func TestAccPrivateEndpoint_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
 				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.status").HasValue("Approved"),
 			),
 		},
 		data.ImportStep(),
@@ -99,6 +100,7 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
 				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CATS: ALL YOUR BASE ARE BELONG TO US."),
+				check.That(data.ResourceName).Key("private_service_connection.0.status").HasValue("Pending"),
 			),
 		},
 		data.ImportStep(),
@@ -110,6 +112,7 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
 				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.request_message").HasValue("CAPTAIN: WHAT YOU SAY!!"),
+				check.That(data.ResourceName).Key("private_service_connection.0.status").HasValue("Pending"),
 			),
 		},
 		data.ImportStep(),
@@ -323,6 +326,58 @@ func TestAccPrivateEndpoint_updateToPrivateConnectionAlias(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.privateConnectionAlias(data, true),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_ipVersionType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipVersionType(data, "IPv4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipVersionType(data, "DualStack"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_ipVersionTypeIPv6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipVersionType(data, "IPv6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_ipVersionTypeDualStack(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipVersionType(data, "DualStack"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -1245,4 +1300,64 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
+func (PrivateEndpointResource) ipVersionTypeTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelink-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+
+  private_endpoint_vnet_policies = "Basic"
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24", "ace:cab:deca:2::/64"]
+
+  private_endpoint_network_policies = "RouteTableEnabled"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) ipVersionType(data acceptance.TestData, ipVersionType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+  ip_version_type     = "%s"
+
+  private_service_connection {
+    name                           = "acctest-privatelink-psc-%d"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_storage_account.test.id
+    subresource_names              = ["blob"]
+  }
+}
+`, r.ipVersionTypeTemplate(data), data.RandomInteger, ipVersionType, data.RandomInteger)
 }

@@ -21,6 +21,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_communication_service_email_domain_association"
 }
 
+func (Resource) Description() string {
+	return "Manages a Communication Service email domain association."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
