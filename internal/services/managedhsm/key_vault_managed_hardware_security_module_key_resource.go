@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -33,21 +33,21 @@ type KeyVaultMHSMKeyResource struct{}
 
 var _ sdk.ResourceWithUpdate = KeyVaultMHSMKeyResource{}
 
-func (r KeyVaultMHSMKeyResource) ModelObject() interface{} {
+func (r KeyVaultMHSMKeyResource) ModelObject() any {
 	return &KeyVaultMHSMKeyResourceSchema{}
 }
 
 type KeyVaultMHSMKeyResourceSchema struct {
-	Name           string                 `tfschema:"name"`
-	ManagedHSMID   string                 `tfschema:"managed_hsm_id"`
-	KeyType        string                 `tfschema:"key_type"`
-	KeyOpts        []string               `tfschema:"key_opts"`
-	KeySize        int64                  `tfschema:"key_size"`
-	Curve          string                 `tfschema:"curve"`
-	NotBeforeDate  string                 `tfschema:"not_before_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Tags           map[string]interface{} `tfschema:"tags"`
-	VersionedId    string                 `tfschema:"versioned_id"`
+	Name           string         `tfschema:"name"`
+	ManagedHSMID   string         `tfschema:"managed_hsm_id"`
+	KeyType        string         `tfschema:"key_type"`
+	KeyOpts        []string       `tfschema:"key_opts"`
+	KeySize        int64          `tfschema:"key_size"`
+	Curve          string         `tfschema:"curve"`
+	NotBeforeDate  string         `tfschema:"not_before_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Tags           map[string]any `tfschema:"tags"`
+	VersionedId    string         `tfschema:"versioned_id"`
 }
 
 func (r KeyVaultMHSMKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -61,14 +61,14 @@ func (r KeyVaultMHSMKeyResource) ResourceType() string {
 func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
 		},
 
@@ -96,9 +96,6 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
-			},
 			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 				out := []string{
 					string(keyvault.JSONWebKeyCurveNameP256),
@@ -108,6 +105,9 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 				}
 				return validation.StringInSlice(out, false)
 			}(),
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
+			},
 			ExactlyOneOf: []string{"key_size"},
 		},
 
@@ -149,8 +149,8 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 func (r KeyVaultMHSMKeyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"versioned_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }

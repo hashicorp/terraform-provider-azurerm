@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -79,7 +79,7 @@ func dataSourceAppServiceCertificate() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

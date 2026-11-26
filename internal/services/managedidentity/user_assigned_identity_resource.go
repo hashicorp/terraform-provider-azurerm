@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity
@@ -47,19 +47,19 @@ func (r UserAssignedIdentityResource) StateUpgraders() sdk.StateUpgradeData {
 	}
 }
 
-func (r UserAssignedIdentityResource) ModelObject() interface{} {
+func (r UserAssignedIdentityResource) ModelObject() any {
 	return &UserAssignedIdentityResourceSchema{}
 }
 
 type UserAssignedIdentityResourceSchema struct {
-	ClientId          string                 `tfschema:"client_id"`
-	IsolationScope    string                 `tfschema:"isolation_scope"`
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	PrincipalId       string                 `tfschema:"principal_id"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	TenantId          string                 `tfschema:"tenant_id"`
+	ClientId          string         `tfschema:"client_id"`
+	IsolationScope    string         `tfschema:"isolation_scope"`
+	Location          string         `tfschema:"location"`
+	Name              string         `tfschema:"name"`
+	PrincipalId       string         `tfschema:"principal_id"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
+	TenantId          string         `tfschema:"tenant_id"`
 }
 
 func (r UserAssignedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -74,15 +74,15 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"isolation_scope": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// `None` is not exposed
 				string(identities.IsolationScopeRegional),
@@ -96,16 +96,16 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 func (r UserAssignedIdentityResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"client_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"principal_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"tenant_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }

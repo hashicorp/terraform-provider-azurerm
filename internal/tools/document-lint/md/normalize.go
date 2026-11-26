@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -68,7 +68,7 @@ func replaceNBSP(line string) string {
 		return false
 	}
 	var res []rune
-	for _, ch := range []rune(line) { //nolint:gosimple,staticcheck
+	for _, ch := range []rune(line) { //nolint:staticcheck
 		if unicode.IsSpace(ch) && !isNormalSpace(ch) {
 			res = append(res, rune(' '))
 		} else {

@@ -3,10 +3,21 @@ name: TeamCity Remove Label on Commit
 
 # On new commits to a PR, replaces teamcity-passed/failed/new-failure labels with
 # teamcity-outdated so stale acceptance-test results are not trusted.
+# Pushes that only touch files the test binary is not built from are skipped; the pushed
+# range is compared in a step because the trigger `paths` filter sees the whole PR.
 
-on:
+# pull_request_target is used to label only; the PR head is never checked out
+on:  # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     types: [synchronize]
+    paths:
+      - 'internal/**'
+      - 'helpers/**'
+      - 'vendor/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.go-version'
+      - 'main.go'
 
 permissions:
   contents: read
@@ -20,8 +31,54 @@ jobs:
       TEAMCITY_LABELS: teamcity-passed,teamcity-failed,teamcity-new-failure
       OUTDATED_LABEL: teamcity-outdated
       PASSED_LABEL: teamcity-passed
+      AFFECTING_PATH_PREFIXES: internal/,helpers/,vendor/,go.mod,go.sum,.go-version,main.go
     steps:
+      - name: Check whether the push can affect test results
+        id: push
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const affectingPathPrefixes = process.env.AFFECTING_PATH_PREFIXES.split(',').filter(Boolean);
+            const isAffectingPath = (path) => affectingPathPrefixes.some(prefix => path.startsWith(prefix));
+
+            // returns why the push must be treated as a code change, or null if it cannot affect tests
+            const codeChangeReason = async () => {
+              const { before, after } = context.payload;
+              if (!before || !after || /^0+$/.test(before)) {
+                return 'no before/after range in event payload';
+              }
+
+              let files;
+              try {
+                const { data: compare } = await github.rest.repos.compareCommitsWithBasehead({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  basehead: `${before}...${after}`
+                });
+                files = compare.files || [];
+              } catch (error) {
+                return `could not compare ${before.slice(0, 7)}...${after.slice(0, 7)}: ${error.message}`;
+              }
+
+              if (files.length === 0) {
+                return 'compare returned no changed files';
+              }
+              if (files.length >= 300) {
+                return `compare returned ${files.length} files and may be truncated`; // the compare API returns at most 300
+              }
+
+              const affectingPath = files.flatMap(file => [file.filename, file.previous_filename]).find(path => path && isAffectingPath(path));
+              return affectingPath ? `push changes ${affectingPath}` : null;
+            };
+
+            const reason = await codeChangeReason();
+            core.info(reason ? `Treating push as a code change: ${reason}` : 'Push only changes files that cannot affect test results');
+            core.setOutput('affects_tests', String(reason !== null));
+
       - name: Check for TeamCity labels and apply outdated label
+        if: (steps.push.outputs.affects_tests || 'true') == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
