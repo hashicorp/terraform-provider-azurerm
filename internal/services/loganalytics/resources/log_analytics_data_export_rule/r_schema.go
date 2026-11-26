@@ -20,8 +20,8 @@ func logAnalyticsDataExportRuleSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validate.LogAnalyticsDataExportName,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),

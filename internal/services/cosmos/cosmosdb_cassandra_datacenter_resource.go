@@ -104,8 +104,8 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Description:  "The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than `3`.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
+				ValidateFunc: validation.IntAtLeast(3),
 			},
 
 			"disk_count": {

@@ -44,6 +44,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Description: "A list of values that make up the MX record.",
 				Type:        pluginsdk.TypeSet,
 				Computed:    true,
+				Set:         resourceDnsMxRecordHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"preference": {
@@ -60,7 +61,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceDnsMxRecordHash,
 			},
 
 			"ttl": {

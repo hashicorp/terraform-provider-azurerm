@@ -32,9 +32,9 @@ type GitHubActionContainerConfig struct { // TODO - May need to remove this, can
 func GithubActionConfigSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
-		ForceNew: true,
 		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"container_configuration": {
@@ -44,34 +44,34 @@ func GithubActionConfigSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"registry_url": {
+								Description: "The server URL for the container registry where the build will be hosted.",
 								Type:        pluginsdk.TypeString,
 								Required:    true,
 								ForceNew:    true,
-								Description: "The server URL for the container registry where the build will be hosted.",
 								// ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 							},
 
 							"image_name": {
+								Description: "The image name for the build.",
 								Type:        pluginsdk.TypeString,
 								Required:    true,
 								ForceNew:    true,
-								Description: "The image name for the build.",
 								// ValidateFunc: validate.NoEmptyStrings,
 							},
 
 							"registry_username": {
+								Description: "The username used to upload the image to the container registry.",
 								Type:        pluginsdk.TypeString,
 								Optional:    true,
 								ForceNew:    true,
-								Description: "The username used to upload the image to the container registry.",
 							},
 
 							"registry_password": {
+								Description: "The password used to upload the image to the container registry.",
 								Type:        pluginsdk.TypeString,
 								Optional:    true,
 								ForceNew:    true,
 								Sensitive:   true,
-								Description: "The password used to upload the image to the container registry.",
 							},
 						},
 					},
@@ -80,14 +80,15 @@ func GithubActionConfigSchema() *pluginsdk.Schema {
 				"code_configuration": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					MaxItems: 1,
 					ForceNew: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"runtime_stack": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
+								Description: "The value to use for the Runtime Stack in the workflow file content for code base apps.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
+								ForceNew:    true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"dotnetcore", // For all .Net builds on all O/S
 									"spring",     // Java on Java, JBOSSEAP
@@ -95,32 +96,31 @@ func GithubActionConfigSchema() *pluginsdk.Schema {
 									"node",       // Node, all versions
 									"python",     // Python, all versions
 								}, false),
-								Description: "The value to use for the Runtime Stack in the workflow file content for code base apps.",
 							},
 
 							"runtime_version": {
+								Description:  "The value to use for the Runtime Version in the workflow file content for code base apps.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
-								Description:  "The value to use for the Runtime Version in the workflow file content for code base apps.",
 							},
 						},
 					},
 				},
 
 				"generate_workflow_file": {
+					Description: "Whether the service should generate the GitHub Action Workflow file.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					ForceNew:    true,
 					Default:     true,
-					Description: "Whether the service should generate the GitHub Action Workflow file.",
 				},
 
 				"linux_action": {
+					Description: "Whether this action uses a Linux base image.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Whether this action uses a Linux base image.",
 				},
 			},
 		},

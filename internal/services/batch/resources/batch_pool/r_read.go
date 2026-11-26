@@ -317,11 +317,11 @@ func containerRegistry() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"user_assigned_identity_id": {
+			Description:  "The reference to the User Assigned Identity to use to access an Azure Container Registry instead of username and password.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Description:  "The reference to the User Assigned Identity to use to access an Azure Container Registry instead of username and password.",
 		},
 		"user_name": {
 			Description:  "The user name to log into the registry server.",

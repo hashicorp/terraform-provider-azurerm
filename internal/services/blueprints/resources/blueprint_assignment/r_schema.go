@@ -46,8 +46,8 @@ func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 			Description:      "A JSON string to supply Blueprint Assignment parameter values.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			StateFunc:        normalizeAssignmentParameterValuesJSON,
 			ValidateFunc:     validation.StringIsJSON,
+			StateFunc:        normalizeAssignmentParameterValuesJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
@@ -55,8 +55,8 @@ func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 			Description:      "A JSON string to supply the Blueprint Resource Group information.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			StateFunc:        normalizeAssignmentResourceGroupValuesJSON,
 			ValidateFunc:     validation.StringIsJSON,
+			StateFunc:        normalizeAssignmentResourceGroupValuesJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 

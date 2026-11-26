@@ -16,8 +16,8 @@ func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Description:      "The host name to use.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"key_vault_certificate_id": {

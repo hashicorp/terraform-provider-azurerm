@@ -33,9 +33,10 @@ func logicAppIntegrationAccountCertificateSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"key_vault_key": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			AtLeastOneOf: []string{"public_certificate"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_name": {
@@ -55,7 +56,6 @@ func logicAppIntegrationAccountCertificateSchema() map[string]*pluginsdk.Schema 
 					},
 				},
 			},
-			AtLeastOneOf: []string{"public_certificate"},
 		},
 
 		"metadata": {

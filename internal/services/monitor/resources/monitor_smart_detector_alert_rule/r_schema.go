@@ -43,11 +43,11 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 			Description: "The scopes of this Smart Detector Alert Rule.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
+			Set:         set.HashStringIgnoreCase,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			Set: set.HashStringIgnoreCase,
 		},
 
 		"severity": {
@@ -76,11 +76,11 @@ func monitorSmartDetectorAlertRuleSchema() map[string]*pluginsdk.Schema {
 						Description: "The action group IDs.",
 						Type:        pluginsdk.TypeSet,
 						Required:    true,
+						Set:         set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.AsGeneratedID(actiongroupsapis.ParseActionGroupIDInsensitively),
 						},
-						Set: set.HashStringIgnoreCase,
 					},
 
 					"email_subject": {

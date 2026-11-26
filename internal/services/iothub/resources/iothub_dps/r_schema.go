@@ -31,8 +31,8 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 
 		"sku": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -63,6 +63,7 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 						Description:  "The connection string to connect to the IoT Hub.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 						// Azure returns the key as ****. We'll suppress that here.
 						DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
@@ -70,7 +71,6 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 							maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
 							return (new == d.Get(k).(string)) && (maskedNew == old)
 						},
-						Sensitive: true,
 					},
 					"location": {
 						Description:  "The location of the IoT hub.",

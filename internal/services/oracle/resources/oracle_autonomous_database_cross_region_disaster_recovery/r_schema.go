@@ -16,8 +16,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),

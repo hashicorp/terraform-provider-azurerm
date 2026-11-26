@@ -39,8 +39,8 @@ func frontdoorRulesEngineSchema() map[string]*pluginsdk.Schema {
 
 		"rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -58,8 +58,8 @@ func frontdoorRulesEngineSchema() map[string]*pluginsdk.Schema {
 
 					"match_condition": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"variable": {
@@ -149,35 +149,35 @@ func frontdoorRulesEngineSchema() map[string]*pluginsdk.Schema {
 
 					"action": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"request_header": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"header_action_type": {
 												Description:  "The action to take on the header.",
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
 												Optional:     true,
+												ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
 											},
 
 											"header_name": {
 												Description:  "The header name.",
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
 												Optional:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"value": {
 												Description:  "The header value.",
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
 												Optional:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 										},
 									},
@@ -185,29 +185,29 @@ func frontdoorRulesEngineSchema() map[string]*pluginsdk.Schema {
 
 								"response_header": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"header_action_type": {
 												Description:  "The action to take on the header.",
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
 												Optional:     true,
+												ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
 											},
 
 											"header_name": {
 												Description:  "The header name.",
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
 												Optional:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"value": {
 												Description:  "The header value.",
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
 												Optional:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 										},
 									},

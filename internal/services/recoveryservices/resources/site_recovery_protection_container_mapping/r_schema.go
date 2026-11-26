@@ -58,9 +58,9 @@ func siteRecoveryProtectionContainerMappingSchema() map[string]*pluginsdk.Schema
 		},
 		"automatic_update": {
 			Type:     pluginsdk.TypeList,
+			Optional: true,
 			MinItems: 1,
 			MaxItems: 1,
-			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"automation_account_id": {

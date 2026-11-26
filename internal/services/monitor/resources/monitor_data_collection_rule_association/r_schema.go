@@ -44,8 +44,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
-			ExactlyOneOf: []string{"data_collection_endpoint_id", "data_collection_rule_id"},
 			RequiredWith: []string{"name"},
+			ExactlyOneOf: []string{"data_collection_endpoint_id", "data_collection_rule_id"},
 		},
 
 		"description": {

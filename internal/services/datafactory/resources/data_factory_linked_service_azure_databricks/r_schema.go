@@ -48,10 +48,11 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 		},
 
 		"key_vault_password": {
-			Description: "Authenticate to ADB via Azure Key Vault Linked Service.",
-			Type:        pluginsdk.TypeList,
-			Optional:    true,
-			MaxItems:    1,
+			Description:  "Authenticate to ADB via Azure Key Vault Linked Service.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {
@@ -69,7 +70,6 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 					},
 				},
 			},
-			ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 		},
 
 		"description": {
@@ -96,10 +96,11 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 		},
 
 		"new_cluster_config": {
-			Description: "Creates new clusters within the linked ADB instance.",
-			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
-			Optional:    true,
+			Description:  "Creates new clusters within the linked ADB instance.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"node_type": {
@@ -177,13 +178,13 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 					},
 				},
 			},
-			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 		},
 
 		"instance_pool": {
-			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
-			Optional: true,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"min_number_of_workers": {
@@ -213,7 +214,6 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 					},
 				},
 			},
-			ExactlyOneOf: []string{"existing_cluster_id", "new_cluster_config", "instance_pool"},
 		},
 
 		"integration_runtime_name": {

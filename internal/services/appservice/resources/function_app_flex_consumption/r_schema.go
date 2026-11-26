@@ -17,11 +17,11 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "The name of the Function App.",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -29,24 +29,24 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"service_plan_id": {
+			Description:  "The ID of the App Service Plan within which to create this Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
-			Description:  "The ID of the App Service Plan within which to create this Function App.",
 		},
 
 		"storage_container_type": {
+			Description:  "The type of the Storage Container where the Function App's code is hosted.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
-			Description:  "The type of the Storage Container where the Function App's code is hosted.",
 		},
 
 		"storage_container_endpoint": {
+			Description: "The endpoint of the Storage Container where the Function App's code is hosted.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
-			Description: "The endpoint of the Storage Container where the Function App's code is hosted.",
 		},
 
 		"storage_authentication_type": {
@@ -125,12 +125,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://learn.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -138,33 +138,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"client_certificate_enabled": {
+			Description: "Whether the Function App should use Client Certificates.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Whether the Function App should use Client Certificates.",
 		},
 
 		"client_certificate_mode": {
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
-			Description:  "The mode of the Function App's client certificates requirement for incoming requests.",
 		},
 
 		"client_certificate_exclusion_paths": {
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"enabled": {
+			Description: "Whether the Function App is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Whether the Function App is enabled.",
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -176,10 +176,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
+			Description: "Whether the Function App can only be accessed via HTTPS.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Whether the Function App can only be accessed via HTTPS.",
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
@@ -195,11 +195,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zip_deploy_file": {
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
 		"tags": commonschema.Tags(),

@@ -46,13 +46,13 @@ func (s IoTHubRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Default:  "true",
 		},
 		"endpoint_names": {
-			Type: pluginsdk.TypeList,
+			Type:     pluginsdk.TypeList,
+			Required: true,
 			// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Required: true,
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,

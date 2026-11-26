@@ -36,8 +36,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The Capacity / Throughput Units for an Eventgrid Namespace.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 40),
 			Default:      1,
+			ValidateFunc: validation.IntBetween(1, 40),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -69,19 +69,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Whether public network access is allowed for this server.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Default:     string(namespaces.PublicNetworkAccessEnabled),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(namespaces.PublicNetworkAccessEnabled),
 				string(namespaces.PublicNetworkAccessDisabled),
 			}, false),
-			Default: string(namespaces.PublicNetworkAccessEnabled),
 		},
 
 		"sku": {
 			Description:  "Which tier to use.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			Default:      namespaces.SkuNameStandard,
+			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 		},
 
 		"topic_spaces_configuration": {

@@ -84,8 +84,8 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "Name of the Event Hub Consumer Group.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "$Default",
 			ForceNew:     true,
+			Default:      "$Default",
 			ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
 		},
 
@@ -93,8 +93,8 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "Name of the Kusto Table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "AdtPropertyEvents",
 			ForceNew:     true,
+			Default:      "AdtPropertyEvents",
 			ValidateFunc: kustoValidate.EntityName,
 		},
 	}

@@ -125,9 +125,9 @@ func dataFactoryTriggerScheduleSchema() map[string]*pluginsdk.Schema {
 			Description:      "The time the Schedule Trigger will start. The time will be represented in UTC.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true, // azignore:AZS007 - pre-existing violation
-			DiffSuppressFunc: suppress.RFC3339Time,
+			Computed:         true,                     // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		// This time can only be  represented in UTC.
@@ -137,8 +137,8 @@ func dataFactoryTriggerScheduleSchema() map[string]*pluginsdk.Schema {
 			Description:      "The time the Schedule Trigger should end. The time will be represented in UTC.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"time_zone": {
@@ -209,8 +209,8 @@ func dataFactoryTriggerScheduleSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
-			ExactlyOneOf: []string{"pipeline", "pipeline_name"},
 			ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
+			ExactlyOneOf: []string{"pipeline", "pipeline_name"},
 		},
 
 		"pipeline_parameters": {

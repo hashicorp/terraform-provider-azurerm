@@ -20,21 +20,21 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name for this Container App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ContainerAppName,
-			Description:  "The name for this Container App.",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"container_app_environment_id": {
+			Description:  "The ID of the Container App Environment within which this Container App should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
-			Description:  "The ID of the Container App Environment within which this Container App should exist.",
 		},
 
 		"template": helpers.ContainerTemplateSchema(),
@@ -88,22 +88,22 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"latest_revision_name": {
+			Description: "The name of the latest Container Revision.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the latest Container Revision.",
 		},
 
 		"latest_revision_fqdn": {
+			Description: "The FQDN of the Latest Revision of the Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The FQDN of the Latest Revision of the Container App.",
 		},
 
 		"custom_domain_verification_id": {
+			Description: "The ID of the Custom Domain Verification for this Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
-			Description: "The ID of the Custom Domain Verification for this Container App.",
 		},
 	}
 }

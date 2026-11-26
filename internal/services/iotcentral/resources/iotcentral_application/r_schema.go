@@ -53,8 +53,8 @@ func iotcentralApplicationSchema() map[string]*pluginsdk.Schema {
 			Description:  "A `sku` name.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
 			Default:      string(apps.AppSkuSTOne),
+			ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
 		},
 		"template": {
 			Description:  "A `template` name. IoT Central application template name.",

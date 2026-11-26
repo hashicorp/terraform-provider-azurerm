@@ -34,8 +34,8 @@ func dataFactoryLinkedServiceCosmosdbMongoapiSchema() map[string]*pluginsdk.Sche
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 		},
 
 		"database": {

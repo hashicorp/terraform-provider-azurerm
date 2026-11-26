@@ -73,11 +73,11 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"iothub_ids": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				Set:      set.HashStringIgnoreCase,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: iothubValidate.IotHubID,
 				},
-				Set: set.HashStringIgnoreCase,
 			},
 
 			"additional_workspace": {

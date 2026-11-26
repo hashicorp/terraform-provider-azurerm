@@ -29,8 +29,8 @@ func logAnalyticsDatasourceWindowsEventSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validate.LogAnalyticsWorkspaceName,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"event_log_name": {

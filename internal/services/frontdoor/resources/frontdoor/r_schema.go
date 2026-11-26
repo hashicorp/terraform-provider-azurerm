@@ -49,8 +49,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"routing_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 500,
 			Required: true,
+			MaxItems: 500,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -209,8 +209,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"backend_pool_load_balancing": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 5000,
 			Required: true,
+			MaxItems: 5000,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -248,8 +248,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"backend_pool_health_probe": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 5000,
 			Required: true,
+			MaxItems: 5000,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -306,8 +306,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"backend": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 500,
 						Required: true,
+						MaxItems: 500,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -404,8 +404,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"frontend_endpoint": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 500,
 			Required: true,
+			MaxItems: 500,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {

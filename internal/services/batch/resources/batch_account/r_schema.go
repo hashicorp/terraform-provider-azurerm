@@ -120,15 +120,15 @@ func batchAccountSchema() map[string]*pluginsdk.Schema {
 		"primary_access_key": {
 			Description: "The Batch Account primary access key.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_access_key": {
 			Description: "The Batch Account secondary access key.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"account_endpoint": {

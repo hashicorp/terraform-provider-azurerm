@@ -50,8 +50,8 @@ func eventhubSchema() map[string]*pluginsdk.Schema {
 		"retention_description": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cleanup_policy": {
@@ -192,9 +192,9 @@ func eventhubSchema() map[string]*pluginsdk.Schema {
 		"partition_ids": {
 			Description: "The identifiers for partitions created for Event Hubs.",
 			Type:        pluginsdk.TypeSet,
-			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:         pluginsdk.HashString,
 			Computed:    true,
+			Set:         pluginsdk.HashString,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 	}
 }

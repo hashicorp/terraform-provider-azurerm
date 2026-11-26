@@ -34,8 +34,8 @@ func eventhubNamespaceCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 			Description: "Whether to enable Infrastructure Encryption (Double Encryption).",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     false,
 			ForceNew:    true,
+			Default:     false,
 		},
 
 		"user_assigned_identity_id": {

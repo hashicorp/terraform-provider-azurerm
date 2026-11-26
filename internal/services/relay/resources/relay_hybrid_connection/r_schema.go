@@ -29,9 +29,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"requires_client_authorization": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
+			Default:  true,
 		},
 		"user_metadata": {
 			Type:         pluginsdk.TypeString,

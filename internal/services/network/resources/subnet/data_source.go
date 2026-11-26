@@ -48,8 +48,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"network_security_group_id": {

@@ -85,13 +85,13 @@ func WindowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"dotnet_core_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of DotNetCore to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"v4.0",
 					}, false),
 					AtLeastOneOf: WindowsApplicationStackConstraint,
-					Description:  "The version of DotNetCore to use.",
 				},
 
 				"php_version": {
@@ -135,34 +135,33 @@ func WindowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"java_embedded_server_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
-					ConflictsWith: []string{
-						"site_config.0.application_stack.0.tomcat_version",
-					},
+					Description: "Whether the application should use the embedded web server for the version of Java in use.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_version",
 					},
-					Description: "Whether the application should use the embedded web server for the version of Java in use.",
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.tomcat_version",
+					},
 				},
 
 				"tomcat_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty, // This is a long list of regularly changing values, not all valid values of which are made known in the portal/docs
-					ConflictsWith: []string{
-						"site_config.0.application_stack.0.java_embedded_server_enabled",
-					},
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_version",
+					},
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.java_embedded_server_enabled",
 					},
 				},
 
 				"java_container": {
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Deprecated: "this property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
+					Type:     pluginsdk.TypeString,
+					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
 						"JETTY", // No longer supported / offered - Java SE or Tomcat (10, 9.5, 8) only
@@ -174,22 +173,23 @@ func WindowsApplicationStackSchema() *pluginsdk.Schema {
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
+					Deprecated: "this property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
 				},
 
 				"java_container_version": {
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Deprecated: "This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
+					Type:     pluginsdk.TypeString,
+					Optional: true,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_container",
 					},
+					Deprecated: "This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
 				},
 
 				"docker_image_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					AtLeastOneOf: WindowsApplicationStackConstraint,
 					ValidateFunc: validation.StringIsNotEmpty,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"docker_registry_url": {
@@ -438,10 +438,10 @@ func LinuxApplicationStackSchema() *pluginsdk.Schema {
 						"21",
 						"25",
 					}, false),
-					ExactlyOneOf: LinuxApplicationStackConstraint,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_server_version", "site_config.0.application_stack.0.java_server",
 					},
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"java_server": {
@@ -468,8 +468,8 @@ func LinuxApplicationStackSchema() *pluginsdk.Schema {
 				"docker_image_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ExactlyOneOf: LinuxApplicationStackConstraint,
 					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"docker_registry_url": {

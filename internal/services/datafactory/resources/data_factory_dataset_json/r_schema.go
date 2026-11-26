@@ -38,8 +38,8 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 		// JSON Dataset Specific Field
 		"http_server_location": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 			ConflictsWith: []string{"azure_blob_storage_location"},
 			Elem: &pluginsdk.Resource{
@@ -81,8 +81,8 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 		// JSON Dataset Specific Field
 		"azure_blob_storage_location": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 			ConflictsWith: []string{"http_server_location"},
 			Elem: &pluginsdk.Resource{

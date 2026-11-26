@@ -63,10 +63,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "A set of database names to include in the failover group.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"readonly_endpoint_failover_policy_enabled": {
