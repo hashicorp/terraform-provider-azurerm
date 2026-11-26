@@ -1,0 +1,41 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package helpers
+
+import (
+	"log"
+
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
+)
+
+func ExpandDataSetParameters(input map[string]any) map[string]*datafactory.ParameterSpecification {
+	output := make(map[string]*datafactory.ParameterSpecification)
+
+	for k, v := range input {
+		output[k] = &datafactory.ParameterSpecification{
+			Type:         datafactory.ParameterTypeString,
+			DefaultValue: v.(string),
+		}
+	}
+
+	return output
+}
+
+func FlattenDataSetParameters(input map[string]*datafactory.ParameterSpecification) map[string]any {
+	output := make(map[string]any)
+
+	for k, v := range input {
+		if v != nil {
+			// we only support string parameters at this time
+			val, ok := v.DefaultValue.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
+		}
+	}
+
+	return output
+}
