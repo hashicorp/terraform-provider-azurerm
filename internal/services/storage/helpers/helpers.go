@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -42,8 +42,8 @@ func SchemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 				"exposed_headers": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
-					MaxItems: 64,
 					MinItems: 1,
+					MaxItems: 64,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -51,8 +51,8 @@ func SchemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 				"allowed_headers": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
-					MaxItems: 64,
 					MinItems: 1,
+					MaxItems: 64,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
