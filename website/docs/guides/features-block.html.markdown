@@ -89,6 +89,10 @@ provider "azurerm" {
       restart_server_on_configuration_value_change = true
     }
 
+    postgresql_flexible_server_virtual_endpoint {
+      recreate_resource_after_failover = false
+    }
+
     recovery_service {
       vm_backup_stop_protection_and_retain_data_on_destroy    = true
       vm_backup_suspend_protection_and_retain_data_on_destroy = true
@@ -168,6 +172,8 @@ The `features` block supports the following:
 * `netapp` - (Optional) A `netapp` block as defined below.
 
 * `postgresql_flexible_server` - (Optional) A `postgresql_flexible_server` block as defined below.
+
+* `postgresql_flexible_server_virtual_endpoint` - (Optional) A `postgresql_flexible_server_virtual_endpoint` block as defined below.
 
 * `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
@@ -301,6 +307,12 @@ The `netapp` block supports the following:
 The `postgresql_flexible_server` block supports the following:
 
 * `restart_server_on_configuration_value_change` - (Optional) Should the `postgresql_flexible_server` restart after static server parameter change or removal? Defaults to `true`.
+
+---
+
+The `postgresql_flexible_server_virtual_endpoint` block supports the following:
+
+* `recreate_resource_after_failover` - (Optional) Should the `azurerm_postgresql_flexible_server_virtual_endpoint` resource be recreated when a failover is detected (i.e. when `source_server_id` and `replica_server_id` are swapped in Azure)? When set to `true`, Terraform will destroy and recreate the virtual endpoint resource instead of silently updating state. This restores the behavior that was present prior to provider version 4.15.0. Defaults to `false`.
 
 ---
 
