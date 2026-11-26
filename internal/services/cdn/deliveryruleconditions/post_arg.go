@@ -16,6 +16,7 @@ func PostArg() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"selector": {
+				Description:  "Name of the post arg.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -44,9 +45,10 @@ func PostArg() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of string values.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -54,8 +56,9 @@ func PostArg() *pluginsdk.Resource {
 			},
 
 			"transforms": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Description: "A list of transforms.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),

@@ -47,7 +47,7 @@ type ApplicationStackWindows struct {
 	DockerImageName        string `tfschema:"docker_image_name"`
 }
 
-var windowsApplicationStackConstraint = []string{
+var WindowsApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.docker_image_name",
 	"site_config.0.application_stack.0.dotnet_version",
 	"site_config.0.application_stack.0.dotnet_core_version",
@@ -57,7 +57,7 @@ var windowsApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.python",
 }
 
-func windowsApplicationStackSchema() *pluginsdk.Schema {
+func WindowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -79,18 +79,19 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v8.0",
 						"v9.0",
 						"v10.0",
+						"v11.0",
 					}, false),
-					AtLeastOneOf: windowsApplicationStackConstraint,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"dotnet_core_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of DotNetCore to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"v4.0",
 					}, false),
-					AtLeastOneOf: windowsApplicationStackConstraint,
-					Description:  "The version of DotNetCore to use.",
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"php_version": {
@@ -102,14 +103,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						PhpVersionSevenPointFour, // Deprecated
 						PhpVersionOff,            // Portal displays `Off` for `""` meaning use latest available
 					}, false),
-					AtLeastOneOf: windowsApplicationStackConstraint,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"python": {
 					Type:         pluginsdk.TypeBool,
 					Optional:     true,
 					Default:      false,
-					AtLeastOneOf: windowsApplicationStackConstraint,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"node_version": {
@@ -123,45 +124,44 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"~22",
 						"~24",
 					}, false),
-					AtLeastOneOf: windowsApplicationStackConstraint,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"java_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					AtLeastOneOf: windowsApplicationStackConstraint,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"java_embedded_server_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
-					ConflictsWith: []string{
-						"site_config.0.application_stack.0.tomcat_version",
-					},
+					Description: "Whether the application should use the embedded web server for the version of Java in use.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_version",
 					},
-					Description: "Should the application use the embedded web server for the version of Java in use.",
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.tomcat_version",
+					},
 				},
 
 				"tomcat_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty, // This is a long list of regularly changing values, not all valid values of which are made known in the portal/docs
-					ConflictsWith: []string{
-						"site_config.0.application_stack.0.java_embedded_server_enabled",
-					},
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_version",
+					},
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.java_embedded_server_enabled",
 					},
 				},
 
 				"java_container": {
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Deprecated: "this property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
+					Type:     pluginsdk.TypeString,
+					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
 						"JETTY", // No longer supported / offered - Java SE or Tomcat (10, 9.5, 8) only
@@ -173,22 +173,23 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
+					Deprecated: "this property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
 				},
 
 				"java_container_version": {
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Deprecated: "This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
+					Type:     pluginsdk.TypeString,
+					Optional: true,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_container",
 					},
+					Deprecated: "This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`",
 				},
 
 				"docker_image_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					AtLeastOneOf: windowsApplicationStackConstraint,
 					ValidateFunc: validation.StringIsNotEmpty,
+					AtLeastOneOf: WindowsApplicationStackConstraint,
 				},
 
 				"docker_registry_url": {
@@ -229,7 +230,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	}
 }
 
-func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
+func WindowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -336,7 +337,7 @@ type ApplicationStackLinux struct {
 	DockerImageName        string `tfschema:"docker_image_name"`
 }
 
-var linuxApplicationStackConstraint = []string{
+var LinuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.docker_image_name",
 	"site_config.0.application_stack.0.dotnet_version",
 	"site_config.0.application_stack.0.java_version",
@@ -346,7 +347,7 @@ var linuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.go_version",
 }
 
-func linuxApplicationStackSchema() *pluginsdk.Schema {
+func LinuxApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -365,8 +366,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.0",
 						"9.0",
 						"10.0",
+						"11.0",
 					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"go_version": {
@@ -376,7 +378,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"1.19",
 						"1.18",
 					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"php_version": {
@@ -391,7 +393,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.4",
 						"8.5",
 					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"python_version": {
@@ -407,7 +409,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.13",
 						"3.14",
 					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"node_version": {
@@ -421,8 +423,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"20-lts",
 						"22-lts",
 						"24-lts",
+						"26",
 					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"java_version": {
@@ -435,10 +438,10 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"21",
 						"25",
 					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_server_version", "site_config.0.application_stack.0.java_server",
 					},
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"java_server": {
@@ -465,8 +468,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"docker_image_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ExactlyOneOf: linuxApplicationStackConstraint,
 					ValidateFunc: validation.StringIsNotEmpty,
+					ExactlyOneOf: LinuxApplicationStackConstraint,
 				},
 
 				"docker_registry_url": {
@@ -492,7 +495,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 	}
 }
 
-func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
+func LinuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,

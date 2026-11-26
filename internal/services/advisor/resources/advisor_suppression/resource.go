@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_advisor_suppression"
 }
 
+func (Resource) Description() string {
+	return "A suppression for an Azure Advisor recommendation."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return suppressions.ValidateScopedSuppressionID
 }

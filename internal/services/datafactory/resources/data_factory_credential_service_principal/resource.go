@@ -20,6 +20,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_data_factory_credential_service_principal"
 }
 
+func (Resource) Description() string {
+	return "Manage a Data Factory Service Principal credential resource. These resources are used by Data Factory to access data sources."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return credentials.ValidateCredentialID
 }

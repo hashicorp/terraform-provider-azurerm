@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryCreateUpdate,
-		Read:   resourceDataFactoryRead,
-		Update: resourceDataFactoryCreateUpdate,
-		Delete: resourceDataFactoryDelete,
+		Description: "Manages an Azure Data Factory (Version 2).",
+		Create:      resourceDataFactoryCreateUpdate,
+		Read:        resourceDataFactoryRead,
+		Update:      resourceDataFactoryCreateUpdate,
+		Delete:      resourceDataFactoryDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

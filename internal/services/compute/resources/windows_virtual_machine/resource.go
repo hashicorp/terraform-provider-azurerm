@@ -28,10 +28,11 @@ const azureWindowsVirtualMachineResourceName = "azurerm_windows_virtual_machine"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWindowsVirtualMachineCreate,
-		Read:   resourceWindowsVirtualMachineRead,
-		Update: resourceWindowsVirtualMachineUpdate,
-		Delete: resourceWindowsVirtualMachineDelete,
+		Description: "Manages a Windows Virtual Machine.",
+		Create:      resourceWindowsVirtualMachineCreate,
+		Read:        resourceWindowsVirtualMachineRead,
+		Update:      resourceWindowsVirtualMachineUpdate,
+		Delete:      resourceWindowsVirtualMachineDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachines.VirtualMachineId{}),

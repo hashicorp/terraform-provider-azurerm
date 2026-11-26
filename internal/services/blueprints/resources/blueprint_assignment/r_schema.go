@@ -16,6 +16,7 @@ import (
 func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Blueprint Assignment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_subscription_id": {
+			Description:  "The Subscription ID the Blueprint Published Version is to be applied to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,28 +36,32 @@ func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
 
 		"version_id": {
+			Description:  "The ID of the Published Version of the blueprint to be assigned.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: publishedblueprint.ValidateScopedVersionID,
 		},
 
 		"parameter_values": {
+			Description:      "A JSON string to supply Blueprint Assignment parameter values.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			StateFunc:        normalizeAssignmentParameterValuesJSON,
 			ValidateFunc:     validation.StringIsJSON,
+			StateFunc:        normalizeAssignmentParameterValuesJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
 		"resource_groups": {
+			Description:      "A JSON string to supply the Blueprint Resource Group information.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			StateFunc:        normalizeAssignmentResourceGroupValuesJSON,
 			ValidateFunc:     validation.StringIsJSON,
+			StateFunc:        normalizeAssignmentResourceGroupValuesJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
 		"lock_mode": {
+			Description:  "The locking mode of the Blueprint Assignment. One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(assignment.AssignmentLockModeNone),
@@ -65,9 +71,10 @@ func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"lock_exclude_principals": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 5,
+			Description: "A list of up to 5 Principal IDs that are permitted to bypass the locks applied by the Blueprint.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    5,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
@@ -75,27 +82,31 @@ func blueprintAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"lock_exclude_actions": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 200,
+			Description: "A list of up to 200 actions that are permitted to bypass the locks applied by the Blueprint.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    200,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Description on the Blueprint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of the blueprint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"blueprint_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the blueprint assigned.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"type": {

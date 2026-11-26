@@ -40,8 +40,8 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 
 			"app_service_name": {
 				Type:     pluginsdk.TypeString,
-				ForceNew: true,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"certificate_name": {

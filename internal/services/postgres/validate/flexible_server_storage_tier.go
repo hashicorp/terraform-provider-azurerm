@@ -6,7 +6,7 @@ package validate
 import (
 	"math"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 )
 
 type StorageTiers struct {

@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceConfidentialLedgerRead,
+		Description: "Gets information about an existing Confidential Ledger.",
+		Read:        dataSourceConfidentialLedgerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			// Required
 			"name": {
+				Description:  "The name of this Confidential Ledger.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ConfidentialLedgerName,
@@ -43,16 +45,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Ledger Role to grant this AzureAD Service Principal.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Principal ID of the AzureAD Service Principal.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Tenant ID for this AzureAD Service Principal.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -64,20 +69,23 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Ledger Role to grant this Certificate Security Principal.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"pem_public_key": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The public key, in PEM format, of the certificate used by this identity to authenticate with the Confidential Ledger.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"ledger_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of Confidential Ledger.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -85,12 +93,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"identity_service_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Identity Service Endpoint for this Confidential Ledger.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"ledger_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Endpoint for this Confidential Ledger.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

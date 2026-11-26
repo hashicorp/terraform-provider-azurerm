@@ -32,6 +32,7 @@ type KubernetesFleetManagerDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Kubernetes Fleet Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -53,6 +54,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_kubernetes_fleet_manager"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Kubernetes Fleet Manager."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

@@ -7,9 +7,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -64,6 +67,14 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	td.resourceTest(t, testResource, steps, nil)
+}
+
+func (td TestData) ResourceTestAdditionalCLIOptions(t *testing.T, testResource types.TestResource, steps []TestStep, cliOpts *resource.AdditionalCLIOptions) {
+	td.resourceTest(t, testResource, steps, cliOpts)
+}
+
+func (td TestData) resourceTest(t *testing.T, testResource types.TestResource, steps []TestStep, cliOpts *resource.AdditionalCLIOptions) {
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
 	newSteps := make([]TestStep, 0)
@@ -90,8 +101,10 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 			}
 			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
-		Steps: steps,
+		Steps:                steps,
+		AdditionalCLIOptions: cliOpts,
 	}
+
 	td.runAcceptanceTest(t, testCase)
 }
 
@@ -154,6 +167,8 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 // The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The second step uses the locally built provider code.
+// With no version given, it is skipped when the release does not have a resource, data source or property its config uses yet. A pinned version
+// is never skipped.
 func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	if len(steps) != 2 {
 		if len(steps) == 1 {
@@ -185,7 +200,8 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
@@ -233,7 +249,8 @@ func (td TestData) ResourceSequentialRegressionTest(t *testing.T, testResource t
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
@@ -282,8 +299,9 @@ func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, prev
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
-		Steps:    steps,
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		Steps:      steps,
 	}
 
 	resource.ParallelTest(t, testCase)
@@ -322,8 +340,9 @@ func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []Test
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
-		Steps:    steps,
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		Steps:      steps,
 	}
 
 	resource.Test(t, testCase)
@@ -334,6 +353,8 @@ func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []Test
 // All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The final step uses the locally built provider code.
+// With no version given, it is skipped when the release does not have a resource, data source or property its config uses yet. A pinned version
+// is never skipped.
 func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	l := len(steps)
 	if l < 3 {
@@ -359,7 +380,8 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
@@ -371,6 +393,186 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 	}
 
 	resource.ParallelTest(t, testCase)
+}
+
+// notInReleaseRegex matches Terraform saying a provider does not have a resource or data source type, which it may break across lines anywhere.
+var notInReleaseRegex = regexp.MustCompile(`does\s+not\s+support\s+(resource\s+type|data\s+source)\s+"`)
+
+// terraformErrorRegex finds where each error starts, as Terraform can report several at once.
+var terraformErrorRegex = regexp.MustCompile(`(?m)^Error: `)
+
+// unknownPropertyErrors are the errors Terraform gives for a property a provider does not know. To cover another, add its title and the words that
+// come just before the property's name in its message.
+var unknownPropertyErrors = []struct {
+	title      string
+	beforeName string
+	isBlock    bool
+}{
+	{title: "Unsupported argument", beforeName: "An argument named"},
+	{title: "Unsupported block type", beforeName: "Blocks of type", isBlock: true},
+}
+
+// errorLocationRegex matches where Terraform says an error is, capturing the kind of block and its type, such as:
+//
+//	terraform_plugin_test.tf line 47, in resource "azurerm_virtual_network"
+var errorLocationRegex = regexp.MustCompile(`^\S+ line \d+, in (resource|data|provider) "([^"]+)"`)
+
+// unknownProperty is a property Terraform said a provider does not know.
+type unknownProperty struct {
+	blockKind string // resource, data or provider
+	blockType string // such as azurerm_virtual_network
+	name      string
+	isBlock   bool
+}
+
+// parseUnknownProperty reads one Terraform error and returns the property it says is not known, or false for any other error. The error looks like:
+//
+//	Error: Unsupported argument
+//
+//	  on terraform_plugin_test.tf line 47, in resource "azurerm_virtual_network" "test":
+//	  47:   advertised_gateway_prefixes = true
+//
+//	An argument named "advertised_gateway_prefixes" is not expected here.
+func parseUnknownProperty(msg string) (unknownProperty, bool) {
+	// Terraform may wrap the text anywhere, so put it on one line with single spaces
+	text := strings.Join(strings.Fields(msg), " ")
+
+	for _, e := range unknownPropertyErrors {
+		location, found := strings.CutPrefix(text, "Error: "+e.title+" on ")
+		if !found {
+			continue
+		}
+
+		block := errorLocationRegex.FindStringSubmatch(location)
+		if block == nil {
+			return unknownProperty{}, false
+		}
+
+		_, afterWords, found := strings.Cut(location, e.beforeName+` "`)
+		if !found {
+			return unknownProperty{}, false
+		}
+
+		name, _, found := strings.Cut(afterWords, `"`)
+		if !found {
+			return unknownProperty{}, false
+		}
+
+		return unknownProperty{blockKind: block[1], blockType: block[2], name: name, isBlock: e.isBlock}, true
+	}
+
+	return unknownProperty{}, false
+}
+
+// skipWhenNotReleased skips a regression test whose config uses a resource, data source or property the previous version does not have yet, as
+// there is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing one is a
+// real failure.
+func skipWhenNotReleased(t *testing.T, steps []TestStep, previousVersion string) resource.ErrorCheckFunc {
+	// a pinned version never gains anything, so a skip there would hide the failure for good: it needs a config of its own instead
+	if previousVersion != "" {
+		return nil
+	}
+
+	// the testing library does not say which step failed, so the last step, the local build, flags itself as it starts
+	local := false
+	last := len(steps) - 1
+	setup := steps[last].PreConfig
+	steps[last].PreConfig = func() {
+		local = true
+		if setup != nil {
+			setup()
+		}
+	}
+
+	return func(err error) error {
+		if !local && notInReleaseRegex.MatchString(err.Error()) {
+			t.Skipf("skipping, provider version %q does not have a type this test uses yet: %+v", providerRelease(previousVersion), err)
+		}
+
+		if !local && onlyNewProperties(t, err.Error()) {
+			t.Skipf("skipping, provider version %q does not have a property this test uses yet: %+v", providerRelease(previousVersion), err)
+		}
+
+		return err
+	}
+}
+
+// onlyNewProperties reports whether every error in msg is the previous version not knowing an argument or block that the local build does have, which
+// means it was added since that release. A misspelt or removed property, one from another provider, or any other error is not skipped.
+func onlyNewProperties(t *testing.T, msg string) bool {
+	starts := terraformErrorRegex.FindAllStringIndex(msg, -1)
+	if len(starts) == 0 {
+		return false
+	}
+
+	unknown := make([]unknownProperty, 0, len(starts))
+	for i, start := range starts {
+		end := len(msg)
+		if i+1 < len(starts) {
+			end = starts[i+1][0]
+		}
+
+		property, found := parseUnknownProperty(msg[start[0]:end])
+		if !found {
+			return false
+		}
+
+		unknown = append(unknown, property)
+	}
+
+	ctx := context.Background()
+	server, _, err := framework.ProtoV5ProviderServerFactoryWithTestName(ctx, t.Name())
+	if err != nil {
+		t.Logf("not checking for new properties, building the local provider failed: %+v", err)
+		return false
+	}
+
+	schemas, err := server().GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+	if err != nil {
+		t.Logf("not checking for new properties, reading the local provider schema failed: %+v", err)
+		return false
+	}
+
+	for _, property := range unknown {
+		var s *tfprotov5.Schema
+		switch property.blockKind {
+		case "resource":
+			s = schemas.ResourceSchemas[property.blockType]
+		case "data":
+			s = schemas.DataSourceSchemas[property.blockType]
+		case "provider":
+			if property.blockType == "azurerm" {
+				s = schemas.Provider
+			}
+		}
+
+		if s == nil || !hasProperty(s.Block, property.name, property.isBlock) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// hasProperty reports whether block, or a block nested in it, has a settable argument or, when isBlock is set, a block with this name.
+func hasProperty(block *tfprotov5.SchemaBlock, name string, isBlock bool) bool {
+	if block == nil {
+		return false
+	}
+
+	for _, a := range block.Attributes {
+		if !isBlock && a.Name == name && (a.Required || a.Optional) {
+			return true
+		}
+	}
+
+	for _, b := range block.BlockTypes {
+		if (isBlock && b.TypeName == name) || hasProperty(b.Block, name, isBlock) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
