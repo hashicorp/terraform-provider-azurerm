@@ -266,7 +266,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {}
 }
-`, data.RandomInteger, data.Locations.Primary, SkuStandardPlan, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, "S1", data.RandomString)
 }
 
 func (r FunctionAppSlotHybridConnectionResource) templateRelayInOtherResourceGroup(data acceptance.TestData) string {
@@ -332,7 +332,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {}
 }
-`, data.RandomInteger, data.Locations.Primary, SkuStandardPlan, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, "S1", data.RandomString)
 }
 
 func (r FunctionAppSlotHybridConnectionResource) authRuleTemplate(data acceptance.TestData) string {

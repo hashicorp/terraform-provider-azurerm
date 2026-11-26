@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package chaosstudio
@@ -43,14 +43,14 @@ func (r ChaosStudioCapabilityResource) ResourceType() string {
 func (r ChaosStudioCapabilityResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"capability_type": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"chaos_studio_target_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: commonids.ValidateChaosStudioTargetID,
 		},
 	}

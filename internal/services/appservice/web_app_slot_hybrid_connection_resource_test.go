@@ -260,7 +260,7 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {}
 }
-`, data.RandomInteger, data.Locations.Primary, SkuStandardPlan)
+`, data.RandomInteger, data.Locations.Primary, "S1")
 }
 
 func (r WebAppSlotHybridConnectionResource) templateRelayInOtherResourceGroup(data acceptance.TestData) string {
@@ -313,7 +313,7 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {}
 }
-`, data.RandomInteger, data.Locations.Primary, SkuStandardPlan)
+`, data.RandomInteger, data.Locations.Primary, "S1")
 }
 
 func (r WebAppSlotHybridConnectionResource) authRuleTemplate(data acceptance.TestData) string {
