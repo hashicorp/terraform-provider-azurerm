@@ -4,7 +4,7 @@
 package tags
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -26,7 +26,7 @@ func TestExpand(t *testing.T) {
 		case string:
 			strVal = v
 		case int:
-			strVal = fmt.Sprintf("%d", v)
+			strVal = strconv.Itoa(v)
 		}
 
 		if *expanded[k] != strVal {

@@ -692,7 +692,7 @@ func (gen documentationGenerator) determineDefaultValueForExample(name string, f
 		}
 
 		if v, ok := field.Default.(int); ok {
-			return fmt.Sprintf("%d", v)
+			return strconv.Itoa(v)
 		}
 
 		if v, ok := field.Default.(string); ok {

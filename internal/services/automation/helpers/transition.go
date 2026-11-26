@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"strconv"
 )
 
 func InterfaceValueToString(v any) (string, error) {
@@ -12,7 +13,7 @@ func InterfaceValueToString(v any) (string, error) {
 	case string:
 		return value, nil
 	case int:
-		return fmt.Sprintf("%d", value), nil
+		return strconv.Itoa(value), nil
 	default:
 		return "", fmt.Errorf("unknown type %T in value", value)
 	}

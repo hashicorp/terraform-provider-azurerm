@@ -141,8 +141,8 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 					Properties: pointer.To(map[string]string{
 						"role_name":                    model.RoleName,
 						"role_instance":                model.RoleInstance,
-						"sampling_requests_per_second": fmt.Sprintf("%d", model.SamplingRequestsPerSecond),
-						"sampling_percentage":          fmt.Sprintf("%d", model.SamplingPercentage),
+						"sampling_requests_per_second": strconv.FormatInt(model.SamplingRequestsPerSecond, 10),
+						"sampling_percentage":          strconv.FormatInt(model.SamplingPercentage, 10),
 					}),
 					Secrets: pointer.To(map[string]string{
 						"connection_string": model.ConnectionString,
@@ -202,11 +202,11 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 			}
 
 			if metadata.ResourceData.HasChange("sampling_requests_per_second") {
-				(*properties.Properties)["sampling_requests_per_second"] = fmt.Sprintf("%d", model.SamplingRequestsPerSecond)
+				(*properties.Properties)["sampling_requests_per_second"] = strconv.FormatInt(model.SamplingRequestsPerSecond, 10)
 			}
 
 			if metadata.ResourceData.HasChange("sampling_percentage") {
-				(*properties.Properties)["sampling_percentage"] = fmt.Sprintf("%d", model.SamplingPercentage)
+				(*properties.Properties)["sampling_percentage"] = strconv.FormatInt(model.SamplingPercentage, 10)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {

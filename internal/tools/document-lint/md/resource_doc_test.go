@@ -6,10 +6,10 @@ package md
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os"
 	"path"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -75,7 +75,7 @@ func TestExtractBlockNames(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		t.Run(fmt.Sprint(idx), func(t *testing.T) {
+		t.Run(strconv.Itoa(idx), func(t *testing.T) {
 			names := extractBlockNames(test.line)
 			if !reflect.DeepEqual(names, test.names) {
 				t.Fatalf("test %d want: %v, got: A%v", idx, test.names, names)

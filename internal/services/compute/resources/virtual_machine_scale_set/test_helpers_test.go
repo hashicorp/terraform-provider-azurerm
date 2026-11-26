@@ -5,6 +5,7 @@ package virtual_machine_scale_set_test
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
@@ -311,5 +312,5 @@ resource "azurerm_subnet" "test" {
 
 func (WindowsVirtualMachineScaleSetResource) vmName(data acceptance.TestData) string {
 	// windows VM names can be up to 15 chars, however the prefix can only be 9 chars
-	return fmt.Sprintf("acctvm%s", fmt.Sprintf("%d", data.RandomInteger)[0:2])
+	return fmt.Sprintf("acctvm%s", strconv.Itoa(data.RandomInteger)[0:2])
 }

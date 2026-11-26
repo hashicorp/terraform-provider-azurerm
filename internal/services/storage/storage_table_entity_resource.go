@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -406,7 +407,7 @@ func flattenEntity(entity map[string]any) map[string]any {
 			case float64:
 				f64 := v.(float64)
 				if v == float64(int64(f64)) {
-					result[k] = fmt.Sprintf("%d", int64(f64))
+					result[k] = strconv.FormatInt(int64(f64), 10)
 					result[k+"@odata.type"] = "Edm.Int32"
 				} else {
 					// fmt.Sprintf("%f", v) will return `123.123000` for `123.123`, have to use fmt.Sprint

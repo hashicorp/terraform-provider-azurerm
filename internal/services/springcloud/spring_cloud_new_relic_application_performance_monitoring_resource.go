@@ -168,12 +168,12 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Create() sd
 					Type: "NewRelic",
 					Properties: pointer.To(map[string]string{
 						"app_name":                       model.AppName,
-						"agent_enabled":                  fmt.Sprintf("%t", model.AgentEnabled),
-						"appserver_port":                 fmt.Sprintf("%d", model.AppServerPort),
-						"audit_mode":                     fmt.Sprintf("%t", model.AuditModeEnabled),
-						"enable_auto_app_naming":         fmt.Sprintf("%t", model.AutoAppNamingEnabled),
-						"enable_auto_transaction_naming": fmt.Sprintf("%t", model.AutoTransactionNamingEnabled),
-						"enable_custom_tracing":          fmt.Sprintf("%t", model.CustomTracingEnabled),
+						"agent_enabled":                  strconv.FormatBool(model.AgentEnabled),
+						"appserver_port":                 strconv.FormatInt(model.AppServerPort, 10),
+						"audit_mode":                     strconv.FormatBool(model.AuditModeEnabled),
+						"enable_auto_app_naming":         strconv.FormatBool(model.AutoAppNamingEnabled),
+						"enable_auto_transaction_naming": strconv.FormatBool(model.AutoTransactionNamingEnabled),
+						"enable_custom_tracing":          strconv.FormatBool(model.CustomTracingEnabled),
 						"labels":                         expandNewRelicLabels(model.Labels),
 					}),
 					Secrets: pointer.To(map[string]string{
@@ -238,27 +238,27 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Update() sd
 			}
 
 			if metadata.ResourceData.HasChange("agent_enabled") {
-				(*properties.Properties)["agent_enabled"] = fmt.Sprintf("%t", model.AgentEnabled)
+				(*properties.Properties)["agent_enabled"] = strconv.FormatBool(model.AgentEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("app_server_port") {
-				(*properties.Properties)["appserver_port"] = fmt.Sprintf("%d", model.AppServerPort)
+				(*properties.Properties)["appserver_port"] = strconv.FormatInt(model.AppServerPort, 10)
 			}
 
 			if metadata.ResourceData.HasChange("audit_mode_enabled") {
-				(*properties.Properties)["audit_mode"] = fmt.Sprintf("%t", model.AuditModeEnabled)
+				(*properties.Properties)["audit_mode"] = strconv.FormatBool(model.AuditModeEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("auto_app_naming_enabled") {
-				(*properties.Properties)["enable_auto_app_naming"] = fmt.Sprintf("%t", model.AutoAppNamingEnabled)
+				(*properties.Properties)["enable_auto_app_naming"] = strconv.FormatBool(model.AutoAppNamingEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("auto_transaction_naming_enabled") {
-				(*properties.Properties)["enable_auto_transaction_naming"] = fmt.Sprintf("%t", model.AutoTransactionNamingEnabled)
+				(*properties.Properties)["enable_auto_transaction_naming"] = strconv.FormatBool(model.AutoTransactionNamingEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("custom_tracing_enabled") {
-				(*properties.Properties)["enable_custom_tracing"] = fmt.Sprintf("%t", model.CustomTracingEnabled)
+				(*properties.Properties)["enable_custom_tracing"] = strconv.FormatBool(model.CustomTracingEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("labels") {
