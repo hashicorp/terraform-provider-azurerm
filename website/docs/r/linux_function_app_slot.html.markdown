@@ -674,7 +674,11 @@ A `docker` block supports the following:
 
 * `image_name` - (Required) The name of the Docker image to use.
 
-* `image_tag` - (Required) The image tag of the image to use.
+* `image_tag` - (Optional) The image tag of the image to use.
+
+* `image_digest` - (Optional) The digest of the image to use, for example `sha256:abc123`.
+
+~> **Note:** Exactly one of `image_tag` or `image_digest` must be specified.
 
 * `registry_username` - (Optional) The username to use for connections to the registry.
 
