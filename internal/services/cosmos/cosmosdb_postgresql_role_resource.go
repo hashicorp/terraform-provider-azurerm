@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -24,13 +24,19 @@ type CosmosDbPostgreSQLRoleResourceModel struct {
 
 type CosmosDbPostgreSQLRoleResource struct{}
 
+var _ sdk.Resource = CosmosDbPostgreSQLRoleResource{}
+
 var _ sdk.Resource = CosmosDbPostgreSQLClusterResource{}
 
 func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_role"
 }
 
-func (r CosmosDbPostgreSQLRoleResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLRoleResource) Description() string {
+	return "Manages an Azure Cosmos DB for PostgreSQL Role."
+}
+
+func (r CosmosDbPostgreSQLRoleResource) ModelObject() any {
 	return &CosmosDbPostgreSQLRoleResourceModel{}
 }
 
@@ -41,6 +47,7 @@ func (r CosmosDbPostgreSQLRoleResource) IDValidationFunc() pluginsdk.SchemaValid
 func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Cosmos DB for PostgreSQL Role.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,6 +55,7 @@ func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"cluster_id": {
+			Description:  "The resource ID of the Azure Cosmos DB for PostgreSQL Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -55,6 +63,7 @@ func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"password": {
+			Description:  "The password of the Azure Cosmos DB for PostgreSQL Role.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -50,7 +50,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Resource
 	return "azurerm_spring_cloud_app_dynamics_application_performance_monitoring"
 }
 
-func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudAppDynamicsApplicationPerformanceMonitoringModel{}
 }
 
@@ -67,7 +67,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Argument
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}, "Spring Cloud Service"),
 
 		"agent_account_access_key": {
 			Type:         pluginsdk.TypeString,

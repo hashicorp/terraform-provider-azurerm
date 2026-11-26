@@ -161,6 +161,16 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
+		// While returning a success on a response with a `204 No Content` status may seem odd, Microsoft explicitly documents this:
+		// https://learn.microsoft.com/azure/azure-resource-manager/management/async-operations
+		// "When the operation successfully completes, it returns either:
+		//  - 200 (OK)
+		//  - 204 (No Content)"
+		if result.HttpResponse.StatusCode == http.StatusNoContent {
+			result.Status = pollers.PollingStatusSucceeded
+			return
+		}
+
 		// Automation@2022-08-08 - Runbooks - returns a 200 OK with no Body
 		if result.HttpResponse.StatusCode == http.StatusOK && result.HttpResponse.ContentLength == 0 {
 			result.Status = pollers.PollingStatusSucceeded

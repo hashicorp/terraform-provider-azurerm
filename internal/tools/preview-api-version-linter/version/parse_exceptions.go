@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package version
 
 import (
@@ -115,7 +118,7 @@ func validateVersionException(e versionException, isHistorical bool, validModule
 		if pointer.From(e.ResponsibleIndividual) == "" {
 			errors = append(errors, fmt.Sprintf("module %q, service %q, version %q: responsibleIndividual is required", e.Module, e.Service, e.Version))
 		} else if !validResponsibleIndividual(pointer.From(e.ResponsibleIndividual)) {
-			errors = append(errors, fmt.Sprintf("module %q, service %q, version %q: invalid responsibleIndividual %q, has to be an email or a `github.com/yourname` GitHub handle", e.Module, e.Service, e.Version, pointer.From(e.ResponsibleIndividual)))
+			errors = append(errors, fmt.Sprintf("module %q, service %q, version %q: invalid responsibleIndividual %q, has to be an email or a `github.com/yourname` GitHub handle (comma-separated for multiple values)", e.Module, e.Service, e.Version, pointer.From(e.ResponsibleIndividual)))
 		}
 	}
 
@@ -130,11 +133,19 @@ func validRFC3339DateOnly(s string) bool {
 var githubHandleRegex = regexp.MustCompile(`(?i)^github\.com/[a-z0-9-_]+$`)
 
 func validResponsibleIndividual(s string) bool {
-	_, err := mail.ParseAddress(s)
-	if err == nil {
-		return true
+	for item := range strings.SplitSeq(s, ",") {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			return false
+		}
+		if _, err := mail.ParseAddress(item); err == nil {
+			continue
+		}
+		if !githubHandleRegex.MatchString(item) {
+			return false
+		}
 	}
-	return githubHandleRegex.MatchString(s)
+	return true
 }
 
 func trimSpaces(e versionException) versionException {

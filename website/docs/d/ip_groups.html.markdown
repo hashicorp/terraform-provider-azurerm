@@ -14,8 +14,8 @@ Use this data source to access information about existing IP Groups.
 
 ```hcl
 data "azurerm_ip_groups" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-ip-group"
+  resource_group_name = "example-resources"
 }
 
 output "ids" {
@@ -49,4 +49,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Linux Function App Slot enabled. Defaults to `true`.
 
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
+
 * `ftp_publish_basic_authentication_enabled` - (Optional) Are the default FTP Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
@@ -642,7 +644,7 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0`, `9.0` and `10.0`.
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0`, `9.0`, `10.0` and `11.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -650,7 +652,7 @@ An `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`.
 
-* `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , `7.2`, and `7.4`.
+* `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , `7.2`, `7.4` and `7.6`.
 
 * `python_version` - (Optional) The version of Python to use. Possible values are `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
