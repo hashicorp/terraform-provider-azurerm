@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_customer_managed_key
@@ -15,6 +15,10 @@ var _ sdk.ResourceWithUpdate = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_data_factory_customer_managed_key"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Customer Managed Key for a Data Factory."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

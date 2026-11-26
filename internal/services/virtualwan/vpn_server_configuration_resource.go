@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtualwan
@@ -197,8 +197,8 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 									"secret": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"score": {

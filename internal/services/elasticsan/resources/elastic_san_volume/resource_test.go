@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic_san_volume_test
@@ -18,6 +18,17 @@ import (
 )
 
 type ElasticSANVolumeTestResource struct{}
+
+func TestAccElasticSANVolume_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
+	r := ElasticSANVolumeTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccElasticSANVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")

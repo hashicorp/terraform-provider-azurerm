@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_json
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetJSONCreateUpdate,
-		Read:   resourceDataFactoryDatasetJSONRead,
-		Update: resourceDataFactoryDatasetJSONCreateUpdate,
-		Delete: resourceDataFactoryDatasetJSONDelete,
+		Description: "Manages an Azure JSON Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetJSONCreateUpdate,
+		Read:        resourceDataFactoryDatasetJSONRead,
+		Update:      resourceDataFactoryDatasetJSONCreateUpdate,
+		Delete:      resourceDataFactoryDatasetJSONDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)

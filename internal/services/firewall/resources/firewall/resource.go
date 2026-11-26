@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -19,11 +19,12 @@ var AzureFirewallResourceName = "azurerm_firewall"
 
 func RegisterResource() *pluginsdk.Resource {
 	resource := pluginsdk.Resource{
-		Create:   resourceFirewallCreateUpdate,
-		Read:     resourceFirewallRead,
-		Update:   resourceFirewallCreateUpdate,
-		Delete:   resourceFirewallDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&azurefirewalls.AzureFirewallId{}),
+		Description: "Manages an Azure Firewall.",
+		Create:      resourceFirewallCreateUpdate,
+		Read:        resourceFirewallRead,
+		Update:      resourceFirewallCreateUpdate,
+		Delete:      resourceFirewallDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&azurefirewalls.AzureFirewallId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),

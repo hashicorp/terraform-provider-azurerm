@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_azure_sql_table
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_data_factory_dataset_azure_sql_table"
+}
+
+func (Resource) Description() string {
+	return "Manages an Azure SQL Table Dataset inside an Azure Data Factory."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

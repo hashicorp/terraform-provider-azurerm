@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -61,8 +61,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 		"custom_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -152,8 +152,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 		"managed_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -168,8 +168,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 					"exclusion": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"match_variable": {
@@ -190,8 +190,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 					"override": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"rule_group_name": {
@@ -201,8 +201,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 								"exclusion": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"match_variable": {
@@ -223,8 +223,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 								"rule": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 1000,
 									Optional: true,
+									MaxItems: 1000,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"rule_id": {
@@ -239,8 +239,8 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 
 											"exclusion": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 100,
 												Optional: true,
+												MaxItems: 100,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"match_variable": {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_cosmosdb_sqlapi
@@ -13,6 +13,7 @@ import (
 func dataFactoryDatasetCosmosdbSqlapiSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Dataset. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func dataFactoryDatasetCosmosdbSqlapiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func dataFactoryDatasetCosmosdbSqlapiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"linked_service_name": {
+			Description:  "The Data Factory Linked Service name in which to associate the Dataset with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -34,42 +37,48 @@ func dataFactoryDatasetCosmosdbSqlapiSchema() map[string]*pluginsdk.Schema {
 
 		// Cosmos DB Specific field
 		"collection_name": {
+			Description:  "The collection name of the Data Factory Dataset Azure Cosmos DB SQL API.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Dataset.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Dataset.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Dataset.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"folder": {
+			Description:  "The folder that this Dataset is in. If not specified, the Dataset will appear at the root level.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Dataset.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -81,13 +90,15 @@ func dataFactoryDatasetCosmosdbSqlapiSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the column.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Type of the column. These values are case sensitive.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Byte",
 							"Byte[]",
@@ -107,6 +118,7 @@ func dataFactoryDatasetCosmosdbSqlapiSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"description": {
+						Description:  "The description of the column.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,

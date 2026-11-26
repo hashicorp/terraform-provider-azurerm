@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_integration_runtime_self_hosted
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
-		Read:   resourceDataFactoryIntegrationRuntimeSelfHostedRead,
-		Update: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
-		Delete: resourceDataFactoryIntegrationRuntimeSelfHostedDelete,
+		Description: "Manages a Data Factory Self-hosted Integration Runtime.",
+		Create:      resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
+		Read:        resourceDataFactoryIntegrationRuntimeSelfHostedRead,
+		Update:      resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
+		Delete:      resourceDataFactoryIntegrationRuntimeSelfHostedDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

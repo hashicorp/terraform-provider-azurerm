@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_access_connector
@@ -31,6 +31,7 @@ type DatabricksAccessConnectorDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Databricks Access Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AccessConnectorName,
@@ -91,4 +92,8 @@ func (DataSource) Read() sdk.ResourceFunc {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_databricks_access_connector"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Databricks Access Connector."
 }

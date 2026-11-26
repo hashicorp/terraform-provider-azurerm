@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account_customer_managed_key
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
-		Read:   resourceCognitiveAccountCustomerManagedKeyRead,
-		Update: resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
-		Delete: resourceCognitiveAccountCustomerManagedKeyDelete,
+		Description: "Manages a Customer Managed Key for a Cognitive Services Account.",
+		Create:      resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
+		Read:        resourceCognitiveAccountCustomerManagedKeyRead,
+		Update:      resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
+		Delete:      resourceCognitiveAccountCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

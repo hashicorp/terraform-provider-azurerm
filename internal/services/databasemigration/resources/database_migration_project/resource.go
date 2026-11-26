@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_project
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDatabaseMigrationProjectCreateUpdate,
-		Read:   resourceDatabaseMigrationProjectRead,
-		Update: resourceDatabaseMigrationProjectCreateUpdate,
-		Delete: resourceDatabaseMigrationProjectDelete,
+		Description: "Manages an Azure Database Migration Project.",
+		Create:      resourceDatabaseMigrationProjectCreateUpdate,
+		Read:        resourceDatabaseMigrationProjectRead,
+		Update:      resourceDatabaseMigrationProjectCreateUpdate,
+		Delete:      resourceDatabaseMigrationProjectDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&projectresource.ProjectId{}),
 		Identity: &schema.ResourceIdentity{

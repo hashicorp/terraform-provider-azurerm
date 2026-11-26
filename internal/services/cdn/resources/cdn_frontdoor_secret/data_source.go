@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_secret
@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorSecretRead,
+		Description: "Use this data source to access information about an existing Front Door (standard/premium) Secret.",
+		Read:        dataSourceCdnFrontDoorSecretRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,12 +28,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Secret.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CdnFrontDoorSecretName,
 			},
 
 			"profile_name": {
+				Description:  "The name of the Front Door Profile within which the Front Door Secret exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorName,
@@ -42,8 +45,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			// Computed
 			"cdn_frontdoor_profile_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Front Door Profile within which this Front Door Secret exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"secret": {
@@ -57,18 +61,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"expiration_date": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Key Vault Certificate expiration date.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"key_vault_certificate_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Key Vault Certificate ID.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"subject_alternative_names": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
+										Description: "One or more `subject alternative names` contained within the Key Vault Certificate.",
+										Type:        pluginsdk.TypeList,
+										Computed:    true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_nat_rule_collection
@@ -14,10 +14,11 @@ var AzureFirewallResourceName = "azurerm_firewall"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallNatRuleCollectionCreateUpdate,
-		Read:   resourceFirewallNatRuleCollectionRead,
-		Update: resourceFirewallNatRuleCollectionCreateUpdate,
-		Delete: resourceFirewallNatRuleCollectionDelete,
+		Description: "Manages a NAT Rule Collection within an Azure Firewall.",
+		Create:      resourceFirewallNatRuleCollectionCreateUpdate,
+		Read:        resourceFirewallNatRuleCollectionRead,
+		Update:      resourceFirewallNatRuleCollectionCreateUpdate,
+		Delete:      resourceFirewallNatRuleCollectionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallNatRuleCollectionID(id)
 			return err

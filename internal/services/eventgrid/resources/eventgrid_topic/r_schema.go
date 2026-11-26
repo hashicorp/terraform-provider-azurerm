@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_topic
@@ -15,9 +15,10 @@ import (
 func eventgridTopicSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the EventGrid Topic resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
@@ -34,10 +35,11 @@ func eventgridTopicSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"input_schema": {
+			Description:  "The schema in which incoming events will be published to this domain.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(topics.InputSchemaEventGridSchema),
 			ForceNew:     true,
+			Default:      string(topics.InputSchemaEventGridSchema),
 			ValidateFunc: validation.StringInSlice(topics.PossibleValuesForInputSchema(), false),
 		},
 
@@ -45,39 +47,45 @@ func eventgridTopicSchema() map[string]*pluginsdk.Schema {
 		"input_mapping_fields": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The ID of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"topic": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The topic of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"event_time": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The event time of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"event_type": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The event type of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"subject": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The subject of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"data_version": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The data version of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 				},
 			},
@@ -87,53 +95,60 @@ func eventgridTopicSchema() map[string]*pluginsdk.Schema {
 		"input_mapping_default_values": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"event_type": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The default event type of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"subject": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The default subject of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 					"data_version": {
-						Type:     pluginsdk.TypeString,
-						ForceNew: true,
-						Optional: true,
+						Description: "The default data version of the EventGrid Event to associate with the domain.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 					},
 				},
 			},
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for this server.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether local authentication methods are enabled for the EventGrid Topic.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"inbound_ip_rule": {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   128,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The IP mask (CIDR) to match on.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 					"action": {
+						Description:  "The action to take when the rule is matched.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(topics.IPActionTypeAllow),
@@ -144,8 +159,9 @@ func eventgridTopicSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_residency_boundary": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The data residency boundary.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C because Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 			Computed: true,
 			ValidateFunc: validation.StringInSlice(
@@ -155,27 +171,31 @@ func eventgridTopicSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Endpoint associated with the EventGrid Topic.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary Shared Access Key associated with the EventGrid Topic.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary Shared Access Key associated with the EventGrid Topic.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.Tags(),
 
 		"minimum_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The minimum supported TLS version.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C because Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 			Computed: true,
 			ValidateFunc: validation.StringInSlice(

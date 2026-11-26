@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_port_authorization
@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRoutePortAuthorizationCreate,
-		Read:   resourceExpressRoutePortAuthorizationRead,
-		Delete: resourceExpressRoutePortAuthorizationDelete,
+		Description: "Manages an ExpressRoute Port Authorization.",
+		Create:      resourceExpressRoutePortAuthorizationCreate,
+		Read:        resourceExpressRoutePortAuthorizationRead,
+		Delete:      resourceExpressRoutePortAuthorizationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressrouteportauthorizations.ParseExpressRoutePortAuthorizationID(id)
 			return err

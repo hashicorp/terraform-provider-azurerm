@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account_project
@@ -41,6 +41,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Cognitive Services Account Project."
+}
+
 func (r DataSource) ModelObject() any {
 	return &CognitiveAccountProjectDataSourceModel{}
 }
@@ -52,12 +56,14 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Services Account Project.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AccountProjectName(),
 		},
 
 		"cognitive_account_name": {
+			Description:  "The name of the Cognitive Services Account in which the Project exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AccountName(),
@@ -72,23 +78,27 @@ func (r DataSource) Attributes() map[string]*schema.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"default": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether this is the default project for the Cognitive Services Account.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Cognitive Services Account Project.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of the Cognitive Services Account Project.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"endpoints": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "A mapping of endpoint names to endpoint URLs for the Cognitive Services Account Project.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

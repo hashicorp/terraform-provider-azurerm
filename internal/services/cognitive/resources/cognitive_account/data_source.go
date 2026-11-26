@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account
@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCognitiveAccountRead,
+		Description: "Use this data source to access information about an existing Cognitive Services Account.",
+		Read:        dataSourceCognitiveAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,8 +32,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Cognitive Services Account.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -40,13 +42,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"custom_question_answering_search_service_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Search Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"custom_subdomain_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The subdomain name used for Entra ID token-based authentication.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"customer_managed_key": {
@@ -55,31 +59,36 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Key Vault Key which is used to encrypt the data in this Cognitive Services Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"identity_client_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Client ID of the User Assigned Identity that has access to the key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"dynamic_throttling_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether dynamic throttling is enabled for this Cognitive Services Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The endpoint of the Cognitive Services Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"fqdns": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List of FQDNs allowed for the Cognitive Services Account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -88,33 +97,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the Cognitive Services Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"local_auth_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether local authentication methods are enabled for the Cognitive Services Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"metrics_advisor_aad_client_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Microsoft Entra Application (client) ID.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"metrics_advisor_aad_tenant_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Microsoft Entra Tenant ID.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"metrics_advisor_super_user_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The super user of Metrics Advisor.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"metrics_advisor_website_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The website name of Metrics Advisor.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"network_acls": {
@@ -128,8 +143,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"ip_rules": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "One or more IP Addresses, or CIDR Blocks that can access the Cognitive Services Account.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -141,21 +157,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"subnet_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The ID of the subnet which can access this Cognitive Services Account.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"ignore_missing_vnet_service_endpoint": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
+										Description: "Whether missing VNet service endpoint is ignored.",
+										Type:        pluginsdk.TypeBool,
+										Computed:    true,
 									},
 								},
 							},
 						},
 
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Whether trusted Azure Services are allowed to access the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -167,53 +186,62 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"scenario": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The feature that network injection is applied to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the subnet which the Agent Client is injected into.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"outbound_network_access_restricted": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether outbound network access is restricted for the Cognitive Services Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key of the Cognitive Services Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"project_management_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether project management is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether public network access is allowed for the Cognitive Services Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"qna_runtime_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The link to the QNA runtime.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key of the Cognitive Services Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU name of the Cognitive Services Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"storage": {
@@ -222,13 +250,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"storage_account_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Storage Account resource associated with this Cognitive Services Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"identity_client_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The client ID of the Managed Identity associated with the storage resource.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

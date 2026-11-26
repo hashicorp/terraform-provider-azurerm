@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_azure_blob_storage
@@ -20,10 +20,11 @@ type ServicePrincipalKey struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceBlobStorageRead,
-		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceBlobStorageDelete,
+		Description: "Manages a Linked Service (connection) between an Azure Blob Storage Account and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceBlobStorageRead,
+		Update:      resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceBlobStorageDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

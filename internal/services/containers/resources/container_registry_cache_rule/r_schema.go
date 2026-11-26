@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_cache_rule
@@ -17,36 +17,37 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Registry Cache Rule. Only Alphanumeric characters allowed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "The name of the cache rule.",
 			ValidateFunc: validate.ContainerRegistryCacheRuleName,
 		},
 		"container_registry_id": {
+			Description:  "The ID of the Container Registry where the Cache Rule should apply.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: registries.ValidateRegistryID,
 		},
 		"credential_set_id": {
+			Description:  "The ARM resource ID of the Credential Store which is associated with the Cache Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Description:  "The ARM resource ID of the credential store which is associated with the cache rule.",
 			ValidateFunc: credentialsets.ValidateCredentialSetID,
 		},
 		"source_repo": {
+			Description: "The name of the source repository path.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The full source repository path such as 'docker.io/library/ubuntu'.",
 		},
 
 		"target_repo": {
+			Description: "The name of the new repository path to store artifacts.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The target repository namespace such as 'ubuntu'.",
 		},
 	}
 }

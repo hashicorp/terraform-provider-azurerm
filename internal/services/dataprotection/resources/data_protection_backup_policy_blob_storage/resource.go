@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_policy_blob_storage
@@ -23,9 +23,10 @@ type Criteria struct {
 
 func RegisterResource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataProtectionBackupPolicyBlobStorageCreate,
-		Read:   resourceDataProtectionBackupPolicyBlobStorageRead,
-		Delete: resourceDataProtectionBackupPolicyBlobStorageDelete,
+		Description: "Manages a Backup Policy Blob Storage.",
+		Create:      resourceDataProtectionBackupPolicyBlobStorageCreate,
+		Read:        resourceDataProtectionBackupPolicyBlobStorageRead,
+		Delete:      resourceDataProtectionBackupPolicyBlobStorageDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

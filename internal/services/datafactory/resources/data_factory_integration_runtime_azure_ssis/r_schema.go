@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_integration_runtime_azure_ssis
@@ -19,9 +19,10 @@ import (
 func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Azure-SSIS Integration Runtime. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^([a-zA-Z0-9](-|-?[a-zA-Z0-9]+)+[a-zA-Z0-9])$`),
 				`Invalid name for Managed Integration Runtime: minimum 3 characters, must start and end with a number or a letter, may only consist of letters, numbers and dashes and no consecutive dashes.`,
@@ -29,6 +30,7 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,8 +40,9 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 		"location": commonschema.Location(),
 
 		"node_size": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The size of the nodes on which the Azure-SSIS Integration Runtime runs.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard_D2_v3",
 				"Standard_D4_v3",
@@ -63,11 +66,13 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Integration runtime description.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"number_of_nodes": {
+			Description:  "Number of nodes for the Azure-SSIS Integration Runtime. Max is `10`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      1,
@@ -75,6 +80,7 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 		},
 
 		"max_parallel_executions_per_node": {
+			Description:  "The maximum parallel executions per node. Max is `1`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      1,
@@ -82,12 +88,14 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 		},
 
 		"credential_name": {
+			Description:  "The name of a Data Factory Credential that the SSIS integration will use to access data sources. For example, [`azurerm_data_factory_credential_user_managed_identity`](data_factory_credential_user_managed_identity.html).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"edition": {
+			Description:  "The Azure-SSIS Integration Runtime edition.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(integrationruntimes.IntegrationRuntimeEditionStandard),
@@ -101,8 +109,9 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"data_integration_unit": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The data integration unit number setting reserved for copy activity execution.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						ValidateFunc: validation.All(
 							validation.IntBetween(4, 256),
 							validation.IntDivisibleBy(4),
@@ -110,6 +119,7 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 					},
 
 					"time_to_live": {
+						Description:  "The time to live (in minutes) setting of integration runtime which will execute copy activity.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(5),
@@ -125,6 +135,7 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
+						Description:  "ID of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
@@ -134,6 +145,7 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 		},
 
 		"license_type": {
+			Description:  "The type of the license that is used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
@@ -147,28 +159,32 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vnet_id": {
+						Description:  "ID of the Virtual Network to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 						ValidateFunc: azure.ValidateResourceID,
+						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 					},
 					"subnet_id": {
+						Description:  "ID of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 						ValidateFunc: commonids.ValidateSubnetID,
+						ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 					},
 					"subnet_name": {
+						Description:  "Name of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						RequiredWith: []string{"vnet_integration.0.vnet_id"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						RequiredWith: []string{"vnet_integration.0.vnet_id"},
 					},
 					"public_ips": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MinItems: 2,
-						MaxItems: 2,
+						Description: "Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MinItems:    2,
+						MaxItems:    2,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidatePublicIPAddressID,
@@ -185,11 +201,13 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"blob_container_uri": {
+						Description:  "The blob endpoint for the container which contains a custom setup script that will be run on every node on startup. See [https://learn.microsoft.com/azure/data-factory/how-to-configure-azure-ssis-ir-custom-setup](https://learn.microsoft.com/azure/data-factory/how-to-configure-azure-ssis-ir-custom-setup) for more information.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"sas_token": {
+						Description:  "A container SAS token that gives access to the files. See [https://learn.microsoft.com/azure/data-factory/how-to-configure-azure-ssis-ir-custom-setup](https://learn.microsoft.com/azure/data-factory/how-to-configure-azure-ssis-ir-custom-setup) for more information.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -206,24 +224,28 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"server_endpoint": {
+						Description:  "The endpoint of an Azure SQL Server that will be used to host the SSIS catalog.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"administrator_login": {
+						Description:  "Administrator login name for the SQL Server.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"administrator_password": {
+						Description:  "Administrator login password for the SQL Server.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"pricing_tier": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Pricing tier for the database that will be created for the SSIS catalog. Mutually exclusive with `elastic_pool_name`.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Basic",
 							"S0", "S1", "S2", "S3", "S4", "S6", "S7", "S9", "S12",
@@ -236,12 +258,14 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 						ConflictsWith: []string{"catalog_info.0.elastic_pool_name"},
 					},
 					"elastic_pool_name": {
+						Description:   "The name of SQL elastic pool where the database will be created for the SSIS catalog. Mutually exclusive with `pricing_tier`.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ValidateFunc:  validate.ValidateMsSqlElasticPoolName,
 						ConflictsWith: []string{"catalog_info.0.pricing_tier"},
 					},
 					"dual_standby_pair_name": {
+						Description:  "The dual standby Azure-SSIS Integration Runtime pair with SSISDB failover.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -257,6 +281,7 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"environment": {
+						Description:  "The Environment Variables for the Azure-SSIS Integration Runtime.",
 						Type:         pluginsdk.TypeMap,
 						Optional:     true,
 						AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
@@ -266,10 +291,11 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 					},
 
 					"powershell_version": {
+						Description:  "The version of Azure Powershell installed for the Azure-SSIS Integration Runtime.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 					},
 
 					"command_key": {
@@ -279,18 +305,21 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"target_name": {
+									Description:  "The target computer or domain name.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"user_name": {
+									Description:  "The username for the target device.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"password": {
+									Description:  "The password for the target device.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -304,26 +333,30 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"linked_service_name": {
+												Description:  "The name of an existing Key Vault Data Factory Linked Service.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"secret_name": {
+												Description:  "The secret name in Azure Key Vault.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"parameters": {
-												Type:     pluginsdk.TypeMap,
-												Optional: true,
+												Description: "A map of parameters to associate with the Key Vault Data Factory Linked Service.",
+												Type:        pluginsdk.TypeMap,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
 											},
 
 											"secret_version": {
+												Description:  "The secret version in Azure Key Vault.",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
@@ -342,12 +375,14 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The Component Name installed for the Azure-SSIS Integration Runtime.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"license": {
+									Description:  "The license used for the Component.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -361,26 +396,30 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"linked_service_name": {
+												Description:  "The name of an existing Key Vault Data Factory Linked Service.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"secret_name": {
+												Description:  "The secret name in Azure Key Vault.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"parameters": {
-												Type:     pluginsdk.TypeMap,
-												Optional: true,
+												Description: "A map of parameters to associate with the Key Vault Data Factory Linked Service.",
+												Type:        pluginsdk.TypeMap,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
 											},
 
 											"secret_version": {
+												Description:  "The secret version in Azure Key Vault.",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
@@ -401,12 +440,14 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "Name of the package store.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"linked_service_name": {
+						Description:  "Name of the Linked Service to associate with the packages.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -422,18 +463,21 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"number_of_external_nodes": {
+						Description:  "The number of the external nodes, which should be greater than `0` and less than `11`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 10),
 					},
 
 					"number_of_pipeline_nodes": {
+						Description:  "The number of the pipeline nodes, which should be greater than `0` and less than `11`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 10),
 					},
 
 					"time_to_live": {
+						Description:  "The time to live (in minutes) setting of integration runtime which will execute copy activity.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(5),
@@ -449,18 +493,21 @@ func dataFactoryIntegrationRuntimeAzureSsisSchema() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"self_hosted_integration_runtime_name": {
+						Description:  "Name of Self Hosted Integration Runtime as a proxy.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"staging_storage_linked_service_name": {
+						Description:  "Name of Azure Blob Storage linked service to reference the staging data store to be used when moving data between self-hosted and Azure-SSIS integration runtimes.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"path": {
+						Description:  "The path in the data store to be used when moving data between Self-Hosted and Azure-SSIS Integration Runtimes.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,

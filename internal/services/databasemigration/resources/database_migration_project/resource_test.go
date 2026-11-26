@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_project_test
@@ -80,6 +80,17 @@ func TestAccDatabaseMigrationProject_basicMongoDbToMongoDb(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccDatabaseMigrationProject_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func TestAccDatabaseMigrationProject_complete(t *testing.T) {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_disk
@@ -18,14 +18,16 @@ import (
 func dataProtectionBackupInstanceDiskSchema() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Backup Instance Disk.",
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
 
 		"vault_id": {
+			Description:  "The ID of the Backup Vault within which the Backup Instance Disk should exist.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func dataProtectionBackupInstanceDiskSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_id": {
+			Description:  "The ID of the source Disk.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,12 +45,14 @@ func dataProtectionBackupInstanceDiskSchema() map[string]*pluginsdk.Schema {
 		"snapshot_resource_group_name": commonschema.ResourceGroupName(),
 
 		"backup_policy_id": {
+			Description:  "The ID of the Backup Policy.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 		},
 
 		"snapshot_subscription_id": {
+			Description:  "The subscription ID of the Resource Group where snapshots are stored.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -72,8 +77,9 @@ func dataProtectionBackupInstanceDiskSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"protection_state": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The protection state of the Backup Instance Disk.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic_san_volume_group_test
@@ -12,6 +12,17 @@ import (
 )
 
 type ElasticSANVolumeGroupDataSource struct{}
+
+func TestAccElasticSANVolumeGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_elastic_san_volume_group", "test")
+	d := ElasticSANVolumeGroupDataSource{}
+
+	data.DataSourceSequentialRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
 
 func TestAccElasticSANVolumeGroupDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_elastic_san_volume_group", "test")

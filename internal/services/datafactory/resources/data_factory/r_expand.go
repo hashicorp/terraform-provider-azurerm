@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory
@@ -45,6 +45,7 @@ func expandGitHubRepoConfiguration(input []any) *factories.FactoryGitHubConfigur
 		CollaborationBranch: item["branch_name"].(string),
 		DisablePublish:      pointer.To(!item["publishing_enabled"].(bool)),
 		HostName:            pointer.To(item["git_url"].(string)),
+		LastCommitId:        pointer.ToOrNil(item["last_commit_id"].(string)),
 		RepositoryName:      item["repository_name"].(string),
 		RootFolder:          item["root_folder"].(string),
 	}

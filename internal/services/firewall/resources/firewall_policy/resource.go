@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_policy
@@ -17,10 +17,11 @@ const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallPolicyCreateUpdate,
-		Read:   resourceFirewallPolicyRead,
-		Update: resourceFirewallPolicyCreateUpdate,
-		Delete: resourceFirewallPolicyDelete,
+		Description: "Manages a Firewall Policy.",
+		Create:      resourceFirewallPolicyCreateUpdate,
+		Read:        resourceFirewallPolicyRead,
+		Update:      resourceFirewallPolicyCreateUpdate,
+		Delete:      resourceFirewallPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&firewallpolicies.FirewallPolicyId{}),
 

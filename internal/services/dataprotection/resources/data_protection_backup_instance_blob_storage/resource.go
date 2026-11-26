@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_blob_storage
@@ -26,10 +26,11 @@ type BackupDatasourceParameters struct {
 
 func RegisterResource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataProtectionBackupInstanceBlobStorageCreateUpdate,
-		Read:   resourceDataProtectionBackupInstanceBlobStorageRead,
-		Update: resourceDataProtectionBackupInstanceBlobStorageCreateUpdate,
-		Delete: resourceDataProtectionBackupInstanceBlobStorageDelete,
+		Description: "Manages a Backup Instance Blob Storage.",
+		Create:      resourceDataProtectionBackupInstanceBlobStorageCreateUpdate,
+		Read:        resourceDataProtectionBackupInstanceBlobStorageRead,
+		Update:      resourceDataProtectionBackupInstanceBlobStorageCreateUpdate,
+		Delete:      resourceDataProtectionBackupInstanceBlobStorageDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

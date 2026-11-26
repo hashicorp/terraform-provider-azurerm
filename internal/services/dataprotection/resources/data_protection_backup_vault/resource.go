@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_vault
@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataProtectionBackupVaultCreateUpdate,
-		Read:   resourceDataProtectionBackupVaultRead,
-		Update: resourceDataProtectionBackupVaultCreateUpdate,
-		Delete: resourceDataProtectionBackupVaultDelete,
+		Description: "Manages a Backup Vault.",
+		Create:      resourceDataProtectionBackupVaultCreateUpdate,
+		Read:        resourceDataProtectionBackupVaultRead,
+		Update:      resourceDataProtectionBackupVaultCreateUpdate,
+		Delete:      resourceDataProtectionBackupVaultDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

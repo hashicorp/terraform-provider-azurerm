@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_consumer_group
@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: EventHubConsumerGroupDataSourceRead,
+		Description: "Use this data source to access information about an existing Event Hubs Consumer Group within an Event Hub.",
+		Read:        EventHubConsumerGroupDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,8 +28,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the EventHub Consumer Group resource.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.Any(
 					validate.ValidateEventHubConsumerName(),
 					validation.StringInSlice([]string{"$Default"}, false),
@@ -36,12 +38,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"namespace_name": {
+				Description:  "The name of the grandparent EventHub Namespace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
+				Description:  "The name of the EventHub.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
@@ -50,8 +54,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"user_metadata": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The user metadata.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

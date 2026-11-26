@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_connection
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionCreate,
-		Read:   resourceAutomationConnectionRead,
-		Update: resourceAutomationConnectionUpdate,
-		Delete: resourceAutomationConnectionDelete,
+		Description: "Manages an Automation Connection.",
+		Create:      resourceAutomationConnectionCreate,
+		Read:        resourceAutomationConnectionRead,
+		Update:      resourceAutomationConnectionUpdate,
+		Delete:      resourceAutomationConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := connection.ParseConnectionID(id)

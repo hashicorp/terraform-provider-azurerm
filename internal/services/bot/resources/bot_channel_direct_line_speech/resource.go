@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_direct_line_speech
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelDirectLineSpeechCreate,
-		Read:   resourceBotChannelDirectLineSpeechRead,
-		Delete: resourceBotChannelDirectLineSpeechDelete,
-		Update: resourceBotChannelDirectLineSpeechUpdate,
+		Description: "Manages a Direct Line Speech integration for a Bot Channel.",
+		Create:      resourceBotChannelDirectLineSpeechCreate,
+		Read:        resourceBotChannelDirectLineSpeechRead,
+		Delete:      resourceBotChannelDirectLineSpeechDelete,
+		Update:      resourceBotChannelDirectLineSpeechUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

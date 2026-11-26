@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_connection
@@ -12,6 +12,7 @@ import (
 func botConnectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Bot Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func botConnectionSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this connection will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func botConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_provider_name": {
+			Description:  "The name of the service provider that will be associated with this connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,12 +40,14 @@ func botConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_id": {
+			Description:  "The Client ID that will be used to authenticate with the service provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"client_secret": {
+			Description:  "The Client Secret that will be used to authenticate with the service provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -50,14 +55,16 @@ func botConnectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scopes": {
+			Description:  "The Scopes at which the connection should be applied.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional parameters to apply to the connection.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share_dataset_data_lake_gen2
@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDataShareDatasetDataLakeGen2Read,
+		Description: "Use this data source to access information about an existing Data Share Data Lake Gen2 Dataset.",
+		Read:        dataSourceDataShareDatasetDataLakeGen2Read,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,40 +27,47 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Data Share Data Lake Gen2 Dataset.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DataSetName(),
 			},
 
 			"share_id": {
+				Description:  "The resource ID of the Data Share where this Data Share Data Lake Gen2 Dataset should be created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: share.ValidateShareID,
 			},
 
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The resource ID of the Storage Account of the Data Lake file system to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"file_system_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Data Lake file system to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"file_path": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The path of the file in the Data Lake file system to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"folder_path": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The folder path in the Data Lake file system to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Data Share Dataset.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

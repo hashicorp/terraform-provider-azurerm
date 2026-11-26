@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package shared_image
@@ -24,10 +24,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSharedImageCreate,
-		Read:   resourceSharedImageRead,
-		Update: resourceSharedImageUpdate,
-		Delete: resourceSharedImageDelete,
+		Description: "Manages a Shared Image within a Shared Image Gallery.",
+		Create:      resourceSharedImageCreate,
+		Read:        resourceSharedImageRead,
+		Update:      resourceSharedImageUpdate,
+		Delete:      resourceSharedImageDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&galleryimages.GalleryImageId{}),
 

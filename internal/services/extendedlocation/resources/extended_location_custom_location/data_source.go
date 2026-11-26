@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package extended_location_custom_location
@@ -38,8 +38,9 @@ type ExtendedLocationCustomLocationDataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the Custom Location.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[A-Za-z\d.\-_]*[A-Za-z\d]$`),
 				"supported alphanumeric characters and periods, underscores, hyphens. Name should end with an alphanumeric character.",
@@ -58,46 +59,53 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type of authentication.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The value of authentication.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"cluster_extension_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of Cluster Extension IDs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of the Custom Location.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"host_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The host resource ID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The host type of the Custom Location.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"namespace": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The namespace of the Custom Location.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -108,6 +116,10 @@ func (r DataSource) ModelObject() any {
 
 func (r DataSource) ResourceType() string {
 	return "azurerm_extended_location_custom_location"
+}
+
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Custom Location within an Extended Location."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

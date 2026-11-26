@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_project
@@ -14,6 +14,7 @@ import (
 func databaseMigrationProjectSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the database migration project.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func databaseMigrationProjectSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_name": {
+			Description:  "Name of the database migration service where resource belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func databaseMigrationProjectSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"source_platform": {
+			Description:  "The platform type of the migration source.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,6 +42,7 @@ func databaseMigrationProjectSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_platform": {
+			Description:  "The platform type of the migration target.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

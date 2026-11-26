@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_webhook
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryWebhookCreate,
-		Read:   resourceContainerRegistryWebhookRead,
-		Update: resourceContainerRegistryWebhookUpdate,
-		Delete: resourceContainerRegistryWebhookDelete,
+		Description: "Manages an Azure Container Registry Webhook.",
+		Create:      resourceContainerRegistryWebhookCreate,
+		Read:        resourceContainerRegistryWebhookRead,
+		Update:      resourceContainerRegistryWebhookUpdate,
+		Delete:      resourceContainerRegistryWebhookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webhooks.ParseWebHookID(id)

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_partner_configuration
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_eventgrid_partner_configuration"
+}
+
+func (Resource) Description() string {
+	return "Manages an Event Grid Partner Configuration."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

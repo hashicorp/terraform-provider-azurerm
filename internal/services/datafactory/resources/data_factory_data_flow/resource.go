@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_data_flow
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDataFlowCreateUpdate,
-		Read:   resourceDataFactoryDataFlowRead,
-		Update: resourceDataFactoryDataFlowCreateUpdate,
-		Delete: resourceDataFactoryDataFlowDelete,
+		Description: "Manages a Data Flow inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDataFlowCreateUpdate,
+		Read:        resourceDataFactoryDataFlowRead,
+		Update:      resourceDataFactoryDataFlowCreateUpdate,
+		Delete:      resourceDataFactoryDataFlowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dataflows.ParseDataflowID(id)

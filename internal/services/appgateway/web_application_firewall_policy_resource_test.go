@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appgateway_test
@@ -6,6 +6,8 @@ package appgateway_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -309,6 +311,81 @@ func TestAccWebApplicationFirewallPolicy_excludedRules(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_exceptions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.exceptions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.exceptionsComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.exceptions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptionsInvalidValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	for _, matchVariable := range []string{"RequestURI", "RequestHeader"} {
+		t.Run(matchVariable, func(t *testing.T) {
+			config := strings.ReplaceAll(r.exceptions(data), `"RequestURI"`, fmt.Sprintf("%q", matchVariable))
+			config = strings.ReplaceAll(config, `["/login.php"]`, `[for i in range(11) : format("/path%d", i)]`)
+			data.ResourceTest(t, r, []acceptance.TestStep{
+				{
+					Config:      config,
+					PlanOnly:    true,
+					ExpectError: regexp.MustCompile("cannot contain more than 10 items"),
+				},
+			})
+		})
+	}
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptionsInvalidRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	config := strings.Replace(r.exceptions(data), `managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }`, `managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }`, 1)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      config,
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("must be `3.2` or later for `OWASP`"),
+		},
+	})
+}
+
 func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 	r := WebApplicationFirewallPolicyResource{}
@@ -440,6 +517,39 @@ func TestAccWebApplicationFirewallPolicy_fileUploadEnforcement(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_unknownManagedRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.unknownManagedRuleSet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_invalidManagedRuleSets(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.botManagerRuleSetOnly(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`managed_rules.0.managed_rule_set` must contain exactly one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")),
+		},
+		{
+			Config:      r.multiplePrimaryRuleSets(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`managed_rules.0.managed_rule_set` must contain exactly one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")),
+		},
+	})
+}
+
 func (t WebApplicationFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
@@ -484,6 +594,107 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallPolicyResource) unknownManagedRuleSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "terraform_data" "rule_sets" {
+  input = [
+    {
+      type    = "OWASP"
+      version = "3.2"
+    }
+  ]
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    dynamic "managed_rule_set" {
+      for_each = terraform_data.rule_sets.output
+
+      content {
+        type    = managed_rule_set.value.type
+        version = managed_rule_set.value.version
+      }
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (WebApplicationFirewallPolicyResource) botManagerRuleSetOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    managed_rule_set {
+      type    = "Microsoft_BotManagerRuleSet"
+      version = "1.0"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (WebApplicationFirewallPolicyResource) multiplePrimaryRuleSets(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (WebApplicationFirewallPolicyResource) complete(data acceptance.TestData) string {
@@ -1115,6 +1326,123 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallPolicyResource) exceptions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    exception {
+      match_variable       = "RequestURI"
+      value_match_operator = "EndsWith"
+      values               = ["/login.php"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+      }
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallPolicyResource) exceptionsComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    exception {
+      match_variable          = "RequestHeader"
+      selector                = "x-company-secret-header"
+      selector_match_operator = "Equals"
+      value_match_operator    = "Contains"
+      values                  = ["allowed-value"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+
+        rule_group {
+          rule_group_name = "SQLI"
+          rules           = ["942100"]
+        }
+      }
+    }
+
+    exception {
+      match_variable       = "RequestURI"
+      value_match_operator = "EndsWith"
+      values               = ["/login.php", "/logout.php"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+
+        rule_group {
+          rule_group_name = "SQLI"
+        }
+      }
+    }
+
+    exception {
+      match_variable       = "RemoteAddr"
+      value_match_operator = "IPMatch"
+      values               = ["192.0.2.1", "198.51.100.0/24"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+      }
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

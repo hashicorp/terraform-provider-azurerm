@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_trigger_custom_event
@@ -14,6 +14,7 @@ import (
 func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Custom Event Trigger.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The ID of Data Factory in which to associate the Trigger with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eventgrid_topic_id": {
+			Description:  "The ID of Event Grid Topic in which event will be listened.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,9 +38,10 @@ func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"events": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Description: "List of events that will fire this trigger. At least one event must be specified.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -49,14 +53,16 @@ func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The Data Factory Pipeline name that the trigger will act on.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 					},
 
 					"parameters": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "The Data Factory Pipeline parameters that the trigger will act on.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -66,22 +72,25 @@ func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"activated": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Data Factory Custom Event Trigger is activated.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Custom Event Trigger.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Custom Event Trigger.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -89,18 +98,21 @@ func dataFactoryTriggerCustomEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Custom Event Trigger.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subject_begins_with": {
+			Description:  "The pattern that event subject starts with for trigger to fire.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subject_ends_with": {
+			Description:  "The pattern that event subject ends with for trigger to fire.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_resource_guard
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataProtectionResourceGuardCreateUpdate,
-		Read:   resourceDataProtectionResourceGuardRead,
-		Update: resourceDataProtectionResourceGuardCreateUpdate,
-		Delete: resourceDataProtectionResourceGuardDelete,
+		Description: "Manages a Resource Guard.",
+		Create:      resourceDataProtectionResourceGuardCreateUpdate,
+		Read:        resourceDataProtectionResourceGuardRead,
+		Update:      resourceDataProtectionResourceGuardCreateUpdate,
+		Delete:      resourceDataProtectionResourceGuardDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

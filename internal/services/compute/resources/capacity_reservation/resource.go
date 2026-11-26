@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package capacity_reservation
@@ -17,10 +17,11 @@ const azureCapacityReservationResourceName = "azurerm_capacity_reservation"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCapacityReservationCreate,
-		Read:   resourceCapacityReservationRead,
-		Update: resourceCapacityReservationUpdate,
-		Delete: resourceCapacityReservationDelete,
+		Description: "Manages a Capacity Reservation within a Capacity Reservation Group.",
+		Create:      resourceCapacityReservationCreate,
+		Read:        resourceCapacityReservationRead,
+		Update:      resourceCapacityReservationUpdate,
+		Delete:      resourceCapacityReservationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

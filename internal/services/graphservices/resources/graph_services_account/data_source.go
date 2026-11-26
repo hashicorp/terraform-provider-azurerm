@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package graph_services_account
@@ -38,9 +38,14 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_graph_services_account"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Graph Services Account."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Graph Services Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -53,13 +58,15 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"application_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The application ID associated with the Graph Services Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"billing_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The billing plan ID for the Graph Services Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

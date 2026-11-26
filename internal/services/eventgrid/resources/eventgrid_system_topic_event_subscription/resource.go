@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_system_topic_event_subscription
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
-		Read:   resourceEventGridSystemTopicEventSubscriptionRead,
-		Update: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
-		Delete: resourceEventGridSystemTopicEventSubscriptionDelete,
+		Description: "Manages an EventGrid System Topic Event Subscription.",
+		Create:      resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
+		Read:        resourceEventGridSystemTopicEventSubscriptionRead,
+		Update:      resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
+		Delete:      resourceEventGridSystemTopicEventSubscriptionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

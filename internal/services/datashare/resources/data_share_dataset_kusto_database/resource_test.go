@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share_dataset_kusto_database_test
@@ -17,6 +17,17 @@ import (
 )
 
 type DataShareDatasetKustoDatabaseResource struct{}
+
+func TestAccDataShareDataSetKustoDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
+	r := DataShareDatasetKustoDatabaseResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataShareDataSetKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")

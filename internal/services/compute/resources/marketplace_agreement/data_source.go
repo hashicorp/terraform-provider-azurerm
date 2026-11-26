@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package marketplace_agreement
@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMarketplaceAgreementRead,
+		Description: "Uses this data source to access information about an existing Marketplace Agreement.",
+		Read:        dataSourceMarketplaceAgreementRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,26 +27,30 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"offer": {
+				Description:  "The Offer of the Marketplace Image.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"plan": {
+				Description:  "The Plan of the Marketplace Image.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"publisher": {
+				Description:  "The Publisher of the Marketplace Image.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"accepted": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Marketplace Agreement has been accepted.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"license_text_link": {

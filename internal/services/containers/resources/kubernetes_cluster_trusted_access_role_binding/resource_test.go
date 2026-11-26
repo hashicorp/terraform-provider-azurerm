@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/trustedaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,6 +20,17 @@ import (
 )
 
 type KubernetesClusterTrustedAccessRoleBindingTestResource struct{}
+
+func TestAccKubernetesClusterTrustedAccessRoleBinding_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
+	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccKubernetesClusterTrustedAccessRoleBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")

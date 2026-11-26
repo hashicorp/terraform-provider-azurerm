@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package route_filter
@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceRouteFilterRead,
+		Description: "Use this data source to access information about an existing Route Filter.",
+		Read:        dataSourceRouteFilterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The Name of this Route Filter.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -44,23 +46,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Name of Route Filter Rule.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"access": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The access type of the rule.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"rule_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Route Filter Rule Type.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"communities": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The collection for BGP community values.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_circuit_peering
@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceExpressRouteCircuitPeeringRead,
+		Description: "Use this data source to access information about an existing ExpressRoute Circuit Peering.",
+		Read:        dataSourceExpressRouteCircuitPeeringRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,12 +29,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"peering_type": {
+				Description:  "The type of the ExpressRoute Circuit Peering.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice(expressroutecircuitpeerings.PossibleValuesForExpressRoutePeeringType(), false),
 			},
 
 			"express_route_circuit_name": {
+				Description:  "The name of the ExpressRoute Circuit in which to create the Peering.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -42,23 +45,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"primary_peer_address_prefix": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The primary peer address prefix.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"secondary_peer_address_prefix": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The secondary peer address prefix.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ipv4_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether IPv4 is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"ipv6": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A block describing the IPv6 configuration, if enabled.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"microsoft_peering": {
@@ -119,8 +126,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"microsoft_peering_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A block describing the Microsoft Peering configuration, if applicable.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"advertised_public_prefixes": {
@@ -151,8 +159,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"vlan_id": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The VLAN ID used for this peering.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"shared_key": {
@@ -166,23 +175,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"azure_asn": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The ASN used by Azure for the peering.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"primary_azure_port": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The primary port used by Azure for this peering.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"secondary_azure_port": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The secondary port used by Azure for this peering.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"route_filter_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Route Filter.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"gateway_manager_etag": {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_workspace_root_dbfs_customer_managed_key
@@ -12,12 +12,14 @@ import (
 func databricksWorkspaceRootDbfsCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
+			Description:  "The Resource ID of the Databricks Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"key_vault_key_id": {
+			Description:  "The ID of the Key Vault Key to be used.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),

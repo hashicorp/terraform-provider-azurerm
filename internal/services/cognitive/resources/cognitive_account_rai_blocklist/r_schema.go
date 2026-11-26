@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account_rai_blocklist
@@ -14,6 +14,7 @@ import (
 func (c Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Account Rai Blocklist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (c Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"cognitive_account_id": {
+			Description:  "The ID of the Cognitive Services Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,8 +30,9 @@ func (c Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A short description for the Cognitive Account Rai Blocklist.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 		"tags": commonschema.Tags(),
 	}

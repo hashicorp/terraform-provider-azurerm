@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package route_filter
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteFilterCreate,
-		Read:   resourceRouteFilterRead,
-		Update: resourceRouteFilterUpdate,
-		Delete: resourceRouteFilterDelete,
+		Description: "Manages a Route Filter.",
+		Create:      resourceRouteFilterCreate,
+		Read:        resourceRouteFilterRead,
+		Update:      resourceRouteFilterUpdate,
+		Delete:      resourceRouteFilterDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&routefilters.RouteFilterId{}),
 

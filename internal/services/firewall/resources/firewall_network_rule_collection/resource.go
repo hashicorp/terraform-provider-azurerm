@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_network_rule_collection
@@ -14,10 +14,11 @@ var AzureFirewallResourceName = "azurerm_firewall"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallNetworkRuleCollectionCreateUpdate,
-		Read:   resourceFirewallNetworkRuleCollectionRead,
-		Update: resourceFirewallNetworkRuleCollectionCreateUpdate,
-		Delete: resourceFirewallNetworkRuleCollectionDelete,
+		Description: "Manages a Network Rule Collection within an Azure Firewall.",
+		Create:      resourceFirewallNetworkRuleCollectionCreateUpdate,
+		Read:        resourceFirewallNetworkRuleCollectionRead,
+		Update:      resourceFirewallNetworkRuleCollectionCreateUpdate,
+		Delete:      resourceFirewallNetworkRuleCollectionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallNetworkRuleCollectionID(id)
 			return err

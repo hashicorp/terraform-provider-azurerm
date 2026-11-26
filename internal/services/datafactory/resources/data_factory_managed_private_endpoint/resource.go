@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_managed_private_endpoint
@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryManagedPrivateEndpointCreate,
-		Read:   resourceDataFactoryManagedPrivateEndpointRead,
-		Delete: resourceDataFactoryManagedPrivateEndpointDelete,
+		Description: "Manages a Data Factory Managed Private Endpoint.",
+		Create:      resourceDataFactoryManagedPrivateEndpointCreate,
+		Read:        resourceDataFactoryManagedPrivateEndpointRead,
+		Delete:      resourceDataFactoryManagedPrivateEndpointDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := managedprivateendpoints.ParseManagedPrivateEndpointID(id)

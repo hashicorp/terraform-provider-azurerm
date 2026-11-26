@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databox_edge_device
@@ -25,6 +25,10 @@ func (r Resource) Identity() resourceids.ResourceId {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_databox_edge_device"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Databox Edge Device."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

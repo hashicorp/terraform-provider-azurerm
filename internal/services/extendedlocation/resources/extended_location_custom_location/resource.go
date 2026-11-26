@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package extended_location_custom_location
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_extended_location_custom_location"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Custom Location within an Extended Location."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

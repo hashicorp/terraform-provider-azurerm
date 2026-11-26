@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_flux_configuration
@@ -18,6 +18,10 @@ var _ sdk.ResourceWithUpdate = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_flux_configuration"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Kubernetes Flux Configuration."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

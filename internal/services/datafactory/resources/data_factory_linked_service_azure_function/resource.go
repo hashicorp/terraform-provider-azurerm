@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_azure_function
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceAzureFunctionRead,
-		Update: resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceAzureFunctionDelete,
+		Description: "Manages a Linked Service (connection) between an Azure Function and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceAzureFunctionRead,
+		Update:      resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceAzureFunctionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

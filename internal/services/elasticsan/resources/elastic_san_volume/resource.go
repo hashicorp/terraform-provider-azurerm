@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic_san_volume
@@ -23,4 +23,8 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_elastic_san_volume"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Elastic SAN Volume resource."
 }

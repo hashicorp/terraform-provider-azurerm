@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_network_interface
@@ -22,4 +22,8 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (Resource) ResourceType() string {
 	return "azurerm_stack_hci_network_interface"
+}
+
+func (Resource) Description() string {
+	return "Manages an Azure Stack HCI Network Interface."
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_domain_topic_test
@@ -17,6 +17,17 @@ import (
 )
 
 type EventGridDomainTopicResource struct{}
+
+func TestAccEventGridDomainTopic_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
+	r := EventGridDomainTopicResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccEventGridDomainTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")

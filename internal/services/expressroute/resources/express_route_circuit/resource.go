@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_circuit
@@ -15,10 +15,11 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitCreate,
-		Read:   resourceExpressRouteCircuitRead,
-		Update: resourceExpressRouteCircuitUpdate,
-		Delete: resourceExpressRouteCircuitDelete,
+		Description: "Manages an ExpressRoute circuit.",
+		Create:      resourceExpressRouteCircuitCreate,
+		Read:        resourceExpressRouteCircuitRead,
+		Update:      resourceExpressRouteCircuitUpdate,
+		Delete:      resourceExpressRouteCircuitDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressroutecircuits.ParseExpressRouteCircuitID(id)
 			return err

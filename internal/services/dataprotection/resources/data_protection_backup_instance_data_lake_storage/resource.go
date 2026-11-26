@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_data_lake_storage
@@ -35,6 +35,10 @@ func (r Resource) Identity() resourceids.ResourceId {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_data_lake_storage"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Backup Instance to back up Data Lake Storage."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

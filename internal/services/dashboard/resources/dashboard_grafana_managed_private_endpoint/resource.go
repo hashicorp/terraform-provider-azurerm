@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard_grafana_managed_private_endpoint
@@ -25,6 +25,10 @@ func (r Resource) Identity() resourceids.ResourceId {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_dashboard_grafana_managed_private_endpoint"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Dashboard Grafana Managed Private Endpoint."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

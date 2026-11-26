@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_token
@@ -13,6 +13,7 @@ import (
 func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the token.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"container_registry_name": {
+			Description:  "The name of the Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,15 +31,17 @@ func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scope_map_id": {
+			Description:  "The ID of the Container Registry Scope Map associated with the token.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: scopemaps.ValidateScopeMapID,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Container Registry token should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

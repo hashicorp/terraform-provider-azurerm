@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_workspace_root_dbfs_customer_managed_key
@@ -18,10 +18,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: databricksWorkspaceRootDbfsCustomerManagedKeyCreate,
-		Read:   databricksWorkspaceRootDbfsCustomerManagedKeyRead,
-		Update: databricksWorkspaceRootDbfsCustomerManagedKeyUpdate,
-		Delete: databricksWorkspaceRootDbfsCustomerManagedKeyDelete,
+		Description: "Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System (DBFS).",
+		Create:      databricksWorkspaceRootDbfsCustomerManagedKeyCreate,
+		Read:        databricksWorkspaceRootDbfsCustomerManagedKeyRead,
+		Update:      databricksWorkspaceRootDbfsCustomerManagedKeyUpdate,
+		Delete:      databricksWorkspaceRootDbfsCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

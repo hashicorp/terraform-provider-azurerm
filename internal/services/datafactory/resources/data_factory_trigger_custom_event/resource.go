@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_trigger_custom_event
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerCustomEventCreateUpdate,
-		Read:   resourceDataFactoryTriggerCustomEventRead,
-		Update: resourceDataFactoryTriggerCustomEventCreateUpdate,
-		Delete: resourceDataFactoryTriggerCustomEventDelete,
+		Description: "Manages a Custom Event Trigger inside an Azure Data Factory.",
+		Create:      resourceDataFactoryTriggerCustomEventCreateUpdate,
+		Read:        resourceDataFactoryTriggerCustomEventRead,
+		Update:      resourceDataFactoryTriggerCustomEventCreateUpdate,
+		Delete:      resourceDataFactoryTriggerCustomEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)

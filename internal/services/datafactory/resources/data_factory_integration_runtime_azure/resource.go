@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_integration_runtime_azure
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeAzureCreate,
-		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
-		Update: resourceDataFactoryIntegrationRuntimeAzureUpdate,
-		Delete: resourceDataFactoryIntegrationRuntimeAzureDelete,
+		Description: "Manages a Data Factory Azure Integration Runtime.",
+		Create:      resourceDataFactoryIntegrationRuntimeAzureCreate,
+		Read:        resourceDataFactoryIntegrationRuntimeAzureRead,
+		Update:      resourceDataFactoryIntegrationRuntimeAzureUpdate,
+		Delete:      resourceDataFactoryIntegrationRuntimeAzureDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

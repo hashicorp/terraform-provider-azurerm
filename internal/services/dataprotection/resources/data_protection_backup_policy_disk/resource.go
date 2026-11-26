@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_policy_disk
@@ -23,9 +23,10 @@ type Criteria struct {
 
 func RegisterResource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataProtectionBackupPolicyDiskCreate,
-		Read:   resourceDataProtectionBackupPolicyDiskRead,
-		Delete: resourceDataProtectionBackupPolicyDiskDelete,
+		Description: "Manages a Backup Policy Disk.",
+		Create:      resourceDataProtectionBackupPolicyDiskCreate,
+		Read:        resourceDataProtectionBackupPolicyDiskRead,
+		Delete:      resourceDataProtectionBackupPolicyDiskDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cost_anomaly_alert
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (Resource) ResourceType() string {
 	return "azurerm_cost_anomaly_alert"
+}
+
+func (Resource) Description() string {
+	return "Manages a Cost Anomaly Alert."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

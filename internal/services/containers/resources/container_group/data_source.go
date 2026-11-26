@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_group
@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceContainerGroupRead,
+		Description: "Use this data source to access information about an existing Container Group instance.",
+		Read:        dataSourceContainerGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,6 +31,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Container Group instance.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -42,22 +44,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The IP address allocated to the Container Group instance.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the Container Group instance derived from `dns_name_label`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subnet_ids": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "The subnet resource IDs for a Container Group.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
+				Set:         pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_workspace_private_endpoint_connection
@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDatabricksWorkspacePrivateEndpointConnectionRead,
+		Description: "Use this data source to access information on an existing Databricks Workspace Private Endpoint connection state.",
+		Read:        dataSourceDatabricksWorkspacePrivateEndpointConnectionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,12 +27,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
+				Description:  "The resource ID of the Databricks Workspace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"private_endpoint_id": {
+				Description:  "The resource ID of the Private Endpoint.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
@@ -43,28 +46,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"workspace_private_endpoint_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Databricks Workspace resource ID for the Private Link endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Private Endpoint connection.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"status": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The status of a Private Endpoint connection.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description for the current state of a Private Endpoint connection.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"action_required": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Actions required for a Private Endpoint connection.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

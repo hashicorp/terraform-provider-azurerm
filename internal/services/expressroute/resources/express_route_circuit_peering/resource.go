@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_circuit_peering
@@ -14,10 +14,11 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitPeeringCreate,
-		Read:   resourceExpressRouteCircuitPeeringRead,
-		Update: resourceExpressRouteCircuitPeeringUpdate,
-		Delete: resourceExpressRouteCircuitPeeringDelete,
+		Description: "Manages an ExpressRoute Circuit Peering.",
+		Create:      resourceExpressRouteCircuitPeeringCreate,
+		Read:        resourceExpressRouteCircuitPeeringRead,
+		Update:      resourceExpressRouteCircuitPeeringUpdate,
+		Delete:      resourceExpressRouteCircuitPeeringDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseExpressRouteCircuitPeeringID(id)

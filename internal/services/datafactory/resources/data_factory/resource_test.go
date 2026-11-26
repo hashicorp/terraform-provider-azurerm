@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_test
@@ -19,6 +19,17 @@ import (
 )
 
 type DataFactoryResource struct{}
+
+func TestAccDataFactory_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactory_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
@@ -138,8 +149,10 @@ func TestAccDataFactory_github(t *testing.T) {
 				check.That(data.ResourceName).Key("github_configuration.0.repository_name").HasValue("terraform-provider-azurerm"),
 				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("main"),
 				check.That(data.ResourceName).Key("github_configuration.0.root_folder").HasValue("/"),
+				check.That(data.ResourceName).Key("github_configuration.0.last_commit_id").HasValue("0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.githubUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -149,6 +162,7 @@ func TestAccDataFactory_github(t *testing.T) {
 				check.That(data.ResourceName).Key("github_configuration.0.repository_name").HasValue("terraform-provider-azuread"),
 				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("stable-website"),
 				check.That(data.ResourceName).Key("github_configuration.0.root_folder").HasValue("/azuread"),
+				check.That(data.ResourceName).Key("github_configuration.0.last_commit_id").HasValue("1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b"),
 			),
 		},
 		data.ImportStep(),
@@ -589,6 +603,7 @@ resource "azurerm_data_factory" "test" {
     branch_name        = "main"
     root_folder        = "/"
     account_name       = "acctestGH-%d"
+    last_commit_id     = "0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e"
     publishing_enabled = false
   }
 }
@@ -617,6 +632,7 @@ resource "azurerm_data_factory" "test" {
     branch_name        = "stable-website"
     root_folder        = "/azuread"
     account_name       = "acctestGitHub-%d"
+    last_commit_id     = "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b"
     publishing_enabled = true
   }
 }

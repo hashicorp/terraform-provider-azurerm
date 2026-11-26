@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -430,8 +430,8 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 					"ultra_ssd_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  false,
 						Optional: true,
+						Default:  false,
 					},
 
 					"vnet_subnet_id": {
@@ -779,8 +779,8 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"kubelet_identity": {
 			Type:     pluginsdk.TypeList,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
@@ -1653,8 +1653,8 @@ func (k KubernetesClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 					"ultra_ssd_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  false,
 						Optional: true,
+						Default:  false,
 					},
 
 					"vnet_subnet_id": {
@@ -2002,8 +2002,8 @@ func (k KubernetesClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 		"kubelet_identity": {
 			Type:     pluginsdk.TypeList,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {

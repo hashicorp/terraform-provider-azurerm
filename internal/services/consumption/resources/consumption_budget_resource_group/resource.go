@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package consumption_budget_resource_group
@@ -21,6 +21,10 @@ var (
 
 func (r Resource) ResourceType() string {
 	return "azurerm_consumption_budget_resource_group"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Resource Group Consumption Budget."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_agent_pool
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryAgentPoolCreate,
-		Read:   resourceContainerRegistryAgentPoolRead,
-		Update: resourceContainerRegistryAgentPoolUpdate,
-		Delete: resourceContainerRegistryAgentPoolDelete,
+		Description: "Manages an Azure Container Registry Agent Pool.",
+		Create:      resourceContainerRegistryAgentPoolCreate,
+		Read:        resourceContainerRegistryAgentPoolRead,
+		Update:      resourceContainerRegistryAgentPoolUpdate,
+		Delete:      resourceContainerRegistryAgentPoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := agentpools.ParseAgentPoolID(id)

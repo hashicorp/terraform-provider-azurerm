@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor_custom_https_configuration
@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
-		Read:   resourceFrontDoorCustomHTTPSConfigurationRead,
-		Update: resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
-		Delete: resourceFrontDoorCustomHTTPSConfigurationDelete,
+		Description: "Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.",
+		Create:      resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
+		Read:        resourceFrontDoorCustomHTTPSConfigurationRead,
+		Update:      resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
+		Delete:      resourceFrontDoorCustomHTTPSConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.CustomHttpsConfigurationID(id)

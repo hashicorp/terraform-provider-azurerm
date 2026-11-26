@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace
@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: EventHubNamespaceDataSourceRead,
+		Description: "Use this data source to access information about an existing EventHub Namespace.",
+		Read:        EventHubNamespaceDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,8 +30,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the EventHub Namespace.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -38,30 +40,35 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"default_primary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias of the primary connection string for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_secondary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias of the secondary connection string for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"auto_inflate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Auto Inflate is enabled for the EventHub Namespace.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"dedicated_cluster_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the EventHub Dedicated Cluster where this Namespace exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"capacity": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Capacity / Throughput Units for a `Standard` SKU namespace.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"kafka_enabled": {
@@ -70,37 +77,43 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"maximum_throughput_units": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of throughput units when Auto Inflate is Enabled.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"default_primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary connection string for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary connection string for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Which tier to use.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

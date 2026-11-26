@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry
@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceContainerRegistryRead,
+		Description: "Use this data source to access information about an existing Container Registry.",
+		Read:        dataSourceContainerRegistryRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -89,6 +90,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta any) error 
 func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Registry.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ContainerRegistryName,
@@ -99,42 +101,49 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"admin_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Administrator account is enabled for this Container Registry.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Password associated with the Container Registry Admin account - if the admin account is enabled.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"admin_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Username associated with the Container Registry Admin account - if the admin account is enabled.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"data_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether dedicated data endpoints for this Container Registry are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"data_endpoint_host_names": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
+			Description: "A set of data endpoint hostnames associated with the container registry if data endpoints are enabled.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"login_server": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL that can be used to log into the container registry.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SKU of this Container Registry, such as `Basic`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

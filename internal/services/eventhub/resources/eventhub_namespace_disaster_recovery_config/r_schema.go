@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace_disaster_recovery_config
@@ -13,6 +13,7 @@ import (
 func eventhubNamespaceDisasterRecoveryConfigSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Disaster Recovery Config.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func eventhubNamespaceDisasterRecoveryConfigSchema() map[string]*pluginsdk.Schem
 		},
 
 		"namespace_name": {
+			Description:  "The name of the primary EventHub Namespace to replicate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func eventhubNamespaceDisasterRecoveryConfigSchema() map[string]*pluginsdk.Schem
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"partner_namespace_id": {
+			Description:  "The ID of the EventHub Namespace to replicate to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: azure.ValidateResourceID,

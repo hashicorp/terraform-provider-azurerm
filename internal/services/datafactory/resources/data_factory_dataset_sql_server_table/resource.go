@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_sql_server_table
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryDatasetSQLServerTableCreateUpdate,
-		Read:   resourceDataFactoryDatasetSQLServerTableRead,
-		Update: resourceDataFactoryDatasetSQLServerTableCreateUpdate,
-		Delete: resourceDataFactoryDatasetSQLServerTableDelete,
+		Description: "Manages a SQL Server Table Dataset inside an Azure Data Factory.",
+		Create:      resourceDataFactoryDatasetSQLServerTableCreateUpdate,
+		Read:        resourceDataFactoryDatasetSQLServerTableRead,
+		Update:      resourceDataFactoryDatasetSQLServerTableCreateUpdate,
+		Delete:      resourceDataFactoryDatasetSQLServerTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)
