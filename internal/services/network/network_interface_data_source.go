@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -105,29 +105,29 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 						"application_gateway_backend_address_pools_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"load_balancer_backend_address_pools_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"primary": {
@@ -151,8 +151,8 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 			"dns_servers": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"internal_dns_name_label": {
@@ -163,8 +163,8 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 			"applied_dns_servers": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"accelerated_networking_enabled": {
