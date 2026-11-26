@@ -1290,6 +1290,12 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
+					"static_egress_gateway_profile_enabled": {
+						Description: "Whether the Static Egress Gateway is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+					},
 				},
 			},
 		},

@@ -112,6 +112,17 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 		},
 
+		"gateway_public_ip_prefix_size": {
+			Description: "The size of the public IP prefix used by the Static Egress Gateway.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			// NOTE: O+C - Azure picks the prefix size when it is not specified. A static
+			// Default cannot be used: it would apply to every Node Pool, and Azure rejects
+			// a gateway profile on pools whose `mode` is not `Gateway`.
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(28, 31),
+		},
+
 		"kubelet_disk_type": {
 			Description:  "The type of disk used by kubelet.",
 			Type:         pluginsdk.TypeString,
@@ -135,14 +146,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
-			Description: "Whether this Node Pool should be used for System or User resources.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Default:     string(agentpools.AgentPoolModeUser),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.AgentPoolModeSystem),
-				string(agentpools.AgentPoolModeUser),
-			}, false),
+			Description:  "Whether this Node Pool should be used for System, User or Gateway resources.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.AgentPoolModeUser),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForAgentPoolMode(), false),
 		},
 
 		"min_count": {
