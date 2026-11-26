@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/echoprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/resources/mysql_flexible_server"
 )
 
 func ProtoV6ProviderFactoriesInit(_ context.Context, providerNames ...string) map[string]func() (tfprotov6.ProviderServer, error) {
@@ -55,7 +55,7 @@ func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.Provide
 
 	providers := []func() tfprotov5.ProviderServer{
 		func() tfprotov5.ProviderServer {
-			return mysql.NewRenameAwareProviderServer(v2Provider.GRPCProvider())
+			return mysql_flexible_server.NewRenameAwareProviderServer(v2Provider.GRPCProvider())
 		},
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}
@@ -91,7 +91,7 @@ func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName stri
 
 	providers := []func() tfprotov5.ProviderServer{
 		func() tfprotov5.ProviderServer {
-			return mysql.NewRenameAwareProviderServer(v2Provider.GRPCProvider())
+			return mysql_flexible_server.NewRenameAwareProviderServer(v2Provider.GRPCProvider())
 		},
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorEndpointRead,
+		Description: "Use this data source to access information about an existing Front Door (standard/premium) Endpoint.",
+		Read:        dataSourceCdnFrontDoorEndpointRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,12 +29,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Endpoint.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorEndpointName,
 			},
 
 			"profile_name": {
+				Description:  "The name of the Front Door Profile within which Front Door Endpoint exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorName,
@@ -42,13 +45,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this Front Door Endpoint is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

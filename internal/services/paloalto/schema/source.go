@@ -23,13 +23,19 @@ func SourceSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cidrs": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"source.0.cidrs",
+						"source.0.countries",
+						"source.0.feeds",
+						"source.0.local_rulestack_prefix_list_ids",
+					},
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -37,56 +43,50 @@ func SourceSchema() *pluginsdk.Schema {
 							validation.StringInSlice([]string{"any"}, false),
 						),
 					},
-					AtLeastOneOf: []string{
-						"source.0.cidrs",
-						"source.0.countries",
-						"source.0.feeds",
-						"source.0.local_rulestack_prefix_list_ids",
-					},
 				},
 
 				"countries": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.ISO3361CountryCode,
-					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
 						"source.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validate.ISO3361CountryCode,
 					},
 				},
 
 				"feeds": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
 						"source.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
 				"local_rulestack_prefix_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
-					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
 						"source.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
 					},
 				},
 			},

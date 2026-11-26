@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -109,10 +109,10 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Computed: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"is_compression_enabled": {

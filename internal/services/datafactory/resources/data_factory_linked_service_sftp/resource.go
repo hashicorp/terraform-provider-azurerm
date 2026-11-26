@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceSFTPCreate,
-		Read:   resourceDataFactoryLinkedServiceSFTPRead,
-		Update: resourceDataFactoryLinkedServiceSFTPUpdate,
-		Delete: resourceDataFactoryLinkedServiceSFTPDelete,
+		Description: "Manages a Linked Service (connection) between an SFTP Server and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceSFTPCreate,
+		Read:        resourceDataFactoryLinkedServiceSFTPRead,
+		Update:      resourceDataFactoryLinkedServiceSFTPUpdate,
+		Delete:      resourceDataFactoryLinkedServiceSFTPDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

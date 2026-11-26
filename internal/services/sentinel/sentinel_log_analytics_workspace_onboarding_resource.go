@@ -52,8 +52,8 @@ func (r LogAnalyticsWorkspaceOnboardResource) Arguments() map[string]*pluginsdk.
 		"customer_managed_key_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 	}
 }

@@ -13,6 +13,7 @@ import (
 func devTestLabSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Dev Test Lab.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,33 +29,39 @@ func devTestLabSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"artifacts_storage_account_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Storage Account used for Artifact Storage.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"default_storage_account_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Default Storage Account for this Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"default_premium_storage_account_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Default Premium Storage Account for this Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"key_vault_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Key used for this Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"premium_data_disk_storage_account_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Storage Account used for Storage of Premium Data Disk.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"unique_identifier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The unique immutable identifier of the Dev Test Lab.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

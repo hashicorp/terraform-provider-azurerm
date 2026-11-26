@@ -10,8 +10,3 @@ const (
 	PublicNetworkAccessEnabled  string = "Enabled"
 	PublicNetworkAccessDisabled string = "Disabled"
 )
-
-const (
-	ValidationTypeTXT   = "dns-txt-token"
-	ValidationTypeCName = "cname-delegation"
-)

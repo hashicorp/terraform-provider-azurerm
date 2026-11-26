@@ -40,9 +40,10 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Log Analytics Workspace Table Microsoft.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Alert",
 				"AppCenterError",
@@ -54,6 +55,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -61,12 +63,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of the table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
+			Description:  "A description of the table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -78,59 +82,68 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for this column.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringMatch(regexp.MustCompile(`.*_CF`), "`column.name` must end with '_CF'"),
 					},
 
 					"type": {
+						Description:  "The column data type.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
 					},
 
 					"description": {
+						Description:  "The description of the column.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"display_name": {
+						Description:  "The display name of the column.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"hidden": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether the column is hidden.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"display_by_default": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the column defaults to being displayed.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
 		},
 
 		"labels": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of table labels.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"retention_in_days": {
+			Description:  "The table retention in days, between `4` and `730`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
+			Description:  "The table total retention in days, between `4` and `4383`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
@@ -141,8 +154,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"solutions": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
+			Description: "The list of solutions associated with this table.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -154,38 +168,45 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the column.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"display_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The display name of the column.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description of the column.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type of the column.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"type_hint": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type hint of the column.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"hidden": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the column is hidden.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"display_by_default": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the column defaults to being displayed.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 				},
 			},

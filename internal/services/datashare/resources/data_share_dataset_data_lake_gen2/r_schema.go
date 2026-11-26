@@ -14,6 +14,7 @@ import (
 func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Data Share Data Lake Gen2 Dataset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"share_id": {
+			Description:  "The resource ID of the Data Share where this Data Share Data Lake Gen2 Dataset should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_id": {
+			Description:  "The resource ID of the Storage Account of the Data Lake file system to be shared with the receiver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +38,7 @@ func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"file_system_name": {
+			Description:  "The name of the Data Lake file system to be shared with the receiver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +46,7 @@ func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"file_path": {
+			Description:   "The path of the file in the Data Lake file system to be shared with the receiver.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -50,6 +55,7 @@ func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"folder_path": {
+			Description:   "The folder path in the Data Lake file system to be shared with the receiver.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -58,8 +64,9 @@ func dataShareDatasetDataLakeGen2Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Data Share Dataset.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

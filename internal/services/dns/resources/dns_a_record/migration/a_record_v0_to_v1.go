@@ -39,8 +39,8 @@ func (ARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"records": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:      pluginsdk.HashString,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {

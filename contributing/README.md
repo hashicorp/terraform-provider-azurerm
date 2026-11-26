@@ -16,6 +16,7 @@ This contribution guide assumes you have at least a basic understanding of both 
 * [Running the Tests](topics/running-the-tests.md)
 * [MySQL Flexible Server Rename: Testing and Release](topics/mysql-flexible-server-rename-testing.md)
 * [Opening a Pull Request](topics/guide-opening-a-pr.md)
+* [AI Usage](topics/ai-usage.md)
 
 ### Creating New Resources & Data Sources
 
