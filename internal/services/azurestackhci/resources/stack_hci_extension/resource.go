@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package stack_hci_extension
@@ -18,6 +18,10 @@ type Resource struct{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_stack_hci_extension"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Azure Stack HCI Extension."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

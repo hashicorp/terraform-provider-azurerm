@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -38,14 +38,14 @@ type KeyvaultMHSMKeyDataSource struct{}
 func (k KeyvaultMHSMKeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
 		},
 	}
@@ -93,8 +93,8 @@ func (k KeyvaultMHSMKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"versioned_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

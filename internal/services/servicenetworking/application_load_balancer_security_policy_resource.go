@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -45,11 +45,11 @@ func (f SecurityPoliciesResource) Arguments() map[string]*schema.Schema {
 			),
 		},
 
-		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&securitypoliciesinterface.TrafficControllerId{}),
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&securitypoliciesinterface.TrafficControllerId{}, "Application Load Balancer"),
 
 		"location": commonschema.Location(),
 
-		"web_application_firewall_policy_id": commonschema.ResourceIDReferenceRequiredForceNew(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}),
+		"web_application_firewall_policy_id": commonschema.ResourceIDReferenceRequiredForceNew(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}, "Web Application Firewall Policy"),
 
 		"tags": commonschema.Tags(),
 	}

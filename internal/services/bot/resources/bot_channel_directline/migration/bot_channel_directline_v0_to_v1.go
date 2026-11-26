@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -79,8 +79,8 @@ func (BotChannelDirectlineV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 					"enhanced_authentication_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  false,
 						Optional: true,
+						Default:  false,
 					},
 
 					"trusted_origins": {

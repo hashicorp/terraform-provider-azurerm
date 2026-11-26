@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package arc_kubernetes_flux_configuration
@@ -246,8 +246,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"secret_key_base64": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 						RequiredWith: []string{"bucket.0.access_key"},
 					},
 
@@ -314,8 +314,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"https_ca_cert_base64": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 						RequiredWith: []string{"git_repository.0.https_user"},
 					},
 
@@ -330,8 +330,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"https_key_base64": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 						RequiredWith: []string{"git_repository.0.https_user"},
 					},
 
@@ -345,8 +345,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"ssh_private_key_base64": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  validation.StringIsBase64,
 						Sensitive:     true,
+						ValidateFunc:  validation.StringIsBase64,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.local_auth_reference"},
 					},
 
@@ -376,8 +376,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
 			Default:      string(fluxconfiguration.ScopeTypeNamespace),
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
 		},
 
 		"continuous_reconciliation_enabled": {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_sms
@@ -17,6 +17,7 @@ func botChannelSmsSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,18 +25,21 @@ func botChannelSmsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"phone_number": {
+			Description:  "The phone number for the SMS Channel.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"sms_channel_account_security_id": {
+			Description:  "The account security identifier (SID) for the SMS Channel.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"sms_channel_auth_token": {
+			Description:  "The authorization token for the SMS Channel.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,

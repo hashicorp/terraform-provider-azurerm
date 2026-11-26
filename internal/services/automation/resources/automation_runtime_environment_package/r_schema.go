@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_runtime_environment_package
@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the package.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_runtime_environment_id": {
+			Description:  "The ID of the Automation Runtime Environment in which to create this package.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"content_uri": {
+			Description:  "The HTTPS URI of the package content.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,9 +38,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"content_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The version of the package content.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[0-9]+\.[0-9]+(\.[0-9]+){0,2}$`),
 				"The `content_version` must be with 2 to 4 segments (e.g. `1.0`, `1.0.0`, or `1.0.0.0`).",
@@ -45,6 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hash_algorithm": {
+			Description:  "The hash algorithm used to hash the content.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -53,6 +58,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hash_value": {
+			Description:  "The hash value of the content.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -65,18 +71,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"default": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether this is a default package.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"size_in_bytes": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The size of the package in bytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The version of the package as reported by the platform.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

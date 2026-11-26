@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine_test
@@ -1983,9 +1983,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   gallery_application {
     version_id                                  = azurerm_gallery_application_version.test2.id
-    automatic_upgrade_enabled                   = true
     order                                       = 2
-    configuration_blob_uri                      = azurerm_storage_blob.test2.id
     tag                                         = "app2"
     treat_failure_as_deployment_failure_enabled = true
   }
@@ -2043,19 +2041,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "script"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
-}
-
-resource "azurerm_storage_blob" "test2" {
-  name                   = "script2"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {
@@ -2232,7 +2221,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS1_v2"
+  size                = "Standard_D2s_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -2247,7 +2236,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsDesktop"
     offer     = "Windows-10"
-    sku       = "win10-21h2-ent"
+    sku       = "win10-22h2-ent"
     version   = "latest"
   }
 }
@@ -2262,7 +2251,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_D2s_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   license_type        = %q
@@ -2293,7 +2282,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS1_v2"
+  size                = "Standard_D2s_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   license_type        = "Windows_Client"
@@ -2309,7 +2298,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsDesktop"
     offer     = "Windows-10"
-    sku       = "win10-21h2-ent"
+    sku       = "win10-22h2-ent"
     version   = "latest"
   }
 }

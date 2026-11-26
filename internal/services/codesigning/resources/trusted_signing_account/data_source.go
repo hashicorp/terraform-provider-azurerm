@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package trusted_signing_account
@@ -35,8 +35,9 @@ var _ sdk.DataSource = DataSource{}
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the Artifact Signing Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(3, 24),
 				validation.StringMatch(
@@ -53,15 +54,17 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URI of the Artifact Signing Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SKU name of the Artifact Signing Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -74,6 +77,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_trusted_signing_account"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Trusted Signing Account (Artifact Signing Account)."
 }
 
 func (d DataSource) Read() sdk.ResourceFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package arc_resource_bridge_appliance
@@ -15,6 +15,10 @@ type Resource struct{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_arc_resource_bridge_appliance"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Arc Resource Bridge Appliance."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

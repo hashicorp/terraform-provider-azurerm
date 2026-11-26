@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_dsc_configuration
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscConfigurationCreate,
-		Read:   resourceAutomationDscConfigurationRead,
-		Update: resourceAutomationDscConfigurationUpdate,
-		Delete: resourceAutomationDscConfigurationDelete,
+		Description: "Manages an Automation DSC Configuration.",
+		Create:      resourceAutomationDscConfigurationCreate,
+		Read:        resourceAutomationDscConfigurationRead,
+		Update:      resourceAutomationDscConfigurationUpdate,
+		Delete:      resourceAutomationDscConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dscconfiguration.ParseConfigurationID(id)

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtualwan
@@ -65,8 +65,8 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"routing_preference": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Microsoft Network",
 				ForceNew: true,
+				Default:  "Microsoft Network",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Microsoft Network",
 					"Internet",

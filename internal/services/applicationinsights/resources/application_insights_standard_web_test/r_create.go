@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package application_insights_standard_web_test
@@ -147,6 +147,7 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 
 	validationsInput := input[0]
 	rules.ExpectedHTTPStatusCode = pointer.To(validationsInput.ExpectedStatusCode)
+	rules.IgnoreHTTPStatusCode = pointer.To(validationsInput.IgnoreStatusCode)
 
 	// if URL http, sslCheck cannot be enabled - Catch in CustomiseDiff
 	rules.SSLCheck = pointer.To(validationsInput.SSLCheck)

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_security_policy
@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -56,6 +56,10 @@ func (DataSource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_security_policy"
 }
 
+func (DataSource) Description() string {
+	return "Gets information about an existing Front Door (standard/premium) Security Policy."
+}
+
 func (DataSource) ModelObject() any {
 	return &CdnFrontDoorSecurityPolicyDataSourceModel{}
 }
@@ -63,12 +67,14 @@ func (DataSource) ModelObject() any {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Front Door Security Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.FrontDoorSecurityPolicyName,
 		},
 
 		"profile_name": {
+			Description:  "The name of the Front Door Profile.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.FrontDoorName,
@@ -81,8 +87,9 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cdn_frontdoor_profile_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Front Door Profile associated with this Front Door Security Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"security_policies": {
@@ -106,19 +113,22 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"active": {
-															Type:     pluginsdk.TypeBool,
-															Computed: true,
+															Description: "Whether the Front Door Custom Domain or Front Door Endpoint is active.",
+															Type:        pluginsdk.TypeBool,
+															Computed:    true,
 														},
 														"cdn_frontdoor_domain_id": {
-															Type:     pluginsdk.TypeString,
-															Computed: true,
+															Description: "The ID of the Front Door Custom Domain or Front Door Endpoint associated with this Front Door Security Policy.",
+															Type:        pluginsdk.TypeString,
+															Computed:    true,
 														},
 													},
 												},
 											},
 											"patterns_to_match": {
-												Type:     pluginsdk.TypeList,
-												Computed: true,
+												Description: "The paths associated with this Firewall Policy.",
+												Type:        pluginsdk.TypeList,
+												Computed:    true,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -127,8 +137,9 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 									},
 								},
 								"cdn_frontdoor_firewall_policy_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The ID of the Front Door Firewall Policy associated with this Front Door Security Policy.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},

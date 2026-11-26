@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -28,12 +28,13 @@ func ProtectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"secret_url": {
+					Description:  "The URL to the Key Vault Secret which stores the protected settings.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 
-				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 			},
 		},
 	}

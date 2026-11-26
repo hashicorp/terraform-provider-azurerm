@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine
@@ -31,7 +31,8 @@ type Output struct {
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceVirtualMachineRead,
+		Description: "Use this data source to access information about an existing Virtual Machine.",
+		Read:        dataSourceVirtualMachineRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -39,6 +40,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Virtual Machine.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
@@ -51,34 +53,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Primary Private IP Address assigned to this Virtual Machine.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of Private IP Addresses assigned to this Virtual Machine.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"public_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Primary Public IP Address assigned to this Virtual Machine.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of the Public IP Addresses assigned to this Virtual Machine.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"power_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The power state of the Virtual Machine.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}
