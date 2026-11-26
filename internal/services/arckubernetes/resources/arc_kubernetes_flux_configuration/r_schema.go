@@ -273,8 +273,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "The Base64-encoded secret key used to authenticate with the bucket source.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 						RequiredWith: []string{"bucket.0.access_key"},
 					},
 
@@ -349,8 +349,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "The Base64-encoded HTTPS certificate authority contents used to access git private git repositories over HTTPS.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 						RequiredWith: []string{"git_repository.0.https_user"},
 					},
 
@@ -367,8 +367,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "The Base64-encoded HTTPS personal access token or password that will be used to access the repository.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 						RequiredWith: []string{"git_repository.0.https_user"},
 					},
 
@@ -384,8 +384,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:   "The Base64-encoded SSH private key in PEM format.",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  validation.StringIsBase64,
 						Sensitive:     true,
+						ValidateFunc:  validation.StringIsBase64,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.local_auth_reference"},
 					},
 
@@ -419,8 +419,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
 			Default:      string(fluxconfiguration.ScopeTypeNamespace),
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
 		},
 
 		"continuous_reconciliation_enabled": {

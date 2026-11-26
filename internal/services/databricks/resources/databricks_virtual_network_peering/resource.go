@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDatabricksVirtualNetworkPeeringCreate,
-		Read:   resourceDatabricksVirtualNetworkPeeringRead,
-		Update: resourceDatabricksVirtualNetworkPeeringUpdate,
-		Delete: resourceDatabricksVirtualNetworkPeeringDelete,
+		Description: "Manages a Databricks Virtual Network Peering.",
+		Create:      resourceDatabricksVirtualNetworkPeeringCreate,
+		Read:        resourceDatabricksVirtualNetworkPeeringRead,
+		Update:      resourceDatabricksVirtualNetworkPeeringUpdate,
+		Delete:      resourceDatabricksVirtualNetworkPeeringDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&vnetpeering.VirtualNetworkPeeringId{}),
 		Identity: &schema.ResourceIdentity{

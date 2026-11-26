@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceIotHubDPSRead,
+		Description: "Use this data source to access information about an existing IotHub Device Provisioning Service.",
+		Read:        dataSourceIotHubDPSRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Iot Device Provisioning Service resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.IoTHubName,
@@ -38,23 +40,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"allocation_policy": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The allocation policy of the IoT Device Provisioning Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"device_provisioning_host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The device endpoint of the IoT Device Provisioning Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"id_scope": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The unique identifier of the IoT Device Provisioning Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"service_operations_host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The service endpoint of the IoT Device Provisioning Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.Tags(),

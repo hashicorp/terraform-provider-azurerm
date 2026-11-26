@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_container_registry_token_password"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Container Registry Token Password associated with a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/azure/container-registry/container-registry-repository-scoped-permissions)."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ContainerRegistryTokenPasswordID
 }

@@ -123,8 +123,8 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"storage_account_access_key": {
 			Description: "The access key used to access the backend Storage Account for the Function App.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"storage_uses_managed_identity": {
@@ -134,9 +134,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_key_vault_secret_id": {
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the Storage Account for this Function App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the Storage Account for this Function App.",
 		},
 
 		"app_settings": {
@@ -179,9 +179,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_exclusion_paths": {
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),

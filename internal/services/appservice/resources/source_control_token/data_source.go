@@ -40,14 +40,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"token": {
 			Description: "The GitHub Token value.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"token_secret": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }

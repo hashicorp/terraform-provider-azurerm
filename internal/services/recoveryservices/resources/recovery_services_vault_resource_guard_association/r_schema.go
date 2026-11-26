@@ -12,9 +12,9 @@ import (
 
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}, "Recovery Services Vault"),
 
-		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguardresources.ResourceGuardId{}),
+		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguardresources.ResourceGuardId{}, "Resource Guard"),
 	}
 }
 

@@ -133,8 +133,8 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Description:  "The number of days that items should be retained for once soft-deleted. This field only works for `standard` SKU.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      7,
 			ForceNew:     true,
+			Default:      7,
 			ValidateFunc: validation.IntBetween(1, 7),
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 				return old == "0"

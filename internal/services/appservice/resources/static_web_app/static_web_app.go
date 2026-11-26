@@ -28,9 +28,9 @@ const (
 func BasicAuthSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:      pluginsdk.TypeList,
-		MaxItems:  1,
 		Optional:  true,
 		Sensitive: true,
+		MaxItems:  1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"password": {

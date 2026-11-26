@@ -15,6 +15,7 @@ import (
 func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Data Share Blob Storage Dataset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_share_id": {
+			Description:  "The ID of the Data Share in which this Data Share Blob Storage Dataset should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"container_name": {
+			Description:  "The name of the Storage Account container to be shared with the receiver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,11 +42,12 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the Storage Account to be shared with the receiver.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -53,6 +57,7 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 					"resource_group_name": commonschema.ResourceGroupName(),
 
 					"subscription_id": {
+						Description:  "The subscription ID of the Storage Account to be shared with the receiver.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -63,6 +68,7 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"file_path": {
+			Description:   "The path of the file in the Storage Container to be shared with the receiver.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -71,6 +77,7 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"folder_path": {
+			Description:   "The path of the folder in the Storage Container to be shared with the receiver.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -79,8 +86,9 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Data Share Dataset.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

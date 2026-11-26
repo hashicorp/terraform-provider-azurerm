@@ -18,8 +18,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -28,8 +28,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(2, 32),
 			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(2, 32),
 		},
 
 		"database_server_type": {
@@ -43,8 +43,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.CloudVMClusterName,
 			ForceNew:     true,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 
 		"shape": {
@@ -56,8 +56,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(3, 64),
 			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(3, 64),
 		},
 
 		// Optional

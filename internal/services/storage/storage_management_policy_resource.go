@@ -70,6 +70,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
+										Set:      pluginsdk.HashString,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -77,13 +78,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"appendBlob",
 											}, false),
 										},
-										Set: pluginsdk.HashString,
 									},
 									"prefix_match": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 									"match_blob_index_tag": {
 										Type:     pluginsdk.TypeSet,
@@ -99,10 +99,10 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"operation": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
+													Default:  "==",
 													ValidateFunc: validation.StringInSlice([]string{
 														"==",
 													}, false),
-													Default: "==",
 												},
 
 												"value": {

@@ -61,8 +61,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -98,8 +98,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"domain": {
@@ -190,8 +190,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     validation.StringIsNotEmpty,
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 					"disk_encryption_set_id": {
 						Type:         pluginsdk.TypeString,
@@ -299,8 +299,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     validation.StringIsNotEmpty,
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 					"disk_encryption_set_id": {
 						Type:         pluginsdk.TypeString,
@@ -322,8 +322,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
-			ExactlyOneOf: []string{"service_principal", "identity"},
 			RequiredWith: []string{"platform_workload_identity_profile"},
+			ExactlyOneOf: []string{"service_principal", "identity"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {

@@ -13,7 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"domain_name": {
-			Description:  "Domain name of the B2C tenant, including onmicrosoft.com suffix.",
+			Description:  "Domain name of the B2C tenant, including the `.onmicrosoft.com` suffix.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,7 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"country_code": {
-			Description:  "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
+			Description:  "Country code of the B2C tenant. The `country_code` should be valid for the specified `data_residency_location`. See [official docs](https://aka.ms/B2CDataResidency) for valid country codes. Required when creating a new resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -32,7 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_residency_location": {
-			Description:  "Location in which the B2C tenant is hosted and data resides. See https://aka.ms/B2CDataResidency for more information.",
+			Description:  "Location in which the B2C tenant is hosted and data resides. The `data_residency_location` should be valid for the specified `country_code`. See [official docs](https://aka.ms/B2CDataResidency) for more information.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,7 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Description: "Billing SKU for the B2C tenant. See https://aka.ms/b2cBilling for more information.",
+			Description: "Billing SKU for the B2C tenant. See [official docs](https://aka.ms/b2cBilling) for more information.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -66,7 +66,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_type": {
-			Description: "The type of billing for the B2C tenant.",
+			Description: "The type of billing for the AAD B2C tenant.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
@@ -78,7 +78,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant_id": {
-			Description: "The Tenant ID for the B2C tenant.",
+			Description: "The Tenant ID for the AAD B2C tenant.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

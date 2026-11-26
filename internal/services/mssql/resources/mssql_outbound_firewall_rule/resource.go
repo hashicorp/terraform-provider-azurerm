@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlOutboundFirewallRuleCreate,
-		Read:   resourceMsSqlOutboundFirewallRuleRead,
-		Delete: resourceMsSqlOutboundFirewallRuleDelete,
+		Description: "Allows you to manage an Azure SQL Outbound Firewall Rule.",
+		Create:      resourceMsSqlOutboundFirewallRuleCreate,
+		Read:        resourceMsSqlOutboundFirewallRuleRead,
+		Delete:      resourceMsSqlOutboundFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := outboundfirewallrules.ParseOutboundFirewallRuleID(id)

@@ -231,15 +231,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"data_protection_replication": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						MaxItems: 1,
 						ForceNew: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"endpoint_type": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									Default:      string(volumegroups.EndpointTypeDst),
 									ForceNew:     true,
+									Default:      string(volumegroups.EndpointTypeDst),
 									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
 								},
 
@@ -282,18 +282,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"encryption_key_source": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						// Note: O+C since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
 						Computed:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 					},
 
 					"key_vault_private_endpoint_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						// Note: O+C since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
 						Computed:     true,
+						ForceNew:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 				},

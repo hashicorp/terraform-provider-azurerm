@@ -37,8 +37,8 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"sku": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -94,8 +94,8 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"file_upload": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"connection_string": {
@@ -239,11 +239,11 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Default:  "true",
 					},
 					"endpoint_names": {
-						Type: pluginsdk.TypeList,
+						Type:     pluginsdk.TypeList,
+						Required: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Required: true,
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -254,11 +254,11 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"enrichment": {
-			Type: pluginsdk.TypeList,
-			// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
-			MaxItems: 10,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
+			// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
+			MaxItems: 10,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key": {
@@ -270,11 +270,11 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 					"endpoint_names": {
-						Type: pluginsdk.TypeList,
+						Type:     pluginsdk.TypeList,
+						Required: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Required: true,
 					},
 				},
 			},
@@ -282,9 +282,9 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"fallback_route": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
 			Computed: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"source": {
@@ -356,8 +356,8 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"cloud_to_device": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Computed: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"max_delivery_count": {

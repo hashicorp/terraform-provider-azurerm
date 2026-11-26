@@ -42,25 +42,28 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Account Project.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AccountProjectName(),
 		},
 
-		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}),
+		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}, "Cognitive Account"),
 
 		"location": commonschema.Location(),
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"description": {
+			Description:  "A description of the Cognitive Account Project.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
+			Description:  "The display name of the Cognitive Account Project.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -73,16 +76,18 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 func (r Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"endpoints": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "A mapping of endpoint names to endpoint URLs for the project.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"default": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether this project is the default project for the Cognitive Account.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

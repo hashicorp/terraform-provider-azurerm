@@ -71,8 +71,8 @@ func (s ServicePlanV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 		"zone_balancing_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 		},
 
 		"tags": {

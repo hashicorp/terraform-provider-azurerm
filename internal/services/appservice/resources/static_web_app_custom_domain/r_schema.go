@@ -46,8 +46,8 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 		"validation_token": {
 			Description: "Token to be used with `dns-txt-token` validation.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

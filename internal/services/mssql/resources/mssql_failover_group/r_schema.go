@@ -20,6 +20,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Failover Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"server_id": {
+			Description:  "The ID of the primary SQL Server on which to create the failover group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,6 +42,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The ID of a partner SQL server to include in the failover group.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
@@ -48,26 +51,29 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"location": commonschema.LocationComputed(),
 
 					"role": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The replication role of the partner server.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"databases": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A set of database names to include in the failover group.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"readonly_endpoint_failover_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "Whether failover is enabled for the readonly endpoint.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"read_write_endpoint_failover_policy": {
@@ -77,11 +83,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
+						Description:  "The failover policy of the read-write endpoint for the failover group.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(failovergroups.PossibleValuesForReadWriteEndpointFailoverPolicy(), false),
 					},
 					"grace_minutes": {
+						Description:  "The grace period in minutes, before failover with data loss is attempted for the read-write endpoint.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(60),

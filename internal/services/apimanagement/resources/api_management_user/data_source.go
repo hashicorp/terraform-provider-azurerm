@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementUserRead,
+		Description: "Use this data source to access information about an existing API Management User.",
+		Read:        dataSourceApiManagementUserRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -33,28 +34,33 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"first_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The First Name for the User.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"email": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Email Address used for this User.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"last_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Last Name for the User.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"note": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Any notes about this User.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The current state of this User, for example `active`, `blocked` or `pending`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

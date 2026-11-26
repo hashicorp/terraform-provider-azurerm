@@ -20,7 +20,7 @@ type ApiV0ToV1 struct{}
 
 func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementApiName(),
+		"name": schemaz.SchemaApiManagementApiName("The name of the API Management API."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
@@ -242,14 +242,14 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"soap_pass_through": {
 			Type:     pluginsdk.TypeBool,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"version": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"version_description": {
@@ -259,8 +259,8 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"version_set_id": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 	}
 }

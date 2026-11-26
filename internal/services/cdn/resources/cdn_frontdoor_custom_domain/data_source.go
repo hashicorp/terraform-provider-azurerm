@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorCustomDomainRead,
+		Description: "Gets information about an existing Front Door (standard/premium) Custom Domain.",
+		Read:        dataSourceCdnFrontDoorCustomDomainRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,12 +28,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Custom Domain.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorCustomDomainName,
 			},
 
 			"profile_name": {
+				Description:  "The name of the Front Door Profile which the Front Door Custom Domain is bound to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorName,
@@ -41,18 +44,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"cdn_frontdoor_profile_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Front Door Profile which the Front Door Custom Domain is bound to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dns_zone_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Azure DNS Zone which should be used for this Front Door Custom Domain.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The host name of the domain.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tls": {
@@ -62,18 +68,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"certificate_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The SSL certificate type.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"minimum_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The TLS protocol version that will be used for HTTPS connections.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"cdn_frontdoor_secret_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Resource ID of the Front Door Secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"cipher_suite": {
@@ -82,8 +91,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"type": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The TLS policy type used for this Front Door Custom Domain.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"custom_ciphers": {
@@ -92,16 +102,18 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"tls12": {
-													Type:     pluginsdk.TypeSet,
-													Computed: true,
+													Description: "A set of TLS 1.2 cipher suites.",
+													Type:        pluginsdk.TypeSet,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
 												},
 
 												"tls13": {
-													Type:     pluginsdk.TypeSet,
-													Computed: true,
+													Description: "A set of TLS 1.3 cipher suites.",
+													Type:        pluginsdk.TypeSet,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -117,13 +129,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"expiration_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The date and time that the token expires.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"validation_token": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The challenge used for DNS TXT record or file based validation.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

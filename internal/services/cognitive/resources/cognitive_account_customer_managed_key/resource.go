@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
-		Read:   resourceCognitiveAccountCustomerManagedKeyRead,
-		Update: resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
-		Delete: resourceCognitiveAccountCustomerManagedKeyDelete,
+		Description: "Manages a Customer Managed Key for a Cognitive Services Account.",
+		Create:      resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
+		Read:        resourceCognitiveAccountCustomerManagedKeyRead,
+		Update:      resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
+		Delete:      resourceCognitiveAccountCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

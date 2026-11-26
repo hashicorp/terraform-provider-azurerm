@@ -11,16 +11,18 @@ import (
 
 func SchemaContainerGroupProbe() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MaxItems: 1,
+		Description: "The definition of a readiness probe for this container.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		ForceNew:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"exec": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
+					Description: "Commands to be run to validate container readiness.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					ForceNew:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.NoZeroValues,
@@ -29,33 +31,38 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 
 				// lintignore:XS003
 				"http_get": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
+					Description: "The definition of the http_get for this container.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					ForceNew:    true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {
+								Description:  "Path to access on the HTTP server.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"port": {
+								Description:  "Number of the port to access on the container.",
 								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.IsPortNumber,
 							},
 							"scheme": {
+								Description:  "Scheme to use for connecting to the host.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForScheme(), false),
 							},
 							"http_headers": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								ForceNew: true,
+								Description: "A map of HTTP headers used to access on the container.",
+								Type:        pluginsdk.TypeMap,
+								Optional:    true,
+								ForceNew:    true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -65,33 +72,38 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 				},
 
 				"initial_delay_seconds": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					ForceNew: true,
+					Description: "Number of seconds after the container has started before liveness or readiness probes are initiated.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					ForceNew:    true,
 				},
 
 				"period_seconds": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					ForceNew: true,
+					Description: "How often (in seconds) to perform the probe.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					ForceNew:    true,
 				},
 
 				"failure_threshold": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					ForceNew: true,
+					Description: "How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe).",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					ForceNew:    true,
 				},
 
 				"success_threshold": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					ForceNew: true,
+					Description: "Minimum consecutive successes for the probe to be considered successful after having failed.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					ForceNew:    true,
 				},
 
 				"timeout_seconds": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					ForceNew: true,
+					Description: "Number of seconds after which the probe times out.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
+					ForceNew:    true,
 				},
 			},
 		},

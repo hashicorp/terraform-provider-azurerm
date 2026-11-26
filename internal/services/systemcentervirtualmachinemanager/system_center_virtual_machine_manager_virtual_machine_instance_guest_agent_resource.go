@@ -62,8 +62,8 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 		"password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Sensitive:    true,
 			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

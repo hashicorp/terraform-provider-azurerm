@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this IoT Hub Device Update Instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"device_update_account_id": {
+			Description:  "The ID of the IoT Hub Device Update Account where the IoT Hub Device Update Instance exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"iothub_id": {
+			Description:  "The ID of the IoT Hub associated with the IoT Hub Device Update Instance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,12 +45,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "Resource ID of the Diagnostic Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateStorageAccountID,
 					},
 
 					"connection_string": {
+						Description:  "Connection String of the Diagnostic Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -56,15 +61,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"connection_string_wo": {
+						Description:  "Connection String of the Diagnostic Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						WriteOnly:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						ExactlyOneOf: []string{"diagnostic_storage_account.0.connection_string"},
 						RequiredWith: []string{"diagnostic_storage_account.0.connection_string_wo_version"},
+						ExactlyOneOf: []string{"diagnostic_storage_account.0.connection_string"},
 					},
 
 					"connection_string_wo_version": {
+						Description:  "An integer value used to trigger an update for `connection_string_wo`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(1),
@@ -75,9 +82,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"diagnostic_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the diagnostic log collection is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"tags": commonschema.Tags(),

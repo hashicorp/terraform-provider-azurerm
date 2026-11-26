@@ -28,10 +28,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWindowsVirtualMachineScaleSetCreate,
-		Read:   resourceWindowsVirtualMachineScaleSetRead,
-		Update: resourceWindowsVirtualMachineScaleSetUpdate,
-		Delete: resourceWindowsVirtualMachineScaleSetDelete,
+		Description: "Manages a Windows Virtual Machine Scale Set.",
+		Create:      resourceWindowsVirtualMachineScaleSetCreate,
+		Read:        resourceWindowsVirtualMachineScaleSetRead,
+		Update:      resourceWindowsVirtualMachineScaleSetUpdate,
+		Delete:      resourceWindowsVirtualMachineScaleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineScaleSetID(id)

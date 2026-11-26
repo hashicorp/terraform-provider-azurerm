@@ -59,6 +59,8 @@ A `github_configuration` block exports the following:
 
 - `git_url` - The GitHub repository url.
 
+- `last_commit_id` - The last commit ID of the repository.
+
 - `repository_name` - The name of the git repository.
 
 - `root_folder` - The root folder within the repository.

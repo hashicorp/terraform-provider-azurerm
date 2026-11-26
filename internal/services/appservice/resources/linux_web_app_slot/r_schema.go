@@ -45,13 +45,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"app_settings": {
-			Description: "A map of key-value pairs of App Settings.",
-			Type:        pluginsdk.TypeMap,
-			Optional:    true,
+			Description:  "A map of key-value pairs of App Settings.",
+			Type:         pluginsdk.TypeMap,
+			Optional:     true,
+			ValidateFunc: validate.AppSettings,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			ValidateFunc: validate.AppSettings,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -83,9 +83,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_exclusion_paths": {
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -163,11 +163,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account": helpers.StorageAccountSchema(),
 
 		"zip_deploy_file": {
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Web App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Web App.",
 		},
 
 		"end_to_end_tls_encryption_enabled": {

@@ -11,6 +11,7 @@ import (
 func apiManagementApiTagSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_id": {
+			Description:  "The ID of the API Management API.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,9 +19,10 @@ func apiManagementApiTagSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the tag.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 	}
 }

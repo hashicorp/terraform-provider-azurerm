@@ -101,8 +101,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"zone_redundant": {
 			Description: "Set to `true` to deploy the ASEv3 with Availability Zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://learn.microsoft.com/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.",
 			Type:        pluginsdk.TypeBool,
-			ForceNew:    true,
 			Optional:    true,
+			ForceNew:    true,
 			Default:     false,
 			ConflictsWith: []string{
 				"dedicated_host_count",

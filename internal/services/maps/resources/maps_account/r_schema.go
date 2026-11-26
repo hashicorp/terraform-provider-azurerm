@@ -15,6 +15,7 @@ import (
 func mapsAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Azure Maps Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
+			Description:  "The SKU of the Azure Maps Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,9 +41,10 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Description: "A list of origins that should be allowed to make cross-origin calls.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
+						MinItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -53,9 +56,10 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether local authentication is enabled for this Azure Maps Account. When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"data_store": {
@@ -64,11 +68,12 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"unique_name": {
+						Description:  "The name given to the linked Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}),
+					"storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}, "Storage Account"),
 				},
 			},
 		},
@@ -76,20 +81,23 @@ func mapsAccountSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"x_ms_client_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A unique identifier for the Maps Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary key used to authenticate and authorize access to the Maps REST APIs.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary key used to authenticate and authorize access to the Maps REST APIs.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

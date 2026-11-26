@@ -145,9 +145,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_exclusion_paths": {
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "Paths to exclude when using client certificates, separated by `;`.",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),

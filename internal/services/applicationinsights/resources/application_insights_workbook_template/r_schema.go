@@ -62,16 +62,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "Azure resource type supported by the gallery.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Default:      "Azure Monitor",
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"type": {
 						Description:  "Type of workbook supported by the workbook template.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Default:      "workbook",
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},

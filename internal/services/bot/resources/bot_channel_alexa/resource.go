@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotChannelAlexaCreate,
-		Read:   resourceBotChannelAlexaRead,
-		Delete: resourceBotChannelAlexaDelete,
-		Update: resourceBotChannelAlexaUpdate,
+		Description: "Manages an Alexa integration for a Bot Channel.",
+		Create:      resourceBotChannelAlexaCreate,
+		Read:        resourceBotChannelAlexaRead,
+		Delete:      resourceBotChannelAlexaDelete,
+		Update:      resourceBotChannelAlexaUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseBotServiceChannelID(id)

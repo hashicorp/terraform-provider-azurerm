@@ -16,10 +16,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scope": {
+			Description: "The scope for this Role Assignment, should be a valid resource ID.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Scope for this Role Assignment, should be a valid resource ID.",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
 				// https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
@@ -35,85 +35,85 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"role_definition_id": {
+			Description: "The Role Definition ID for this Role Assignment.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Role Definition ID for this Role Assignment.",
 		},
 
 		"principal_id": {
+			Description:  "Object ID of the principal for this Role Assignment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "Object ID of the principal for this Role Assignment.",
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"justification": {
+			Description: "The justification for the Role Assignment.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The justification for this Role Assignment.",
 		},
 
 		"schedule": {
+			Description: "The schedule details for this Role Assignment.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The schedule details for this Role Assignment.",
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date_time": { // defaults to now
+						Description: "The start date/time of the Role Assignment.",
+						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ForceNew:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "The start date/time of the Role Assignment.",
 					},
 
 					"expiration": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"duration_days": {
-									Optional: true,
-									Computed: true, // azignore:AZS007 - pre-existing violation
-									ForceNew: true,
-									Type:     pluginsdk.TypeInt,
+									Description: "The duration of the Role Assignment in days.",
+									Type:        pluginsdk.TypeInt,
+									Optional:    true,
+									Computed:    true, // azignore:AZS007 - pre-existing violation
+									ForceNew:    true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_hours",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the Role Assignment in days.",
 								},
 
 								"duration_hours": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-									Computed: true, // azignore:AZS007 - pre-existing violation
-									ForceNew: true,
+									Description: "The duration of the Role Assignment in hours.",
+									Type:        pluginsdk.TypeInt,
+									Optional:    true,
+									Computed:    true, // azignore:AZS007 - pre-existing violation
+									ForceNew:    true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the Role Assignment in hours.",
 								},
 
 								"end_date_time": {
-									Optional: true,
-									Computed: true, // azignore:AZS007 - pre-existing violation
-									ForceNew: true,
-									Type:     pluginsdk.TypeString,
+									Description: "The end date/time of the Role Assignment.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Computed:    true, // azignore:AZS007 - pre-existing violation
+									ForceNew:    true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.duration_hours",
 									},
-									Description: "The end date/time of the Role Assignment.",
 								},
 							},
 						},
@@ -123,26 +123,26 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"ticket": {
+			Description: "Ticket details relating to the assignment.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "Ticket details relating to the assignment.",
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"number": {
+						Description: "User-supplied ticket number to be included with the request.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ForceNew:    true,
-						Description: "User-supplied ticket number to be included with the request.",
 					},
 
 					"system": {
+						Description: "User-supplied ticket system name to be included with the request.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ForceNew:    true,
-						Description: "User-supplied ticket system name to be included with the request.",
 					},
 				},
 			},
@@ -153,9 +153,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"principal_type": {
+			Description: "Type of principal to which the role will be assigned.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "Type of principal to which the role will be assigned.",
 		},
 	}
 }

@@ -19,14 +19,14 @@ import (
 func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Description: "The ID of the App Configuration.",
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
+			Description:  "The ID of the App Configuration.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 			// User-specified segments are lowercased in the API response
 			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Description:  "The name of the App Configuration Key to create.",
@@ -45,9 +45,9 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 		"etag": {
 			Description: "The ETag of the key.",
 			Type:        pluginsdk.TypeString,
-			Computed:    true,
+			Optional:    true,
 			// NOTE: O+C The value of this is updated anytime the resource changes
-			Optional: true,
+			Computed: true,
 		},
 		"label": {
 			Description: "The label of the App Configuration Key.",
@@ -59,12 +59,12 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The value of the App Configuration Key. This should only be set when type is set to `kv`.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			ConflictsWith: []string{
-				"vault_key_reference",
-			},
 			// if `type` is set to `vault`, then `value` will be set by `vault_key_reference`
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				return d.Get("type").(string) == KeyTypeVault && d.Get("vault_key_reference").(string) != "" && old != "" && new == ""
+			},
+			ConflictsWith: []string{
+				"vault_key_reference",
 			},
 		},
 		"locked": {

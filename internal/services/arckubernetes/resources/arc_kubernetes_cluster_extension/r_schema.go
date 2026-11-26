@@ -79,8 +79,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"target_namespace"},
 		},
 
 		"target_namespace": {
@@ -89,8 +89,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"release_namespace"},
 		},
 
 		"version": {
