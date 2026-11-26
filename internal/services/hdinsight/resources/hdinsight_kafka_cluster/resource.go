@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHDInsightKafkaClusterCreate,
-		Read:   resourceHDInsightKafkaClusterRead,
-		Update: helpers.HdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
-		Delete: helpers.HdinsightClusterDelete("Kafka"),
+		Description: "Manages an HDInsight Kafka Cluster.",
+		Create:      resourceHDInsightKafkaClusterCreate,
+		Read:        resourceHDInsightKafkaClusterRead,
+		Update:      helpers.HdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
+		Delete:      helpers.HdinsightClusterDelete("Kafka"),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseHDInsightClusterID(id)

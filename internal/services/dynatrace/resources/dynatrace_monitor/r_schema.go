@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the Dynatrace monitor.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,13 +25,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"monitoring_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  true,
+			Description: "Flag specifying if the resource monitoring is enabled or disabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     true,
 		},
 
 		"marketplace_subscription": {
+			Description:  "Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,17 +43,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedIdentityRequired(),
 
 		"plan": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
+			Description: "Billing plan information.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			ForceNew:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					// Issue: https://github.com/Azure/azure-rest-api-specs/issues/31284
 					// This should be an enum.
 					"billing_cycle": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Different billing cycles.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"MONTHLY",
 							"WEEKLY",
@@ -59,6 +64,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"plan": {
+						Description:  "Plan ID as published by Dynatrace.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -67,8 +73,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					// Issue: https://github.com/Azure/azure-rest-api-specs/issues/31284
 					// This should be an enum.
 					"usage_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Different usage type.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"PAYG",
 							"COMMITTED",
@@ -76,45 +83,52 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"effective_date": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Date when plan was applied.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"user": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
+			Description: "User's information.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			ForceNew:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
+						Description:  "Email of the user used by Dynatrace for contacting them if needed.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsEmailAddress,
 					},
 
 					"first_name": {
+						Description:  "First name of the user.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"last_name": {
+						Description:  "Last name of the user.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"phone_number": {
+						Description:  "Phone number of the user by Dynatrace for contacting them if needed.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"country": {
+						Description:  "Country of the user.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -124,18 +138,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"environment_properties": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "Properties of the Dynatrace environment.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"environment_info": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "Information about the Dynatrace environment.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"environment_id": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The ID of the Dynatrace environment to be created.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 								},
 							},
 						},

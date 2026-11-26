@@ -37,6 +37,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_data_lake_storage"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backup Instance to back up Data Lake Storage."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backupinstanceresources.ValidateBackupInstanceID
 }

@@ -4,7 +4,7 @@
 package postgresql_flexible_server_database
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -30,17 +30,17 @@ func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.DatabaseCharset,
 			Default:          "UTF8",
+			ValidateFunc:     validate.DatabaseCharset,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"collation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.PostgresqlFlexibleServerDatabaseCollation,
 			Default:      "en_US.utf8",
+			ValidateFunc: validate.PostgresqlFlexibleServerDatabaseCollation,
 		},
 	}
 }

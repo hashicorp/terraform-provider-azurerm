@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoDatabasePrincipalAssignmentCreate,
-		Read:   resourceKustoDatabasePrincipalAssignmentRead,
-		Delete: resourceKustoDatabasePrincipalAssignmentDelete,
+		Description: "Manages a Kusto (also known as Azure Data Explorer) Database Principal Assignment.",
+		Create:      resourceKustoDatabasePrincipalAssignmentCreate,
+		Read:        resourceKustoDatabasePrincipalAssignmentRead,
+		Delete:      resourceKustoDatabasePrincipalAssignmentDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

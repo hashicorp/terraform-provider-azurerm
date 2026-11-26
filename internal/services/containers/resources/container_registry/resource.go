@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryCreate,
-		Read:   resourceContainerRegistryRead,
-		Update: resourceContainerRegistryUpdate,
-		Delete: resourceContainerRegistryDelete,
+		Description: "Manages an Azure Container Registry.",
+		Create:      resourceContainerRegistryCreate,
+		Read:        resourceContainerRegistryRead,
+		Update:      resourceContainerRegistryUpdate,
+		Delete:      resourceContainerRegistryDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

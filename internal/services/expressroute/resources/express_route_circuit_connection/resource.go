@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitConnectionCreate,
-		Read:   resourceExpressRouteCircuitConnectionRead,
-		Update: resourceExpressRouteCircuitConnectionUpdate,
-		Delete: resourceExpressRouteCircuitConnectionDelete,
+		Description: "Manages an Express Route Circuit Connection.",
+		Create:      resourceExpressRouteCircuitConnectionCreate,
+		Read:        resourceExpressRouteCircuitConnectionRead,
+		Update:      resourceExpressRouteCircuitConnectionUpdate,
+		Delete:      resourceExpressRouteCircuitConnectionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

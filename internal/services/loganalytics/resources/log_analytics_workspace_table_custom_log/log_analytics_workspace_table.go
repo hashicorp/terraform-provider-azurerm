@@ -20,24 +20,28 @@ type workspaceTableColumn struct {
 func workspaceTableColumnSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the column.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"type": {
+			Description:  "The data type of the column.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
 		},
 
 		"description": {
+			Description:  "The description of the column.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
+			Description:  "The display name of the column.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -48,23 +52,27 @@ func workspaceTableColumnSchema() map[string]*pluginsdk.Schema {
 func workspaceTableColumnSchemaComputed() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the standard column.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The data type of the standard column.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the standard column.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of the standard column.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

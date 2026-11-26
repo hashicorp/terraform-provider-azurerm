@@ -39,6 +39,7 @@ type DevCenterProjectDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Project.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -51,18 +52,21 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Dev Center Project.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dev_center_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the associated Dev Center.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dev_center_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URI of the Dev Center.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -70,8 +74,9 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"maximum_dev_boxes_per_user": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum number of Dev Boxes a single user can create across all pools in the project.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -84,6 +89,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_project"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Project."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

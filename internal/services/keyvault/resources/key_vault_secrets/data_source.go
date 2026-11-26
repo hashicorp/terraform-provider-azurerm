@@ -22,18 +22,20 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultSecretsRead,
+		Description: "Use this data source to retrieve a list of secret names from an existing Key Vault Secret.",
+		Read:        dataSourceKeyVaultSecretsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"names": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "List containing names of secrets that exist in this Key Vault.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -45,18 +47,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of this secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether this secret is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"tags": commonschema.TagsDataSource(),

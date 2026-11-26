@@ -13,6 +13,7 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		Description: "Manages a Key Vault Certificate.",
 		// TODO: support Updating additional properties once we have more information about what can be updated
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,

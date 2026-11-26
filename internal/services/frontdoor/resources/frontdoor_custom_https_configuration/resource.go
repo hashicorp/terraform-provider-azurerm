@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
-		Read:   resourceFrontDoorCustomHTTPSConfigurationRead,
-		Update: resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
-		Delete: resourceFrontDoorCustomHTTPSConfigurationDelete,
+		Description: "Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.",
+		Create:      resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
+		Read:        resourceFrontDoorCustomHTTPSConfigurationRead,
+		Update:      resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
+		Delete:      resourceFrontDoorCustomHTTPSConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.CustomHttpsConfigurationID(id)

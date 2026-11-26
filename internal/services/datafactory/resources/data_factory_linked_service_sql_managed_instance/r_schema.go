@@ -15,17 +15,19 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Linked Service SQL Managed Instance. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.LinkedServiceDatasetName,
 		},
 
-		"data_factory_id": commonschema.ResourceIDReferenceRequiredForceNew(&factories.FactoryId{}),
+		"data_factory_id": commonschema.ResourceIDReferenceRequiredForceNew(&factories.FactoryId{}, "Data Factory"),
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Linked Service SQL Managed Instance.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -33,40 +35,46 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"connection_string": {
+			Description:      "The connection string in which to authenticate with the SQL Managed Instance.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			Sensitive:        true,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
+			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Linked Service SQL Managed Instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"integration_runtime_name": {
+			Description:  "The integration runtime reference to associate with the Data Factory Linked Service SQL Managed Instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"key_vault_connection_string": {
+			Description:  "Use this argument to store SQL Managed Instance connection string in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
 			MaxItems:     1,
+			ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {
+						Description:  "The name of an existing Key Vault Data Factory Linked Service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"secret_name": {
+						Description:  "The secret name in Azure Key Vault that stores SQL Managed Instance connection string.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -76,18 +84,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_password": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Description: "Use this argument to store SQL Managed Instance password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {
+						Description:  "The name of an existing Key Vault Data Factory Linked Service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"secret_name": {
+						Description:  "The secret name in Azure Key Vault that stores SQL Managed Instance password.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -97,8 +108,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Linked Service SQL Managed Instance.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -106,6 +118,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"service_principal_id": {
+			Description:  "The Service Principal ID in which to authenticate against the Azure SQL Managed Instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
@@ -113,6 +126,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"service_principal_key": {
+			Description:  "The Service Principal key in which to authenticate against the Azure SQL Managed Instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -121,6 +135,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tenant": {
+			Description:  "The tenant ID or name in which to authenticate against the Azure SQL Managed Instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,

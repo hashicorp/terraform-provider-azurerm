@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Network Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,21 +27,24 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"domain_join_type": {
+			Description:  "The Azure Active Directory Join type.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(networkconnections.PossibleValuesForDomainJoinType(), false),
 		},
 
-		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}, "Subnet"),
 
 		"domain_name": {
+			Description:  "The name of the Azure Active Directory domain.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.DevCenterNetworkConnectionDomainName,
 		},
 
 		"domain_password": {
+			Description:  "The password for the account used to join domain.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -48,12 +52,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain_username": {
+			Description:  "The username of the Azure Active Directory account (user or service account) that has permissions to create computer objects in Active Directory.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.DevCenterNetworkConnectionDomainUsername,
 		},
 
 		"organization_unit": {
+			Description:  "The Azure Active Directory domain Organization Unit (OU).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

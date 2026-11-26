@@ -69,7 +69,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Arguments()
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}, "Spring Cloud Service"),
 
 		"app_name": {
 			Type:         pluginsdk.TypeString,

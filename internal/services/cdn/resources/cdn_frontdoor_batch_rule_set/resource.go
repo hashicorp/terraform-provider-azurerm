@@ -63,6 +63,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_batch_rule_set"
 }
 
+func (Resource) Description() string {
+	return "Manages a Front Door (standard/premium) Batch Rule Set."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return rulesets.ValidateRuleSetID
 }
