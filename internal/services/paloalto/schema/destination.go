@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -25,13 +25,20 @@ func DestinationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cidrs": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
+					},
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -39,76 +46,69 @@ func DestinationSchema() *pluginsdk.Schema {
 							validation.StringInSlice([]string{"any"}, false),
 						),
 					},
-					AtLeastOneOf: []string{
-						"destination.0.cidrs",
-						"destination.0.countries",
-						"destination.0.feeds",
-						"destination.0.local_rulestack_fqdn_list_ids",
-						"destination.0.local_rulestack_prefix_list_ids",
-					},
 				},
 
 				"countries": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.ISO3361CountryCode,
-					},
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validate.ISO3361CountryCode,
 					},
 				},
 
 				"feeds": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
 				"local_rulestack_fqdn_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: fqdnlistlocalrulestackresources.ValidateLocalRulestackFqdnListID,
-					},
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: fqdnlistlocalrulestackresources.ValidateLocalRulestackFqdnListID,
 					},
 				},
 
 				"local_rulestack_prefix_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
-					},
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
 						"destination.0.local_rulestack_fqdn_list_ids",
 						"destination.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
 					},
 				},
 			},
