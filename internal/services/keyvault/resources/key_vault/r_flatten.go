@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-func resourceKeyVaultFlatten(ctx context.Context, managementClient *keyvault.BaseClient, d *pluginsdk.ResourceData, id *commonids.KeyVaultId, model *vaults.Vault, includeResource bool) error {
+func resourceKeyVaultFlatten(ctx context.Context, certificatesClient *certificates.CertificatesClient, d *pluginsdk.ResourceData, id *commonids.KeyVaultId, model *vaults.Vault, includeResource bool) error {
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -87,9 +87,9 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *keyvault.Bas
 		//
 		// We don't know if the private endpoint has been created yet, so we need
 		// to ignore the error if the data plane call fails.
-		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
+		contacts, err := certificatesClient.Clone(d.Get("vault_uri").(string)).GetCertificateContacts(ctx)
 		if err != nil {
-			if publicNetworkAccessEnabled && (!response.WasForbidden(contacts.Response.Response) && !response.WasNotFound(contacts.Response.Response)) {
+			if publicNetworkAccessEnabled && (!response.WasForbidden(contacts.HttpResponse) && !response.WasNotFound(contacts.HttpResponse)) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 			}
 		}

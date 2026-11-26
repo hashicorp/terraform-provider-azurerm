@@ -7,18 +7,19 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -49,9 +50,10 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 		return nil
 	}
 
-	resp, err := client.GetSasDefinition(ctx, id.KeyVaultBaseUrl, id.StorageAccountName, id.Name)
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Storage.Clone(id.KeyVaultBaseUrl)
+	resp, err := client.GetSasDefinition(ctx, storage.NewSaID(id.KeyVaultBaseUrl, id.StorageAccountName, id.Name))
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Managed Storage Account Sas Definition %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
 			d.SetId("")
 			return nil
@@ -60,10 +62,15 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 	}
 
 	d.Set("name", id.Name)
-	d.Set("sas_template_uri", resp.TemplateURI)
-	d.Set("sas_type", resp.SasType)
-	d.Set("secret_id", resp.SecretID)
-	d.Set("validity_period", resp.ValidityPeriod)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("sas_template_uri", model.TemplateUri)
+		d.Set("sas_type", pointer.FromEnum(model.SasType))
+		d.Set("secret_id", model.Sid)
+		d.Set("validity_period", model.ValidityPeriod)
+
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+
+	return nil
 }

@@ -11,18 +11,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			vaultClient := metadata.Client.KeyVault
-			client := metadata.Client.KeyVault.ManagementClient
 			var state KeyVaultCertificateContactsResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -43,29 +42,31 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			client := metadata.Client.KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
+				existing, err := client.GetCertificateContacts(ctx)
 				if err != nil {
-					if !response.WasNotFound(existing.Response.Response) {
+					if !response.WasNotFound(existing.HttpResponse) {
 						return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
 					}
 				}
 
-				if !response.WasNotFound(existing.Response.Response) {
-					if existing.ContactList != nil && len(*existing.ContactList) != 0 {
+				if !response.WasNotFound(existing.HttpResponse) {
+					if existing.Model != nil && existing.Model.Contacts != nil && len(*existing.Model.Contacts) != 0 {
 						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 					}
 				}
 			}
 
-			contacts := keyvault.Contacts{
-				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
+			contacts := certificates.Contacts{
+				Contacts: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+			if _, err := client.SetCertificateContacts(ctx, contacts); err != nil {
 				return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
 			}
 
@@ -76,17 +77,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 	}
 }
 
-func expandKeyVaultCertificateContactsContact(input []Contact) *[]keyvault.Contact {
-	results := make([]keyvault.Contact, 0)
+func expandKeyVaultCertificateContactsContact(input []Contact) *[]certificates.Contact {
+	results := make([]certificates.Contact, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
 	for _, item := range input {
-		results = append(results, keyvault.Contact{
-			EmailAddress: pointer.To(item.Email),
-			Name:         pointer.To(item.Name),
-			Phone:        pointer.To(item.Phone),
+		results = append(results, certificates.Contact{
+			Email: pointer.To(item.Email),
+			Name:  pointer.To(item.Name),
+			Phone: pointer.To(item.Phone),
 		})
 	}
 

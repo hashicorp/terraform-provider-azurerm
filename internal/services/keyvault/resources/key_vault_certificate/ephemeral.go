@@ -21,6 +21,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -120,7 +122,6 @@ func (e *KeyVaultCertificateEphemeralResource) Schema(_ context.Context, _ ephem
 
 func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
 	keyVaultsClient := e.Client.KeyVault
-	client := e.Client.KeyVault.ManagementClient
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 	defer cancel()
 
@@ -142,9 +143,10 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	certResp, err := client.GetCertificate(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
+	certificatesClient := keyVaultsClient.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+	certResp, err := certificatesClient.GetCertificate(ctx, certificates.NewCertificateversionID(*keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString()))
 	if err != nil {
-		if response.WasNotFound(certResp.Response.Response) {
+		if response.WasNotFound(certResp.HttpResponse) {
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("certificate %q does not exist in %s", data.Name.ValueString(), keyVaultID), err)
 			return
 		}
@@ -152,33 +154,51 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	id, err := keyvault.ParseNestedItemID(pointer.From(certResp.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+	cert := certResp.Model
+	if cert == nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving certificate %q from %s", data.Name.ValueString(), keyVaultID), "model was nil")
+		return
+	}
+
+	id, err := keyvault.ParseNestedItemID(pointer.From(cert.Id), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
 	}
 	data.Version = types.StringValue(id.Version)
 
-	if attributes := certResp.Attributes; attributes != nil {
-		if expires := attributes.Expires; expires != nil {
-			data.ExpirationDate = types.StringValue(time.Time(*expires).Format(time.RFC3339))
+	if attributes := cert.Attributes; attributes != nil {
+		if expires := attributes.Exp; expires != nil {
+			data.ExpirationDate = types.StringValue(time.Unix(*expires, 0).UTC().Format(time.RFC3339))
 		}
 
-		if notBefore := attributes.NotBefore; notBefore != nil {
-			data.NotBeforeDate = types.StringValue(time.Time(*notBefore).Format(time.RFC3339))
+		if notBefore := attributes.Nbf; notBefore != nil {
+			data.NotBeforeDate = types.StringValue(time.Unix(*notBefore, 0).UTC().Format(time.RFC3339))
 		}
 	}
 
 	certificateData := ""
-	if certResp.Cer != nil {
-		certificateData = strings.ToUpper(hex.EncodeToString(*certResp.Cer))
+	if cert.Cer != nil {
+		certBytes, err := base64.StdEncoding.DecodeString(*cert.Cer)
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("decoding certificate data %q", id.Name), err)
+			return
+		}
+		certificateData = strings.ToUpper(hex.EncodeToString(certBytes))
 	}
 
 	data.Hex = types.StringValue(certificateData)
 
-	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, id.Version)
+	secretsClient := keyVaultsClient.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	secretResp, err := secretsClient.GetSecret(ctx, secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, id.Version))
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving certificate %q from %s", data.Name.ValueString(), keyVaultID), err)
+		return
+	}
+
+	pfx := secretResp.Model
+	if pfx == nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving certificate %q from %s", data.Name.ValueString(), keyVaultID), "secret model was nil")
 		return
 	}
 

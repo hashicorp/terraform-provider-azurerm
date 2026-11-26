@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
@@ -294,7 +294,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -310,20 +309,22 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("looking up base uri for Key %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+	resp, err := client.GetCertificate(ctx, certificates.NewCertificateversionID(*keyVaultBaseUri, name, version))
 	if err != nil {
-		if response.WasNotFound(cert.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("a Certificate named %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
-	if cert.ID == nil || *cert.ID == "" {
+	cert := resp.Model
+	if cert == nil || cert.Id == nil || *cert.Id == "" {
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	id, err := keyvault.ParseNestedItemID(*cert.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+	id, err := keyvault.ParseNestedItemID(*cert.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return err
 	}
@@ -350,20 +351,28 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta any) erro
 		d.Set("versionless_secret_id", secretId.VersionlessID())
 	}
 
+	var certBytes []byte
+	if cert.Cer != nil {
+		certBytes, err = base64.StdEncoding.DecodeString(*cert.Cer)
+		if err != nil {
+			return fmt.Errorf("decoding certificate data for %q: %+v", name, err)
+		}
+	}
+
 	certificateData := ""
-	if contents := cert.Cer; contents != nil {
-		certificateData = strings.ToUpper(hex.EncodeToString(*contents))
+	if cert.Cer != nil {
+		certificateData = strings.ToUpper(hex.EncodeToString(certBytes))
 	}
 	d.Set("certificate_data", certificateData)
 
 	certificateDataBase64 := ""
-	if contents := cert.Cer; contents != nil {
-		certificateDataBase64 = base64.StdEncoding.EncodeToString(*contents)
+	if cert.Cer != nil {
+		certificateDataBase64 = base64.StdEncoding.EncodeToString(certBytes)
 	}
 	d.Set("certificate_data_base64", certificateDataBase64)
 
 	thumbprint := ""
-	if v := cert.X509Thumbprint; v != nil {
+	if v := cert.X5t; v != nil {
 		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
 		if err != nil {
 			return err
@@ -373,41 +382,30 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta any) erro
 	}
 	d.Set("thumbprint", thumbprint)
 
-	expireString, err := cert.Attributes.Expires.MarshalText()
-	if err != nil {
-		return fmt.Errorf("parsing expiry time of certificate: %+v", err)
+	expires := ""
+	notBefore := ""
+	if attributes := cert.Attributes; attributes != nil {
+		if attributes.Exp != nil {
+			expires = time.Unix(*attributes.Exp, 0).UTC().Format(time.RFC3339)
+		}
+		if attributes.Nbf != nil {
+			notBefore = time.Unix(*attributes.Nbf, 0).UTC().Format(time.RFC3339)
+		}
 	}
-
-	e, err := time.Parse(time.RFC3339, string(expireString))
-	if err != nil {
-		return fmt.Errorf("converting text to Time struct: %+v", err)
-	}
-
-	d.Set("expires", e.Format(time.RFC3339))
-
-	notBeforeString, err := cert.Attributes.NotBefore.MarshalText()
-	if err != nil {
-		return fmt.Errorf("parsing not-before time of certificate: %+v", err)
-	}
-
-	n, err := time.Parse(time.RFC3339, string(notBeforeString))
-	if err != nil {
-		return fmt.Errorf("converting text to Time struct: %+v", err)
-	}
-
-	d.Set("not_before", n.Format(time.RFC3339))
+	d.Set("expires", expires)
+	d.Set("not_before", notBefore)
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) []any {
+func flattenKeyVaultCertificatePolicyForDataSource(input *certificates.CertificatePolicy) []any {
 	if input == nil {
 		return []any{}
 	}
 
 	policy := make(map[string]any)
 
-	if params := input.IssuerParameters; params != nil {
+	if params := input.Issuer; params != nil {
 		policy["issuer_parameters"] = []any{
 			map[string]any{
 				"name": pointer.From(params.Name),
@@ -416,11 +414,11 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 	}
 
 	// key properties
-	if props := input.KeyProperties; props != nil {
-		var curve, keyType string
+	if props := input.KeyProps; props != nil {
 		var exportable, reuseKey bool
 		var keySize int
-		curve = string(props.Curve)
+		curve := pointer.FromEnum(props.Crv)
+		keyType := pointer.FromEnum(props.Kty)
 		if props.Exportable != nil {
 			exportable = *props.Exportable
 		}
@@ -429,9 +427,6 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 		}
 		if props.KeySize != nil {
 			keySize = int(*props.KeySize)
-		}
-		if props.KeyType != "" {
-			keyType = string(props.KeyType)
 		}
 
 		policy["key_properties"] = []any{
@@ -453,7 +448,7 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 
 			actionOutput := make(map[string]any)
 			if act := action.Action; act != nil {
-				actionOutput["action_type"] = string(act.ActionType)
+				actionOutput["action_type"] = pointer.FromEnum(act.ActionType)
 			}
 			lifetimeAction["action"] = []any{actionOutput}
 
@@ -474,7 +469,7 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 	policy["lifetime_action"] = lifetimeActions
 
 	// secret properties
-	if props := input.SecretProperties; props != nil {
+	if props := input.SecretProps; props != nil {
 		policy["secret_properties"] = []any{
 			map[string]any{
 				"content_type": pointer.From(props.ContentType),
@@ -483,14 +478,14 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 	}
 
 	// x509 Certificate Properties
-	if props := input.X509CertificateProperties; props != nil {
+	if props := input.X509Props; props != nil {
 		var subject string
 		var validityInMonths int
 		if props.Subject != nil {
 			subject = *props.Subject
 		}
-		if props.ValidityInMonths != nil {
-			validityInMonths = int(*props.ValidityInMonths)
+		if props.ValidityMonths != nil {
+			validityInMonths = int(*props.ValidityMonths)
 		}
 
 		usages := make([]string, 0)
@@ -501,10 +496,10 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 		}
 
 		sanOutputs := make([]any, 0)
-		if san := props.SubjectAlternativeNames; san != nil {
+		if san := props.Sans; san != nil {
 			sanOutputs = append(sanOutputs, map[string]any{
 				"emails":    pluginsdk.FlattenSlice(san.Emails),
-				"dns_names": pluginsdk.FlattenSlice(san.DNSNames),
+				"dns_names": pluginsdk.FlattenSlice(san.DnsNames),
 				"upns":      pluginsdk.FlattenSlice(san.Upns),
 			})
 		}

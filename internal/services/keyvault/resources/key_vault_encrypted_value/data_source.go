@@ -11,12 +11,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ sdk.DataSource = DataSource{}
@@ -44,9 +43,9 @@ func (DataSource) Arguments() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(kv.JSONWebKeyEncryptionAlgorithmRSA15),
-				string(kv.JSONWebKeyEncryptionAlgorithmRSAOAEP),
-				string(kv.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
+				string(keys.JsonWebKeyEncryptionAlgorithmRSAOneFive),
+				string(keys.JsonWebKeyEncryptionAlgorithmRSANegativeOAEP),
+				string(keys.JsonWebKeyEncryptionAlgorithmRSANegativeOAEPNegativeTwoFiveSix),
 			}, false),
 		},
 		"encrypted_data": {
@@ -90,8 +89,6 @@ func (e DataSource) Description() string {
 func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KeyVault.ManagementClient
-
 			var model EncryptedValueDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -109,37 +106,40 @@ func (DataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			client := metadata.Client.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(keyVaultKeyId.KeyVaultBaseURL)
+			keyVersionId := keys.NewKeyversionID(keyVaultKeyId.KeyVaultBaseURL, keyVaultKeyId.Name, keyVaultKeyId.Version)
+
 			if model.EncryptedData != "" {
-				params := kv.KeyOperationsParameters{
-					Algorithm: kv.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     pointer.To(model.EncryptedData),
+				params := keys.KeyOperationsParameters{
+					Alg:   keys.JsonWebKeyEncryptionAlgorithm(model.Algorithm),
+					Value: model.EncryptedData,
 				}
-				result, err := client.Decrypt(ctx, keyVaultKeyId.KeyVaultBaseURL, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
+				result, err := client.Decrypt(ctx, keyVersionId, params)
 				if err != nil {
 					return fmt.Errorf("decrypting plain-text value using Key Vault Key ID %q: %+v", model.KeyVaultKeyId, err)
 				}
-				if result.Result == nil {
+				if result.Model == nil || result.Model.Value == nil {
 					return fmt.Errorf("decrypting plain-text value using Key Vault Key ID %q: `result` was nil", model.KeyVaultKeyId)
 				}
-				model.PlainTextValue = *result.Result
-				if decodedResult, err := base64.RawURLEncoding.DecodeString(*result.Result); err == nil {
+				model.PlainTextValue = *result.Model.Value
+				if decodedResult, err := base64.RawURLEncoding.DecodeString(*result.Model.Value); err == nil {
 					model.DecodedPlainTextValue = string(decodedResult)
 				} else {
 					log.Printf("[WARN] Failed to decode plain-text value: %+v", err)
 				}
 			} else {
-				params := kv.KeyOperationsParameters{
-					Algorithm: kv.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     pointer.To(model.PlainTextValue),
+				params := keys.KeyOperationsParameters{
+					Alg:   keys.JsonWebKeyEncryptionAlgorithm(model.Algorithm),
+					Value: model.PlainTextValue,
 				}
-				result, err := client.Encrypt(ctx, keyVaultKeyId.KeyVaultBaseURL, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
+				result, err := client.Encrypt(ctx, keyVersionId, params)
 				if err != nil {
 					return fmt.Errorf("encrypting plain-text value using Key Vault Key ID %q: %+v", model.KeyVaultKeyId, err)
 				}
-				if result.Result == nil {
+				if result.Model == nil || result.Model.Value == nil {
 					return fmt.Errorf("encrypting plain-text value using Key Vault Key ID %q: `result` was nil", model.KeyVaultKeyId)
 				}
-				model.EncryptedData = *result.Result
+				model.EncryptedData = *result.Model.Value
 			}
 
 			metadata.ResourceData.SetId(fmt.Sprintf("%s-%s-%s", model.KeyVaultKeyId, model.Algorithm, sha1.Sum([]byte(model.EncryptedData))))

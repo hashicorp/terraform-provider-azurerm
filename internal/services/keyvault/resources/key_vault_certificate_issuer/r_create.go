@@ -9,17 +9,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -35,45 +34,47 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	id := parse.NewIssuerID(*keyVaultBaseUri, name)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+	issuerId := certificates.NewIssuernameID(*keyVaultBaseUri, name)
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
+			existing, err := client.GetCertificateIssuer(ctx, issuerId)
 			if err != nil {
-				if !response.WasNotFound(existing.Response.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
 				}
 			}
 
-			if !response.WasNotFound(existing.Response.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
 			}
 		}
 	}
 
-	parameter := keyvault.CertificateIssuerSetParameters{
-		Provider:            pointer.To(d.Get("provider_name").(string)),
-		OrganizationDetails: &keyvault.OrganizationDetails{},
+	parameter := certificates.CertificateIssuerSetParameters{
+		Provider:   d.Get("provider_name").(string),
+		OrgDetails: &certificates.OrganizationDetails{},
 	}
 
 	if orgIdRaw, ok := d.GetOk("org_id"); ok {
-		parameter.OrganizationDetails.ID = pointer.To(orgIdRaw.(string))
+		parameter.OrgDetails.Id = pointer.To(orgIdRaw.(string))
 	}
 
 	if adminsRaw, ok := d.GetOk("admin"); ok {
-		parameter.OrganizationDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]any))
+		parameter.OrgDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]any))
 	}
 
 	accountId, gotAccountId := d.GetOk("account_id")
 	password, gotPassword := d.GetOk("password")
 
 	if gotAccountId && gotPassword {
-		parameter.Credentials = &keyvault.IssuerCredentials{
-			AccountID: pointer.To(accountId.(string)),
-			Password:  pointer.To(password.(string)),
+		parameter.Credentials = &certificates.IssuerCredentials{
+			AccountId: pointer.To(accountId.(string)),
+			Pwd:       pointer.To(password.(string)),
 		}
 	}
 
-	if _, err = client.SetCertificateIssuer(ctx, *keyVaultBaseUri, name, parameter); err != nil {
+	if _, err = client.SetCertificateIssuer(ctx, issuerId, parameter); err != nil {
 		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", name, keyVaultId, err)
 	}
 
@@ -82,11 +83,11 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 	return resourceKeyVaultCertificateIssuerRead(d, meta)
 }
 
-func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []any) *[]keyvault.AdministratorDetails {
-	results := make([]keyvault.AdministratorDetails, 0, len(vs))
+func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []any) *[]certificates.AdministratorDetails {
+	results := make([]certificates.AdministratorDetails, 0, len(vs))
 
 	for _, v := range vs {
-		administratorDetails := keyvault.AdministratorDetails{}
+		administratorDetails := certificates.AdministratorDetails{}
 		args := v.(map[string]any)
 		if firstName, ok := args["first_name"]; ok {
 			administratorDetails.FirstName = pointer.To(firstName.(string))
@@ -95,7 +96,7 @@ func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []any) *[
 			administratorDetails.LastName = pointer.To(lastName.(string))
 		}
 		if emailAddress, ok := args["email_address"]; ok {
-			administratorDetails.EmailAddress = pointer.To(emailAddress.(string))
+			administratorDetails.Email = pointer.To(emailAddress.(string))
 		}
 		if phone, ok := args["phone"]; ok {
 			administratorDetails.Phone = pointer.To(phone.(string))

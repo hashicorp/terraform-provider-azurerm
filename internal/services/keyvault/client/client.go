@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type Client struct {
@@ -25,7 +24,6 @@ type Client struct {
 	VaultsClient        *vaults.VaultsClient
 	DeletedVaultsClient *deletedvaults.DeletedVaultsClient
 
-	ManagementClient        *keyvault.BaseClient // TODO: we should rename this DataPlaneClient in time
 	DataPlaneKeyVaultClient *v7_4.Client
 
 	// NOTE: @tombuildsstuff: this client is intentionally internal-only so that it's not used directly
@@ -51,9 +49,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(deletedVaultsClient.Client, o.Authorizers.ResourceManager)
 
-	managementClient := keyvault.New()
-	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
-
 	dataplaneKeyvaultClient, err := v7_4.NewClient(func(c *dataplane.Client) {
 		o.Configure(c.Client, o.Authorizers.KeyVault)
 	})
@@ -62,7 +57,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		ManagementClient:    &managementClient,
 		VaultsClient:        vaultsClient,
 		DeletedVaultsClient: deletedVaultsClient,
 

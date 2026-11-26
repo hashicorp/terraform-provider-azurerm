@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -88,7 +89,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 func dataSourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -104,24 +104,27 @@ func dataSourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any
 	}
 
 	id := parse.NewIssuerID(*keyVaultBaseUri, name)
-	resp, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+	resp, err := client.GetCertificateIssuer(ctx, certificates.NewIssuernameID(*keyVaultBaseUri, name))
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
 		}
 		return fmt.Errorf("failed making Read request on Azure KeyVault Certificate Issuer %s: %+v", name, err)
 	}
 	d.SetId(id.ID())
 
-	d.Set("provider_name", resp.Provider)
-	if resp.OrganizationDetails != nil {
-		if resp.OrganizationDetails.ID != nil {
-			d.Set("org_id", resp.OrganizationDetails.ID)
+	if model := resp.Model; model != nil {
+		d.Set("provider_name", model.Provider)
+		if model.OrgDetails != nil {
+			if model.OrgDetails.Id != nil {
+				d.Set("org_id", model.OrgDetails.Id)
+			}
+			d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(model.OrgDetails.AdminDetails))
 		}
-		d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
-	}
-	if resp.Credentials != nil && resp.Credentials.AccountID != nil {
-		d.Set("account_id", resp.Credentials.AccountID)
+		if model.Credentials != nil && model.Credentials.AccountId != nil {
+			d.Set("account_id", model.Credentials.AccountId)
+		}
 	}
 
 	return nil

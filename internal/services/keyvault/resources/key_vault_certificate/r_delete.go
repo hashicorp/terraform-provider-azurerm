@@ -19,7 +19,6 @@ import (
 
 func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -60,9 +59,10 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta any) erro
 
 	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseURL)
 	deleter := deleteAndPurgeCertificate{
-		client:      client,
-		keyVaultUri: id.KeyVaultBaseURL,
-		name:        id.Name,
+		certificatesClient:        keyVaultsClient.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseURL),
+		deletedCertificatesClient: keyVaultsClient.DataPlaneKeyVaultClient.DeletedCertificates.Clone(id.KeyVaultBaseURL),
+		keyVaultUri:               id.KeyVaultBaseURL,
+		name:                      id.Name,
 	}
 	if err := helpers.DeleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
 		return err

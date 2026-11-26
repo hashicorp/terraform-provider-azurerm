@@ -12,15 +12,16 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
@@ -137,7 +138,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -152,16 +152,21 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	resp, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Keys.Clone(*keyVaultBaseUri)
+	resp, err := client.GetKey(ctx, keys.NewKeyversionID(*keyVaultBaseUri, name, ""))
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("key %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return err
 	}
 
-	id := *resp.Key.Kid
+	if resp.Model == nil || resp.Model.Key == nil || resp.Model.Key.Kid == nil {
+		return fmt.Errorf("retrieving key %q from Key Vault at URI %q: unable to determine key ID", name, *keyVaultBaseUri)
+	}
+
+	id := *resp.Model.Key.Kid
 	parsedId, err := keyvault.ParseNestedItemID(id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return err
@@ -172,8 +177,8 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	d.Set("key_vault_id", keyVaultId.ID())
 	d.Set("versionless_id", parsedId.VersionlessID())
 
-	if key := resp.Key; key != nil {
-		d.Set("key_type", string(key.Kty))
+	if key := resp.Model.Key; key != nil {
+		d.Set("key_type", pointer.FromEnum(key.Kty))
 
 		if err := d.Set("key_opts", flattenKeyVaultKeyDataSourceOptions(key.KeyOps)); err != nil {
 			return err
@@ -183,11 +188,11 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 		d.Set("e", key.E)
 		d.Set("x", key.X)
 		d.Set("y", key.Y)
-		d.Set("curve", key.Crv)
+		d.Set("curve", pointer.FromEnum(key.Crv))
 
-		if key := resp.Key; key != nil {
-			switch key.Kty {
-			case kv.JSONWebKeyTypeRSA, kv.JSONWebKeyTypeRSAHSM:
+		if key := resp.Model.Key; key != nil {
+			switch pointer.From(key.Kty) {
+			case keys.JsonWebKeyTypeRSA, keys.JsonWebKeyTypeRSANegativeHSM:
 				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 				if err != nil {
 					return fmt.Errorf("failed to decode N: %+v", err)
@@ -204,7 +209,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 				if err != nil {
 					return fmt.Errorf("failed to read public key: %+v", err)
 				}
-			case kv.JSONWebKeyTypeEC, kv.JSONWebKeyTypeECHSM:
+			case keys.JsonWebKeyTypeEC, keys.JsonWebKeyTypeECNegativeHSM:
 				// do ec keys
 				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 				if err != nil {
@@ -219,12 +224,12 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 					X: big.NewInt(0).SetBytes(xBytes), //nolint:staticcheck
 					Y: big.NewInt(0).SetBytes(yBytes), //nolint:staticcheck
 				}
-				switch key.Crv {
-				case kv.JSONWebKeyCurveNameP256:
+				switch pointer.From(key.Crv) {
+				case keys.JsonWebKeyCurveNamePNegativeTwoFiveSix:
 					publicKey.Curve = elliptic.P256()
-				case kv.JSONWebKeyCurveNameP384:
+				case keys.JsonWebKeyCurveNamePNegativeThreeEightFour:
 					publicKey.Curve = elliptic.P384()
-				case kv.JSONWebKeyCurveNameP521:
+				case keys.JsonWebKeyCurveNamePNegativeFiveTwoOne:
 					publicKey.Curve = elliptic.P521()
 				}
 				if publicKey.Curve != nil {
@@ -241,7 +246,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	d.Set("resource_id", commonids.NewKeyVaultKeyVersionID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name, parsedId.Version).ID())
 	d.Set("resource_versionless_id", commonids.NewKeyVaultKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name).ID())
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, tags.FromTypedObject(pointer.From(resp.Model.Tags)))
 }
 
 func flattenKeyVaultKeyDataSourceOptions(input *[]string) []any {

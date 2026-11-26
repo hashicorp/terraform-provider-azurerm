@@ -20,8 +20,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"golang.org/x/crypto/pkcs12"
@@ -100,7 +102,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -116,20 +117,22 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta an
 		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUri)
+	certResp, err := client.GetCertificate(ctx, certificates.NewCertificateversionID(*keyVaultBaseUri, name, version))
 	if err != nil {
-		if response.WasNotFound(cert.Response.Response) {
+		if response.WasNotFound(certResp.HttpResponse) {
 			return fmt.Errorf("the Certificate %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
-	if cert.ID == nil || *cert.ID == "" {
+	cert := certResp.Model
+	if cert == nil || cert.Id == nil || *cert.Id == "" {
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	id, err := keyvault.ParseNestedItemID(*cert.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+	id, err := keyvault.ParseNestedItemID(*cert.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return err
 	}
@@ -141,38 +144,34 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta an
 
 	certificateData := ""
 	if contents := cert.Cer; contents != nil {
-		certificateData = strings.ToUpper(hex.EncodeToString(*contents))
+		cer, err := base64.StdEncoding.DecodeString(*contents)
+		if err != nil {
+			return fmt.Errorf("decoding certificate contents for %q: %+v", name, err)
+		}
+		certificateData = strings.ToUpper(hex.EncodeToString(cer))
 	}
 	d.Set("hex", certificateData)
 
-	expireString, err := cert.Attributes.Expires.MarshalText()
-	if err != nil {
-		return fmt.Errorf("parsing expiry time of certificate: %+v", err)
+	if cert.Attributes == nil || cert.Attributes.Exp == nil {
+		return fmt.Errorf("parsing expiry time of certificate: `expires` was nil")
 	}
+	d.Set("expires", time.Unix(*cert.Attributes.Exp, 0).UTC().Format(time.RFC3339))
 
-	e, err := time.Parse(time.RFC3339, string(expireString))
-	if err != nil {
-		return fmt.Errorf("converting text to Time struct: %+v", err)
+	if cert.Attributes.Nbf == nil {
+		return fmt.Errorf("parsing not-before time of certificate: `not_before` was nil")
 	}
-
-	d.Set("expires", e.Format(time.RFC3339))
-
-	notBeforeString, err := cert.Attributes.NotBefore.MarshalText()
-	if err != nil {
-		return fmt.Errorf("parsing not-before time of certificate: %+v", err)
-	}
-
-	n, err := time.Parse(time.RFC3339, string(notBeforeString))
-	if err != nil {
-		return fmt.Errorf("converting text to Time struct: %+v", err)
-	}
-
-	d.Set("not_before", n.Format(time.RFC3339))
+	d.Set("not_before", time.Unix(*cert.Attributes.Nbf, 0).UTC().Format(time.RFC3339))
 
 	// Get PFX
-	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, id.Version)
+	secretsClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	pfxResp, err := secretsClient.GetSecret(ctx, secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, id.Version))
 	if err != nil {
 		return fmt.Errorf("retrieving certificate %q from keyvault: %+v", id.Name, err)
+	}
+
+	pfx := pfxResp.Model
+	if pfx == nil || pfx.ContentType == nil || pfx.Value == nil {
+		return fmt.Errorf("retrieving certificate %q from keyvault: secret `content_type` or `value` was nil", id.Name)
 	}
 
 	var PEMBlocks []*pem.Block
