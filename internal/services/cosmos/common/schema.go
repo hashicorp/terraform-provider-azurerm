@@ -26,14 +26,14 @@ func CassandraTableSchemaPropertySchema() *pluginsdk.Schema {
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
 								Description:  "Name of the column to be created.",
-								Required:     true,
 								Type:         pluginsdk.TypeString,
+								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
 								Description:  "Type of the column to be created.",
-								Required:     true,
 								Type:         pluginsdk.TypeString,
+								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -46,16 +46,16 @@ func CassandraTableSchemaPropertySchema() *pluginsdk.Schema {
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
 								Description:  "Name of the column to partition by.",
-								Required:     true,
 								Type:         pluginsdk.TypeString,
+								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
 				},
 				"cluster_key": {
-					Optional: true,
 					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
@@ -94,8 +94,8 @@ func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
 					Type:          pluginsdk.TypeInt,
 					Optional:      true,
 					Computed:      true, // azignore:AZS007 - pre-existing violation
-					ConflictsWith: []string{"throughput"},
 					ValidateFunc:  validate.CosmosMaxThroughput,
+					ConflictsWith: []string{"throughput"},
 				},
 			},
 		},
@@ -203,8 +203,8 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"index": {
 					Type:     pluginsdk.TypeList,
-					MinItems: 1,
 					Required: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {
@@ -215,12 +215,12 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 							},
 							// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
 							"order": {
-								Description: "Order of the index.",
-								Type:        pluginsdk.TypeString,
-								Required:    true,
+								Description:  "Order of the index.",
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForCompositePathSortOrder(), true),
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.StringInSlice(cosmosdb.PossibleValuesForCompositePathSortOrder(), true),
 							},
 						},
 					},

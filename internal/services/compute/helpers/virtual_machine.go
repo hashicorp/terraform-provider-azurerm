@@ -159,6 +159,9 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					MaxItems: 1,
+					ConflictsWith: []string{
+						"os_managed_disk_id",
+					},
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
@@ -178,18 +181,15 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 							},
 						},
 					},
-					ConflictsWith: []string{
-						"os_managed_disk_id",
-					},
 				},
 
 				"disk_encryption_set_id": {
-					Description: "The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk.",
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Description:  "The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					ConflictsWith:    []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
@@ -206,8 +206,8 @@ func VirtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Description: "The name which should be used for the Internal OS Disk.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					ForceNew:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
+					ForceNew:    true,
 					ConflictsWith: []string{
 						"os_managed_disk_id",
 					},
@@ -422,10 +422,10 @@ func VirtualMachineOsImageNotificationSchema() *pluginsdk.Schema {
 					Description: "Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded.",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
+					Default:     "PT15M",
 					ValidateFunc: validation.StringInSlice([]string{
 						"PT15M",
 					}, false),
-					Default: "PT15M",
 				},
 			},
 		},
@@ -449,8 +449,8 @@ func VirtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 					Description:  "Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 				},
 			},
 		},
@@ -531,6 +531,9 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"version_id": {
@@ -578,9 +581,6 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Default:     false,
 				},
 			},
-		},
-		ConflictsWith: []string{
-			"os_managed_disk_id",
 		},
 	}
 }

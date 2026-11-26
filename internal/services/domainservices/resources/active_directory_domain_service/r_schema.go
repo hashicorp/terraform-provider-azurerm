@@ -252,8 +252,8 @@ func activeDirectoryDomainServiceSchema() map[string]*pluginsdk.Schema {
 		"domain_configuration_type": {
 			Description: "The configuration type of this Active Directory Domain.",
 			Type:        pluginsdk.TypeString,
-			ForceNew:    true,
 			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"FullySynced",
 				"ResourceTrusting",

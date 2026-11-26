@@ -42,9 +42,9 @@ func (a *Action) Schema(_ context.Context, _ action.SchemaRequest, resp *action.
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"protected_item_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ID of the Recovery Services protected item to unlock for deletion.",
 				MarkdownDescription: "The ID of the Recovery Services protected item to unlock for deletion.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: protecteditems.ValidateProtectedItemID,

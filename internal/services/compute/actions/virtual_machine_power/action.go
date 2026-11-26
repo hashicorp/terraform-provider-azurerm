@@ -38,9 +38,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"virtual_machine_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ID of the Virtual Machine on which to perform the action.",
 				MarkdownDescription: "The ID of the Virtual Machine on which to perform the action.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: virtualmachines.ValidateVirtualMachineID,
@@ -49,9 +49,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"power_action": schema.StringAttribute{
-				Required:            true,
 				Description:         "The power state action to take on this Virtual Machine.",
 				MarkdownDescription: "The power state action to take on this Virtual Machine.",
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"deallocate",
@@ -63,9 +63,9 @@ func (v *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"timeout": schema.StringAttribute{
-				Optional:            true,
 				Description:         "Timeout duration for the action to complete. Defaults to `30m`.", // azignore:AZS014 - an action cannot set a Default in its schema
 				MarkdownDescription: "Timeout duration for the action to complete. Defaults to `30m`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				Optional:            true,
 			},
 		},
 	}

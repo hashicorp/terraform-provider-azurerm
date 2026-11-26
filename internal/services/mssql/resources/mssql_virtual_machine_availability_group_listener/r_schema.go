@@ -49,9 +49,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"load_balancer_configuration": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ExactlyOneOf: []string{"load_balancer_configuration", "multi_subnet_ip_configuration"},
 			ForceNew:     true,
 			MaxItems:     1,
+			ExactlyOneOf: []string{"load_balancer_configuration", "multi_subnet_ip_configuration"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"load_balancer_id": {
@@ -103,8 +103,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"multi_subnet_ip_configuration": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			ExactlyOneOf: []string{"load_balancer_configuration", "multi_subnet_ip_configuration"},
 			ForceNew:     true,
+			ExactlyOneOf: []string{"load_balancer_configuration", "multi_subnet_ip_configuration"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"private_ip_address": {
@@ -138,6 +138,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			ForceNew: true,
+			Set:      ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"sql_virtual_machine_id": {
@@ -181,7 +182,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash,
 		},
 	}
 }

@@ -42,8 +42,8 @@ func dataShareDatasetBlobStorageSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

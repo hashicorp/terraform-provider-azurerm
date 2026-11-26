@@ -46,8 +46,8 @@ func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
 
 		"log_scrubbing_rule": {
 			Type:     pluginsdk.TypeSet,
-			MaxItems: 3,
 			Optional: true,
+			MaxItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"match_variable": {

@@ -151,8 +151,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether extension operations should be allowed on the Virtual Machine Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		"extension": helpers.VirtualMachineScaleSetExtensionsSchema(),
@@ -175,14 +175,14 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"host_group_id": {
-			Description: "The ID of the Dedicated Host group that the Virtual Machine Scale Set resides in.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			ForceNew:    true,
+			Description:  "The ID of the Dedicated Host group that the Virtual Machine Scale Set resides in.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -208,8 +208,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Description: "The number of fault domains that are used by this Linux Virtual Machine Scale Set.",
 			Type:        pluginsdk.TypeInt,
 			Optional:    true,
-			ForceNew:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true,
 		},
 
 		"priority": {
@@ -228,8 +228,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		"proximity_placement_group_id": {

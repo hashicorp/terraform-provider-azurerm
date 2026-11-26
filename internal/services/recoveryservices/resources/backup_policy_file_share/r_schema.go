@@ -44,18 +44,18 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 
 		"backup": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(protectionpolicies.ScheduleRunTypeDaily),
 							string(protectionpolicies.ScheduleRunTypeHourly),
 						}, false),
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"time": {
@@ -65,11 +65,11 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 							regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
 							"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
 						),
-						AtLeastOneOf: []string{
-							"backup.0.time",
+						ConflictsWith: []string{
 							"backup.0.hourly",
 						},
-						ConflictsWith: []string{
+						AtLeastOneOf: []string{
+							"backup.0.time",
 							"backup.0.hourly",
 						},
 					},
@@ -78,12 +78,12 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
+						ConflictsWith: []string{
+							"backup.0.time",
+						},
 						AtLeastOneOf: []string{
 							"backup.0.time",
 							"backup.0.hourly",
-						},
-						ConflictsWith: []string{
-							"backup.0.time",
 						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -116,8 +116,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 
 		"retention_daily": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -131,8 +131,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 
 		"retention_weekly": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -147,8 +147,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -157,8 +157,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 
 		"retention_monthly": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -171,6 +171,19 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Set:      set.HashStringIgnoreCase,
+						RequiredWith: []string{
+							"retention_monthly.0.weekdays",
+						},
+						ConflictsWith: []string{
+							"retention_monthly.0.days",
+							"retention_monthly.0.include_last_days",
+						},
+						AtLeastOneOf: []string{
+							"retention_monthly.0.weekdays",
+							"retention_monthly.0.weeks",
+							"retention_monthly.0.days",
+							"retention_monthly.0.include_last_days",
+						},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -181,30 +194,12 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 								string(protectionpolicies.WeekOfMonthLast),
 							}, false),
 						},
-						ConflictsWith: []string{
-							"retention_monthly.0.days",
-							"retention_monthly.0.include_last_days",
-						},
-						AtLeastOneOf: []string{
-							"retention_monthly.0.weekdays",
-							"retention_monthly.0.weeks",
-							"retention_monthly.0.days",
-							"retention_monthly.0.include_last_days",
-						},
-						RequiredWith: []string{
-							"retention_monthly.0.weekdays",
-						},
 					},
 
 					"weekdays": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Set:      set.HashStringIgnoreCase,
-						Elem: &pluginsdk.Schema{
-							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.IsDayOfTheWeek(true),
-						},
 						RequiredWith: []string{
 							"retention_monthly.0.weeks",
 						},
@@ -218,15 +213,16 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 							"retention_monthly.0.days",
 							"retention_monthly.0.include_last_days",
 						},
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 
 					"days": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 31), // days in months
-						},
 						ConflictsWith: []string{
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.weekdays",
@@ -236,6 +232,10 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.days",
 							"retention_monthly.0.include_last_days",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 31), // days in months
 						},
 					},
 
@@ -260,8 +260,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 
 		"retention_yearly": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -276,8 +276,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsMonth(true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 
@@ -285,6 +285,19 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Set:      set.HashStringIgnoreCase,
+						RequiredWith: []string{
+							"retention_yearly.0.weekdays",
+						},
+						ConflictsWith: []string{
+							"retention_yearly.0.days",
+							"retention_yearly.0.include_last_days",
+						},
+						AtLeastOneOf: []string{
+							"retention_yearly.0.weeks",
+							"retention_yearly.0.weekdays",
+							"retention_yearly.0.days",
+							"retention_yearly.0.include_last_days",
+						},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -295,30 +308,12 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 								string(protectionpolicies.WeekOfMonthLast),
 							}, false),
 						},
-						RequiredWith: []string{
-							"retention_yearly.0.weekdays",
-						},
-						ConflictsWith: []string{
-							"retention_yearly.0.days",
-							"retention_yearly.0.include_last_days",
-						},
-						AtLeastOneOf: []string{
-							"retention_yearly.0.weeks",
-							"retention_yearly.0.weekdays",
-							"retention_yearly.0.days",
-							"retention_yearly.0.include_last_days",
-						},
 					},
 
 					"weekdays": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Set:      set.HashStringIgnoreCase,
-						Elem: &pluginsdk.Schema{
-							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.IsDayOfTheWeek(true),
-						},
 						RequiredWith: []string{
 							"retention_yearly.0.weeks",
 						},
@@ -332,15 +327,16 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 							"retention_yearly.0.days",
 							"retention_yearly.0.include_last_days",
 						},
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 
 					"days": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 31), // days in months
-						},
 						ConflictsWith: []string{
 							"retention_yearly.0.weeks",
 							"retention_yearly.0.weekdays",
@@ -350,6 +346,10 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 							"retention_yearly.0.weekdays",
 							"retention_yearly.0.days",
 							"retention_yearly.0.include_last_days",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 31), // days in months
 						},
 					},
 

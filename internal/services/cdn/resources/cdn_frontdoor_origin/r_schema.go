@@ -87,8 +87,8 @@ func cdnFrontdoorOriginSchema() map[string]*pluginsdk.Schema {
 
 		"private_link": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"location": commonschema.Location(),

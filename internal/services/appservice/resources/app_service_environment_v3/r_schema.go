@@ -92,8 +92,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"zone_redundant": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 			ConflictsWith: []string{
 				"dedicated_host_count",

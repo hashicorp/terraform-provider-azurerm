@@ -30,8 +30,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Description:  "The SKU Tier of the Firewall Policy.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(firewallpolicies.FirewallPolicySkuTierStandard),
 			ForceNew:     true,
+			Default:      string(firewallpolicies.FirewallPolicySkuTierStandard),
 			ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicySkuTier(), false),
 		},
 
@@ -47,8 +47,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"dns": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"servers": {
@@ -81,29 +81,29 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"threat_intelligence_allowlist": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_addresses": {
-						Description: "A list of IP addresses or CIDR ranges that will be skipped for threat detection.",
-						Type:        pluginsdk.TypeSet,
-						Optional:    true,
+						Description:  "A list of IP addresses or CIDR ranges that will be skipped for threat detection.",
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
 						},
-						AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 					},
 					"fqdns": {
-						Description: "A list of FQDNs that will be skipped for threat detection.",
-						Type:        pluginsdk.TypeSet,
-						Optional:    true,
+						Description:  "A list of FQDNs that will be skipped for threat detection.",
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 					},
 				},
 			},
@@ -118,8 +118,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					"mode": {
 						Description:  "In which mode you want to run intrusion detection: `Off`, `Alert` or `Deny`.",
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
 						Optional:     true,
+						ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
 					},
 					"signature_overrides": {
 						Type:     pluginsdk.TypeList,
@@ -129,8 +129,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								"state": {
 									Description:  "State can be any of `Off`, `Alert` or `Deny`.",
 									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
 									Optional:     true,
+									ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
 								},
 								"id": {
 									Description: "12-digit number (ID) which identifies your signature.",
@@ -164,12 +164,12 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 									Optional:    true,
 								},
 								"protocol": {
-									Description: "The protocols any of `ANY`, `TCP`, `ICMP`, `UDP` that shall be bypassed by intrusion detection.",
-									Type:        pluginsdk.TypeString,
-									Required:    true,
+									Description:  "The protocols any of `ANY`, `TCP`, `ICMP`, `UDP` that shall be bypassed by intrusion detection.",
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionProtocol(), true),
 									// protocol to be one of [ICMP ANY TCP UDP] but response may be "Any"
 									DiffSuppressFunc: suppress.CaseDifference,
-									ValidateFunc:     validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionProtocol(), true),
 								},
 								"source_addresses": {
 									Description: "A list of source addresses that shall be bypassed by intrusion detection.",
@@ -223,8 +223,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"tls_certificate": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_secret_id": {

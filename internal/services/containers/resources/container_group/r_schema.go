@@ -30,8 +30,8 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 			Description: "The IP address type of the container. `Public`, `Private` or `None`. If set to `Private`, `subnet_ids` also needs to be set.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Default:     string(containerinstance.ContainerGroupIPAddressTypePublic),
 			ForceNew:    true,
+			Default:     string(containerinstance.ContainerGroupIPAddressTypePublic),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(containerinstance.ContainerGroupIPAddressTypePublic),
 				string(containerinstance.ContainerGroupIPAddressTypePrivate),
@@ -62,11 +62,11 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"user_assigned_identity_id": {
+						Description:  "The identity ID for the private registry.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						Description:  "The identity ID for the private registry.",
 					},
 
 					"username": {
@@ -81,8 +81,8 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 						Description:  "The password with which to connect to the registry.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Sensitive:    true,
 						ForceNew:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
@@ -101,17 +101,17 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 
 		// lintignore:S018
 		"subnet_ids": {
-			Description: "The subnet resource IDs for a Container Group.",
-			Type:        pluginsdk.TypeSet,
-			Optional:    true,
-			ForceNew:    true,
-			MaxItems:    1,
+			Description:   "The subnet resource IDs for a Container Group.",
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			ForceNew:      true,
+			MaxItems:      1,
+			Set:           pluginsdk.HashString,
+			ConflictsWith: []string{"dns_name_label"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateSubnetID,
 			},
-			Set:           pluginsdk.HashString,
-			ConflictsWith: []string{"dns_name_label"},
 		},
 
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -146,8 +146,8 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 		"dns_name_label_reuse_policy": {
 			Description:  "The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      string(containerinstance.DnsNameLabelReusePolicyUnsecure),
 			ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForDnsNameLabelReusePolicy(), false),
 		},
@@ -207,8 +207,8 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 					"environment_variables": {
 						Description: "A list of environment variables to be set on the container. Specified as a map of name/value pairs.",
 						Type:        pluginsdk.TypeMap,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -328,8 +328,8 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 					"environment_variables": {
 						Description: "A list of environment variables to be set on the container. Specified as a map of name/value pairs.",
 						Type:        pluginsdk.TypeMap,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -395,8 +395,8 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 									Description:  "The Workspace Key of the Log Analytics Workspace.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									Sensitive:    true,
 									ForceNew:     true,
+									Sensitive:    true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
@@ -437,10 +437,10 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_config": {
-			Optional: true,
-			MaxItems: 1,
-			ForceNew: true,
 			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"nameservers": {
@@ -552,8 +552,8 @@ func containerVolumeSchema() *pluginsdk.Schema {
 				"storage_account_key": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Sensitive:    true,
 					ForceNew:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -599,8 +599,8 @@ func containerVolumeSchema() *pluginsdk.Schema {
 				"secret": {
 					Description: "A map of secrets that will be mounted as files in the volume.",
 					Type:        pluginsdk.TypeMap,
-					ForceNew:    true,
 					Optional:    true,
+					ForceNew:    true,
 					Sensitive:   true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
@@ -622,8 +622,8 @@ func containerSecurityContextSchema() *pluginsdk.Schema {
 				"privilege_enabled": {
 					Description: "Whether the container's permission is elevated to privileged.",
 					Type:        pluginsdk.TypeBool,
-					ForceNew:    true,
 					Required:    true,
+					ForceNew:    true,
 				},
 			},
 		},

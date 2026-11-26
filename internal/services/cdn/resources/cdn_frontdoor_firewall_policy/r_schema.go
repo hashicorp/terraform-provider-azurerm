@@ -115,8 +115,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"custom_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -240,8 +240,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"managed_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -272,8 +272,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"exclusion": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"match_variable": {
@@ -300,8 +300,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"override": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"rule_group_name": {
@@ -313,8 +313,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 								"exclusion": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"match_variable": {
@@ -342,8 +342,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								"rule": {
 									Description: "If none are specified, all of the rules in the group will be disabled.",
 									Type:        pluginsdk.TypeList,
-									MaxItems:    1000,
 									Optional:    true,
+									MaxItems:    1000,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"rule_id": {
@@ -362,8 +362,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 											"exclusion": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 100,
 												Optional: true,
+												MaxItems: 100,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"match_variable": {
@@ -409,8 +409,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"log_scrubbing": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
@@ -422,8 +422,8 @@ func cdnFrontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"scrubbing_rule": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Required: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {

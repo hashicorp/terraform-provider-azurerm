@@ -46,9 +46,9 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 			Description: "The name of the Resource Group where Azure should place the managed Databricks resources.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			ForceNew:    true,
 			// NOTE: O+C We set a value for this if omitted so this should remain Computed
 			Computed:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -67,15 +67,15 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"principal_id": {
 						Description: "The principal UUID for the internal databricks disks identity needed to provide access to the workspace for enabling Customer Managed Keys.",
 						Type:        pluginsdk.TypeString,
-						Sensitive:   true,
 						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"tenant_id": {
 						Description: "The UUID of the tenant where the internal databricks disks identity was created.",
 						Type:        pluginsdk.TypeString,
-						Sensitive:   true,
 						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"type": {
@@ -90,8 +90,8 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 		"infrastructure_encryption_enabled": {
 			Description: "Whether the Databricks File System root file system is enabled with a secondary layer of encryption with platform managed keys. This field is only valid if the Databricks Workspace `sku` is set to `premium`.",
 			Type:        pluginsdk.TypeBool,
-			ForceNew:    true,
 			Optional:    true,
+			ForceNew:    true,
 			Default:     false,
 		},
 
@@ -142,8 +142,8 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"machine_learning_workspace_id": {
 						Description:  "The ID of an Azure Machine Learning Workspace to link with Databricks Workspace.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: mlworkspace.ValidateWorkspaceID,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
@@ -151,9 +151,9 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"nat_gateway_name": {
 						Description:  "Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets (only for workspace with managed Virtual Network).",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 
@@ -168,17 +168,17 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"public_ip_name": {
 						Description:  "Name of the Public IP for No Public IP workspace with managed Virtual Network.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 
 					"public_subnet_name": {
 						Description:  "The name of the Public Subnet within the Virtual Network.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
+						ForceNew:     true,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 
@@ -193,8 +193,8 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"private_subnet_name": {
 						Description:  "The name of the Private Subnet within the Virtual Network.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
+						ForceNew:     true,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 
@@ -209,8 +209,8 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"virtual_network_id": {
 						Description:  "The ID of a Virtual Network where this Databricks Cluster should be created.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateVirtualNetworkID,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
@@ -218,9 +218,9 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"storage_account_name": {
 						Description:  "Default Databricks File Storage Account name.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
 						ValidateFunc: storageValidate.StorageAccountName,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
@@ -236,9 +236,9 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"vnet_address_prefix": {
 						Description:  "Address prefix for Managed Virtual Network.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 				},
@@ -298,15 +298,15 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 					"principal_id": {
 						Description: "The principal UUID for the internal databricks Storage Account needed to provide access to the workspace for enabling Customer Managed Keys.",
 						Type:        pluginsdk.TypeString,
-						Sensitive:   true,
 						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"tenant_id": {
 						Description: "The UUID of the tenant where the internal databricks Storage Account was created.",
 						Type:        pluginsdk.TypeString,
-						Sensitive:   true,
 						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"type": {

@@ -31,6 +31,7 @@ func dnsMxRecordSchema() map[string]*pluginsdk.Schema {
 			Description: "A list of values that make up the MX record.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
+			Set:         resourceDnsMxRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"preference": {
@@ -47,7 +48,6 @@ func dnsMxRecordSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceDnsMxRecordHash,
 		},
 
 		"ttl": {

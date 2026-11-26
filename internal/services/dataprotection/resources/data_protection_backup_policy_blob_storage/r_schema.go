@@ -49,8 +49,8 @@ func dataProtectionBackupPolicyBlobStorageSchema() map[string]*pluginsdk.Schema 
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
 			ValidateFunc: validation.ISO8601Duration,
+			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
 		},
 
 		"time_zone": {
@@ -66,9 +66,9 @@ func dataProtectionBackupPolicyBlobStorageSchema() map[string]*pluginsdk.Schema 
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
-			RequiredWith: []string{"backup_repeating_time_intervals"},
 			ValidateFunc: validation.ISO8601Duration,
+			RequiredWith: []string{"backup_repeating_time_intervals"},
+			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
 		},
 
 		"retention_rule": {

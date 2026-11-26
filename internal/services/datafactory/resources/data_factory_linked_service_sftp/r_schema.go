@@ -115,8 +115,8 @@ func dataFactoryLinkedServiceSftpSchema() map[string]*pluginsdk.Schema {
 		"key_vault_private_key_passphrase": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
-			ConflictsWith: []string{"private_key_passphrase"},
 			MaxItems:      1,
+			ConflictsWith: []string{"private_key_passphrase"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {

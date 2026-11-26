@@ -44,8 +44,8 @@ func keyVaultSecretSchema() map[string]*pluginsdk.Schema {
 			Description:  "An integer value used to trigger an update for `value_wo`. This property should be incremented when updating `value_wo`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			RequiredWith: []string{"value_wo"},
 			ValidateFunc: validation.IntAtLeast(1),
+			RequiredWith: []string{"value_wo"},
 		},
 
 		"content_type": {

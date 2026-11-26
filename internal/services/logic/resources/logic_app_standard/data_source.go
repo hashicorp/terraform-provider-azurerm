@@ -150,9 +150,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"storage_key_vault_secret_id": {
+				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend Storage Account for the Logic App.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend Storage Account for the Logic App.",
 			},
 
 			"storage_account_share_name": {

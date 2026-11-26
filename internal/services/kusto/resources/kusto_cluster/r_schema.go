@@ -74,13 +74,13 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 
 		"trusted_external_tenants": {
 			Description: "A list of tenant IDs that are trusted by the cluster. Use `trusted_external_tenants = [\"*\"]` to explicitly allow all other tenants, `trusted_external_tenants = [\"MyTenantOnly\"]` for only your tenant or `trusted_external_tenants = [\"<tenantId1>\", \"<tenantIdx>\"]` to allow specific other tenants.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ConfigMode:  pluginsdk.SchemaConfigModeAttr,
 			// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
 			// The Azure Data Explorer API returns tenants in its own order, so compare sorted tenant lists.
 			DiffSuppressFunc: diffSuppressTrustedExternalTenants,
-			Type:             pluginsdk.TypeList,
-			Optional:         true,
-			Computed:         true, // azignore:AZS007 - pre-existing violation
-			ConfigMode:       pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),

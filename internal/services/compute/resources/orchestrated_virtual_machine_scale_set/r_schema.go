@@ -36,8 +36,8 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Description:  "The Microsoft.Network API version used when creating networking resources in the Network Interface Configurations for Virtual Machine Scale Set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
 			Default:      virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne,
+			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
 			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 				// This `DiffSuppressFunc` is used to keep compatible with the legacy Orchestrated VMSS and can be removed once the legacy VMSS is removed.
 				if _, ok := d.GetOk("sku_name"); !ok {
@@ -163,8 +163,8 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether extension operations should be allowed on the Virtual Machine Scale Set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		// Due to bug in RP extensions cannot currently be supported in Terraform ETA for full support is mid Jan 2022
@@ -263,8 +263,8 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"single_placement_group": {
 			Description: "Whether this Virtual Machine Scale Set should be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines.",
 			Type:        pluginsdk.TypeBool,
-			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"source_image_id": {

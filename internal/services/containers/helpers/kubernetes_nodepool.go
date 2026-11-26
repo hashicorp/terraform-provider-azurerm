@@ -207,8 +207,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"ultra_ssd_enabled": {
 						Description: "Used to specify whether the UltraSSD is enabled in the Default Node Pool. See [the documentation](https://learn.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.",
 						Type:        pluginsdk.TypeBool,
-						Default:     false,
 						Optional:    true,
+						Default:     false,
 					},
 
 					"vnet_subnet_id": {
@@ -374,8 +374,8 @@ func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				"cpu_cfs_quota_enabled": {
 					Description: "Whether CPU CFS quota enforcement for containers is enabled.",
 					Type:        pluginsdk.TypeBool,
-					Default:     true,
 					Optional:    true,
+					Default:     true,
 				},
 
 				"cpu_cfs_quota_period": {

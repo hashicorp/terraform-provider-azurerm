@@ -107,9 +107,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			// which leads to unnecessary resource recreation on subsequent plans where Terraform tries to remove it.
 			Computed:     true,
 			ForceNew:     true,
-			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
-			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"administrator_login", "administrator_login_password"},
+			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
 		},
 
 		"administrator_login_password": {
@@ -117,9 +117,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			AtLeastOneOf: []string{"administrator_login_password", "azure_active_directory_administrator"},
-			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"administrator_login", "administrator_login_password"},
+			AtLeastOneOf: []string{"administrator_login_password", "azure_active_directory_administrator"},
 		},
 
 		"azure_active_directory_administrator": {
@@ -170,9 +170,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "How the SQL Managed Instance will be collated.",
 			Type:         schema.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "SQL_Latin1_General_CP1_CI_AS",
 			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
 		},
 
 		"database_format": {
@@ -283,9 +283,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The TimeZone ID that the SQL Managed Instance will be operating in.",
 			Type:         schema.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "UTC",
 			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
 		},
 
 		"zone_redundant_enabled": {

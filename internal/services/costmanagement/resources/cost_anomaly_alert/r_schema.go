@@ -32,8 +32,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The ID of the Subscription this Cost Anomaly Alert is scoped to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 
