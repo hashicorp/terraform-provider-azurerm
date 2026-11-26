@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1711,7 +1712,7 @@ resource "azurerm_subnet" "subnet2" {
 }
 
 func (r CosmosDBAccountResource) complete(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -1823,7 +1824,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeTags(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -1941,7 +1942,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -2145,7 +2146,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeUpdated(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -2282,7 +2283,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeUpdated_RemoveDisableRateLimitingResponsesCapabilities(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -2411,7 +2412,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeUpdatedMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -2562,7 +2563,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeUpdatedMongoDB_RemoveDisableRateLimitingResponsesCapability(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -2958,7 +2959,7 @@ resource "azurerm_subnet" "subnet2" {
 }
 
 func (r CosmosDBAccountResource) vNetFilters(data acceptance.TestData) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -5202,7 +5203,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -5282,7 +5283,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) ipRangeFiltersUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 
@@ -5412,7 +5413,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) withoutMaxAgeInSeconds(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_account" "test" {

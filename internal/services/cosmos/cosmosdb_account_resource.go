@@ -810,55 +810,53 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-	if !features.SixPointOh() {
-		resource.Schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_rule"},
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-			Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-		}
+	resource.Schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
+		Type:          pluginsdk.TypeSet,
+		Optional:      true,
+		Computed:      true,
+		ConflictsWith: []string{"virtual_network_rule"},
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+		Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
+	}
 
-		resource.Schema["virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_rule"},
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-			Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-		}
+	resource.Schema["virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint"] = &pluginsdk.Schema{
+		Type:          pluginsdk.TypeSet,
+		Optional:      true,
+		Computed:      true,
+		ConflictsWith: []string{"virtual_network_rule"},
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+		Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
+	}
 
-		resource.Schema["virtual_network_rule"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true,
-			ConflictsWith: []string{
-				"virtual_network_subnet_ids",
-				"virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint",
-			},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-					"ignore_missing_vnet_service_endpoint": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
+	resource.Schema["virtual_network_rule"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Computed: true,
+		ConflictsWith: []string{
+			"virtual_network_subnet_ids",
+			"virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+				"ignore_missing_vnet_service_endpoint": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
 				},
 			},
-			Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-		}
+		},
+		Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 	}
 
 	return resource
