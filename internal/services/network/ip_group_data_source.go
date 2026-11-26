@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -40,8 +40,8 @@ func dataSourceIpGroup() *pluginsdk.Resource {
 			"cidrs": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"firewall_ids": {
