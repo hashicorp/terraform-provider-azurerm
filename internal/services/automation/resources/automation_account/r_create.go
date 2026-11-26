@@ -4,6 +4,7 @@
 package automation_account
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -95,7 +96,7 @@ func expandEncryption(input []any) (*automationaccount.EncryptionProperties, err
 	var id any
 	id, ok := v["user_assigned_identity_id"].(string)
 	if !ok {
-		return nil, fmt.Errorf("read encryption user identity id error")
+		return nil, errors.New("read encryption user identity id error")
 	}
 	prop := &automationaccount.EncryptionProperties{
 		KeySource: pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault),

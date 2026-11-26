@@ -125,7 +125,7 @@ func resourceSubnet() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				// Validate `sharing_scope` cannot be set when `default_outbound_access_enabled` is true.
 				if diff.Get("sharing_scope").(string) != "" && diff.Get("default_outbound_access_enabled").(bool) {
-					return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
+					return errors.New("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
 				}
 				return nil
 			}),
@@ -1030,7 +1030,7 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
 			return res, string(*res.Model.Properties.ProvisioningState), nil
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }
 

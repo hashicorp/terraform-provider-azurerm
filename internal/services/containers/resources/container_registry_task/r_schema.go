@@ -5,6 +5,7 @@ package container_registry_task
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -524,14 +525,14 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			} else {
 				if v := rd.Get("platform").([]any); len(v) == 0 {
-					return fmt.Errorf("non-system task have to specify `platform`")
+					return errors.New("non-system task have to specify `platform`")
 				}
 
 				dockerStep := rd.Get("docker_step").([]any)
 				fileTaskStep := rd.Get("file_step").([]any)
 				encodedTaskStep := rd.Get("encoded_step").([]any)
 				if len(dockerStep)+len(fileTaskStep)+len(encodedTaskStep) == 0 {
-					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_step` and `encoded_step`")
+					return errors.New("non-system task have to specify one of `docker_step`, `file_step` and `encoded_step`")
 				}
 			}
 

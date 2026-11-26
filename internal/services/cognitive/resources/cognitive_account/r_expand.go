@@ -4,7 +4,7 @@
 package cognitive_account
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -79,21 +79,21 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
 			props.QnaRuntimeEndpoint = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+			return nil, errors.New("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
 		}
 	}
 	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
 		if kind == "TextAnalytics" {
 			props.QnaAzureSearchEndpointId = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
+			return nil, errors.New("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("custom_question_answering_search_service_key"); ok {
 		if kind == "TextAnalytics" {
 			props.QnaAzureSearchEndpointKey = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
+			return nil, errors.New("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 
@@ -101,28 +101,28 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 		if kind == "MetricsAdvisor" {
 			props.AadClientId = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("metrics_advisor_aad_client_id can only used set when kind is set to `MetricsAdvisor`")
+			return nil, errors.New("metrics_advisor_aad_client_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
 		if kind == "MetricsAdvisor" {
 			props.AadTenantId = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("metrics_advisor_aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
+			return nil, errors.New("metrics_advisor_aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
 		if kind == "MetricsAdvisor" {
 			props.SuperUser = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("metrics_advisor_super_user_name can only used set when kind is set to `MetricsAdvisor`")
+			return nil, errors.New("metrics_advisor_super_user_name can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
 		if kind == "MetricsAdvisor" {
 			props.WebsiteName = pointer.To(v.(string))
 		} else {
-			return nil, fmt.Errorf("metrics_advisor_website_name can only used set when kind is set to `MetricsAdvisor`")
+			return nil, errors.New("metrics_advisor_website_name can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	return &props, nil

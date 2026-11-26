@@ -4,7 +4,7 @@
 package windows_function_app_slot
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -545,7 +545,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
-		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+		return nil, errors.New("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigWindowsFunctionAppSlot{

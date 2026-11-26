@@ -4,6 +4,7 @@
 package mssql_database
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -55,7 +56,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
 	if strings.HasPrefix(skuName, "GP_S_") && !pluginsdk.IsExplicitlyNullInConfig(d, "license_type") {
-		return fmt.Errorf("serverless databases do not support license type")
+		return errors.New("serverless databases do not support license type")
 	}
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
@@ -331,7 +332,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 
 	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed

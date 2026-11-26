@@ -6,7 +6,6 @@ package app_configuration_feature
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -34,7 +33,7 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 	for _, filterRawIntf := range tempIntf {
 		filterRaw, ok := filterRawIntf.(map[string]any)
 		if !ok {
-			return fmt.Errorf("wtf")
+			return errors.New("wtf")
 		}
 		nameRaw, ok := filterRaw["name"]
 		if !ok {

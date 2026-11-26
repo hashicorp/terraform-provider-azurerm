@@ -5,7 +5,7 @@ package kubernetes_automatic_cluster
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -62,20 +62,20 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if len(hostedSystem) == 0 {
 					if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
-						return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
+						return errors.New("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
 					}
 
 					if apiServerSubnetIDIsSet {
-						return fmt.Errorf("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
+						return errors.New("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
 					}
 				}
 				if len(hostedSystem) > 0 && hostedSystem[0] != nil {
 					if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
-						return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
+						return errors.New("`hosted_system` requires `identity.type` to be `UserAssigned`")
 					}
 
 					if !apiServerSubnetIDIsSet {
-						return fmt.Errorf("`hosted_system` requires `api_server_access.subnet_id` to be set")
+						return errors.New("`hosted_system` requires `api_server_access.subnet_id` to be set")
 					}
 				}
 			}
@@ -87,7 +87,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 				if privateDNSZoneID != "" {
 					if privateDNSZoneID != "System" && privateDNSZoneID != "None" && !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
-						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+						return errors.New("a user assigned identity must be used when using a custom private dns zone")
 					}
 				}
 			}

@@ -5,6 +5,7 @@ package resource_group_cost_management_export
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -47,12 +48,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 			}
 			if deliveryInfo == nil {
-				return fmt.Errorf("`export_data_storage_location` was empty")
+				return errors.New("`export_data_storage_location` was empty")
 			}
 
 			definition := helpers.ExpandExportDataOptionsFromModel(config.ExportDataOptions)
 			if definition == nil {
-				return fmt.Errorf("`export_data_options` was empty")
+				return errors.New("`export_data_options` was empty")
 			}
 
 			status := exports.StatusTypeActive

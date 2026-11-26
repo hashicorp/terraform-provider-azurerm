@@ -4,6 +4,7 @@
 package firewall_application_rule_collection
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -174,7 +175,7 @@ func expandFirewallApplicationRules(inputs []any) (*[]azurefirewalls.AzureFirewa
 		output.Protocols = &ruleProtocols
 		if len(*output.FqdnTags) > 0 {
 			if len(*output.TargetFqdns) > 0 || len(*output.Protocols) > 0 {
-				return nil, fmt.Errorf("`fqdn_tags` cannot be used with `target_fqdns` or `protocol`")
+				return nil, errors.New("`fqdn_tags` cannot be used with `target_fqdns` or `protocol`")
 			}
 		}
 

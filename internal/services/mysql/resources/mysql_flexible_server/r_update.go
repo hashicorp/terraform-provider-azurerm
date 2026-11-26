@@ -4,6 +4,7 @@
 package mysql_flexible_server
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -43,15 +44,15 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 					if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
 						requireFailover = true
 					} else {
-						return fmt.Errorf("failover only supports exchange between `zone` and `standby_availability_zone`")
+						return errors.New("failover only supports exchange between `zone` and `standby_availability_zone`")
 					}
 				} else {
-					return fmt.Errorf("`standby_availability_zone` cannot be added while changing `zone`")
+					return errors.New("`standby_availability_zone` cannot be added while changing `zone`")
 				}
 			}
 		}
 	case d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
-		return fmt.Errorf("`zone` cannot be changed independently")
+		return errors.New("`zone` cannot be changed independently")
 	default:
 		// No need failover when only `standby_availability_zone` is changed and both `zone` and `standby_availability_zone` aren't changed
 		requireFailover = false
@@ -70,7 +71,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 				return fmt.Errorf("updating `replication_role` for %s: %+v", *id, err)
 			}
 		} else {
-			return fmt.Errorf("`replication_role` only can be updated from `Replica` to `None`")
+			return errors.New("`replication_role` only can be updated from `Replica` to `None`")
 		}
 	}
 

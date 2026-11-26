@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -25,7 +26,7 @@ import (
 // if err := metadata.Decode(&person); err != nil { .. }
 func (rmd ResourceMetaData) Decode(input any) error {
 	if rmd.ResourceData == nil {
-		return fmt.Errorf("ResourceData was nil")
+		return errors.New("ResourceData was nil")
 	}
 	return decodeReflectedType(input, rmd.ResourceData, rmd.serializationDebugLogger)
 }
@@ -35,7 +36,7 @@ func (rmd ResourceMetaData) Decode(input any) error {
 // for use in CustomizeDiff functions.
 func (rmd ResourceMetaData) DecodeDiff(input any) error {
 	if rmd.ResourceDiff == nil {
-		return fmt.Errorf("ResourceDiff was nil")
+		return errors.New("ResourceDiff was nil")
 	}
 	return decodeReflectedType(input, rmd.ResourceDiff, rmd.serializationDebugLogger)
 }
@@ -49,7 +50,7 @@ type stateRetriever interface {
 
 func decodeReflectedType(input any, stateRetriever stateRetriever, debugLogger Logger) error {
 	if reflect.TypeOf(input).Kind() != reflect.Pointer {
-		return fmt.Errorf("need a pointer")
+		return errors.New("need a pointer")
 	}
 
 	objType := reflect.TypeOf(input).Elem()

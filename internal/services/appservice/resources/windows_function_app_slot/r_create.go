@@ -5,6 +5,7 @@ package windows_function_app_slot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -74,7 +75,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
 				// we'll error here if the `service_plan_id` equals the parent `service_plan_id`
 				if strings.EqualFold(newServicePlanId.ID(), servicePlanId.ID()) {
-					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
+					return errors.New("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
 
 				servicePlanId = newServicePlanId
@@ -96,7 +97,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				if sku := model.Sku; sku != nil && sku.Name != nil {
 					planSKU = sku.Name
 				} else {
-					return fmt.Errorf("could not determine Service Plan SKU type")
+					return errors.New("could not determine Service Plan SKU type")
 				}
 
 				if model.Properties != nil {
@@ -124,7 +125,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 						availabilityRequest.IsFqdn = pointer.To(true)
 
 						if !functionAppSlot.VnetImagePullEnabled {
-							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+							return errors.New("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 						}
 					}
 				}

@@ -5,6 +5,7 @@ package static_web_app_custom_domain
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -67,7 +68,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 				deadline, ok := ctx.Deadline()
 				if !ok {
-					return fmt.Errorf("internal-error: context was missing a deadline")
+					return errors.New("internal-error: context was missing a deadline")
 				}
 
 				stateConf := &pluginsdk.StateChangeConf{
@@ -86,7 +87,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 						}
 
 						if domain.Model == nil || domain.Model.Properties == nil {
-							return nil, "Failed", fmt.Errorf("`properties` was missing from the response")
+							return nil, "Failed", errors.New("`properties` was missing from the response")
 						}
 						return domain, pointer.FromEnum(domain.Model.Properties.Status), nil
 					},

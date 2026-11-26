@@ -4,6 +4,7 @@
 package cognitive_account
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -67,7 +68,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	if subnetId != nil {
 		deadline, ok := ctx.Deadline()
 		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+			return errors.New("internal-error: context had no deadline")
 		}
 
 		subnetClient := meta.(*clients.Client).Network.Subnets

@@ -5,6 +5,7 @@ package role_definition
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -190,7 +191,7 @@ func (a DataSource) Read() sdk.ResourceFunc {
 				// Accounting for eventual consistency
 				deadline, ok := ctx.Deadline()
 				if !ok {
-					return fmt.Errorf("internal error: context had no deadline")
+					return errors.New("internal error: context had no deadline")
 				}
 				if err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
@@ -200,7 +201,7 @@ func (a DataSource) Read() sdk.ResourceFunc {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: %+v", err))
 					}
 					if roleDefinitions.Model == nil {
-						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: model was nil"))
+						return pluginsdk.RetryableError(errors.New("loading Role Definition List: model was nil"))
 					}
 					if len(*roleDefinitions.Model) != 1 {
 						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: could not find role '%s'", config.Name))

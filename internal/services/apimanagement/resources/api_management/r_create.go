@@ -273,7 +273,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 
 	signUpSettingsRaw := d.Get("sign_up").([]any)
 	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(signUpSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_up` is not supported for sku tiers `Consumption` and `V2`")
+		return errors.New("`sign_up` is not supported for sku tiers `Consumption` and `V2`")
 	}
 	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 		signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -286,7 +286,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 
 	delegationSettingsRaw := d.Get("delegation").([]any)
 	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(delegationSettingsRaw) > 0 {
-		return fmt.Errorf("`delegation` is not supported for sku tiers `Consumption` and `V2`")
+		return errors.New("`delegation` is not supported for sku tiers `Consumption` and `V2`")
 	}
 	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && len(delegationSettingsRaw) > 0 {
 		delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -299,7 +299,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 
 	tenantAccessRaw := d.Get("tenant_access").([]any)
 	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
-		return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
+		return errors.New("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
 	}
 	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
 		tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")

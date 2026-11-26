@@ -5,6 +5,7 @@ package synapse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -111,7 +112,7 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta an
 	}
 
 	if keyresult.ID == nil || *keyresult.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Key 'cmk'")
+		return errors.New("empty or nil ID returned for Synapse Key 'cmk'")
 	}
 
 	if d.IsNewResource() {

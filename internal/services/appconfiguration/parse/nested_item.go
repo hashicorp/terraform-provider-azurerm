@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -95,7 +96,7 @@ func ParseNestedItemID(input string) (*NestedItemId, error) {
 	}
 
 	if label == "" && !strings.HasSuffix(input, "label=") {
-		return nil, fmt.Errorf("only 'label=' is accepted for empty label in Azure App Configuration Nested Item URL query")
+		return nil, errors.New("only 'label=' is accepted for empty label in Azure App Configuration Nested Item URL query")
 	}
 
 	childId := NestedItemId{

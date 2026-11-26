@@ -5,6 +5,7 @@ package kubernetes_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -211,7 +212,7 @@ func expandKubernetesClusterNetworkProfile(input []any, d *pluginsdk.ResourceDat
 	networkPlugin := config["network_plugin"].(string)
 	networkMode := config["network_mode"].(string)
 	if networkPlugin != "azure" && networkMode != "" {
-		return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
+		return nil, errors.New("`network_mode` cannot be set if `network_plugin` is not `azure`")
 	}
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerProfileRaw := config["load_balancer_profile"].([]any)
@@ -376,7 +377,7 @@ func expandIPVersions(input []any) (*[]managedclusters.IPFamily, error) {
 	}
 
 	if len(ipv) == 1 && ipv[0] == managedclusters.IPFamilyIPvSix {
-		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+		return nil, errors.New("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
 	}
 
 	return &ipv, nil
@@ -806,7 +807,7 @@ func expandKubernetesClusterAzureMonitorProfile(input []any) *managedclusters.Ma
 
 func expandKubernetesClusterMetricsProfile(input bool, skuTier string) (*managedclusters.ManagedClusterMetricsProfile, error) {
 	if input && skuTier != "Standard" && skuTier != "Premium" {
-		return nil, fmt.Errorf("`sku_tier` must be either `Standard` or `Premium` when cost analysis is enabled")
+		return nil, errors.New("`sku_tier` must be either `Standard` or `Premium` when cost analysis is enabled")
 	}
 	return &managedclusters.ManagedClusterMetricsProfile{
 		CostAnalysis: &managedclusters.ManagedClusterCostAnalysis{

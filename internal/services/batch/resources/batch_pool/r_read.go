@@ -286,18 +286,18 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 					sourceCount++
 				}
 				if sourceCount != 1 {
-					return fmt.Errorf("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
+					return errors.New("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
 				}
 
 				if referenceFile.BlobPrefix != nil {
 					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerURL == nil {
-						return fmt.Errorf("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
+						return errors.New("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
 					}
 				}
 
 				if referenceFile.HTTPURL != nil {
 					if referenceFile.FilePath == nil {
-						return fmt.Errorf("file_path must be specified when using http_url")
+						return errors.New("file_path must be specified when using http_url")
 					}
 				}
 			}
