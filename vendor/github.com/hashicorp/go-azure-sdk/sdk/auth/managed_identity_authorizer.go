@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/go-azure-sdk/sdk/internal/transport"
 	"golang.org/x/oauth2"
 )
 
@@ -194,12 +195,13 @@ func azureMetadata(ctx context.Context, url string, headers map[string][]string)
 	if err != nil {
 		return
 	}
+	defer transport.DrainAndClose(resp.Body)
+
 	log.Printf("[DEBUG] Reading Body from %s %q", req.Method, url)
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
 	if c := resp.StatusCode; c < 200 || c > 299 {
 		err = fmt.Errorf("received HTTP status %d with body: %s", resp.StatusCode, body)
 		return

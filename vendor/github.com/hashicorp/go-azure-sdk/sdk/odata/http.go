@@ -26,7 +26,7 @@ func FromResponse(resp *http.Response) (*OData, error) {
 	if strings.HasPrefix(contentType, "application/json") {
 		// Read the response body and close it
 		respBody, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		// Always reassign the response body
 		resp.Body = io.NopCloser(bytes.NewBuffer(respBody))

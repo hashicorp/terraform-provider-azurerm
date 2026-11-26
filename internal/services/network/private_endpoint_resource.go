@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	sdkclient "github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -470,6 +471,11 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
+	// Flush pooled idle connections on the shared go-azure-sdk transport after Private Endpoint
+	// and Private DNS Zone Group changes so pooled data-plane clients (such as Storage) re-resolve
+	// DNS and connect to the post-cutover endpoint IP rather than reusing a pre-cutover socket.
+	sdkclient.CloseIdleConnections()
+
 	return resourcePrivateEndpointRead(d, meta)
 }
 
@@ -669,6 +675,11 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
+	// Flush pooled idle connections on the shared go-azure-sdk transport after Private Endpoint
+	// and Private DNS Zone Group changes so pooled data-plane clients (such as Storage) re-resolve
+	// DNS and connect to the post-cutover endpoint IP rather than reusing a pre-cutover socket.
+	sdkclient.CloseIdleConnections()
+
 	return resourcePrivateEndpointRead(d, meta)
 }
 
@@ -851,6 +862,11 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
+
+	// Flush pooled idle connections on the shared go-azure-sdk transport after Private Endpoint
+	// deletion so pooled data-plane clients (such as Storage) do not reuse stale connections
+	// to the deleted private endpoint IP.
+	sdkclient.CloseIdleConnections()
 
 	return nil
 }

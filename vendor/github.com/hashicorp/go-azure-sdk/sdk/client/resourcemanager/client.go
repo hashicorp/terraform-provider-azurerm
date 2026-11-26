@@ -6,8 +6,10 @@ package resourcemanager
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
@@ -16,6 +18,10 @@ var _ client.BaseClient = &Client{}
 
 type Client struct {
 	*client.Client
+
+	// DisableIdempotentPutRetries prevents PUT requests on this client from automatically
+	// defaulting to Idempotent = true when RequestOptions.Idempotent is nil.
+	DisableIdempotentPutRetries bool
 
 	// apiVersion specifies the version of the API being used, which (by design) will be consistent across a client
 	// as we intentionally split out multiple API Versions into different clients, rather than using composite API
@@ -39,6 +45,7 @@ func NewClient(api environments.Api, serviceName, apiVersion string) (*Client, e
 }
 
 // Deprecated: use NewClient instead
+// This function will be removed in a future minor version
 func NewResourceManagerClient(api environments.Api, serviceName, apiVersion string) (*Client, error) {
 	return NewClient(api, serviceName, apiVersion)
 }
@@ -93,6 +100,9 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	req.Pager = input.Pager
 	req.RetryFunc = client.RequestRetryAny(append(defaultRetryFunctions, input.RetryFunc)...)
 	req.ValidStatusCodes = input.ExpectedStatusCodes
+	if !c.DisableIdempotentPutRetries && input.Idempotent == nil && input.HttpMethod == http.MethodPut {
+		req.Idempotent = pointer.To(true)
+	}
 
 	return req, nil
 }

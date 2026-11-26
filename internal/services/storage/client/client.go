@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
@@ -36,6 +37,7 @@ type Client struct {
 	StorageUseAzureAD bool
 
 	authConfigForAzureAD *auth.Credentials
+	transport            http.RoundTripper
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -102,6 +104,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SyncGroupsClient:                 syncGroupsClient,
 
 		StorageDomainSuffix: *storageSuffix,
+		transport:           o.Transport,
 	}
 
 	if o.StorageUseAzureAD {

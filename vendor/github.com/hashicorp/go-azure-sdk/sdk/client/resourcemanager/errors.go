@@ -48,7 +48,7 @@ func parseErrorFromApiResponse(response *http.Response) (*Error, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing response body: %+v", err)
 	}
-	response.Body.Close()
+	_ = response.Body.Close()
 
 	respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 	response.Body = io.NopCloser(bytes.NewBuffer(respBody))

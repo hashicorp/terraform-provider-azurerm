@@ -27,13 +27,13 @@ func (id Id) MarshalJSON() ([]byte, error) {
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		matches := regexp.MustCompile(`([^()'"]+)\(['"]([^'"]+)['"]\)`).FindStringSubmatch(id2)
 		if len(matches) != 3 {
-			return nil, fmt.Errorf("Marshaling odata.Id: could not match a GUID")
+			return nil, fmt.Errorf("marshaling odata.Id: could not match a GUID")
 		}
 
 		objectType := matches[1]
 		guid := matches[2]
 		if _, err = uuid.ParseUUID(guid); err != nil {
-			return nil, fmt.Errorf("Marshaling odata.Id: %+v", err)
+			return nil, fmt.Errorf("marshaling odata.Id: %+v", err)
 		}
 
 		// Although we're hard-coding `graph.microsoft.com` here, this doesn't _appear_ to be a problem

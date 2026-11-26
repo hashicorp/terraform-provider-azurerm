@@ -6,18 +6,18 @@ package metadata
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
-	"runtime"
-	"time"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/internal/transport"
 )
 
 // NOTE: this Client cannot use the base client since it'd cause a circular reference
+
+var defaultTransport = transport.New(transport.DefaultOptions())
 
 type Client struct {
 	endpoint string
@@ -33,24 +33,8 @@ func NewClientWithEndpoint(endpoint string) *Client {
 // current environment. We currently only support the 2019-05-01 metadata schema, since earlier versions do not
 // reference some mandatory services, notably Microsoft Graph.
 func (c *Client) GetMetaData(ctx context.Context) (*MetaData, error) {
-	tlsConfig := tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
 	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				d := &net.Dialer{Resolver: &net.Resolver{}}
-				return d.DialContext(ctx, network, addr)
-			},
-			TLSClientConfig:       &tlsConfig,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		},
+		Transport: defaultTransport,
 	}
 	uri := fmt.Sprintf("%s/metadata/endpoints?api-version=2022-09-01", c.endpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
@@ -62,6 +46,7 @@ func (c *Client) GetMetaData(ctx context.Context) (*MetaData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("performing request: %+v", err)
 	}
+	defer transport.DrainAndClose(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("performing request: expected 200 OK but got %d %s", resp.StatusCode, resp.Status)
@@ -71,7 +56,6 @@ func (c *Client) GetMetaData(ctx context.Context) (*MetaData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing response body: %+v", err)
 	}
-	resp.Body.Close()
 
 	// Trim away a BOM if present
 	respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))

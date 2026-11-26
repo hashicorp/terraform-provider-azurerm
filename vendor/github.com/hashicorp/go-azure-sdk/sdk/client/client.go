@@ -6,26 +6,21 @@ package client
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math"
-	"net"
 	"net/http"
 	"net/url"
-	"os"
-	"regexp"
-	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/internal/accept"
+	"github.com/hashicorp/go-azure-sdk/sdk/internal/transport"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/hashicorp/go-retryablehttp"
 )
@@ -34,7 +29,45 @@ const (
 	// SkipPollingDelayHeader is the HTTP header used to instruct the poller to skip its standard delay wait time.
 	// This is typically injected via a ResponseMiddleware when running tests in a VCR replay mode.
 	SkipPollingDelayHeader = "X-Go-Azure-Sdk-Skip-Polling-Delay"
+
+	maxNilResponseRetries = 6
 )
+
+// TransportOptions configures an *http.Transport created by NewTransport.
+type TransportOptions = transport.Options
+
+// DefaultTransportOptions returns the SDK's default transport configuration.
+func DefaultTransportOptions() TransportOptions {
+	return transport.DefaultOptions()
+}
+
+// NewTransport returns a new *http.Transport configured with the provided options.
+func NewTransport(opts TransportOptions) *http.Transport {
+	return transport.New(opts)
+}
+
+type keepIdleConnections struct {
+	http.RoundTripper
+}
+
+var defaultTransport http.RoundTripper = NewDefaultTransport()
+
+// NewDefaultTransport returns a new *http.Transport configured with the SDK's default settings.
+// The shared default transport pools connections by (scheme, host, port, proxy) and carries no
+// credentials; consumers requiring isolation (multi-tenant isolation, mTLS, custom CAs, or custom
+// proxy) should call this (or NewTransport) to create a dedicated transport and pass it to Client.SetTransport.
+// Note that http.ProxyFromEnvironment caches proxy environment variables once per process.
+func NewDefaultTransport() *http.Transport {
+	return NewTransport(DefaultTransportOptions())
+}
+
+// CloseIdleConnections closes any idle connections on the shared default transport.
+// Call this during provider teardown or test cleanup to avoid lingering idle connections.
+func CloseIdleConnections() {
+	if t, ok := defaultTransport.(interface{ CloseIdleConnections() }); ok {
+		t.CloseIdleConnections()
+	}
+}
 
 // RetryOn404ConsistencyFailureFunc can be used to retry a request when a 404 response is received
 func RetryOn404ConsistencyFailureFunc(resp *http.Response, _ *odata.OData) (bool, error) {
@@ -89,6 +122,7 @@ func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Respons
 
 // Request embeds *http.Request and adds useful metadata
 type Request struct {
+	Idempotent       *bool
 	RetryFunc        RequestRetryFunc
 	ValidStatusCodes []int
 	ValidStatusFunc  ValidStatusFunc
@@ -160,8 +194,11 @@ func (r *Request) ExecutePaged(ctx context.Context) (*Response, error) {
 	return r.Client.ExecutePaged(ctx, r)
 }
 
-// IsIdempotent determines whether a Request can be safely retried when encountering a connection failure
+// IsIdempotent determines whether a Request can be safely retried when encountering a connection failure.
 func (r *Request) IsIdempotent() bool {
+	if r.Idempotent != nil {
+		return *r.Idempotent
+	}
 	switch strings.ToUpper(r.Method) {
 	case http.MethodGet, http.MethodHead, http.MethodOptions:
 		return true
@@ -187,8 +224,8 @@ func (r *Response) Unmarshal(model interface{}) error {
 	}
 
 	var contentType string
-	if r.Response.Header != nil {
-		contentType = strings.ToLower(r.Response.Header.Get("Content-Type"))
+	if r.Header != nil {
+		contentType = strings.ToLower(r.Header.Get("Content-Type"))
 
 		if contentType == "" {
 			// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
@@ -206,6 +243,7 @@ func (r *Response) Unmarshal(model interface{}) error {
 	}
 
 	if contentType == "" {
+		transport.DrainAndClose(r.Body)
 		return fmt.Errorf("could not determine Content-Type for response")
 	}
 
@@ -219,9 +257,10 @@ func (r *Response) Unmarshal(model interface{}) error {
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
+			transport.DrainAndClose(r.Body)
 			return fmt.Errorf("parsing response body: %+v", err)
 		}
-		r.Body.Close()
+		_ = r.Body.Close()
 
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
@@ -245,9 +284,10 @@ func (r *Response) Unmarshal(model interface{}) error {
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
+			transport.DrainAndClose(r.Body)
 			return fmt.Errorf("could not parse response body")
 		}
-		r.Body.Close()
+		_ = r.Body.Close()
 
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
@@ -270,15 +310,17 @@ func (r *Response) Unmarshal(model interface{}) error {
 	case strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell"):
 		ptr, ok := model.(*[]byte)
 		if !ok || ptr == nil {
+			transport.DrainAndClose(r.Body)
 			return fmt.Errorf("internal-error: `model` must be a non-nil `*[]byte` but got %[1]T: %+[1]v", model)
 		}
 
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
+			transport.DrainAndClose(r.Body)
 			return fmt.Errorf("could not parse response body")
 		}
-		r.Body.Close()
+		_ = r.Body.Close()
 
 		if strings.HasPrefix(contentType, "text/") {
 			// Trim away a BOM if present
@@ -294,6 +336,7 @@ func (r *Response) Unmarshal(model interface{}) error {
 		return nil
 	}
 
+	transport.DrainAndClose(r.Body)
 	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
@@ -331,6 +374,8 @@ type Client struct {
 	// Transport allows overriding the http.RoundTripper used by the client.
 	// When nil, a default transport will be used.
 	Transport http.RoundTripper
+
+	retryWaitMin time.Duration
 }
 
 // NewClient returns a new Client configured with sensible defaults
@@ -423,6 +468,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 
 	ret := Request{
 		Client:           c,
+		Idempotent:       input.Idempotent,
 		Request:          req,
 		Pager:            input.Pager,
 		RetryFunc:        input.RetryFunc,
@@ -459,10 +505,18 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			return nil, fmt.Errorf("reading request body: %v", err)
 		}
 		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
+		req.GetBody = func() (io.ReadCloser, error) {
+			return io.NopCloser(bytes.NewReader(reqBody)), nil
+		}
 	}
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
+	nilResponseRetries := 0
 	r := c.retryableClient(ctx, func(ctx context.Context, r *http.Response, err error) (bool, error) {
+		if r != nil {
+			nilResponseRetries = 0
+		}
+
 		// Eventual consistency checks
 		if r != nil && !c.DisableRetries {
 			if r.StatusCode == http.StatusFailedDependency {
@@ -486,14 +540,14 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			}
 		}
 
-		// Check for failed connections etc and decide if retries are appropriate
-		// TODO this workaround is no longer required in 5.0 and later of AzureRM, and should be removed after it ships.
-		if r == nil && os.Getenv("ARM_FIVEPOINTZERO_BETA") != "true" {
+		// Only retry nil-response connection failures for idempotent requests; non-idempotent
+		// mutations may have already been processed by the server.
+		if r == nil {
+			nilResponseRetries++
 			if req.IsIdempotent() {
-				if !isResourceManagerHost(req) {
-					return extendedRetryPolicy(r, err)
+				if nilResponseRetries > maxNilResponseRetries {
+					return false, err
 				}
-
 				return retryablehttp.DefaultRetryPolicy(ctx, r, err)
 			}
 
@@ -528,11 +582,12 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		return resp, fmt.Errorf("HTTP response was nil; connection may have been reset")
 	}
 
-	// Configure any ResponseMiddlewares
+	// Configure any ResponseMiddlewares; a middleware that replaces resp.Response.Body owns closing the original.
 	if c.ResponseMiddlewares != nil {
 		for _, m := range *c.ResponseMiddlewares {
 			r, err := m(req.Request, resp.Response)
 			if err != nil {
+				transport.DrainAndClose(resp.Body)
 				return resp, err
 			}
 			resp.Response = r
@@ -544,7 +599,7 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 	resp.OData, _ = odata.FromResponse(resp.Response)
 
 	// Determine whether response status is valid
-	if !containsStatusCode(req.ValidStatusCodes, resp.StatusCode) {
+	if !slices.Contains(req.ValidStatusCodes, resp.StatusCode) {
 		// The status code didn't match, but we also need to check the ValidStatusFunc, if provided
 		// Note that the odata argument here is a best-effort and may be nil
 		if f := req.ValidStatusFunc; f != nil && f(resp.Response, resp.OData) {
@@ -562,6 +617,14 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			status = fmt.Sprintf("%s (%s)", status, statusText)
 		}
 
+		var respBody []byte
+		var readErr error
+		if resp.Body != nil {
+			respBody, readErr = io.ReadAll(resp.Body)
+			transport.DrainAndClose(resp.Body)
+			resp.Body = io.NopCloser(bytes.NewReader(respBody))
+		}
+
 		// Determine suitable error text
 		var errText string
 
@@ -570,6 +633,7 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			if err = req.CustomErrorParser.FromResponse(resp.Response); err != nil {
 				errText = err.Error()
 			}
+			resp.Body = io.NopCloser(bytes.NewReader(respBody))
 		}
 
 		// Fall back to parsing error text from OData
@@ -579,10 +643,7 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 				errText = fmt.Sprintf("error: %s", resp.OData.Error)
 
 			default:
-				defer resp.Body.Close()
-
-				respBody, err := io.ReadAll(resp.Body)
-				if err != nil {
+				if readErr != nil {
 					return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
 				}
 				if len(respBody) == 0 {
@@ -610,12 +671,14 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 	// Check for json content before handling pagination
 	contentType := strings.ToLower(resp.Header.Get("Content-Type"))
 	if !strings.HasPrefix(contentType, "application/json") {
+		transport.DrainAndClose(resp.Body)
 		return resp, fmt.Errorf("unsupported content-type %q received, only application/json is supported for paged results", contentType)
 	}
 
 	// Unmarshal the response
 	firstOdata, err := odata.FromResponse(resp.Response)
 	if err != nil {
+		transport.DrainAndClose(resp.Body)
 		return resp, err
 	}
 
@@ -638,6 +701,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 	} else {
 		nextLink, err = odata.NextLinkFromCustomPager(resp.Response, req.Pager)
 		if err != nil {
+			transport.DrainAndClose(resp.Body)
 			return resp, err
 		}
 	}
@@ -650,6 +714,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 	nextReq := req
 	u, err := url.Parse(string(*nextLink))
 	if err != nil {
+		transport.DrainAndClose(resp.Body)
 		return resp, err
 	}
 	nextReq.URL = u
@@ -657,12 +722,15 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 	// Retrieve the next page, descend recursively
 	nextResp, err := c.ExecutePaged(ctx, req)
 	if err != nil {
+		transport.DrainAndClose(resp.Body)
 		return resp, err
 	}
 
 	// Unmarshal nextOdata from the next page
 	nextOdata, err := odata.FromResponse(nextResp.Response)
 	if err != nil {
+		transport.DrainAndClose(resp.Body)
+		transport.DrainAndClose(nextResp.Body)
 		return nextResp, err
 	}
 
@@ -714,8 +782,11 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 
 	r.CheckRetry = checkRetry
 	r.ErrorHandler = RetryableErrorHandler
-	r.Logger = log.Default()
+	r.Logger = transport.RedactingLogger()
 	r.RetryWaitMin = 1 * time.Second
+	if c.retryWaitMin > 0 {
+		r.RetryWaitMin = c.retryWaitMin
+	}
 	r.RetryWaitMax = 61 * time.Second
 
 	// The default backoff results into the following formula T(n):
@@ -742,151 +813,14 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
-	var transport http.RoundTripper
+	var rt http.RoundTripper = keepIdleConnections{defaultTransport}
 	if c.Transport != nil {
-		transport = c.Transport
-	} else {
-		transport = &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				d := &net.Dialer{Resolver: &net.Resolver{}}
-				return d.DialContext(ctx, network, addr)
-			},
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		}
+		rt = c.Transport
 	}
 
 	r.HTTPClient = &http.Client{
-		Transport: transport,
+		Transport: rt,
 	}
 
 	return
-}
-
-// containsStatusCode determines whether the returned status code is in the []int of expected status codes.
-func containsStatusCode(expected []int, actual int) bool {
-	for _, v := range expected {
-		if actual == v {
-			return true
-		}
-	}
-
-	return false
-}
-
-// extendedRetryPolicy extends the defaultRetryPolicy implementation in go-retryablehhtp with
-// additional error conditions that should not be retried indefinitely
-// TODO - This should be removed as part of 5.0 release of AzureRM, and the base layer returned to the `retryablehttp.DefaultRetryPolicy` for all requests.
-func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
-	// A regular expression to match the error returned by net/http when the
-	// configured number of redirects is exhausted. This error isn't typed
-	// specifically so we resort to matching on the error string.
-	redirectsErrorRe := regexp.MustCompile(`stopped after \d+ redirects\z`)
-
-	// A regular expression to match the error returned by net/http when the
-	// scheme specified in the URL is invalid. This error isn't typed
-	// specifically so we resort to matching on the error string.
-	schemeErrorRe := regexp.MustCompile(`unsupported protocol scheme`)
-
-	// A regular expression to match the error returned by net/http when a
-	// request header or value is invalid. This error isn't typed
-	// specifically so we resort to matching on the error string.
-	invalidHeaderErrorRe := regexp.MustCompile(`invalid header`)
-
-	// A regular expression to match the error returned by net/http when the
-	// TLS certificate is not trusted. This error isn't typed
-	// specifically so we resort to matching on the error string.
-	notTrustedErrorRe := regexp.MustCompile(`certificate is not trusted`)
-
-	// A regular expression to catch dial timeouts in the underlying TCP session
-	// connection
-	tcpDialTCPRe := regexp.MustCompile(`dial tcp`)
-
-	// A regular expression to match complete packet loss
-	completePacketLossRe := regexp.MustCompile(`EOF`)
-
-	if err != nil {
-		var v *url.Error
-		if errors.As(err, &v) {
-			// Don't retry if the error was due to too many redirects.
-			if redirectsErrorRe.MatchString(v.Error()) {
-				return false, v
-			}
-
-			// Don't retry if the error was due to an invalid protocol scheme.
-			if schemeErrorRe.MatchString(v.Error()) {
-				return false, v
-			}
-
-			// Don't retry if the error was due to an invalid header.
-			if invalidHeaderErrorRe.MatchString(v.Error()) {
-				return false, v
-			}
-
-			// Don't retry if the error was due to TLS cert verification failure.
-			if notTrustedErrorRe.MatchString(v.Error()) {
-				return false, v
-			}
-
-			if tcpDialTCPRe.MatchString(v.Error()) {
-				return false, v
-			}
-
-			if completePacketLossRe.MatchString(v.Error()) {
-				return false, v
-			}
-
-			var certificateVerificationError *tls.CertificateVerificationError
-			if ok := errors.As(v.Err, &certificateVerificationError); ok {
-				return false, v
-			}
-		}
-
-		// The error is likely recoverable so retry.
-		return true, nil
-	}
-
-	// 429 Too Many Requests is recoverable. Sometimes the server puts
-	// a Retry-After response header to indicate when the server is
-	// available to start processing request from client.
-	if resp.StatusCode == http.StatusTooManyRequests {
-		return true, nil
-	}
-
-	// Check the response code. We retry on 500-range responses to allow
-	// the server time to recover, as 500's are typically not permanent
-	// errors and may relate to outages on the server side. This will catch
-	// invalid response codes as well, like 0 and 999.
-	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented) {
-		return true, fmt.Errorf("unexpected HTTP status %s", resp.Status)
-	}
-
-	return false, nil
-}
-
-// exclude Resource Manager calls from the network failure retry avoidance to help users on unreliable networks
-// This code path should be removed when the Data Plane separation work is completed and 5.0 ships.
-func isResourceManagerHost(req *Request) bool {
-	knownResourceManagerHosts := []string{
-		"management.azure.com",
-		"management.chinacloudapi.cn",
-		"management.usgovcloudapi.net",
-	}
-	if url := req.Request.URL; url != nil {
-		for _, host := range knownResourceManagerHosts {
-			if strings.Contains(url.Host, host) {
-				return true
-			}
-		}
-	}
-
-	return false
 }

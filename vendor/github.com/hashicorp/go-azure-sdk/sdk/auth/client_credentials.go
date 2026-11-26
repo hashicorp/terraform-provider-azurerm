@@ -22,9 +22,10 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/go-uuid"
-	"golang.org/x/oauth2"
 )
 
 type clientCredentialsType string
@@ -328,7 +329,10 @@ func clientCredentialsToken(ctx context.Context, endpoint string, params *url.Va
 		return nil, fmt.Errorf("clientCredentialsToken: cannot request token: %v", err)
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
 		return nil, fmt.Errorf("clientCredentialsToken: cannot parse response: %v", err)

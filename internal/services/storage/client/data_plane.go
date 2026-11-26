@@ -44,6 +44,10 @@ func (Client) DataPlaneOperationSupportingOnlySharedKeyAuth() DataPlaneOperation
 }
 
 func (c *Client) configureDataPlane(ctx context.Context, clientName, resourceIdentifier string, baseClient client.BaseClient, account AccountDetails, operation DataPlaneOperation) error {
+	if c.transport != nil {
+		baseClient.SetTransport(c.transport)
+	}
+
 	if operation.SupportsAadAuthentication && c.authConfigForAzureAD != nil {
 		api := c.authConfigForAzureAD.Environment.Storage.WithResourceIdentifier(resourceIdentifier)
 		storageAuth, err := auth.NewAuthorizerFromCredentials(ctx, *c.authConfigForAzureAD, api)

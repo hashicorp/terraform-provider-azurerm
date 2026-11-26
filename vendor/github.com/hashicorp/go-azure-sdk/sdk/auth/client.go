@@ -4,17 +4,12 @@
 package auth
 
 import (
-	"context"
-	"crypto/tls"
-	"log"
 	"math"
-	"net"
 	"net/http"
-	"net/url"
-	"runtime"
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/sdk/internal/transport"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -63,7 +58,7 @@ func defaultHttpClientParams() httpClientParams {
 func httpClient(params httpClientParams) *http.Client {
 	r := retryablehttp.NewClient()
 
-	r.Logger = log.Default()
+	r.Logger = transport.RedactingLogger()
 
 	r.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
 		// note: min and max contain the values of r.RetryWaitMin and r.RetryWaitMax
@@ -94,32 +89,13 @@ func httpClient(params httpClientParams) *http.Client {
 		return sleep
 	}
 
-	var proxyFunc func(*http.Request) (*url.URL, error)
-	if params.useProxy {
-		proxyFunc = http.ProxyFromEnvironment
-	}
-
 	r.RetryWaitMin = params.retryWaitMin
 	r.RetryWaitMax = params.retryWaitMax
 
-	tlsConfig := tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
+	opts := transport.DefaultOptions()
+	opts.DisableProxy = !params.useProxy
 	r.HTTPClient = &http.Client{
-		Transport: &http.Transport{
-			Proxy: proxyFunc,
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				d := &net.Dialer{Resolver: &net.Resolver{}}
-				return d.DialContext(ctx, network, addr)
-			},
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSClientConfig:       &tlsConfig,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		},
+		Transport: transport.New(opts),
 	}
 
 	return r.StandardClient()
