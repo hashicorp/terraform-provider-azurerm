@@ -2278,9 +2278,6 @@ resource "azurerm_subnet" "podsubnet" {
   delegation {
     name = "aks-delegation"
     service_delegation {
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
       name = "Microsoft.ContainerService/managedClusters"
     }
   }
@@ -4104,9 +4101,6 @@ resource "azurerm_subnet" "podsubnet" {
   delegation {
     name = "aks-delegation"
     service_delegation {
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
       name = "Microsoft.ContainerService/managedClusters"
     }
   }

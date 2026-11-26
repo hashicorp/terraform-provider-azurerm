@@ -76,8 +76,7 @@ resource "azurerm_subnet" "test" {
     name = "acctestdelegation-%[1]d"
 
     service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.ContainerInstance/containerGroups"
     }
   }
 }

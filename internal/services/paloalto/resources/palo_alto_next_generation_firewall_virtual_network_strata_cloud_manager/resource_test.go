@@ -312,9 +312,6 @@ resource "azurerm_subnet" "test1" {
 
     service_delegation {
       name = "PaloAltoNetworks.Cloudngfw/firewalls"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }
@@ -335,9 +332,6 @@ resource "azurerm_subnet" "test2" {
 
     service_delegation {
       name = "PaloAltoNetworks.Cloudngfw/firewalls"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }

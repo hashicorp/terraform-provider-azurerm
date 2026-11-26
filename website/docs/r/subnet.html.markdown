@@ -40,8 +40,7 @@ resource "azurerm_subnet" "example" {
     name = "delegation"
 
     service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+      name = "Microsoft.ContainerInstance/containerGroups"
     }
   }
 }

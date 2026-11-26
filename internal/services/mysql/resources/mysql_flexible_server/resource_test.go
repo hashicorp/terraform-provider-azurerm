@@ -727,9 +727,6 @@ resource "azurerm_subnet" "test" {
     service_delegation {
       name = "Microsoft.DBforMySQL/flexibleServers"
 
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }
@@ -814,9 +811,6 @@ resource "azurerm_subnet" "test" {
     service_delegation {
       name = "Microsoft.DBforMySQL/flexibleServers"
 
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }

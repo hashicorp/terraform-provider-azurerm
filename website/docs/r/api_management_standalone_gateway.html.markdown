@@ -34,9 +34,6 @@ resource "azurerm_subnet" "example" {
     name = "apim-delegation"
     service_delegation {
       name = "Microsoft.Web/serverFarms"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/action"
-      ]
     }
   }
 }
