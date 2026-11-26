@@ -6,7 +6,7 @@ package mysql_flexible_server
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"

@@ -8,8 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -185,24 +184,4 @@ func expandFlexibleServerDataEncryption(input []any) *servers.DataEncryption {
 	}
 
 	return &dataEncryption
-}
-
-func expandFlexibleServerIdentity(input []any) (*servers.MySQLServerIdentity, error) {
-	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := servers.MySQLServerIdentity{
-		Type: pointer.ToEnum[servers.ManagedServiceIdentityType](string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned {
-		ids := make(map[string]any)
-		for k := range expanded.IdentityIds {
-			ids[k] = struct{}{}
-		}
-		out.UserAssignedIdentities = &ids
-	}
-
-	return &out, nil
 }

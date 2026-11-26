@@ -11,9 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/servers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -140,11 +141,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) erro
 		parameters.Properties.SetRestorePointInTimeAsTime(v)
 	}
 
-	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
+	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
-		return fmt.Errorf("expanding `identity`")
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	parameters.Identity = identity
+	parameters.Identity = expandedIdentity
 
 	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)

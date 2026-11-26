@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/servers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,10 +89,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if requireFailover {
-		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.ServerFailover
-		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.Servers
+		failoverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
-		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {
+		if err := failoverClient.FailoverThenPoll(ctx, failoverID); err != nil {
 			return fmt.Errorf("failing over %s: %+v", *id, err)
 		}
 	} else if d.HasChange("high_availability") {
@@ -144,11 +144,11 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
+		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		parameters.Identity = identity
+		parameters.Identity = expandedIdentity
 	}
 
 	if d.HasChange("maintenance_window") {
