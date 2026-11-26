@@ -82,10 +82,10 @@ func lbProbeSchema() map[string]*pluginsdk.Schema {
 		"load_balancer_rules": {
 			Type:     pluginsdk.TypeSet,
 			Computed: true,
+			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 	}
 }

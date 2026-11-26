@@ -315,8 +315,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Description: "Enable the Free Tier pricing option for this Cosmos DB account.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
-				Default:     false,
 				ForceNew:    true,
+				Default:     false,
 			},
 
 			"analytical_storage_enabled": {
@@ -367,8 +367,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeInt,
 							Optional:         true,
 							Default:          5,
-							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 							ValidateFunc:     validation.IntBetween(5, 86400), // single region values
+							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 						},
 
 						// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
@@ -377,8 +377,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeInt,
 							Optional:         true,
 							Default:          100,
-							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 							ValidateFunc:     validation.IntBetween(10, math.MaxInt32), // single region values
+							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 						},
 					},
 				},
@@ -388,6 +388,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Description: "A `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location.",
 				Type:        pluginsdk.TypeSet,
 				Required:    true,
+				Set:         resourceAzureRMCosmosDBAccountGeoLocationHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -412,7 +413,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBAccountGeoLocationHash,
 			},
 
 			"capabilities": {
@@ -420,6 +420,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:        pluginsdk.TypeSet,
 				Optional:    true,
 				Computed:    true, // azignore:AZS007 - pre-existing violation
+				Set:         resourceAzureRMCosmosDBAccountCapabilitiesHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -450,7 +451,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 			},
 
 			"is_virtual_network_filter_enabled": {
@@ -463,6 +463,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"virtual_network_rule": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -479,7 +480,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 			},
 
 			"access_key_metadata_writes_enabled": {

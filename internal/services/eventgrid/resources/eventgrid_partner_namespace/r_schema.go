@@ -64,15 +64,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPartnerTopicRoutingMode(), false),
 			Default:      string(partnernamespaces.PartnerTopicRoutingModeChannelNameHeader),
+			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPartnerTopicRoutingMode(), false),
 		},
 		"public_network_access": {
 			Description:  "Whether public network access is allowed for this server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPublicNetworkAccess(), false),
 			Default:      string(partnernamespaces.PublicNetworkAccessEnabled),
+			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPublicNetworkAccess(), false),
 		},
 		"tags": commonschema.Tags(),
 	}

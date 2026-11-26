@@ -54,10 +54,11 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"import": {
-			Description: "Mutually exclusive with `create_mode`.",
-			Type:        pluginsdk.TypeList,
-			Optional:    true,
-			MaxItems:    1,
+			Description:   "Mutually exclusive with `create_mode`.",
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"create_mode"}, // it needs `create_mode` to be `Default` to work, so make them conflict.
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"storage_uri": {
@@ -108,7 +109,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"create_mode"}, // it needs `create_mode` to be `Default` to work, so make them conflict.
 		},
 
 		"collation": {
@@ -168,8 +168,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Computed:         true, // azignore:AZS007 - pre-existing violation
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"recover_database_id": {
@@ -237,8 +237,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Description:  "The ID of the source database from which to create the new database. This should only be used for databases with `create_mode` values that use another database as reference.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSqlDatabaseID,
 		},
 
@@ -292,10 +292,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						Description: "A list of email addresses which alerts should be sent to.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"retention_days": {
@@ -349,8 +349,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
-			ConflictsWith: []string{"elastic_pool_id"},
 			ValidateFunc:  validation.StringInSlice(helpers.ResourceMsSqlDatabaseMaintenanceNames(), false),
+			ConflictsWith: []string{"elastic_pool_id"},
 		},
 
 		"ledger_enabled": {

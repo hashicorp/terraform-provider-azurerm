@@ -99,9 +99,9 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(datastore.ServiceDataAccessAuthIdentityNone),
 			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
-			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
 
 		"account_key": {

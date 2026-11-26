@@ -57,9 +57,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"zone": {
+			Description: "Filter the versions by zone.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Filter the versions by zone.",
 		},
 	}
 }

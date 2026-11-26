@@ -41,8 +41,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"versions": {
 				Description: "The list of all supported versions.",
 				Type:        pluginsdk.TypeList,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"latest_version": {

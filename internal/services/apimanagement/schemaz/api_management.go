@@ -244,10 +244,10 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 				"values": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
+					Set:      pluginsdk.HashString,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Set: pluginsdk.HashString,
 				},
 
 				"example": SchemaApiManagementOperationParameterExampleContract(),

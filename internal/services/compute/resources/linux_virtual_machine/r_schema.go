@@ -34,15 +34,15 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"admin_username": {
-			Description: "The username of the local administrator used for the Virtual Machine.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The username of the local administrator used for the Virtual Machine.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LinuxAdminUsername,
 			ExactlyOneOf: []string{
 				"admin_username",
 				"os_managed_disk_id",
 			},
-			ForceNew:     true,
-			ValidateFunc: validate.LinuxAdminUsername,
 		},
 
 		"network_interface_ids": {
@@ -91,8 +91,8 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			ForceNew:         true,
 			Sensitive:        true,
-			DiffSuppressFunc: helpers.AdminPasswordDiffSuppressFunc,
 			ValidateFunc:     validate.LinuxAdminPassword,
+			DiffSuppressFunc: helpers.AdminPasswordDiffSuppressFunc,
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
@@ -136,13 +136,13 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"capacity_reservation_group_id": {
-			Description: "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"availability_set_id",
 				"proximity_placement_group_id",
@@ -206,8 +206,8 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			// Note: O+C OsProfile vs os_managed_disk_id
-			ForceNew: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"disk_controller_type": {
@@ -383,13 +383,13 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"source_image_reference": helpers.SourceImageReferenceSchemaVM(),
 
 		"virtual_machine_scale_set_id": {
-			Description: "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			ConflictsWith: []string{
 				"availability_set_id",
 			},
-			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 		},
 
 		"vtpm_enabled": {
@@ -403,10 +403,10 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Description:  "The Platform Fault Domain in which this Linux Virtual Machine should be created.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      -1,
 			ForceNew:     true,
-			RequiredWith: []string{"virtual_machine_scale_set_id"},
+			Default:      -1,
 			ValidateFunc: validation.IntAtLeast(-1),
+			RequiredWith: []string{"virtual_machine_scale_set_id"},
 		},
 
 		"tags": commonschema.Tags(),

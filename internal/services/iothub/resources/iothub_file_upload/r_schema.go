@@ -27,9 +27,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:      "The connection string for the Azure Storage Account to which files are uploaded.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
-			DiffSuppressFunc: helpers.FileUploadConnectionStringDiffSuppress,
 			Sensitive:        true,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.FileUploadConnectionStringDiffSuppress,
 		},
 
 		"container_name": {

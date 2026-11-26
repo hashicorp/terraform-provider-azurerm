@@ -24,15 +24,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this Elastic Job Step.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"job_id": {
 			Description:  "The ID of the Elastic Job.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: jobsteps.ValidateJobID,
 			ForceNew:     true,
+			ValidateFunc: jobsteps.ValidateJobID,
 		},
 		"job_credential_id": {
 			Description:  "The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's Managed Identity (user-assigned).",

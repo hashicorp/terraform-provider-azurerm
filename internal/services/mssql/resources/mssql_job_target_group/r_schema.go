@@ -23,15 +23,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this Job Target Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"job_agent_id": {
 			Description:  "The ID of the Elastic Job Agent.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: jobs.ValidateJobAgentID,
 			ForceNew:     true,
+			ValidateFunc: jobs.ValidateJobAgentID,
 		},
 		"job_target": {
 			Type:     pluginsdk.TypeSet,

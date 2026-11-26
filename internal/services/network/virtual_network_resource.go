@@ -79,14 +79,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:         pluginsdk.TypeSet,
-			Optional:     true,
-			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
-			MinItems:     1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MinItems: 1,
 			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
 				// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
 				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
@@ -97,6 +92,11 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				}
 
 				return false
+			},
+			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -232,8 +232,8 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 					"default_outbound_access_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
 						Optional: true,
+						Default:  true,
 					},
 
 					"delegation": {

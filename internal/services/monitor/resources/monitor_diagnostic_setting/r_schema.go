@@ -88,6 +88,7 @@ func monitorDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 		"enabled_log": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
+			Set:          resourceMonitorDiagnosticLogSettingHash,
 			AtLeastOneOf: []string{"enabled_log", "enabled_metric"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -106,7 +107,6 @@ func monitorDiagnosticSettingSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceMonitorDiagnosticLogSettingHash,
 		},
 
 		"enabled_metric": {

@@ -61,8 +61,8 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 									Description:      "Frequency of full backups.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.CaseDifference,
 									ValidateFunc:     validation.StringInSlice(sqlvirtualmachines.PossibleValuesForFullBackupFrequencyType(), false),
+									DiffSuppressFunc: suppress.CaseDifference,
 								},
 
 								"full_backup_start_hour": {
@@ -190,15 +190,15 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 									Description:  "How many weeks between assessment runs.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ExactlyOneOf: []string{"assessment.0.schedule.0.monthly_occurrence"},
 									ValidateFunc: validation.IntBetween(1, 6),
+									ExactlyOneOf: []string{"assessment.0.schedule.0.monthly_occurrence"},
 								},
 								"monthly_occurrence": {
 									Description:  "How many months between assessment runs.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ExactlyOneOf: []string{"assessment.0.schedule.0.weekly_interval"},
 									ValidateFunc: validation.IntBetween(1, 5),
+									ExactlyOneOf: []string{"assessment.0.schedule.0.weekly_interval"},
 								},
 								"day_of_week": {
 									Description:  "What day of the week the assessment will be run.",

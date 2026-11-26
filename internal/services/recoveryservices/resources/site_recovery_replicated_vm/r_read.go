@@ -57,8 +57,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: azure.ValidateResourceID,
 			},
 

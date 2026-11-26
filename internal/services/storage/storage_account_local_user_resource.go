@@ -176,13 +176,13 @@ func (r LocalUserResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"sid": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 		"password": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }

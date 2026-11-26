@@ -24,7 +24,6 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
-					Elem:     deliveryruleactions.CacheExpiration(),
 					AtLeastOneOf: []string{
 						"global_delivery_rule.0.cache_expiration_action",
 						"global_delivery_rule.0.cache_key_query_string_action",
@@ -33,13 +32,13 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.url_redirect_action",
 						"global_delivery_rule.0.url_rewrite_action",
 					},
+					Elem: deliveryruleactions.CacheExpiration(),
 				},
 
 				"cache_key_query_string_action": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
-					Elem:     deliveryruleactions.CacheKeyQueryString(),
 					AtLeastOneOf: []string{
 						"global_delivery_rule.0.cache_expiration_action",
 						"global_delivery_rule.0.cache_key_query_string_action",
@@ -48,12 +47,12 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.url_redirect_action",
 						"global_delivery_rule.0.url_rewrite_action",
 					},
+					Elem: deliveryruleactions.CacheKeyQueryString(),
 				},
 
 				"modify_request_header_action": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem:     deliveryruleactions.ModifyRequestHeader(),
 					AtLeastOneOf: []string{
 						"global_delivery_rule.0.cache_expiration_action",
 						"global_delivery_rule.0.cache_key_query_string_action",
@@ -62,12 +61,12 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.url_redirect_action",
 						"global_delivery_rule.0.url_rewrite_action",
 					},
+					Elem: deliveryruleactions.ModifyRequestHeader(),
 				},
 
 				"modify_response_header_action": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem:     deliveryruleactions.ModifyResponseHeader(),
 					AtLeastOneOf: []string{
 						"global_delivery_rule.0.cache_expiration_action",
 						"global_delivery_rule.0.cache_key_query_string_action",
@@ -76,13 +75,13 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.url_redirect_action",
 						"global_delivery_rule.0.url_rewrite_action",
 					},
+					Elem: deliveryruleactions.ModifyResponseHeader(),
 				},
 
 				"url_redirect_action": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
-					Elem:     deliveryruleactions.URLRedirect(),
 					AtLeastOneOf: []string{
 						"global_delivery_rule.0.cache_expiration_action",
 						"global_delivery_rule.0.cache_key_query_string_action",
@@ -91,13 +90,13 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.url_redirect_action",
 						"global_delivery_rule.0.url_rewrite_action",
 					},
+					Elem: deliveryruleactions.URLRedirect(),
 				},
 
 				"url_rewrite_action": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
-					Elem:     deliveryruleactions.URLRewrite(),
 					AtLeastOneOf: []string{
 						"global_delivery_rule.0.cache_expiration_action",
 						"global_delivery_rule.0.cache_key_query_string_action",
@@ -106,6 +105,7 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.url_redirect_action",
 						"global_delivery_rule.0.url_rewrite_action",
 					},
+					Elem: deliveryruleactions.URLRewrite(),
 				},
 			},
 		},

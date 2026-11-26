@@ -59,8 +59,8 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 
 			"auto_renew": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Default:  true,
 			},
 
 			"certificates": {

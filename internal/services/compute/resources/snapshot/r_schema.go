@@ -43,8 +43,8 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether the Snapshot is incremental.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     false,
 			ForceNew:    true,
+			Default:     false,
 		},
 
 		"source_uri": {
@@ -58,8 +58,8 @@ func snapshotSchema() map[string]*pluginsdk.Schema {
 			Description:  "Policy for accessing the disk via network.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForNetworkAccessPolicy(), false),
 			Default:      string(snapshots.NetworkAccessPolicyAllowAll),
+			ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForNetworkAccessPolicy(), false),
 		},
 
 		"disk_access_id": {

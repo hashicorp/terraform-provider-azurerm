@@ -15,10 +15,10 @@ import (
 func privateDnsMxRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
+			Type: pluginsdk.TypeString,
 			// name is optional and defaults to root zone (@) if not set
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "@",
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},

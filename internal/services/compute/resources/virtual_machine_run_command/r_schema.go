@@ -107,8 +107,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "User-assigned Managed Identity that has access to errorBlobUri storage blob.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Sensitive:   true,
+			MaxItems:    1,
 			RequiredWith: []string{
 				"error_blob_uri",
 			},
@@ -149,8 +149,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "User-assigned Managed Identity that has access to outputBlobUri storage blob.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Sensitive:   true,
+			MaxItems:    1,
 			RequiredWith: []string{
 				"output_blob_uri",
 			},

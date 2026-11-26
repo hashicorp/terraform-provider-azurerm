@@ -46,9 +46,9 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 			Description:  "The URL to the KQL script blob file. Must not be used together with scriptContent property. Reference [this documentation](https://learn.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"url", "script_content"},
-			RequiredWith: []string{"sas_token"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"sas_token"},
+			ExactlyOneOf: []string{"url", "script_content"},
 		},
 
 		"sas_token": {
@@ -56,19 +56,19 @@ func kustoScriptSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"url"},
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"url"},
 		},
 
 		"script_content": {
 			Description:  "The script content. This property should be used when the script is provided inline and not through file in an SA. Must not be used together with `url` and `sas_token` properties.",
 			Type:         pluginsdk.TypeString,
-			ExactlyOneOf: []string{"url", "script_content"},
 			Optional:     true,
 			ForceNew:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{"url", "script_content"},
 		},
 
 		"script_level": {

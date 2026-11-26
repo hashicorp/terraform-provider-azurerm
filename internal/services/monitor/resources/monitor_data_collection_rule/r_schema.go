@@ -93,14 +93,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"destinations": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"azure_monitor_metrics": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
@@ -110,18 +116,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
-						},
-						AtLeastOneOf: []string{
-							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
-							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
-							"destinations.0.monitor_account", "destinations.0.storage_blob",
-							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
 					},
 					"event_hub": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -137,18 +143,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
-						},
-						AtLeastOneOf: []string{
-							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
-							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
-							"destinations.0.monitor_account", "destinations.0.storage_blob",
-							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
 					},
 					"event_hub_direct": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -165,16 +171,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
+					},
+					"log_analytics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						AtLeastOneOf: []string{
 							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
 							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
 							"destinations.0.monitor_account", "destinations.0.storage_blob",
 							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
-					},
-					"log_analytics": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
@@ -191,16 +197,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
+					},
+					"monitor_account": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						AtLeastOneOf: []string{
 							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
 							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
 							"destinations.0.monitor_account", "destinations.0.storage_blob",
 							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
-					},
-					"monitor_account": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
@@ -217,16 +223,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
+					},
+					"storage_blob": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						AtLeastOneOf: []string{
 							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
 							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
 							"destinations.0.monitor_account", "destinations.0.storage_blob",
 							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
-					},
-					"storage_blob": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
@@ -248,17 +254,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
-						},
-						AtLeastOneOf: []string{
-							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
-							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
-							"destinations.0.monitor_account", "destinations.0.storage_blob",
-							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
 					},
 					"storage_blob_direct": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
@@ -281,16 +287,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
+					},
+					"storage_table_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						AtLeastOneOf: []string{
 							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
 							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
 							"destinations.0.monitor_account", "destinations.0.storage_blob",
 							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
-					},
-					"storage_table_direct": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
@@ -312,12 +318,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
-						},
-						AtLeastOneOf: []string{
-							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
-							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
-							"destinations.0.monitor_account", "destinations.0.storage_blob",
-							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
 						},
 					},
 				},

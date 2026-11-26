@@ -16,29 +16,29 @@ type KustoClusterCustomerManagedKeyV0ToV1 struct{}
 func (s KustoClusterCustomerManagedKeyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cluster_id": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"key_name": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"key_vault_id": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"key_version": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 
 		"user_identity": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 	}
 }

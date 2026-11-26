@@ -13,27 +13,27 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew:     true,
-			Optional:     true,
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 		"management_group_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: commonids.ValidateManagementGroupID,
 		},
 		"resource_management_private_link_id": {
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: resourcemanagementprivatelink.ValidateResourceManagementPrivateLinkID,
 		},
 		"public_network_access_enabled": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeBool,
+			Required: true,
+			ForceNew: true,
 		},
 	}
 }
@@ -41,8 +41,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"tenant_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }

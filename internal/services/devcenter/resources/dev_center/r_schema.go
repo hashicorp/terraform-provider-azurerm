@@ -13,9 +13,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 		"name": {
 			Description: "The name of this Dev Center.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"project_catalog_item_sync_enabled": {
@@ -33,8 +33,8 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_uri": {
 			Description: "The URI of the Dev Center.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -76,9 +76,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"versions": {
+			Description: "A list of available Oracle Database versions and their properties.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
-			Description: "A list of available Oracle Database versions and their properties.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

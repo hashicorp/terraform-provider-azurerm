@@ -204,8 +204,8 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "Basic",
 			ForceNew:     true,
+			Default:      "Basic",
 			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
 		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}, "Subnet"),

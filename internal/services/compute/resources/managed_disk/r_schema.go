@@ -59,12 +59,12 @@ func managedDiskSchema() map[string]*pluginsdk.Schema {
 			Description: "Logical Sector Size.",
 			Type:        pluginsdk.TypeInt,
 			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			ValidateFunc: validation.IntInSlice([]int{
 				512,
 				4096,
 			}),
-			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"optimized_frequent_attach_enabled": {
@@ -183,13 +183,13 @@ func managedDiskSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disk_encryption_set_id": {
-			Description: "The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 			//    https://github.com/Azure/azure-rest-api-specs/issues/8132
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 			ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 		},
 
@@ -203,13 +203,13 @@ func managedDiskSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForNetworkAccessPolicy(), false),
 		},
 		"disk_access_id": {
-			Description: "The ID of the Disk Access resource for using Private Endpoints on disks.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The ID of the Disk Access resource for using Private Endpoints on disks.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: diskaccesses.ValidateDiskAccessID,
 			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 			//    https://github.com/Azure/azure-rest-api-specs/issues/14192
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 		},
 
 		"public_network_access_enabled": {

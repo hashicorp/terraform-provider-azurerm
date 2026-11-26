@@ -120,9 +120,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Description: "Set of authorized IP ranges to allow access to API server, e.g. `[\"198.51.100.0/24\"]`.",
-						Type:        pluginsdk.TypeSet,
-						Optional:    true,
+						Description:   "Set of authorized IP ranges to allow access to API server, e.g. `[\"198.51.100.0/24\"]`.",
+						Type:          pluginsdk.TypeSet,
+						Optional:      true,
+						ConflictsWith: []string{"private_cluster"},
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
@@ -131,18 +132,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsCIDRIPv4,
 						},
-						ConflictsWith: []string{"private_cluster"},
 					},
 
 					"subnet_id": {
-						Description: "The ID of the Subnet where the API server endpoint is delegated to. Is required for bring your own networking.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
+						Description:  "The ID of the Subnet where the API server endpoint is delegated to. Is required for bring your own networking.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
 						},
-						ValidateFunc: commonids.ValidateSubnetID,
 					},
 				},
 			},

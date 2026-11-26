@@ -30,8 +30,8 @@ func dnsPtrRecordSchema() map[string]*pluginsdk.Schema {
 			Description: "List of Fully Qualified Domain Names.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
-			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:         pluginsdk.HashString,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {

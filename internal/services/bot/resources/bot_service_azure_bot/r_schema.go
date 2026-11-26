@@ -37,8 +37,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"microsoft_app_id": {
 			Description:  "The Microsoft Application ID for the Azure Bot Service.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 

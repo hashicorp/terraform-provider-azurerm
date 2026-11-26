@@ -49,8 +49,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Description:  "The number of deployed units of the SKU.",
 						Type:         pluginsdk.TypeInt,
-						Default:      1,
 						Optional:     true,
+						Default:      1,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 				},

@@ -39,6 +39,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			ForceNew:         true,
 			Sensitive:        true,
+			ValidateFunc:     validate.WindowsAdminPassword,
 			DiffSuppressFunc: helpers.AdminPasswordDiffSuppressFunc,
 			RequiredWith: []string{
 				"admin_username",
@@ -46,14 +47,14 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
-			ValidateFunc: validate.WindowsAdminPassword,
 		},
 
 		"admin_username": {
-			Description: "The username of the local administrator used for the Virtual Machine.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			ForceNew:    true,
+			Description:  "The username of the local administrator used for the Virtual Machine.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.WindowsAdminUsername,
 			RequiredWith: []string{
 				"admin_password",
 			},
@@ -61,7 +62,6 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 				"admin_username",
 				"os_managed_disk_id",
 			},
-			ValidateFunc: validate.WindowsAdminUsername,
 		},
 
 		"network_interface_ids": {
@@ -142,13 +142,13 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"capacity_reservation_group_id": {
-			Description: "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"availability_set_id",
 				"proximity_placement_group_id",
@@ -412,23 +412,23 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_scale_set_id": {
-			Description: "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			ConflictsWith: []string{
 				"availability_set_id",
 			},
-			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 		},
 
 		"platform_fault_domain": {
 			Description:  "The Platform Fault Domain in which this Windows Virtual Machine should be created.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      -1,
 			ForceNew:     true,
-			RequiredWith: []string{"virtual_machine_scale_set_id"},
+			Default:      -1,
 			ValidateFunc: validation.IntAtLeast(-1),
+			RequiredWith: []string{"virtual_machine_scale_set_id"},
 		},
 
 		"user_data": {

@@ -32,8 +32,8 @@ func lbSchema() map[string]*pluginsdk.Schema {
 			Description:  "The SKU of the Azure Load Balancer.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
 			ForceNew:     true,
+			Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
 			ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
 		},
 
@@ -41,8 +41,8 @@ func lbSchema() map[string]*pluginsdk.Schema {
 			Description:  "`sku_tier` - The SKU tier of this Load Balancer.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(loadbalancers.LoadBalancerSkuTierRegional),
 			ForceNew:     true,
+			Default:      string(loadbalancers.LoadBalancerSkuTierRegional),
 			ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuTier(), false),
 		},
 
@@ -123,30 +123,30 @@ func lbSchema() map[string]*pluginsdk.Schema {
 						Description: "The list of IDs of load balancing rules that use this frontend IP.",
 						Type:        pluginsdk.TypeSet,
 						Computed:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"inbound_nat_rules": {
 						Description: "The list of IDs of inbound rules that use this frontend IP.",
 						Type:        pluginsdk.TypeSet,
 						Computed:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"outbound_rules": {
 						Description: "The list of IDs outbound rules that use this frontend IP.",
 						Type:        pluginsdk.TypeSet,
 						Computed:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"zones": commonschema.ZonesMultipleOptional(),

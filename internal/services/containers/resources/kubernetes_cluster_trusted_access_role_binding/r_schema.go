@@ -11,29 +11,29 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"kubernetes_cluster_id": {
 			Description: "The Kubernetes Cluster ID within which this Kubernetes Cluster Trusted Access Role Binding should exist.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"name": {
 			Description: "The name of this Kubernetes Cluster Trusted Access Role Binding.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"roles": {
 			Description: "A list of roles to bind, each item is a resource type qualified role name.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Required: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"source_resource_id": {
 			Description: "The ARM resource ID of source resource that trusted access is configured for.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 	}
 }
