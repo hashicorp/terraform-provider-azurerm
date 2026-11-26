@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorFirewallPolicyRead,
+		Description: "Use this data source to access information about an existing Front Door (standard/premium) Firewall Policy.",
+		Read:        dataSourceCdnFrontDoorFirewallPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Firewall Policy.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorFirewallPolicyName,
@@ -36,38 +38,45 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU's pricing tier for this Front Door Firewall Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Front Door Firewall Policy mode.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "The enabled state of the Front Door Firewall Policy.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"js_challenge_cookie_expiration_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Front Door Firewall Policy JavaScript challenge cookie lifetime in minutes.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"captcha_cookie_expiration_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Front Door Firewall Policy Captcha cookie lifetime in minutes.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"redirect_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The redirect URL for the client.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"frontend_endpoint_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

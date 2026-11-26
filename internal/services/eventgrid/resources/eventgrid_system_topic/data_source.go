@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceEventGridSystemTopicRead,
+		Description: "Use this data source to access information about an existing Event Grid System Topic.",
+		Read:        dataSourceEventGridSystemTopicRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,8 +31,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Event Grid System Topic resource.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.All(
 					validation.StringIsNotEmpty,
 					validation.StringMatch(
@@ -48,18 +50,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"source_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Event Grid System Topic ARM Source.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"topic_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Topic Type of the Event Grid System Topic.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"metric_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Metric Resource ID of the Event Grid System Topic.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

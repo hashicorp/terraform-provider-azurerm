@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnEndpointCreate,
-		Read:   resourceCdnEndpointRead,
-		Update: resourceCdnEndpointUpdate,
-		Delete: resourceCdnEndpointDelete,
+		Description: "A CDN (classic) Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format `<endpointname>.azureedge.net`.",
+		Create:      resourceCdnEndpointCreate,
+		Read:        resourceCdnEndpointRead,
+		Update:      resourceCdnEndpointUpdate,
+		Delete:      resourceCdnEndpointDelete,
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

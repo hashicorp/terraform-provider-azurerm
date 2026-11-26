@@ -36,3 +36,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_virtual_machine_run_command"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Virtual Machine Run Command."
+}

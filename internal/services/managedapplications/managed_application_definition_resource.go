@@ -91,8 +91,8 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-				ConflictsWith:    []string{"package_file_uri"},
 				RequiredWith:     []string{"main_template"},
+				ConflictsWith:    []string{"package_file_uri"},
 			},
 
 			"description": {
@@ -106,8 +106,8 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-				ConflictsWith:    []string{"package_file_uri"},
 				RequiredWith:     []string{"create_ui_definition"},
+				ConflictsWith:    []string{"package_file_uri"},
 			},
 
 			"package_enabled": {

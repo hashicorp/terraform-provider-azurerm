@@ -164,8 +164,8 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"single_placement_group": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
 			ForceNew: true,
+			Default:  true,
 		},
 
 		"priority": {
@@ -247,6 +247,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"provision_vm_agent": {
@@ -300,7 +301,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 		},
 
 		// lintignore:S018
@@ -309,13 +309,14 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disable_password_authentication": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
 						ForceNew: true,
+						Default:  false,
 					},
 					"ssh_keys": {
 						Type:     pluginsdk.TypeList,
@@ -335,12 +336,12 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 		},
 
 		"network_profile": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -404,33 +405,33 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								"application_gateway_backend_address_pool_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									Set:      pluginsdk.HashString,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								},
 
 								"application_security_group_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
+									MaxItems: 20,
+									Set:      pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
-									Set:      pluginsdk.HashString,
-									MaxItems: 20,
 								},
 
 								"load_balancer_backend_address_pool_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									Set:      pluginsdk.HashString,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								},
 
 								"load_balancer_inbound_nat_rules_ids": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
 									Computed: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									Set:      pluginsdk.HashString,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								},
 
 								"primary": {
@@ -466,7 +467,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
 		},
 
 		"boot_diagnostics": {
@@ -494,6 +494,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -509,8 +510,8 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"vhd_containers": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 
 					"managed_disk_type": {
@@ -536,7 +537,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
 		},
 
 		"storage_profile_data_disk": {
@@ -581,6 +581,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			MaxItems: 1,
+			Set:      resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -609,7 +610,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 		},
 
 		// lintignore:S018
@@ -640,6 +640,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"extension": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      resourceArmVirtualMachineScaleSetExtensionHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -679,7 +680,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceArmVirtualMachineScaleSetExtensionHash,
 		},
 
 		"tags": {

@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_kubernetes_cluster"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backup Instance to back up a Kubernetes Cluster."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backupinstanceresources.ValidateBackupInstanceID
 }

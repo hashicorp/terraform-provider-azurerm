@@ -13,7 +13,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBillingMCAAccountRead,
+		Description: "Use this data source to access an ID for your MCA Account billing scope.",
+		Read:        dataSourceBillingMCAAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -21,18 +22,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"billing_account_name": {
+				Description:  "The Billing Account Name of the MCA account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"billing_profile_name": {
+				Description:  "The Billing Profile Name in the above Billing Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"invoice_section_name": {
+				Description:  "The Invoice Section Name in the above Billing Profile.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,

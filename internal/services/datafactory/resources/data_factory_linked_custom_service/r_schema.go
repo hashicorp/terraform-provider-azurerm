@@ -14,6 +14,7 @@ import (
 func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Linked Service. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,12 +30,14 @@ func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The type of data stores that will be connected to Data Factory. For full list of supported data stores, refer to [Azure Data Factory connector](https://learn.microsoft.com/azure/data-factory/connector-overview). Refer to [Microsoft.DataFactory factories/linkedservices](https://learn.microsoft.com/azure/templates/microsoft.datafactory/factories/linkedservices?pivots=deployment-language-terraform) for the type values syntax.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"type_properties_json": {
+			Description:      "A JSON object that contains the properties of the Data Factory Linked Service. Refer to [datafactory/models.go](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/vendor/github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory/models.go) for the shape of the expected JSON. For example, the JSON object for `AzureBlobStorage`-typed Linked Service will be unmarshaled into `AzureBlobStorageLinkedServiceTypeProperties struct`.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			StateFunc:        pluginsdk.NormalizeJson,
@@ -41,6 +45,7 @@ func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -53,14 +58,16 @@ func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The integration runtime reference to associate with the Data Factory Linked Service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"parameters": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "A map of parameters to associate with the integration runtime.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -70,24 +77,27 @@ func dataFactoryLinkedCustomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

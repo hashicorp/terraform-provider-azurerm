@@ -22,6 +22,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_role_definition"
 }
 
+func (r Resource) Description() string {
+	return "Manages a custom Role Definition, used to assign Roles to Users/Principals. See ['Understand Role Definitions'](https://learn.microsoft.com/azure/role-based-access-control/role-definitions) in the Azure documentation for more details."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)

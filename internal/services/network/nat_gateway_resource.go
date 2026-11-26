@@ -94,13 +94,13 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zones": {
-			Type:                  schema.TypeSet,
-			Optional:              true,
-			ForceNew:              true,
-			DiffSuppressOnRefresh: true,
+			Type:     schema.TypeSet,
+			Optional: true,
+			ForceNew: true,
 			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
 				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
 			},
+			DiffSuppressOnRefresh: true,
 			Elem: &schema.Schema{
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

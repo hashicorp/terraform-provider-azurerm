@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationCredentialCreate,
-		Read:   resourceAutomationCredentialRead,
-		Update: resourceAutomationCredentialUpdate,
-		Delete: resourceAutomationCredentialDelete,
+		Description: "Manages an Automation Credential.",
+		Create:      resourceAutomationCredentialCreate,
+		Read:        resourceAutomationCredentialRead,
+		Update:      resourceAutomationCredentialUpdate,
+		Delete:      resourceAutomationCredentialDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := credential.ParseCredentialID(id)

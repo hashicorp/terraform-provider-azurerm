@@ -40,8 +40,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ForceNew:         true,
-						DiffSuppressFunc: suppress.RFC3339Time,
 						ValidateFunc:     validation.IsRFC3339Time,
+						DiffSuppressFunc: suppress.RFC3339Time,
 					},
 
 					// Enum is removed https://github.com/Azure/azure-rest-api-specs/issues/31093
@@ -127,8 +127,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"account_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -145,8 +145,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"organization_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

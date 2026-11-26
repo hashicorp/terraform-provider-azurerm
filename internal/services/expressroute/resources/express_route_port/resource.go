@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmExpressRoutePortCreate,
-		Read:   resourceArmExpressRoutePortRead,
-		Update: resourceArmExpressRoutePortUpdate,
-		Delete: resourceArmExpressRoutePortDelete,
+		Description: "Manages an Express Route Port.",
+		Create:      resourceArmExpressRoutePortCreate,
+		Read:        resourceArmExpressRoutePortRead,
+		Update:      resourceArmExpressRoutePortUpdate,
+		Delete:      resourceArmExpressRoutePortDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressrouteports.ParseExpressRoutePortID(id)
