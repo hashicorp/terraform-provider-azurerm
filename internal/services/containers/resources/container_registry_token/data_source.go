@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceContainerRegistryTokenRead,
+		Description: "Use this data source to access information about an existing Container Registry token.",
+		Read:        dataSourceContainerRegistryTokenRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,12 +28,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Container Registry token.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ContainerRegistryTokenName,
 			},
 
 			"container_registry_name": {
+				Description:  "The Name of the Container Registry where the token exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ContainerRegistryName,
@@ -41,13 +44,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"scope_map_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Scope Map ID used by the token.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this Token is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 		},
 	}

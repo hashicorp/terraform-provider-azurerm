@@ -63,7 +63,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments(
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}, "Spring Cloud Service"),
 
 		"connection_point": {
 			Type:         pluginsdk.TypeString,

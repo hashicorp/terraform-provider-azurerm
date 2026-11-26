@@ -16,14 +16,16 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
+				Description:  "The behaviour of the cache key for query strings.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringBehaviorValues(), false),
 			},
 
 			"parameters": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "Comma separated list of parameter values.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 		},
 	}

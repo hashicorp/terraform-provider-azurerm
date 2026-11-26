@@ -15,9 +15,10 @@ import (
 func devTestPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Dev Test Policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(policies.PolicyFactNameGalleryImage),
 				string(policies.PolicyFactNameLabPremiumVMCount),
@@ -31,12 +32,14 @@ func devTestPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_set_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Policy Set within the Dev Test Lab where this policy should be created.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"lab_name": {
+			Description:  "The name of the Dev Test Lab in which the Policy should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,12 +51,14 @@ func devTestPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 		"threshold": {
+			Description:  "The Threshold for this Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"evaluator_type": {
+			Description:  "The Evaluation Type used for this Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -61,13 +66,15 @@ func devTestPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for the Policy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"fact_data": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Fact Data for this Policy.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),

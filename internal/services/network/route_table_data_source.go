@@ -74,8 +74,8 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 			"subnets": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": commonschema.TagsDataSource(),

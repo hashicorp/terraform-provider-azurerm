@@ -23,7 +23,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDedicatedHostGroupRead,
+		Description: "Use this data source to access information about an existing Dedicated Host Group.",
+		Read:        dataSourceDedicatedHostGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,6 +32,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Dedicated Host Group.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[^_\W][\w-.]{0,78}[\w]$`), ""),
@@ -41,13 +43,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"platform_fault_domain_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of fault domains that the Dedicated Host Group spans.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"automatic_placement_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Virtual Machines or Virtual Machine Scale Sets be placed automatically on this Dedicated Host Group.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

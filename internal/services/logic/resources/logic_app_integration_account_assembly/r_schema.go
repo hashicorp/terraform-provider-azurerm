@@ -13,6 +13,7 @@ import (
 func logicAppIntegrationAccountAssemblySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Logic App Integration Account Assembly Artifact.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func logicAppIntegrationAccountAssemblySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"integration_account_name": {
+			Description:  "The name of the Logic App Integration Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,12 +31,14 @@ func logicAppIntegrationAccountAssemblySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"assembly_name": {
+			Description:  "The name of the Logic App Integration Account Assembly.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.IntegrationAccountAssemblyName(),
 		},
 
 		"assembly_version": {
+			Description:  "The version of the Logic App Integration Account Assembly.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "0.0.0.0",
@@ -42,6 +46,7 @@ func logicAppIntegrationAccountAssemblySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"content": {
+			Description:  "The content of the Logic App Integration Account Assembly.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -49,6 +54,7 @@ func logicAppIntegrationAccountAssemblySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"content_link_uri": {
+			Description:  "The content link URI of the Logic App Integration Account Assembly.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -56,8 +62,9 @@ func logicAppIntegrationAccountAssemblySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "The metadata of the Logic App Integration Account Assembly.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

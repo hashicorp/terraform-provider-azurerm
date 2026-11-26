@@ -39,8 +39,8 @@ func (SubscriptionConsumptionBudgetV0ToV1) Schema() map[string]*pluginsdk.Schema
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"amount": {
@@ -266,8 +266,8 @@ func (SubscriptionConsumptionBudgetV1ToV2) Schema() map[string]*pluginsdk.Schema
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"amount": {

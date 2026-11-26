@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_kubernetes_cluster_deployment_safeguard"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Deployment Safeguard for a Kubernetes Cluster."
+}

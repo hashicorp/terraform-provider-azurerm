@@ -23,6 +23,8 @@ import (
 
 type SpringCloudConnectorResource struct{}
 
+var _ sdk.ResourceWithUpdate = SpringCloudConnectorResource{}
+
 type SpringCloudConnectorResourceModel struct {
 	Name             string             `tfschema:"name"`
 	SpringCloudId    string             `tfschema:"spring_cloud_id"`

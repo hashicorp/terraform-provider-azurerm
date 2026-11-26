@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceBatchCreate,
-		Read:   resourceBatchPoolRead,
-		Update: resourceBatchUpdate,
-		Delete: resourceBatchPoolDelete,
+		Description: "Manages an Azure Batch pool.",
+		Create:      resourceBatchCreate,
+		Read:        resourceBatchPoolRead,
+		Update:      resourceBatchUpdate,
+		Delete:      resourceBatchPoolDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
