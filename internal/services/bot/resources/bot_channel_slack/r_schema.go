@@ -16,6 +16,7 @@ func botChannelSlackSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,12 +24,14 @@ func botChannelSlackSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_id": {
+			Description:  "The Client ID that will be used to authenticate with Slack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"client_secret": {
+			Description:  "The Client Secret that will be used to authenticate with Slack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -36,6 +39,7 @@ func botChannelSlackSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"verification_token": {
+			Description:  "The Verification Token that will be used to authenticate with Slack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -43,12 +47,14 @@ func botChannelSlackSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"landing_page_url": {
+			Description:  "The Slack Landing Page URL.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"signing_secret": {
+			Description:  "The Signing Secret that will be used to sign the requests.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,

@@ -24,10 +24,11 @@ import (
 
 func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbSQLRoleDefinitionCreate,
-		Read:   resourceCosmosDbSQLRoleDefinitionRead,
-		Update: resourceCosmosDbSQLRoleDefinitionUpdate,
-		Delete: resourceCosmosDbSQLRoleDefinitionDelete,
+		Description: "Manages a Cosmos DB SQL Role Definition.",
+		Create:      resourceCosmosDbSQLRoleDefinitionCreate,
+		Read:        resourceCosmosDbSQLRoleDefinitionRead,
+		Update:      resourceCosmosDbSQLRoleDefinitionUpdate,
+		Delete:      resourceCosmosDbSQLRoleDefinitionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -43,6 +44,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"role_definition_id": {
+				Description:  "The GUID as the name of the Cosmos DB SQL Role Definition - one will be generated if not specified.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -53,6 +55,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the Cosmos DB Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -60,6 +63,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"type": {
+				Description:  "The type of the Cosmos DB SQL Role Definition.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -68,8 +72,9 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"assignable_scopes": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Description: "A list of fully qualified scopes at or below which Role Assignments may be created using this Cosmos DB SQL Role Definition. It will allow application of this Cosmos DB SQL Role Definition on the entire Database Account or any underlying Database/Collection. Scopes higher than Database Account are not enforceable as assignable scopes.",
+				Type:        pluginsdk.TypeSet,
+				Required:    true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -77,6 +82,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"name": {
+				Description:  "A user-friendly name for the Cosmos DB SQL Role Definition which must be unique for the Database Account.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -88,8 +94,9 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"data_actions": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Description: "A list of data actions that are allowed for the Cosmos DB SQL Role Definition.",
+							Type:        pluginsdk.TypeSet,
+							Required:    true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,

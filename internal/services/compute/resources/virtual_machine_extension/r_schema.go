@@ -14,9 +14,10 @@ import (
 func virtualMachineExtensionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Virtual Machine Extension.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringDoesNotContainAny("/"),
@@ -24,6 +25,7 @@ func virtualMachineExtensionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_id": {
+			Description:  "The ID of the Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,38 +33,45 @@ func virtualMachineExtensionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"publisher": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The publisher of the extension, available publishers can be found by using the Azure CLI.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The type of extension, available types for a publisher can be found using the Azure CLI.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"type_handler_version": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The version of the extension to use, available versions can be found using the Azure CLI.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"auto_upgrade_minor_version": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the platform deploys the latest minor version update to the `type_handler_version` specified.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"automatic_upgrade_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the Extension should be automatically updated whenever the Publisher releases a new version of this VM Extension.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"failure_suppression_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether failures from the extension should be suppressed.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"settings": {
+			Description:      "The settings passed to the extension, these are specified as a JSON object in a string.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -71,6 +80,7 @@ func virtualMachineExtensionSchema() map[string]*pluginsdk.Schema {
 
 		// due to the sensitive nature, these are not returned by the API
 		"protected_settings": {
+			Description:      "The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
@@ -82,8 +92,9 @@ func virtualMachineExtensionSchema() map[string]*pluginsdk.Schema {
 		"protected_settings_from_key_vault": helpers.ProtectedSettingsFromKeyVaultSchema(true),
 
 		"provision_after_extensions": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "The collection of extension names after which this extension needs to be provisioned.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

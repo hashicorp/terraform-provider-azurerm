@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceContainerRegistryTokenCreate,
-		Read:   resourceContainerRegistryTokenRead,
-		Update: resourceContainerRegistryTokenUpdate,
-		Delete: resourceContainerRegistryTokenDelete,
+		Description: "Manages an Azure Container Registry token associated to a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/azure/container-registry/container-registry-repository-scoped-permissions).",
+		Create:      resourceContainerRegistryTokenCreate,
+		Read:        resourceContainerRegistryTokenRead,
+		Update:      resourceContainerRegistryTokenUpdate,
+		Delete:      resourceContainerRegistryTokenDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := tokens.ParseTokenID(id)

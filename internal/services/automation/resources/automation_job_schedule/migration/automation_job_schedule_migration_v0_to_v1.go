@@ -19,44 +19,44 @@ type AutomationJobScheduleV0ToV1 struct{}
 func (s AutomationJobScheduleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"automation_account_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"job_schedule_id": {
-			Computed: true,
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 		"parameters": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			ForceNew: true,
-			Optional: true,
 			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			ForceNew: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 		"resource_group_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"resource_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"run_on": {
-			ForceNew: true,
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
 		},
 		"runbook_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"schedule_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 	}
 }

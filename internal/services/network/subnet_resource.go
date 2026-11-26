@@ -159,14 +159,9 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"address_prefixes": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				MinItems:     1,
-				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
 				DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
 					// If `ip_address_pool` is used instead of `address_prefixes` there is a perpetual diff
 					// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
@@ -178,11 +173,18 @@ func resourceSubnet() *pluginsdk.Resource {
 
 					return false
 				},
+				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 
 			"service_endpoint": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Temporary solution, see function notes for detail.
+				DiffSuppressFunc: subnetServiceEndpointDiffSuppress,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {
@@ -197,8 +199,6 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
-				// Temporary solution, see function notes for detail.
-				DiffSuppressFunc: subnetServiceEndpointDiffSuppress,
 			},
 
 			"service_endpoint_policy_ids": {
@@ -297,8 +297,8 @@ func resourceSubnet() *pluginsdk.Resource {
 
 			"default_outbound_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Default:  true,
 			},
 
 			"private_endpoint_network_policies": {
@@ -318,15 +318,15 @@ func resourceSubnet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				WriteOnly:    true,
-				RequiredWith: []string{"network_security_group_id_wo_version"},
 				ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
+				RequiredWith: []string{"network_security_group_id_wo_version"},
 			},
 
 			"network_security_group_id_wo_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				RequiredWith: []string{"network_security_group_id_wo"},
 				ValidateFunc: validation.IntAtLeast(1),
+				RequiredWith: []string{"network_security_group_id_wo"},
 			},
 
 			"network_security_group_id": {
@@ -338,15 +338,15 @@ func resourceSubnet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				WriteOnly:    true,
-				RequiredWith: []string{"route_table_id_wo_version"},
 				ValidateFunc: routetables.ValidateRouteTableID,
+				RequiredWith: []string{"route_table_id_wo_version"},
 			},
 
 			"route_table_id_wo_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				RequiredWith: []string{"route_table_id_wo"},
 				ValidateFunc: validation.IntAtLeast(1),
+				RequiredWith: []string{"route_table_id_wo"},
 			},
 
 			"route_table_id": {

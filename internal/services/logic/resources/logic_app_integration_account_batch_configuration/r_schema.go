@@ -15,6 +15,7 @@ import (
 func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Logic App Integration Account Batch Configuration. Only Alphanumeric characters allowed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"integration_account_name": {
+			Description:  "The name of the Logic App Integration Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 		},
 
 		"batch_group_name": {
+			Description:  "The batch group name of the Logic App Integration Batch Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -44,6 +47,7 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"batch_size": {
+						Description:  "The batch size in bytes for the Logic App Integration Batch Configuration.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 83886080),
@@ -51,6 +55,7 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 					},
 
 					"message_count": {
+						Description:  "The message count for the Logic App Integration Batch Configuration.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(1, 8000),
@@ -65,22 +70,25 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"frequency": {
+									Description:  "The frequency of the schedule.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(integrationaccountbatchconfigurations.PossibleValuesForRecurrenceFrequency(), false),
 								},
 
 								"interval": {
+									Description:  "The number of `frequency`s between runs.",
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
 
 								"end_time": {
+									Description:      "The end time of the schedule, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Optional:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"schedule": {
@@ -90,8 +98,9 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"hours": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description: "A list containing a single item, which specifies the Hour interval at which this recurrence should be triggered.",
+												Type:        pluginsdk.TypeSet,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeInt,
 													ValidateFunc: validation.IntBetween(0, 23),
@@ -99,8 +108,9 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 											},
 
 											"minutes": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description: "A list containing a single item which specifies the Minute interval at which this recurrence should be triggered.",
+												Type:        pluginsdk.TypeSet,
+												Optional:    true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeInt,
 													ValidateFunc: validation.IntBetween(0, 59),
@@ -108,8 +118,10 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 											},
 
 											"month_days": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description:   "A list of days of the month that the job should execute on.",
+												Type:          pluginsdk.TypeSet,
+												Optional:      true,
+												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeInt,
 													ValidateFunc: validation.All(
@@ -117,23 +129,25 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 														validation.IntNotInSlice([]int{0}),
 													),
 												},
-												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 											},
 
 											"monthly": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Type:          pluginsdk.TypeSet,
+												Optional:      true,
+												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"weekday": {
+															Description:  "The day of the occurrence.",
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ValidateFunc: validation.StringInSlice(integrationaccountbatchconfigurations.PossibleValuesForDayOfWeek(), false),
 														},
 
 														"week": {
-															Type:     pluginsdk.TypeInt,
-															Required: true,
+															Description: "The occurrence of the week within the month.",
+															Type:        pluginsdk.TypeInt,
+															Required:    true,
 															ValidateFunc: validation.All(
 																validation.IntBetween(-5, 5),
 																validation.IntNotInSlice([]int{0}),
@@ -141,30 +155,32 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 														},
 													},
 												},
-												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 											},
 
 											"week_days": {
-												Type:     pluginsdk.TypeSet,
-												Optional: true,
+												Description:   "A list of days of the week that the job should execute on.",
+												Type:          pluginsdk.TypeSet,
+												Optional:      true,
+												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.StringInSlice(integrationaccountbatchconfigurations.PossibleValuesForDaysOfWeek(), false),
 												},
-												ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 											},
 										},
 									},
 								},
 
 								"start_time": {
+									Description:      "The start time of the schedule, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Optional:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"time_zone": {
+									Description:  "The timezone of the start/end time.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.BatchConfigurationRecurrenceTimeZone(),
@@ -177,8 +193,9 @@ func logicAppIntegrationAccountBatchConfigurationSchema() map[string]*pluginsdk.
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A JSON mapping of any Metadata for this Logic App Integration Account Batch Configuration.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

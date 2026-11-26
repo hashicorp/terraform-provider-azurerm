@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
-		Read:   resourceDevTestGlobalVMShutdownScheduleRead,
-		Update: resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
-		Delete: resourceDevTestGlobalVMShutdownScheduleDelete,
+		Description: "Manages automated shutdown schedules for Azure VMs that are not within an Azure DevTest Lab. While this is part of the DevTest Labs service in Azure, this resource applies only to standard VMs, not DevTest Lab VMs. To manage automated shutdown schedules for DevTest Lab VMs, reference the [`azurerm_dev_test_schedule` resource](dev_test_schedule.html).",
+		Create:      resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
+		Read:        resourceDevTestGlobalVMShutdownScheduleRead,
+		Update:      resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
+		Delete:      resourceDevTestGlobalVMShutdownScheduleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := globalschedules.ParseScheduleID(id)
 			return err

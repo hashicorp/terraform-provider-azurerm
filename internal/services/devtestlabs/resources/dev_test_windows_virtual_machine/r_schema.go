@@ -15,6 +15,7 @@ import (
 func devTestWindowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Dev Test Machine.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func devTestWindowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"lab_name": {
+			Description:  "The name of the Dev Test Lab in which the Virtual Machine should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,30 +37,34 @@ func devTestWindowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"size": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The Machine Size to use for this Virtual Machine, such as `Standard_D4_v5`.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			// since this isn't returned from the API
 			ForceNew: true,
 		},
 
 		"username": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Username associated with the local administrator on this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"password": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The Password associated with the `username` used to login to this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			// since this isn't returned from the API
 			ForceNew:  true,
 			Sensitive: true,
 		},
 
 		"storage_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The type of Storage to use on this Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
 				"Premium",
@@ -66,29 +72,33 @@ func devTestWindowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"lab_subnet_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of a Subnet within the Dev Test Virtual Network where this machine should exist.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			// since this isn't returned from the API
 			ForceNew: true,
 		},
 
 		"lab_virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The ID of the Dev Test Virtual Network where this Virtual Machine should be created.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			// since this isn't returned from the API
 			ForceNew: true,
 		},
 
 		"allow_claim": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Virtual Machine can be claimed by users.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"disallow_public_ip_address": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Whether the Virtual Machine should be created without a Public IP Address.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"gallery_image_reference": helpers.SchemaDevTestVirtualMachineGalleryImageReference(),
@@ -96,20 +106,23 @@ func devTestWindowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"inbound_nat_rule": helpers.SchemaDevTestVirtualMachineInboundNatRule(),
 
 		"notes": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Any notes about the Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"unique_identifier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The unique immutable identifier of the Virtual Machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
