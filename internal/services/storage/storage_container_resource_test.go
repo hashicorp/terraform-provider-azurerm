@@ -234,8 +234,9 @@ resource "azurerm_storage_container" "test" {
   encryption_scope_override_enabled = true
 
   metadata = {
-    k1 = "v1"
-    k2 = "v2"
+    k1           = "v1"
+    k2           = "v2"
+    UpperCaseKey = "value"
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
@@ -294,8 +295,9 @@ resource "azurerm_storage_container" "test" {
   storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "%s"
   metadata = {
-    foo  = "bar"
-    test = "%s"
+    foo          = "bar"
+    test         = "%s"
+    UpperCaseKey = "value"
   }
 }
 `, r.template(data), accessType, metadataVal)

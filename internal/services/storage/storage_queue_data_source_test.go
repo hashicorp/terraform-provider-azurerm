@@ -20,7 +20,7 @@ func TestAccDataSourceStorageQueue_basic(t *testing.T) {
 		{
 			Config: StorageQueueDataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.%").HasValue("3"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
 				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestsadsc%[1]s.queue.core.windows.net/acctestqueuedstest-%[1]s", data.RandomString)),
@@ -53,8 +53,9 @@ resource "azurerm_storage_queue" "test" {
   name               = "acctestqueuedstest-%[1]s"
   storage_account_id = azurerm_storage_account.test.id
   metadata = {
-    k1 = "v1"
-    k2 = "v2"
+    k1           = "v1"
+    k2           = "v2"
+    UpperCaseKey = "value"
   }
 }
 

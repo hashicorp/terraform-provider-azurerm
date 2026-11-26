@@ -272,7 +272,8 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
   properties = {
-    key = "%s"
+    key          = "%s"
+    UpperCaseKey = "dmFsdWU="
   }
 }
 `, template, data.RandomInteger, value)
