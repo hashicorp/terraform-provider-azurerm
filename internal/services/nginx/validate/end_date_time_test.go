@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate_test
@@ -12,7 +12,7 @@ import (
 
 func TestValidateNetAppBackupPolicyCombinedRetention(t *testing.T) {
 	cases := []struct {
-		input interface{}
+		input any
 		valid bool
 	}{
 		{

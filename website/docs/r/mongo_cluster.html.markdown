@@ -77,13 +77,19 @@ The following arguments are supported:
 
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
 
+* `cosmos_db_network_bypass_enabled` - (Optional) Whether Cosmos DB network bypass is enabled for the MongoDB Cluster. Defaults to `false`.
+
+~> **Note:** `cosmos_db_network_bypass_enabled` can only be set to `true` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet because Entra ID-only authentication is not supported there.
+
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
 * `public_network_access` - (Optional) The Public Network Access setting for the MongoDB Cluster. Possibles values are `Disabled` and `Enabled`. Defaults to `Enabled`.
 
 * `storage_size_in_gb` - (Optional) The size of the data disk space for the MongoDB Cluster.
 
-* `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
+* `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Changing this forces a new resource to be created.
+
+-> **Note:** When `storage_type` is omitted, Azure will determine the preferred type based on the region's availability.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 

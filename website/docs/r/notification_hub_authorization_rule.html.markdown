@@ -75,9 +75,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_access_key` - The Secondary Access Key associated with this Authorization Rule.
 
-* `primary_connection_string` - The Primary Connetion String associated with this Authorization Rule.
+* `primary_connection_string` - The Primary Connection String associated with this Authorization Rule.
 
-* `secondary_connection_string` - The Secondary Connetion String associated with this Authorization Rule.
+* `secondary_connection_string` - The Secondary Connection String associated with this Authorization Rule.
 
 ## Timeouts
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package azure
@@ -22,12 +22,12 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		DiffSuppressFunc: suppress.CaseDifference,
 		ValidateFunc:     resourcegroups.ValidateName,
+		DiffSuppressFunc: suppress.CaseDifference,
 	}
 }
 
-func ValidateResourceID(i interface{}, k string) (warnings []string, errors []error) {
+func ValidateResourceID(i any, k string) (warnings []string, errors []error) {
 	// ValidateResourceID should only be used when a more specific Resource ID validation function
 	// is unavailable.
 	// If in doubt, prefer a validation function that supports multiple types of validation functions

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package templatehelpers
@@ -42,7 +42,7 @@ func TerraformResourceName(provider, resourceName string) string {
 	return fmt.Sprintf(fmtStr, strings.ToLower(provider), pluginsdk.ToSnakeCase(resourceName))
 }
 
-func ToString(value interface{}) string {
+func ToString(value any) string {
 	switch v := value.(type) {
 	case string:
 		return v

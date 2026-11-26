@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package templatehelpers
@@ -54,7 +54,7 @@ func Terrafmt(path string) error {
 	cmd := exec.CommandContext(context.Background(), "terrafmt", "fmt", "-f", path)
 	if _, err := cmd.Output(); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("missing terrafmt, please ensure katbyte/terrafmt is installed (`go install github.com/katbyte/terrafmt@latest`) and discoverable in your PATH")
+			return fmt.Errorf("missing terrafmt, please run via make (which builds the pinned .tools/bin/terrafmt and adds it to PATH) or ensure katbyte/terrafmt is discoverable in your PATH")
 		}
 		return err
 	}

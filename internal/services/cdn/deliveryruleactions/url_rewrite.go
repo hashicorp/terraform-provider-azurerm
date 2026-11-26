@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,31 +16,34 @@ func URLRewrite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_pattern": {
+				Description:  "This value must start with a `/` and can't be longer than 260 characters.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteSourcePattern(),
 			},
 
 			"destination": {
+				Description:  "This value must start with a `/` and can't be longer than 260 characters.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.RuleActionUrlRewriteDestination(),
 			},
 
 			"preserve_unmatched_path": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Description: "Whether preserve an unmatched path.",
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     true,
 			},
 		},
 	}
 }
 
-func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionURLRewrite(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		output = append(output, cdn.URLRewriteAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameURLRewrite,
@@ -56,7 +59,7 @@ func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeli
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRewriteAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule url rewrite action")
@@ -79,7 +82,7 @@ func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"destination":             destination,
 		"preserve_unmatched_path": preserveUnmatchedPath,
 		"source_pattern":          sourcePattern,
