@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -87,7 +88,7 @@ func (r DataProtectionBackupPolicyDiskResource) Exists(ctx context.Context, clie
 }
 
 func (r DataProtectionBackupPolicyDiskResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	template := fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -96,15 +97,34 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-dataprotection-%d"
   location = "%s"
 }
+`, data.RandomInteger, data.Locations.Primary)
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dbv-%d"
+  name                = "acctest-bv-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, template, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r DataProtectionBackupPolicyDiskResource) basic(data acceptance.TestData) string {
