@@ -5,7 +5,7 @@ package kusto_attached_database_configuration
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
@@ -36,7 +36,7 @@ func RegisterResource() *pluginsdk.Resource {
 			databaseNameOverride := diff.Get("database_name_override").(string)
 
 			if databaseName == "*" && databaseNameOverride != "" {
-				return fmt.Errorf("cannot set `database_name_override` when `database_name` is set to `*` (all databases)")
+				return errors.New("cannot set `database_name_override` when `database_name` is set to `*` (all databases)")
 			}
 			return nil
 		}),

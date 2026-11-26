@@ -5,6 +5,7 @@ package container_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -126,7 +127,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				if ingress.IsSessionAffinity &&
 					(app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) ||
 						ingress.Transport == string(containerapps.IngressTransportMethodTcp)) {
-					return fmt.Errorf("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`")
+					return errors.New("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`")
 				}
 
 				// Ingress traffic weight validations

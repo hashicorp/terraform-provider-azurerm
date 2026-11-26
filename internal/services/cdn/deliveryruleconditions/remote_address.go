@@ -4,7 +4,7 @@
 package deliveryruleconditions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,7 +64,7 @@ func ExpandArmCdnEndpointConditionRemoteAddress(input []any) []cdn.BasicDelivery
 func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleRemoteAddressCondition()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule address condition")
+		return nil, errors.New("expected a delivery rule address condition")
 	}
 
 	operator := ""

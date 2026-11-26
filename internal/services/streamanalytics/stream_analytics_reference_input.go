@@ -5,6 +5,7 @@ package streamanalytics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -29,7 +30,7 @@ func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 			if props := model.Properties; props != nil {
 				reference, ok := props.(inputs.ReferenceInputProperties)
 				if !ok {
-					return nil, fmt.Errorf("failed to convert to Reference Input")
+					return nil, errors.New("failed to convert to Reference Input")
 				}
 
 				var actualType string

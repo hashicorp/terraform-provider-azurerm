@@ -4,7 +4,7 @@
 package shared_image
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,7 +70,7 @@ func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*galleryimages.Re
 	maxVcpuCount := d.Get("max_recommended_vcpu_count").(int)
 	minVcpuCount := d.Get("min_recommended_vcpu_count").(int)
 	if maxVcpuCount != 0 && minVcpuCount != 0 && maxVcpuCount < minVcpuCount {
-		return nil, fmt.Errorf("`max_recommended_vcpu_count` must be greater than or equal to `min_recommended_vcpu_count`")
+		return nil, errors.New("`max_recommended_vcpu_count` must be greater than or equal to `min_recommended_vcpu_count`")
 	}
 	if maxVcpuCount != 0 {
 		result.VCPUs.Max = pointer.To(int64(maxVcpuCount))
@@ -82,7 +82,7 @@ func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*galleryimages.Re
 	maxMemory := d.Get("max_recommended_memory_in_gb").(int)
 	minMemory := d.Get("min_recommended_memory_in_gb").(int)
 	if maxMemory != 0 && minMemory != 0 && maxMemory < minMemory {
-		return nil, fmt.Errorf("`max_recommended_memory_in_gb` must be greater than or equal to `min_recommended_memory_in_gb`")
+		return nil, errors.New("`max_recommended_memory_in_gb` must be greater than or equal to `min_recommended_memory_in_gb`")
 	}
 	if maxMemory != 0 {
 		result.Memory.Max = pointer.To(int64(maxMemory))

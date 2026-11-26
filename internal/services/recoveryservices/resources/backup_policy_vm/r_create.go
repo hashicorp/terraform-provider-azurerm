@@ -4,6 +4,7 @@
 package backup_policy_vm
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -69,7 +70,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta any)
 	if d.HasChange("instant_restore_retention_days") {
 		days := d.Get("instant_restore_retention_days").(int)
 		if protectionpolicies.IAASVMPolicyTypeVOne == policyType && days > 5 {
-			return fmt.Errorf("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
+			return errors.New("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
 		}
 
 		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = pointer.To(int64(days))

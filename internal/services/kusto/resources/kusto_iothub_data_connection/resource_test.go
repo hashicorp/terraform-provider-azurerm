@@ -5,6 +5,7 @@ package kusto_iothub_data_connection_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -99,7 +100,7 @@ func (KustoIotHubDataConnectionResource) Exists(ctx context.Context, clients *cl
 		}
 		return pointer.To(value.Properties != nil), nil
 	} else {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 }
 

@@ -5,6 +5,7 @@ package servicebus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -685,7 +686,7 @@ func expandSystemAndUserAssignedMap(input []any) (*identity.SystemAndUserAssigne
 func servicebusTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
-		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+		err = errors.New("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
 	return
 }
@@ -707,7 +708,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
 	if defaultAction == namespaces.DefaultActionDeny && vnetRule == nil && ipRule == nil {
-		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
+		return errors.New(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
 	}
 
 	parameters := namespaces.NetworkRuleSet{

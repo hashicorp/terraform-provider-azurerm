@@ -4,6 +4,7 @@
 package lb
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -45,7 +46,7 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if strings.EqualFold(d.Get("sku_tier").(string), string(loadbalancers.LoadBalancerSkuTierGlobal)) {
 		if !strings.EqualFold(d.Get("sku").(string), string(loadbalancers.LoadBalancerSkuNameStandard)) {
-			return fmt.Errorf("global load balancing is only supported for standard SKU load balancers")
+			return errors.New("global load balancing is only supported for standard SKU load balancers")
 		}
 	}
 

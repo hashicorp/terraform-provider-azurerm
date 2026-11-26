@@ -4,6 +4,7 @@
 package streamanalytics
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -149,9 +150,9 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 	refreshType := d.Get("refresh_type").(string)
 
 	if _, ok := d.GetOk("refresh_interval_duration"); refreshType != "Static" && !ok {
-		return fmt.Errorf("refresh_interval_duration must be set if refresh_type is RefreshPeriodicallyWithFull or RefreshPeriodicallyWithDelta")
+		return errors.New("refresh_interval_duration must be set if refresh_type is RefreshPeriodicallyWithFull or RefreshPeriodicallyWithDelta")
 	} else if _, ok = d.GetOk("delta_snapshot_query"); refreshType == "Static" && ok {
-		return fmt.Errorf("delta_snapshot_query cannot be set if refresh_type is Static")
+		return errors.New("delta_snapshot_query cannot be set if refresh_type is Static")
 	}
 
 	properties := &inputs.AzureSqlReferenceInputDataSourceProperties{

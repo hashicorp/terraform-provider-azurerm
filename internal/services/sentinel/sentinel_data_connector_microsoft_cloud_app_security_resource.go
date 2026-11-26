@@ -4,6 +4,7 @@
 package sentinel
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -109,7 +110,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 
 	// Service will not create the DC in case non of the toggle is enabled.
 	if !alertsEnabled && !discoveryLogsEnabled {
-		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
+		return errors.New("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
 	}
 
 	alertState := dataconnectors.DataTypeStateEnabled

@@ -5,6 +5,7 @@ package kusto_attached_database_configuration_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -97,7 +98,7 @@ func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, cl
 	}
 
 	if resp.Model == nil {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 
 	return pointer.To(resp.Model.Properties != nil), nil

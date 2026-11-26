@@ -5,6 +5,7 @@ package windows_web_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -93,7 +94,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				if servicePlan.Model.Sku != nil && servicePlan.Model.Sku.Name != nil {
 					if helpers.IsFreeOrSharedServicePlan(*servicePlan.Model.Sku.Name) {
 						if sc.AlwaysOn {
-							return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+							return errors.New("always_on cannot be set to true when using Free, F1, D1 Sku")
 						}
 					}
 				}

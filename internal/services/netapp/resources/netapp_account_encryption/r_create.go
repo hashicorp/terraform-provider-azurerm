@@ -5,6 +5,7 @@ package netapp_account_encryption
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			if model.NetAppAccountID == "" {
-				return fmt.Errorf("netapp_account_id is empty")
+				return errors.New("netapp_account_id is empty")
 			}
 
 			accountID, err := netappaccounts.ParseNetAppAccountID(model.NetAppAccountID)

@@ -52,7 +52,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 				if lb.Sku != nil && pointer.From(lb.Sku.Tier) == loadbalancers.LoadBalancerSkuTierGlobal {
 					if model.FrontendIPConfiguration == "" {
-						return fmt.Errorf("please set a Regional Backend Address Pool Addresses for the Global load balancer")
+						return errors.New("please set a Regional Backend Address Pool Addresses for the Global load balancer")
 					}
 				}
 
@@ -72,7 +72,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 				if lb.Sku != nil && pointer.From(lb.Sku.Tier) == loadbalancers.LoadBalancerSkuTierRegional {
 					if pointer.From(pool.Model.Properties.SyncMode) != "Manual" && (model.IPAddress != "" && model.VirtualNetworkId == "" || model.IPAddress == "" && model.VirtualNetworkId != "") {
-						return fmt.Errorf("for regional load balancer, `ip_address` and `virtual_network_id` should be specified when sync mode is not `Manual`")
+						return errors.New("for regional load balancer, `ip_address` and `virtual_network_id` should be specified when sync mode is not `Manual`")
 					}
 				}
 

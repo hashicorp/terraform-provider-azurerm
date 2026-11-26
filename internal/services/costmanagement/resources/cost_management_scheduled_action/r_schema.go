@@ -5,7 +5,7 @@ package cost_management_scheduled_action
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
@@ -142,7 +142,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.Client.Account.AuthenticatedAsAServicePrincipal && metadata.ResourceDiff.Get("email_address_sender") == "" {
-				return fmt.Errorf("`email_address_sender` is required when authenticated as a service principal")
+				return errors.New("`email_address_sender` is required when authenticated as a service principal")
 			}
 			return nil
 		},

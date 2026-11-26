@@ -5,6 +5,7 @@ package lb_backend_address_pool_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -239,13 +240,13 @@ func (r LbBackendAddressPoolResource) Destroy(ctx context.Context, client *clien
 		return nil, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q)", id.LoadBalancerName, id.ResourceGroupName)
 	}
 	if lb.Model == nil {
-		return nil, fmt.Errorf("`model` was nil")
+		return nil, errors.New("`model` was nil")
 	}
 	if lb.Model.Properties == nil {
-		return nil, fmt.Errorf("`properties` was nil")
+		return nil, errors.New("`properties` was nil")
 	}
 	if lb.Model.Properties.BackendAddressPools == nil {
-		return nil, fmt.Errorf("`properties.BackendAddressPools` was nil")
+		return nil, errors.New("`properties.BackendAddressPools` was nil")
 	}
 
 	backendAddressPools := make([]loadbalancers.BackendAddressPool, 0)

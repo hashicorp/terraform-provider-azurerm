@@ -5,7 +5,7 @@ package web_app_hybrid_connection
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -42,7 +42,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		if helpers.PlanIsConsumption(sku) || helpers.PlanIsElastic(sku) {
-			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption or Elastic service plans")
+			return errors.New("unsupported plan type. Hybrid Connections are not supported on Consumption or Elastic service plans")
 		}
 
 		return nil

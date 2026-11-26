@@ -4,6 +4,7 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -181,7 +182,7 @@ func isValidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
 
 func isInvalidConfig(_ KubeConfig, encodedConfig string) (bool, error) {
 	if _, err := ParseKubeConfig(encodedConfig); err == nil {
-		return false, fmt.Errorf("expected test to throw error but didn't")
+		return false, errors.New("expected test to throw error but didn't")
 	}
 	return true, nil
 }

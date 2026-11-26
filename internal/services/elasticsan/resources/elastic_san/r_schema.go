@@ -5,6 +5,7 @@ package elastic_san
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -130,11 +131,11 @@ func (k Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("base_size_in_tib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("new base_size_in_tib should be greater than the existing one")
+				return errors.New("new base_size_in_tib should be greater than the existing one")
 			}
 
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("extended_size_in_tib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("new extended_size_in_tib should be greater than the existing one")
+				return errors.New("new extended_size_in_tib should be greater than the existing one")
 			}
 
 			return nil
