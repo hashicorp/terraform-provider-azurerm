@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_alexa
@@ -17,6 +17,7 @@ func botChannelAlexaSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func botChannelAlexaSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"skill_id": {
+			Description:  "The Alexa skill ID for the Alexa Channel.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

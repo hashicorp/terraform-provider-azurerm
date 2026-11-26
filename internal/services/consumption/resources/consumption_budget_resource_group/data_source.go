@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package consumption_budget_resource_group
@@ -18,25 +18,29 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: resourceArmConsumptionBudgetResourceGroupDataSourceRead,
+		Description: "Use this data source to access information about an existing Consumption Budget for a specific Resource Group.",
+		Read:        resourceArmConsumptionBudgetResourceGroupDataSourceRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Consumption Budget.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ConsumptionBudgetName(),
 			},
 
 			"resource_group_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The ID of the subscription.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"amount": {
-				Type:     pluginsdk.TypeFloat,
-				Computed: true,
+				Description: "The total amount of cost to track with the budget.",
+				Type:        pluginsdk.TypeFloat,
+				Computed:    true,
 			},
 
 			"filter": {
@@ -50,12 +54,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The name of the column to use for the filter.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The operator to use for comparison.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"values": {
 										Type:     pluginsdk.TypeList,
@@ -73,16 +79,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The name of the tag used for the filter.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The operator used for comparison.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"values": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
+										Description: "A list of values for the tag.",
+										Type:        pluginsdk.TypeList,
+										Computed:    true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
@@ -101,12 +110,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"name": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The name of the column to use for the filter.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The operator to use for comparison.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 												"values": {
 													Type:     pluginsdk.TypeList,
@@ -124,16 +135,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"name": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The name of the tag used for the filter.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The operator used for comparison.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 												"values": {
-													Type:     pluginsdk.TypeList,
-													Computed: true,
+													Description: "A list of values for the tag.",
+													Type:        pluginsdk.TypeList,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -154,41 +168,47 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the notification is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"threshold": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "Threshold value associated with the notification.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"threshold_type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The comparison operator for the notification.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"contact_emails": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of email addresses to send the budget notification to when the threshold is exceeded.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"contact_groups": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of Action Group IDs to send the budget notification to when the threshold is exceeded.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"contact_roles": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of contact roles to send the budget notification to when the threshold is exceeded.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -198,8 +218,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"time_grain": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The time covered by a budget.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"time_period": {
@@ -208,12 +229,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"start_date": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The start date for the budget.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"end_date": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The end date for the budget.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

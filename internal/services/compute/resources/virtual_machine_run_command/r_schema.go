@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_run_command
@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Virtual Machine Run Command.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_id": {
+			Description:  "The Virtual Machine ID within which this Virtual Machine Run Command should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,9 +30,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"source": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
+			Description: "The source of the run command script.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"command_id": {
@@ -74,6 +77,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
+									Description:  "The client ID of the Managed Identity.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -83,6 +87,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"object_id": {
+									Description:  "The object ID of the Managed Identity.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Sensitive:    true,
@@ -99,16 +104,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"error_blob_managed_identity": {
-			Type:      pluginsdk.TypeList,
-			Optional:  true,
-			MaxItems:  1,
-			Sensitive: true,
+			Description: "User-assigned Managed Identity that has access to errorBlobUri storage blob.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Sensitive:   true,
+			MaxItems:    1,
 			RequiredWith: []string{
 				"error_blob_uri",
 			},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
+						Description:  "The client ID of the Managed Identity.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -118,6 +125,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"object_id": {
+						Description:  "The object ID of the Managed Identity.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -131,22 +139,25 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"error_blob_uri": {
+			Description:  "The Azure storage blob where script error stream will be uploaded.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"output_blob_managed_identity": {
-			Type:      pluginsdk.TypeList,
-			Optional:  true,
-			MaxItems:  1,
-			Sensitive: true,
+			Description: "User-assigned Managed Identity that has access to outputBlobUri storage blob.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Sensitive:   true,
+			MaxItems:    1,
 			RequiredWith: []string{
 				"output_blob_uri",
 			},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
+						Description:  "The client ID of the Managed Identity.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -156,6 +167,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"object_id": {
+						Description:  "The object ID of the Managed Identity.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,
@@ -169,22 +181,26 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"output_blob_uri": {
+			Description:  "The Azure storage blob where script output stream will be uploaded.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"parameter": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "The parameters used by the script.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The run parameter name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"value": {
+						Description:  "The run parameter value.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -194,18 +210,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protected_parameter": {
-			Type:      pluginsdk.TypeList,
-			Optional:  true,
-			Sensitive: true,
+			Description: "The protected parameters used by the script.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Sensitive:   true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The run parameter name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"value": {
+						Description:  "The run parameter value.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -216,6 +235,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"run_as_password": {
+			Description:  "The user account password on the VM when executing the Virtual Machine Run Command.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -223,6 +243,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"run_as_user": {
+			Description:  "The user account on the VM when executing the Virtual Machine Run Command.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_data_disk_attachment
@@ -63,10 +63,11 @@ type KeyEncryptionKey struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
-		Read:   resourceVirtualMachineDataDiskAttachmentRead,
-		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
-		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
+		Description: "Manages attaching a Disk to a Virtual Machine.",
+		Create:      resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Read:        resourceVirtualMachineDataDiskAttachmentRead,
+		Update:      resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Delete:      resourceVirtualMachineDataDiskAttachmentDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataDiskID(id)
 			return err

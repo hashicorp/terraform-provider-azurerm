@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package api_connection
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiConnectionCreate,
-		Read:   resourceApiConnectionRead,
-		Update: resourceApiConnectionUpdate,
-		Delete: resourceApiConnectionDelete,
+		Description: "Manages an API Connection.",
+		Create:      resourceApiConnectionCreate,
+		Read:        resourceApiConnectionRead,
+		Update:      resourceApiConnectionUpdate,
+		Delete:      resourceApiConnectionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

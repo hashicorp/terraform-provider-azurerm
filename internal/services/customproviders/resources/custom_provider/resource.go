@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package custom_provider
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCustomProviderCreateUpdate,
-		Read:   resourceCustomProviderRead,
-		Update: resourceCustomProviderCreateUpdate,
-		Delete: resourceCustomProviderDelete,
+		Description: "Manages an Azure Custom Provider.",
+		Create:      resourceCustomProviderCreateUpdate,
+		Read:        resourceCustomProviderRead,
+		Update:      resourceCustomProviderCreateUpdate,
+		Delete:      resourceCustomProviderDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&customresourceprovider.ResourceProviderId{}),
 		Identity: &schema.ResourceIdentity{

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -55,7 +55,7 @@ func (ManagerRoutingRuleCollectionResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 
-		"routing_configuration_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrulecollections.RoutingConfigurationId{}),
+		"routing_configuration_id": commonschema.ResourceIDReferenceRequiredForceNew(&routingrulecollections.RoutingConfigurationId{}, "Network Manager Routing Configuration"),
 
 		"network_group_ids": {
 			Type:     pluginsdk.TypeList,

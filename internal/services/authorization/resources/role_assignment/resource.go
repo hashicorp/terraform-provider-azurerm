@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package role_assignment
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmRoleAssignmentCreate,
-		Read:   resourceArmRoleAssignmentRead,
-		Update: resourceArmRoleAssignmentUpdate,
-		Delete: resourceArmRoleAssignmentDelete,
+		Description: "Assigns a given Principal (User or Group) to a given Role.",
+		Create:      resourceArmRoleAssignmentCreate,
+		Read:        resourceArmRoleAssignmentRead,
+		Update:      resourceArmRoleAssignmentUpdate,
+		Delete:      resourceArmRoleAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.RoleAssignmentID(id)

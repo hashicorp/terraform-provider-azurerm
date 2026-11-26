@@ -1,12 +1,12 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_security_policy
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,6 +16,7 @@ import (
 func cdnFrontdoorSecurityPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Front Door Security Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func cdnFrontdoorSecurityPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_profile_id": {
+			Description:  "The Front Door Profile Resource ID that is linked to this Front Door Security Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -44,6 +46,7 @@ func cdnFrontdoorSecurityPolicySchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"cdn_frontdoor_firewall_policy_id": {
+									Description:  "The Resource ID of the Front Door Firewall Policy that should be linked to this Front Door Security Policy.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -66,8 +69,9 @@ func cdnFrontdoorSecurityPolicySchema() map[string]*pluginsdk.Schema {
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"cdn_frontdoor_domain_id": {
-															Type:     pluginsdk.TypeString,
-															Required: true,
+															Description: "The Resource ID of the **Front Door Custom Domain** or **Front Door Endpoint** that should be bound to this Front Door Security Policy.",
+															Type:        pluginsdk.TypeString,
+															Required:    true,
 															ValidateFunc: validation.Any(
 																afddomains.ValidateCustomDomainID,
 																afdendpoints.ValidateAfdEndpointID,
@@ -75,8 +79,9 @@ func cdnFrontdoorSecurityPolicySchema() map[string]*pluginsdk.Schema {
 														},
 
 														"active": {
-															Type:     pluginsdk.TypeBool,
-															Computed: true,
+															Description: "Whether the Front Door Custom Domain or Front Door Endpoint is active.",
+															Type:        pluginsdk.TypeBool,
+															Computed:    true,
 														},
 													},
 												},
@@ -84,10 +89,11 @@ func cdnFrontdoorSecurityPolicySchema() map[string]*pluginsdk.Schema {
 
 											// NOTE: Per the service team the only acceptable value as of GA is "/*"
 											"patterns_to_match": {
-												Type:     pluginsdk.TypeList,
-												Required: true,
-												ForceNew: true,
-												MaxItems: 1,
+												Description: "The list of paths to match for this Firewall Policy.",
+												Type:        pluginsdk.TypeList,
+												Required:    true,
+												ForceNew:    true,
+												MaxItems:    1,
 
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,

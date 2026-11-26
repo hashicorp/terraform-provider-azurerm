@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_directline_test
@@ -103,7 +103,7 @@ func (t BotChannelDirectlineResource) Exists(ctx context.Context, clients *clien
 }
 
 func (BotChannelDirectlineResource) basicConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
@@ -119,7 +119,7 @@ resource "azurerm_bot_channel_directline" "test" {
 }
 
 func (r BotChannelDirectlineResource) completeConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
@@ -152,7 +152,7 @@ resource "azurerm_bot_channel_directline" "test" {
 }
 
 func (r BotChannelDirectlineResource) basicUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_bot_channel_directline" "test" {

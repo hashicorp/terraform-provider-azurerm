@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_origin_group
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCdnFrontDoorOriginGroupRead,
+		Description: "Use this data source to access information about an existing Front Door (standard/premium) Origin Group.",
+		Read:        dataSourceCdnFrontDoorOriginGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,12 +28,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Front Door Origin Group.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorOriginGroupName,
 			},
 
 			"profile_name": {
+				Description:  "The name of the Front Door Profile within which Front Door Origin Group exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FrontDoorName,
@@ -42,8 +45,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			// Computed
 			"cdn_frontdoor_profile_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Front Door Profile within which this Front Door Origin Group exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"health_probe": {
@@ -52,21 +56,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"interval_in_seconds": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of seconds between health probes.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 						"path": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The path relative to the origin that is used to determine the health of the origin.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The protocol to use for health probe.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"request_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of health probe request that is made.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -78,18 +86,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"additional_latency_in_milliseconds": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The additional latency in milliseconds for probes to fall into the lowest latency bucket.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"sample_size": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of samples to consider for load balancing decisions.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"successful_samples_required": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The number of samples within the sample period that must succeed.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
@@ -101,8 +112,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"session_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether session affinity is enabled on this host.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 		},
 	}

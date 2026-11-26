@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package email_communication_service_domain_sender_username
@@ -29,4 +29,8 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (Resource) ResourceType() string {
 	return "azurerm_email_communication_service_domain_sender_username"
+}
+
+func (Resource) Description() string {
+	return "Manages an Email Communication Service Domain Sender Username."
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package confidential_ledger
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceConfidentialLedgerCreate,
-		Read:   resourceConfidentialLedgerRead,
-		Update: resourceConfidentialLedgerUpdate,
-		Delete: resourceConfidentialLedgerDelete,
+		Description: "Manages a Confidential Ledger.",
+		Create:      resourceConfidentialLedgerCreate,
+		Read:        resourceConfidentialLedgerRead,
+		Update:      resourceConfidentialLedgerUpdate,
+		Delete:      resourceConfidentialLedgerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

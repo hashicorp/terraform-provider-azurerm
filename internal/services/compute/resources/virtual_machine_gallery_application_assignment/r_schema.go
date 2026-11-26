@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_gallery_application_assignment
@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"gallery_application_version_id": {
+			Description:  "The ID of the Gallery Application Version.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_id": {
+			Description:  "The ID of the Virtual Machine.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"configuration_blob_uri": {
+			Description:  "The URI to an Azure Blob that will replace the default configuration for the package if provided.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -36,6 +39,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"order": {
+			Description:  "The order in which the packages have to be installed.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
@@ -43,6 +47,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tag": {
+			Description:  "A passthrough value for more generic context. This field can be any valid `string` value.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_variable_bool
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableBoolCreate,
-		Read:   resourceAutomationVariableBoolRead,
-		Update: resourceAutomationVariableBoolUpdate,
-		Delete: resourceAutomationVariableBoolDelete,
+		Description: "Manages a boolean variable in Azure Automation.",
+		Create:      resourceAutomationVariableBoolCreate,
+		Read:        resourceAutomationVariableBoolRead,
+		Update:      resourceAutomationVariableBoolUpdate,
+		Delete:      resourceAutomationVariableBoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := variable.ParseVariableID(id)

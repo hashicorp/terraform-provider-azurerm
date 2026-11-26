@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -63,11 +63,11 @@ func (s AutomationWebhookV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 		"uri": {
 			Type:       pluginsdk.TypeString,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Optional:   true,
-			ForceNew:   true,
 			Computed:   true,
+			ForceNew:   true,
 			Sensitive:  true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 		},
 	}
 }

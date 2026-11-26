@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_connection_classic_certificate
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionClassicCertificateCreate,
-		Read:   resourceAutomationConnectionClassicCertificateRead,
-		Update: resourceAutomationConnectionClassicCertificateUpdate,
-		Delete: resourceAutomationConnectionClassicCertificateDelete,
+		Description: "Manages an Automation Connection with type `AzureClassicCertificate`.",
+		Create:      resourceAutomationConnectionClassicCertificateCreate,
+		Read:        resourceAutomationConnectionClassicCertificateRead,
+		Update:      resourceAutomationConnectionClassicCertificateUpdate,
+		Delete:      resourceAutomationConnectionClassicCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := connection.ParseConnectionID(id)
