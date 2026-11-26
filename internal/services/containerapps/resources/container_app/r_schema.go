@@ -1,0 +1,151 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package container_app
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func (r Resource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description:  "The name for this Container App.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ContainerAppName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"container_app_environment_id": {
+			Description:  "The ID of the Container App Environment within which this Container App should exist.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
+		},
+
+		"template": helpers.ContainerTemplateSchema(),
+
+		"revision_mode": {
+			Description:  "The revisions operational mode for the Container App. In `Single` mode, a single revision is in operation at any given time. In `Multiple` mode, more than one revision can be active at a time and can be configured with load distribution via the `traffic_weight` block in the `ingress` configuration.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
+		},
+
+		"ingress": helpers.ContainerAppIngressSchema(),
+
+		"registry": helpers.ContainerAppRegistrySchema(),
+
+		"secret": helpers.SecretsSchema(),
+
+		"dapr": helpers.ContainerDaprSchema(),
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"workload_profile_name": {
+			Description:  "The name of the Workload Profile in the Container App Environment to place this Container App.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"max_inactive_revisions": {
+			Description:  "The maximum of inactive revisions allowed for this Container App.",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(0, 100),
+		},
+
+		"tags": commonschema.Tags(),
+	}
+}
+
+func (r Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
+		"outbound_ip_addresses": {
+			Description: "A list of the Public IP Addresses which the Container App uses for outbound network access.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"latest_revision_name": {
+			Description: "The name of the latest Container Revision.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"latest_revision_fqdn": {
+			Description: "The FQDN of the Latest Revision of the Container App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+		},
+
+		"custom_domain_verification_id": {
+			Description: "The ID of the Custom Domain Verification for this Container App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
+		},
+	}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+			var app ContainerAppModel
+			if err := metadata.DecodeDiff(&app); err != nil {
+				return err
+			}
+
+			if len(app.Ingress) != 0 {
+				ingress := app.Ingress[0]
+
+				// Ingress session affinity validations
+				if ingress.IsSessionAffinity &&
+					(app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) ||
+						ingress.Transport == string(containerapps.IngressTransportMethodTcp)) {
+					return fmt.Errorf("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`")
+				}
+
+				// Ingress traffic weight validations
+				for i, tw := range ingress.TrafficWeights {
+					if !tw.LatestRevision && tw.RevisionSuffix == "" {
+						return fmt.Errorf("`either ingress.0.traffic_weight.%[1]d.revision_suffix` or `ingress.0.traffic_weight.%[1]d.latest_revision` should be specified", i)
+					}
+				}
+			}
+
+			for _, s := range app.Secrets {
+				if s.KeyVaultSecretId != "" && s.Identity == "" {
+					return fmt.Errorf("secret %s must supply identity for key vault secret id", s.Name)
+				}
+				if s.KeyVaultSecretId == "" && s.Identity != "" {
+					return fmt.Errorf("secret %s must supply key vault secret id when specifying identity", s.Name)
+				}
+			}
+			return nil
+		},
+	}
+}
