@@ -18,6 +18,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Data Disk.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_id": {
+			Description:  "The ID of the Virtual Machine to which the Data Disk should be attached.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"lun": {
+			Description:  "The Logical Unit Number of the Data Disk, which needs to be unique within the Virtual Machine.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -39,21 +42,24 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"create_option": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Create Option of the Data Disk.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualmachines.DiskCreateOptionTypesCopy),
 			}, false),
 		},
 
 		"disk_size_gb": {
+			Description:  "The size of the Data Disk in gigabytes.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 1023),
 		},
 
 		"source_resource_id": {
+			Description:  "The ID of the source resource which this Data Disk was created from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -61,8 +67,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"caching": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The caching requirements for this Data Disk.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualmachines.CachingTypesReadOnly),
 				string(virtualmachines.CachingTypesReadWrite),
@@ -70,9 +77,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"write_accelerator_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Write Accelerator is enabled on the disk. This can only be enabled on `Premium_LRS` Managed Disks with no caching and [M-Series VMs](https://learn.microsoft.com/azure/virtual-machines/workloads/sap/how-to-enable-write-accelerator).",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }

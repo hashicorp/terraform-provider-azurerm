@@ -19,8 +19,14 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 func (DataSource) ResourceType() string {
 	return "azurerm_container_registry_cache_rule"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Container Registry Cache Rule."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {
@@ -83,11 +89,13 @@ func (DataSource) ModelObject() any {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Registry Cache Rule. Only Alphanumeric characters allowed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ContainerRegistryCacheRuleName,
 		},
 		"container_registry_id": {
+			Description:  "The ID of the container registry where the cache rule should apply.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: registries.ValidateRegistryID,
@@ -98,17 +106,20 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"credential_set_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ARM resource ID of the credential store which is associated with the cache rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"source_repo": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the source repository path.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_repo": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the new repository path to store artifacts.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

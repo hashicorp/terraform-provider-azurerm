@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbookdraft"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -100,7 +99,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta any) 
 	// Fix issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/8634
 	jsValue, ok := d.GetOk("job_schedule")
 	if ok && d.HasChange("job_schedule") {
-		jsMap, err := helper.ExpandAutomationJobSchedule(jsValue.(*pluginsdk.Set).List(), id.RunbookName)
+		jsMap, err := helpers.ExpandAutomationJobSchedule(jsValue.(*pluginsdk.Set).List(), id.RunbookName)
 		if err != nil {
 			return err
 		}

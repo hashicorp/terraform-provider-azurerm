@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDatabaseMigrationServiceCreate,
-		Read:   resourceDatabaseMigrationServiceRead,
-		Update: resourceDatabaseMigrationServiceUpdate,
-		Delete: resourceDatabaseMigrationServiceDelete,
+		Description: "Manages an Azure Database Migration Service.",
+		Create:      resourceDatabaseMigrationServiceCreate,
+		Read:        resourceDatabaseMigrationServiceRead,
+		Update:      resourceDatabaseMigrationServiceUpdate,
+		Delete:      resourceDatabaseMigrationServiceDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&serviceresource.ServiceId{}),
 		Identity: &schema.ResourceIdentity{

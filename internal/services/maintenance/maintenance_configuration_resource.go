@@ -125,15 +125,15 @@ func resourceMaintenanceConfiguration() *pluginsdk.Resource {
 
 			"install_patches": {
 				Type:     pluginsdk.TypeList,
+				Optional: true,
 				MinItems: 1,
 				MaxItems: 1,
-				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"linux": {
 							Type:     pluginsdk.TypeList,
-							MinItems: 1,
 							Optional: true,
+							MinItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*schema.Schema{
 									"classifications_to_include": {

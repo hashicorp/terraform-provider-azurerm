@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -49,8 +49,8 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_name": {
@@ -87,8 +87,8 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"sgx_quote_helper_enabled": {
@@ -108,8 +108,8 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"oms_agent": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"log_analytics_workspace_id": {
@@ -151,13 +151,14 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"ingress_application_gateway": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"gateway_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
@@ -167,7 +168,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 					},
 					"gateway_name": {
 						Type:         pluginsdk.TypeString,
@@ -175,8 +175,9 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"subnet_cidr": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsCIDRIPv4,
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_id",
@@ -186,11 +187,11 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
 						ConflictsWith: []string{
 							"ingress_application_gateway.0.gateway_id",
 							"ingress_application_gateway.0.subnet_cidr",
@@ -200,7 +201,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"effective_gateway_id": {
 						Type:     pluginsdk.TypeString,
@@ -235,28 +235,28 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 		},
 		"key_vault_secrets_provider": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"secret_rotation_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Default:  false,
 						Optional: true,
+						Default:  false,
 						AtLeastOneOf: []string{
 							"key_vault_secrets_provider.0.secret_rotation_enabled",
 							"key_vault_secrets_provider.0.secret_rotation_interval",
 						},
 					},
 					"secret_rotation_interval": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "2m",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "2m",
+						ValidateFunc: validate.Duration,
 						AtLeastOneOf: []string{
 							"key_vault_secrets_provider.0.secret_rotation_enabled",
 							"key_vault_secrets_provider.0.secret_rotation_interval",
 						},
-						ValidateFunc: validate.Duration,
 					},
 					"secret_identity": {
 						Type:     pluginsdk.TypeList,
