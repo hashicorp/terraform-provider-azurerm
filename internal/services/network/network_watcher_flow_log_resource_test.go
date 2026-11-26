@@ -34,6 +34,70 @@ func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	})
 }
 
+func testAccNetworkWatcherFlowLog_filtering(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+	initialCriteria := "srcIP!=158.255.7.153 || dstPort=56891"
+	updatedCriteria := "Protocol=TCP && DstPort=443"
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.filtering(data, initialCriteria),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.filtering(data, updatedCriteria),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.filtering(data, initialCriteria),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.filtering(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_filteringEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.filtering(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:   r.basic(data),
+			PlanOnly: true,
+		},
+	})
+}
+
 func testAccNetworkWatcherFlowLog_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
@@ -431,6 +495,32 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkWatcherFlowLogResource) filtering(data acceptance.TestData, criteria string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  target_resource_id = azurerm_virtual_network.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+  filtering_criteria = %q
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.template(data), data.RandomInteger, criteria)
 }
 
 func (r NetworkWatcherFlowLogResource) basicIgnoreUnmanaged(data acceptance.TestData) string {

@@ -75,6 +75,8 @@ func TestAccNetworkWatcher_sequential(t *testing.T) {
 			"basicWithNIC":            testAccNetworkWatcherFlowLog_basicWithNIC,
 			"requiresImport":          testAccNetworkWatcherFlowLog_requiresImport,
 			"disabled":                testAccNetworkWatcherFlowLog_disabled,
+			"filtering":               testAccNetworkWatcherFlowLog_filtering,
+			"filteringEmpty":          testAccNetworkWatcherFlowLog_filteringEmpty,
 			"reenabled":               testAccNetworkWatcherFlowLog_reenabled,
 			"retentionPolicy":         testAccNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount":    testAccNetworkWatcherFlowLog_updateStorageAccount,
