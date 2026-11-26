@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -7,6 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_domain_topic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_event_subscription"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_namespace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_namespace_topic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_namespace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_registration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_system_topic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_system_topic_event_subscription"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_topic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,40 +46,40 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		EventGridPartnerNamespaceDataSource{},
-		EventGridPartnerRegistrationDataSource{},
+		eventgrid_partner_namespace.DataSource{},
+		eventgrid_partner_registration.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		EventGridNamespaceResource{},
-		EventGridNamespaceTopicResource{},
-		EventGridPartnerConfigurationResource{},
-		EventGridPartnerNamespaceResource{},
-		EventGridPartnerRegistrationResource{},
+		eventgrid_namespace.Resource{},
+		eventgrid_namespace_topic.Resource{},
+		eventgrid_partner_configuration.Resource{},
+		eventgrid_partner_namespace.Resource{},
+		eventgrid_partner_registration.Resource{},
 	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_eventgrid_domain":       dataSourceEventGridDomain(),
-		"azurerm_eventgrid_domain_topic": dataSourceEventGridDomainTopic(),
-		"azurerm_eventgrid_system_topic": dataSourceEventGridSystemTopic(),
-		"azurerm_eventgrid_topic":        dataSourceEventGridTopic(),
+		"azurerm_eventgrid_domain":       eventgrid_domain.RegisterDataSource(),
+		"azurerm_eventgrid_domain_topic": eventgrid_domain_topic.RegisterDataSource(),
+		"azurerm_eventgrid_system_topic": eventgrid_system_topic.RegisterDataSource(),
+		"azurerm_eventgrid_topic":        eventgrid_topic.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_eventgrid_domain":                          resourceEventGridDomain(),
-		"azurerm_eventgrid_domain_topic":                    resourceEventGridDomainTopic(),
-		"azurerm_eventgrid_event_subscription":              resourceEventGridEventSubscription(),
-		"azurerm_eventgrid_system_topic":                    resourceEventGridSystemTopic(),
-		"azurerm_eventgrid_system_topic_event_subscription": resourceEventGridSystemTopicEventSubscription(),
-		"azurerm_eventgrid_topic":                           resourceEventGridTopic(),
+		"azurerm_eventgrid_domain":                          eventgrid_domain.RegisterResource(),
+		"azurerm_eventgrid_domain_topic":                    eventgrid_domain_topic.RegisterResource(),
+		"azurerm_eventgrid_event_subscription":              eventgrid_event_subscription.RegisterResource(),
+		"azurerm_eventgrid_system_topic":                    eventgrid_system_topic.RegisterResource(),
+		"azurerm_eventgrid_system_topic_event_subscription": eventgrid_system_topic_event_subscription.RegisterResource(),
+		"azurerm_eventgrid_topic":                           eventgrid_topic.RegisterResource(),
 	}
 }
 

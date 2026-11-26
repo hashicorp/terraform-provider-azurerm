@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -27,10 +27,11 @@ import (
 
 func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCosmosDbGremlinGraphCreate,
-		Read:   resourceCosmosDbGremlinGraphRead,
-		Update: resourceCosmosDbGremlinGraphUpdate,
-		Delete: resourceCosmosDbGremlinGraphDelete,
+		Description: "Manages a Gremlin Graph within a Cosmos DB Account.",
+		Create:      resourceCosmosDbGremlinGraphCreate,
+		Read:        resourceCosmosDbGremlinGraphRead,
+		Update:      resourceCosmosDbGremlinGraphUpdate,
+		Delete:      resourceCosmosDbGremlinGraphDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := cosmosdb.ParseGraphID(id)
@@ -51,6 +52,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Cosmos DB Gremlin Graph.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -60,6 +62,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"account_name": {
+				Description:  "The name of the CosmosDB Account to create the Gremlin Graph within.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -67,6 +70,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"database_name": {
+				Description:  "The name of the Cosmos DB Graph Database in which the Cosmos DB Gremlin Graph is created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -74,8 +78,9 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"analytical_storage_ttl": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Description: "The time to live of Analytical Storage for this Cosmos DB Gremlin Graph. If present and the value is set to `-1`, it means never expire.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
@@ -83,11 +88,13 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"default_ttl": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
+				Description: "If the value is missing or set to `-1`, items don't expire.",
+				Type:        pluginsdk.TypeInt,
+				Optional:    true,
 			},
 
 			"throughput": {
+				Description:  "The throughput of the Gremlin graph (RU/s). The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -97,6 +104,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"partition_key_path": {
+				Description:  "Define a partition key.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -104,6 +112,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"partition_key_version": {
+				Description:  "Define a partition key version. This should be set to `2` to use large partition keys.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -111,45 +120,50 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"index_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
-				MaxItems: 1,
+				Description: "The configuration of the indexing policy.",
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
+				MaxItems:    1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"automatic": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
+							Description: "Whether the indexing policy is automatic.",
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     true,
 						},
 
 						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
 						"indexing_mode": {
+							Description:  "The indexing mode.",
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForIndexingMode(), false),
 						},
 
 						"included_paths": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Computed: true, // azignore:AZS007 - pre-existing violation
+							Description: "List of paths to include in the indexing.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
+							Computed:    true, // azignore:AZS007 - pre-existing violation
+							Set:         pluginsdk.HashString,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: pluginsdk.HashString,
 						},
 
 						"excluded_paths": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Computed: true, // azignore:AZS007 - pre-existing violation
+							Description: "List of paths to exclude from indexing.",
+							Type:        pluginsdk.TypeSet,
+							Optional:    true,
+							Computed:    true, // azignore:AZS007 - pre-existing violation
+							Set:         pluginsdk.HashString,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: pluginsdk.HashString,
 						},
 
 						"composite_index": common.CosmosDbIndexingPolicyCompositeIndexSchema(),
@@ -168,9 +182,10 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"paths": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							ForceNew: true,
+							Description: "A list of paths to use for this unique key.",
+							Type:        pluginsdk.TypeSet,
+							Required:    true,
+							ForceNew:    true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,

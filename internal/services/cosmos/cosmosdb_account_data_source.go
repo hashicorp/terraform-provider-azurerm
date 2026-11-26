@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -23,7 +23,8 @@ import (
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceCosmosDbAccountRead,
+		Description: "Use this data source to access information about an existing CosmosDB (formally DocumentDB) Account.",
+		Read:        dataSourceCosmosDbAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,8 +32,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -42,31 +44,36 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"offer_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Offer Type to be used by this CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Kind of the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of IP ranges associated with this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"free_tier_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"automatic_failover_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If automatic failover is enabled for this CosmosDB Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"consistency_policy": {
@@ -116,8 +123,9 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"capabilities": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Capabilities enabled on this Cosmos DB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -129,13 +137,15 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"is_virtual_network_filter_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If Virtual Network filtering is enabled for this Cosmos DB account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"virtual_network_rule": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "Subnets that are allowed to access this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -147,106 +157,123 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Key Vault Key URI for CMK encryption.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"multiple_write_locations_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "If multiple write locations are enabled for this Cosmos DB account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The endpoint used to connect to the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"read_endpoints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of read endpoints available for this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"write_endpoints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "A list of write endpoints available for this CosmosDB account.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_readonly_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary read-only Key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_readonly_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary read-only key for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary SQL connection string for the CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary SQL connection string for the CosmosDB Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_readonly_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary read-only SQL connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_readonly_sql_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary read-only SQL connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_readonly_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary readonly Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_readonly_mongodb_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary readonly Mongodb connection string for the CosmosDB account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

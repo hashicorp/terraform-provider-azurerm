@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -32,9 +32,10 @@ func SchemaCorsRule() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MaxItems: 64,
+					Description: "A list of origin domains that will be allowed by CORS.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MaxItems:    64,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -42,9 +43,10 @@ func SchemaCorsRule() *pluginsdk.Schema {
 				},
 
 				"exposed_headers": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MaxItems: 64,
+					Description: "A list of response headers that are exposed to CORS clients.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MaxItems:    64,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -52,9 +54,10 @@ func SchemaCorsRule() *pluginsdk.Schema {
 				},
 
 				"allowed_headers": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MaxItems: 64,
+					Description: "A list of headers that are allowed to be a part of the cross-origin request.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MaxItems:    64,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -62,9 +65,10 @@ func SchemaCorsRule() *pluginsdk.Schema {
 				},
 
 				"allowed_methods": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MaxItems: 64,
+					Description: "A list of HTTP headers that are allowed to be executed by the origin.",
+					Type:        pluginsdk.TypeList,
+					Required:    true,
+					MaxItems:    64,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(allowedMethods, false),
@@ -72,6 +76,7 @@ func SchemaCorsRule() *pluginsdk.Schema {
 				},
 
 				"max_age_in_seconds": {
+					Description:  "The number of seconds the client should cache a preflight response.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, math.MaxInt32),

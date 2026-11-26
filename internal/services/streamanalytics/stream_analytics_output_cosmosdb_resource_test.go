@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -172,7 +172,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "import" {
   cosmosdb_sql_database_id = azurerm_stream_analytics_output_cosmosdb.test.cosmosdb_sql_database_id
   container_name           = azurerm_stream_analytics_output_cosmosdb.test.container_name
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) template(data acceptance.TestData) string {

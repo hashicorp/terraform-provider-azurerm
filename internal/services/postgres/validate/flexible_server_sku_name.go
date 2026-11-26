@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -12,7 +12,7 @@ import (
 )
 
 func FlexibleServerSkuName(i any, k string) ([]string, []error) {
-	return validation.StringMatch(regexp.MustCompile(`^((B_Standard_B((1|2|4|8|12|16|20)ms|2s))|(GP_Standard_D(((2|4|8|16|32|48|64)s_v3)|((2|4|8|16|32|48|64)ds_v4)|((2|4|8|16|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ds_v6)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|32|48|64|96)ads_v5)))|(MO_Standard_E((((2|4|8|16|20|32|48|64)s)_v3)|((2|4|6|8|16|20|32|48|64)ds_v4)|((2|4|8|16|20|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ds_v6)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|20|32|48|64|96)(ads|as)_v5))))$`), "is not a valid sku name")(i, k)
+	return validation.StringMatch(regexp.MustCompile(`^((B_Standard_B((1|2|4|8|12|16|20)ms|2s|(2ats|2afs|2als|2as|4as|8as|16as|32as)_v2))|(GP_Standard_D(((2|4|8|16|32|48|64)s_v3)|((2|4|8|16|32|48|64)ds_v4)|((2|4|8|16|32|48|64|96)(s|ds|as|ads)_v5)|((2|4|8|16|32|48|64|96|128|192)(s|ds)_v6)|((2|4|8|16|32|48|64|96)(as|ads)_v6)|(C(2|4|8|16|32|48|64|96)ads_v5)))|(MO_Standard_E((((2|4|8|16|20|32|48|64)s)_v3)|((2|4|6|8|16|20|32|48|64)ds_v4)|((2|4|8|16|20|32|48|64|96)(s|ds|as|ads)_v5)|((2|4|8|16|20|32|48|64|96|128)(s|ds)_v6)|((2|4|8|16|20|32|48|64|96)(as|ads)_v6)|(104is_v5|112ias_v5|192i(s|ds)_v6)|(C(2|4|8|16|20|32|48|64|96)(ads|as)_v5))))$`), "is not a valid sku name")(i, k)
 }
 
 func FlexibleServerSkuNameChange(skuOld string, skuNew string) error {

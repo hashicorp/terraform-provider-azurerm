@@ -17,8 +17,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
 type Downloader struct {
@@ -26,6 +24,7 @@ type Downloader struct {
 	VerifyChecksum   bool
 	ArmoredPublicKey string
 	BaseURL          string
+	HTTPClient       *http.Client
 }
 
 type UnpackedProduct struct {
@@ -50,6 +49,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 			ProductVersion:   pv,
 			Logger:           d.Logger,
 			ArmoredPublicKey: d.ArmoredPublicKey,
+			HTTPClient:       d.HTTPClient,
 		}
 		verifiedChecksums, err := v.DownloadAndVerifyChecksums(ctx)
 		if err != nil {
@@ -62,8 +62,6 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 		}
 	}
 
-	client := httpclient.NewHTTPClient(d.Logger)
-
 	archiveURL, err := determineArchiveURL(pb.URL, d.BaseURL)
 	if err != nil {
 		return nil, err
@@ -75,7 +73,7 @@ func (d *Downloader) DownloadAndUnpack(ctx context.Context, pv *ProductVersion, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", archiveURL, err)
 	}
-	resp, err := client.Do(req)
+	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

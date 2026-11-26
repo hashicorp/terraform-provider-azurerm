@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -16,19 +16,22 @@ func ModifyResponseHeader() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"action": {
+				Description:  "Action to be executed on a header value.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleHeaderActionValues(), false),
 			},
 
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The header name.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"value": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The value of the header. Only needed when `action` is set to `Append` or `overwrite`.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 		},
 	}
