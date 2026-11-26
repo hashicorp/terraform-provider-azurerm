@@ -43,6 +43,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CustomIpPrefixResource{},
+		NetworkDDoSCustomPolicyResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 	}
 }
@@ -125,6 +126,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		ApplicationSecurityGroupListResource{},
 		IpGroupListResource{},
 		NatGatewayListResource{},
+		NetworkDDoSCustomPolicyListResource{},
 		NetworkDDoSProtectionPlanListResource{},
 		NetworkInterfaceListResource{},
 		NetworkProfileListResource{},
