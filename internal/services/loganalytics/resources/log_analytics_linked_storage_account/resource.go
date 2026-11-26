@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
-		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
-		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
-		Delete: resourceLogAnalyticsLinkedStorageAccountDelete,
+		Description: "Manages a Log Analytics Linked Storage Account.",
+		Create:      resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
+		Read:        resourceLogAnalyticsLinkedStorageAccountRead,
+		Update:      resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
+		Delete:      resourceLogAnalyticsLinkedStorageAccountDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

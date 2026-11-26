@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmLoadBalancerOutboundRuleRead,
+		Description: "Use this data source to access information about an existing Load Balancer Outbound Rule.",
+		Read:        dataSourceArmLoadBalancerOutboundRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,12 +27,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Load Balancer Outbound Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"loadbalancer_id": {
+				Description:  "The ID of the Load Balancer in which the Outbound Rule exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
@@ -43,41 +46,48 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Frontend IP Configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Frontend IP Configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"backend_address_pool_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The transport protocol for the external endpoint.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tcp_reset_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination is enabled. This value is useful when the protocol is set to TCP.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"allocated_outbound_ports": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of outbound ports used for NAT.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The timeout for the TCP idle connection.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 		},
 	}

@@ -14,9 +14,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Playwright Workspace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`),
 				"length of `name` must be between 3 and 24 characters (inclusive) and contain only numbers, letters, and hyphens (-)"),
@@ -33,13 +34,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dataplane_uri": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The data plane service API URI of the Playwright Workspace. The format of URI is `https://{location}.api.playwright.microsoft.com/playwrightworkspaces/{uuid}`. To use the Playwright Workspace remote browsers, apply the URI according to the [documentation](https://learn.microsoft.com/azure/app-testing/playwright-workspaces/quickstart-run-end-to-end-tests?tabs=playwrightcli&pivots=playwright-test-runner#configure-the-browser-endpoint).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"uuid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID in GUID format of the Playwright Workspace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

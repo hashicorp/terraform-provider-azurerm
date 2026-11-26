@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_log_analytics_workspace_table_custom_log"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Custom Log Table in a Log Analytics (formally Operational Insights) Workspace."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tables.ValidateTableID
 }

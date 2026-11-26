@@ -35,6 +35,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_data_lake_storage"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backup Policy to Azure Data Lake Storage."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return basebackuppolicyresources.ValidateBackupPolicyID
 }

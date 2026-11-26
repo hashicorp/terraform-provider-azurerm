@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDnsMxRecordRead,
+		Description: "Use this data source to access information about an existing DNS MX Record within Azure DNS.",
+		Read:        dataSourceDnsMxRecordRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,45 +27,52 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The name of the DNS MX Record.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"zone_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The DNS Zone where the resource exists.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"record": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "A list of values that make up the MX record.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
+				Set:         resourceDnsMxRecordHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"preference": {
+							Description: "String representing the `preference` value of the MX records. Records with lower preference value take priority.",
 							// TODO: this should become an Int
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"exchange": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The mail server responsible for the domain covered by the MX record.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
-				Set: resourceDnsMxRecordHash,
 			},
 
 			"ttl": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The Time To Live (TTL) of the DNS record in seconds.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the DNS MX Record.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

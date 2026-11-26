@@ -99,8 +99,8 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"add_on_features": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"azure_active_directory": {

@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCustomProviderCreateUpdate,
-		Read:   resourceCustomProviderRead,
-		Update: resourceCustomProviderCreateUpdate,
-		Delete: resourceCustomProviderDelete,
+		Description: "Manages an Azure Custom Provider.",
+		Create:      resourceCustomProviderCreateUpdate,
+		Read:        resourceCustomProviderRead,
+		Update:      resourceCustomProviderCreateUpdate,
+		Delete:      resourceCustomProviderDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&customresourceprovider.ResourceProviderId{}),
 		Identity: &schema.ResourceIdentity{

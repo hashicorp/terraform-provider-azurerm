@@ -14,10 +14,11 @@ var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate,
-		Read:   resourceVirtualDesktopHostPoolRegistrationInfoRead,
-		Update: resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate,
-		Delete: resourceVirtualDesktopHostPoolRegistrationInfoDelete,
+		Description: "Manages the Registration Info for a Virtual Desktop Host Pool.",
+		Create:      resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate,
+		Read:        resourceVirtualDesktopHostPoolRegistrationInfoRead,
+		Update:      resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate,
+		Delete:      resourceVirtualDesktopHostPoolRegistrationInfoDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
