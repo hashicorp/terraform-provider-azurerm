@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -53,9 +53,9 @@ func (WebPubsubHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 					"auth": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
-						MinItems: 1,
 						Optional: true,
+						MinItems: 1,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"managed_identity_id": {

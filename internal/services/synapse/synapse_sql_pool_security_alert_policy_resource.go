@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -71,10 +71,10 @@ func resourceSynapseSqlPoolSecurityAlertPolicy() *pluginsdk.Resource {
 			"email_addresses": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"retention_days": {
