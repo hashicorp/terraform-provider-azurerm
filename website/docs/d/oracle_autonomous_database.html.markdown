@@ -14,8 +14,8 @@ Use this data source to access information about an existing Autonomous Database
 
 ```hcl
 data "azurerm_oracle_autonomous_database" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-autonomous-database"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
