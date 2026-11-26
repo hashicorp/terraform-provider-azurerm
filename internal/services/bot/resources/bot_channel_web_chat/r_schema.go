@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_channel_web_chat
@@ -17,6 +17,7 @@ func botChannelWebChatSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,31 +25,36 @@ func botChannelWebChatSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"site": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A site represents a client application that you want to connect to your bot.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the site.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"user_upload_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the user upload is enabled for this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"endpoint_parameters_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the endpoint parameters are enabled for this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"storage_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the storage site is enabled for detailed logging.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},

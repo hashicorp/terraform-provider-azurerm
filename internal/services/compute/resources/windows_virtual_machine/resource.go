@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine
@@ -26,10 +26,11 @@ const azureWindowsVirtualMachineResourceName = "azurerm_windows_virtual_machine"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWindowsVirtualMachineCreate,
-		Read:   resourceWindowsVirtualMachineRead,
-		Update: resourceWindowsVirtualMachineUpdate,
-		Delete: resourceWindowsVirtualMachineDelete,
+		Description: "Manages a Windows Virtual Machine.",
+		Create:      resourceWindowsVirtualMachineCreate,
+		Read:        resourceWindowsVirtualMachineRead,
+		Update:      resourceWindowsVirtualMachineUpdate,
+		Delete:      resourceWindowsVirtualMachineDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachines.VirtualMachineId{}),

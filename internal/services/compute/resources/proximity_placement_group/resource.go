@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proximity_placement_group
@@ -24,10 +24,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceProximityPlacementGroupCreateUpdate,
-		Read:   resourceProximityPlacementGroupRead,
-		Update: resourceProximityPlacementGroupCreateUpdate,
-		Delete: resourceProximityPlacementGroupDelete,
+		Description: "Manages a Proximity Placement Group for Virtual Machines, Virtual Machine Scale Sets and Availability Sets.",
+		Create:      resourceProximityPlacementGroupCreateUpdate,
+		Read:        resourceProximityPlacementGroupRead,
+		Update:      resourceProximityPlacementGroupCreateUpdate,
+		Delete:      resourceProximityPlacementGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&proximityplacementgroups.ProximityPlacementGroupId{}),
 

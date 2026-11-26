@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package image
@@ -20,10 +20,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceImageCreateUpdate,
-		Read:   resourceImageRead,
-		Update: resourceImageCreateUpdate,
-		Delete: resourceImageDelete,
+		Description: "Manages a custom Virtual Machine image that can be used to create Virtual Machines.",
+		Create:      resourceImageCreateUpdate,
+		Read:        resourceImageRead,
+		Update:      resourceImageCreateUpdate,
+		Delete:      resourceImageDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := images.ParseImageID(id)
 			return err

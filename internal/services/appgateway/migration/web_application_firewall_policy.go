@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 package migration
 
@@ -18,222 +18,222 @@ type WebApplicationFirewallPolicyV0ToV1 struct{}
 func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_rules": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 				"action": {
-					Required: true,
 					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 				"match_conditions": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
 					Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 						"match_values": {
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Optional: true,
 							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 						"match_variables": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
 							Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 								"selector": {
-									Optional: true,
 									Type:     pluginsdk.TypeString,
+									Optional: true,
 								},
 								"variable_name": {
-									Required: true,
 									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 							}},
-							Required: true,
-							Type:     pluginsdk.TypeList,
 						},
 						"negation_condition": {
-							Optional: true,
 							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 						"operator": {
-							Required: true,
 							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"transforms": {
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Optional: true,
 							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 					}},
-					Required: true,
-					Type:     pluginsdk.TypeList,
 				},
 				"name": {
-					Optional: true,
 					Type:     pluginsdk.TypeString,
+					Optional: true,
 				},
 				"priority": {
-					Required: true,
 					Type:     pluginsdk.TypeInt,
+					Required: true,
 				},
 				"rule_type": {
-					Required: true,
 					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 			}},
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"http_listener_ids": {
+			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Type:     pluginsdk.TypeList,
 		},
 		"location": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"managed_rules": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
 			Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 				"exclusion": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 						"excluded_rule_set": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
 							Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 								"rule_group": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
 									Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 										"excluded_rules": {
-											Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-											Optional: true,
 											Type:     pluginsdk.TypeList,
+											Optional: true,
+											Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										},
 										"rule_group_name": {
-											Required: true,
 											Type:     pluginsdk.TypeString,
+											Required: true,
 										},
 									}},
-									Optional: true,
-									Type:     pluginsdk.TypeList,
 								},
 								"type": {
-									Optional: true,
 									Type:     pluginsdk.TypeString,
+									Optional: true,
 								},
 								"version": {
-									Optional: true,
 									Type:     pluginsdk.TypeString,
+									Optional: true,
 								},
 							}},
-							Optional: true,
-							Type:     pluginsdk.TypeList,
 						},
 						"match_variable": {
-							Required: true,
 							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"selector": {
-							Required: true,
 							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"selector_match_operator": {
-							Required: true,
 							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 					}},
-					Optional: true,
-					Type:     pluginsdk.TypeList,
 				},
 				"managed_rule_set": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
 					Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 						"rule_group_override": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
 							Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 								"disabled_rules": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
 									Computed: true,
 									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-									Optional: true,
-									Type:     pluginsdk.TypeList,
 								},
 								"rule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
 									Computed: true,
 									Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 										"action": {
-											Optional: true,
 											Type:     pluginsdk.TypeString,
+											Optional: true,
 										},
 										"enabled": {
-											Optional: true,
 											Type:     pluginsdk.TypeBool,
+											Optional: true,
 										},
 										"id": {
-											Required: true,
 											Type:     pluginsdk.TypeString,
+											Required: true,
 										},
 									}},
-									Optional: true,
-									Type:     pluginsdk.TypeList,
 								},
 								"rule_group_name": {
-									Required: true,
 									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 							}},
-							Optional: true,
-							Type:     pluginsdk.TypeList,
 						},
 						"type": {
-							Optional: true,
 							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"version": {
-							Required: true,
 							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 					}},
-					Required: true,
-					Type:     pluginsdk.TypeList,
 				},
 			}},
-			Required: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"path_based_rule_ids": {
+			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Type:     pluginsdk.TypeList,
 		},
 		"policy_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Optional: true,
 					Type:     pluginsdk.TypeBool,
+					Optional: true,
 				},
 				"file_upload_limit_in_mb": {
-					Optional: true,
 					Type:     pluginsdk.TypeInt,
+					Optional: true,
 				},
 				"max_request_body_size_in_kb": {
-					Optional: true,
 					Type:     pluginsdk.TypeInt,
+					Optional: true,
 				},
 				"mode": {
-					Optional: true,
 					Type:     pluginsdk.TypeString,
+					Optional: true,
 				},
 				"request_body_check": {
-					Optional: true,
 					Type:     pluginsdk.TypeBool,
+					Optional: true,
 				},
 			}},
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"resource_group_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Optional: true,
 			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 	}
 }

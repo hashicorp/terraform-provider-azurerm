@@ -492,7 +492,7 @@ For these sub-resources:
 * Parse that parent ID and call the API that lists directly beneath that parent.
 * Apply the same rule to deeper hierarchies by taking the ID of the immediate parent resource at each level.
 
-Example: see [mysql_flexible_database_resource_list.go](../../internal/services/mysql/mysql_flexible_database_resource_list.go) and [mysql_flexible_database.html.markdown](../../website/docs/list-resources/mysql_flexible_database.html.markdown).
+Example: see [mysql_flexible_database_resource_list.go](../../internal/services/mysql/resources/mysql_flexible_database/list.go) and [mysql_flexible_database.html.markdown](../../website/docs/list-resources/mysql_flexible_database.html.markdown).
 
 ## Known Issues and Considerations
 

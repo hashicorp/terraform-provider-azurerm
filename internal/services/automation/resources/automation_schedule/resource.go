@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_schedule
@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationScheduleCreate,
-		Read:   resourceAutomationScheduleRead,
-		Update: resourceAutomationScheduleUpdate,
-		Delete: resourceAutomationScheduleDelete,
+		Description: "Manages an Automation Schedule.",
+		Create:      resourceAutomationScheduleCreate,
+		Read:        resourceAutomationScheduleRead,
+		Update:      resourceAutomationScheduleUpdate,
+		Delete:      resourceAutomationScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schedule.ParseScheduleID(id)
@@ -47,6 +48,13 @@ func RegisterResource() *pluginsdk.Resource {
 				intervalVal := diff.GetRawConfig().GetAttr("interval")
 				if !intervalVal.IsNull() {
 					return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+				}
+			}
+
+			if frequency == "minute" && interval.(int) < 15 {
+				intervalVal := diff.GetRawConfig().GetAttr("interval")
+				if intervalVal.IsKnown() {
+					return fmt.Errorf("`interval` must be set to at least `15` when frequency is `Minute`")
 				}
 			}
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_webhook
@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationWebhookCreate,
-		Read:   resourceAutomationWebhookRead,
-		Update: resourceAutomationWebhookUpdate,
-		Delete: resourceAutomationWebhookDelete,
+		Description: "Manages an Automation Runbook's Webhook.",
+		Create:      resourceAutomationWebhookCreate,
+		Read:        resourceAutomationWebhookRead,
+		Update:      resourceAutomationWebhookUpdate,
+		Delete:      resourceAutomationWebhookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webhook.ParseWebHookID(id)

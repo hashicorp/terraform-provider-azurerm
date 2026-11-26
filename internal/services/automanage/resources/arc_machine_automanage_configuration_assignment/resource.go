@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package arc_machine_automanage_configuration_assignment
@@ -16,6 +16,10 @@ type Resource struct {
 
 func (v Resource) ResourceType() string {
 	return "azurerm_arc_machine_automanage_configuration_assignment"
+}
+
+func (v Resource) Description() string {
+	return "Manages an Arc Machine Automanage Configuration Profile Assignment."
 }
 
 func (v Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtualwan
@@ -143,8 +143,8 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"virtual_router_auto_scale_min_capacity": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(2),
 				Default:      2,
+				ValidateFunc: validation.IntAtLeast(2),
 			},
 		},
 	}

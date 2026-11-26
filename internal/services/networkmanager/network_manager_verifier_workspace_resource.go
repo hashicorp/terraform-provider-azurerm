@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -57,7 +57,7 @@ func (ManagerVerifierWorkspaceResource) Arguments() map[string]*pluginsdk.Schema
 			),
 		},
 
-		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&verifierworkspaces.NetworkManagerId{}),
+		"network_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&verifierworkspaces.NetworkManagerId{}, "Network Manager"),
 
 		"location": commonschema.Location(),
 

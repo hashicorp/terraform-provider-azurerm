@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_web_app
@@ -18,10 +18,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotWebAppCreate,
-		Read:   resourceBotWebAppRead,
-		Update: resourceBotWebAppUpdate,
-		Delete: resourceBotWebAppDelete,
+		Description: "Manages a Bot Web App.",
+		Create:      resourceBotWebAppCreate,
+		Read:        resourceBotWebAppRead,
+		Update:      resourceBotWebAppUpdate,
+		Delete:      resourceBotWebAppDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

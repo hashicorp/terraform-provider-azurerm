@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -94,13 +94,13 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zones": {
-			Type:                  schema.TypeSet,
-			Optional:              true,
-			ForceNew:              true,
-			DiffSuppressOnRefresh: true,
+			Type:     schema.TypeSet,
+			Optional: true,
+			ForceNew: true,
 			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
 				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
 			},
+			DiffSuppressOnRefresh: true,
 			Elem: &schema.Schema{
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

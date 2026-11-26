@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_redis_access_policy_assignment
@@ -17,6 +17,10 @@ var _ sdk.Resource = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_managed_redis_access_policy_assignment"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Managed Redis Access Policy Assignment."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
