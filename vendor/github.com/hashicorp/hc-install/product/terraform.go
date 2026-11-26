@@ -40,7 +40,12 @@ var Terraform = Product{
 	BuildInstructions: &BuildInstructions{
 		GitRepoURL:    "https://github.com/hashicorp/terraform.git",
 		PreCloneCheck: &build.GoIsInstalled{},
-		Build:         &build.GoBuild{DetectVendoring: true},
+		Build: &build.GoBuild{
+			DetectVendoring: true,
+			Args: []string{
+				"-ldflags", "-X 'main.experimentsAllowed=yes'",
+			},
+		},
 	},
 }
 
