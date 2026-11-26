@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -95,38 +95,38 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				// portal allows for up to 20d 23h 59m 59s
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(-1, 1814399),
 				Default:      5,
+				ValidateFunc: validation.IntBetween(-1, 1814399),
 			},
 
 			"events_out_of_order_max_delay_in_seconds": {
 				// portal allows for up to 9m 59s
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 599),
 				Default:      0,
+				ValidateFunc: validation.IntBetween(0, 599),
 			},
 
 			"events_out_of_order_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
 				Default:      string(streamingjobs.EventsOutOfOrderPolicyAdjust),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
 			},
 
 			"type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
 				Default:      string(streamingjobs.JobTypeCloud),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
 			},
 
 			"output_error_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
 				Default:      string(streamingjobs.OutputErrorPolicyDrop),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
 			},
 
 			"streaming_units": {
