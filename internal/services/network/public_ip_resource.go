@@ -18,11 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -497,7 +499,8 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 }
 
 func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Network.PublicIPAddresses
+	networkClient := meta.(*clients.Client).Network
+	client := networkClient.PublicIPAddresses
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -506,8 +509,88 @@ func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
+	existing, err := client.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			return nil
+		}
+		return fmt.Errorf("retrieving %s before deleting: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s before deleting: `model` was nil", *id)
+	}
+
+	if properties := existing.Model.Properties; properties != nil && properties.IPConfiguration != nil && properties.IPConfiguration.Id != nil {
+		ipConfigurationId, err := commonids.ParseNetworkInterfaceIPConfigurationIDInsensitively(*properties.IPConfiguration.Id)
+		if err != nil {
+			if strings.Contains(strings.ToLower(*properties.IPConfiguration.Id), "/networkinterfaces/") {
+				return fmt.Errorf("parsing network interface IP configuration ID %q: %+v", *properties.IPConfiguration.Id, err)
+			}
+		} else {
+			if err := detachPublicIpFromNetworkInterface(ctx, networkClient.NetworkInterfaces, *id, ipConfigurationId); err != nil {
+				return fmt.Errorf("detaching %s from network interface before deleting: %+v", *id, err)
+			}
+		}
+	}
+
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+// Terraform may destroy a referenced Public IP before applying the NIC's in-place update to remove it.
+func detachPublicIpFromNetworkInterface(ctx context.Context, client *networkinterfaces.NetworkInterfacesClient, publicIpId commonids.PublicIPAddressId, ipConfigurationId *commonids.NetworkInterfaceIPConfigurationId) error {
+	networkInterfaceId := commonids.NewNetworkInterfaceID(
+		ipConfigurationId.SubscriptionId,
+		ipConfigurationId.ResourceGroupName,
+		ipConfigurationId.NetworkInterfaceName,
+	)
+
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
+
+	existing, err := client.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", networkInterfaceId)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", networkInterfaceId)
+	}
+	if existing.Model.Properties.IPConfigurations == nil {
+		return nil
+	}
+
+	for i, ipConfiguration := range *existing.Model.Properties.IPConfigurations {
+		if ipConfiguration.Properties == nil || ipConfiguration.Properties.PublicIPAddress == nil || ipConfiguration.Properties.PublicIPAddress.Id == nil {
+			continue
+		}
+
+		if !strings.EqualFold(*ipConfiguration.Properties.PublicIPAddress.Id, publicIpId.ID()) {
+			continue
+		}
+
+		if ipConfiguration.Id != nil && !strings.EqualFold(*ipConfiguration.Id, ipConfigurationId.ID()) {
+			continue
+		}
+		if ipConfiguration.Id == nil && (ipConfiguration.Name == nil || !strings.EqualFold(*ipConfiguration.Name, ipConfigurationId.IpConfigurationName)) {
+			continue
+		}
+
+		(*existing.Model.Properties.IPConfigurations)[i].Properties.PublicIPAddress = nil
+		if err := client.CreateOrUpdateThenPoll(ctx, networkInterfaceId, *existing.Model); err != nil {
+			return fmt.Errorf("updating %s to detach Public IP address %s: %+v", networkInterfaceId, publicIpId, err)
+		}
+		return nil
 	}
 
 	return nil

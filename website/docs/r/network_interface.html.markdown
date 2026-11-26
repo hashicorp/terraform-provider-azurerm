@@ -102,6 +102,8 @@ The `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
+~> **Note:** Deleting an associated [`azurerm_public_ip`](public_ip.html.markdown) resource automatically clears its reference from this Network Interface IP configuration in Azure before deleting the Public IP Address. This also applies during Public IP replacement or a targeted destroy, without checking this Network Interface's planned changes. Ensure this argument is updated to remove or replace the deleted Public IP Address.
+
 * `primary` - (Optional) Is this the Primary IP Configuration? Must be `true` for the first `ip_configuration` when multiple are specified. Defaults to `false`.
 
 When `private_ip_address_allocation` is set to `Static` the following fields can be configured:
