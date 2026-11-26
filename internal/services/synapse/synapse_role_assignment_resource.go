@@ -53,16 +53,16 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
 				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
+				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
 			},
 
 			"synapse_spark_pool_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
 				ValidateFunc: validate.SparkPoolID,
+				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
 			},
 
 			"principal_id": {
@@ -87,9 +87,6 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
-					return migration.MigrateToNewRole(old) == migration.MigrateToNewRole(new)
-				},
 				ValidateFunc: validation.StringInSlice([]string{
 					"Apache Spark Administrator",
 					"Synapse Administrator",
@@ -103,6 +100,9 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 					"Synapse SQL Administrator",
 					"Synapse User",
 				}, false),
+				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+					return migration.MigrateToNewRole(old) == migration.MigrateToNewRole(new)
+				},
 			},
 		},
 	}

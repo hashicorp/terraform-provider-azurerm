@@ -1,0 +1,228 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package private_dns_aaaa_record_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type PrivateDnsAAAARecordResource struct{}
+
+func TestAccPrivateDnsAaaaRecord_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_aaaa_record", "test")
+	r := PrivateDnsAAAARecordResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateDnsAaaaRecord_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_aaaa_record", "test")
+	r := PrivateDnsAAAARecordResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccPrivateDnsAaaaRecord_updateRecords(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_aaaa_record", "test")
+	r := PrivateDnsAAAARecordResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("records.#").HasValue("2"),
+			),
+		},
+		{
+			Config: r.updateRecords(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("records.#").HasValue("3"),
+			),
+		},
+	})
+}
+
+func TestAccPrivateDnsAaaaRecord_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_aaaa_record", "test")
+	r := PrivateDnsAAAARecordResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
+		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r PrivateDnsAAAARecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := privatedns.ParseRecordTypeID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.PrivateDns.RecordSetsClient.RecordSetsGet(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("reading Private DNS AAAA Record (%s): %+v", id.String(), err)
+	}
+
+	return pointer.To(resp.Model != nil), nil
+}
+
+func (PrivateDnsAAAARecordResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_aaaa_record" "test" {
+  name                = "myaaaarecord%d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  ttl                 = 300
+  records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateDnsAAAARecordResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_dns_aaaa_record" "import" {
+  name                = azurerm_private_dns_aaaa_record.test.name
+  private_dns_zone_id = azurerm_private_dns_aaaa_record.test.private_dns_zone_id
+  ttl                 = 300
+  records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
+}
+`, r.basic(data))
+}
+
+func (PrivateDnsAAAARecordResource) updateRecords(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_aaaa_record" "test" {
+  name                = "myaaaarecord%d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  ttl                 = 300
+  records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335", "fd73:5e76:3ab5:d2e9::1"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateDnsAAAARecordResource) withTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_aaaa_record" "test" {
+  name                = "myaaaarecord%d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  ttl                 = 300
+  records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
+
+  tags = {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateDnsAAAARecordResource) withTagsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_aaaa_record" "test" {
+  name                = "myaaaarecord%d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  ttl                 = 300
+  records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}

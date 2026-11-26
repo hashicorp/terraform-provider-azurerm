@@ -25,10 +25,11 @@ const azureDedicatedHostGroupResourceName = "azurerm_dedicated_host_group"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDedicatedHostGroupCreate,
-		Read:   resourceDedicatedHostGroupRead,
-		Update: resourceDedicatedHostGroupUpdate,
-		Delete: resourceDedicatedHostGroupDelete,
+		Description: "Manage a Dedicated Host Group.",
+		Create:      resourceDedicatedHostGroupCreate,
+		Read:        resourceDedicatedHostGroupRead,
+		Update:      resourceDedicatedHostGroupUpdate,
+		Delete:      resourceDedicatedHostGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.DedicatedHostGroupId{}),
 

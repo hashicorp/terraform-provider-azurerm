@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_extended_location_custom_location"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Custom Location within an Extended Location."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return customlocations.ValidateCustomLocationID
 }

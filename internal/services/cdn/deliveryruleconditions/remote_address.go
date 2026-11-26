@@ -28,9 +28,10 @@ func RemoteAddress() *pluginsdk.Resource {
 			},
 
 			"match_values": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Description: "List of string values. For `GeoMatch` `operator` this should be a list of country codes (e.g. `US` or `DE`). List of IP address if `operator` equals to `IPMatch`.",
+				Type:        pluginsdk.TypeSet,
+				Optional:    true,
+				MinItems:    1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotWhiteSpace,

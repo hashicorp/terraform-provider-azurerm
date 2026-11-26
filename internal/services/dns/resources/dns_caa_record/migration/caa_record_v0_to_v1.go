@@ -41,6 +41,7 @@ func (CAARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"record": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Set:      resourceDnsCaaRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"flags": {
@@ -59,7 +60,6 @@ func (CAARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceDnsCaaRecordHash,
 		},
 
 		"ttl": {

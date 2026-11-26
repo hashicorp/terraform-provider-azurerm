@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -64,8 +64,8 @@ func (CdnFrontDoorOriginV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"private_link": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"location": {

@@ -13,6 +13,7 @@ import (
 func dataFactoryLinkedServiceAzureTableStorageSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Data Factory Linked Service. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/naming-rules) for all restrictions.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func dataFactoryLinkedServiceAzureTableStorageSchema() map[string]*pluginsdk.Sch
 		},
 
 		"data_factory_id": {
+			Description:  "The Data Factory ID in which to associate the Linked Service with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func dataFactoryLinkedServiceAzureTableStorageSchema() map[string]*pluginsdk.Sch
 		},
 
 		"connection_string": {
+			Description:  "The connection string to an Azure Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -34,36 +37,41 @@ func dataFactoryLinkedServiceAzureTableStorageSchema() map[string]*pluginsdk.Sch
 		},
 
 		"description": {
+			Description:  "The description for the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"integration_runtime_name": {
+			Description:  "The integration runtime reference to associate with the Data Factory Linked Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of parameters to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"annotations": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of tags that can be used for describing the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"additional_properties": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional properties to associate with the Data Factory Linked Service.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

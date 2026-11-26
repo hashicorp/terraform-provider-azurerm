@@ -43,22 +43,26 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_container_app_environment_certificate"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Container App Environment Certificate."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Apps Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.CertificateName,
-			Description:  "The name of the Container Apps Certificate.",
 		},
 
 		"container_app_environment_id": {
+			Description:  "The ID of the Container App Environment to configure this Certificate on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: certificates.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Certificate on.",
 		},
 	}
 }
@@ -66,33 +70,33 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subject_name": {
+			Description: "The Subject Name for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Subject Name for the Certificate.",
 		},
 
 		"issuer": {
+			Description: "The Certificate Issuer.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Certificate Issuer.",
 		},
 
 		"issue_date": {
+			Description: "The date of issue for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The date of issue for the Certificate.",
 		},
 
 		"expiration_date": {
+			Description: "The expiration date for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The expiration date for the Certificate.",
 		},
 
 		"thumbprint": {
+			Description: "The Thumbprint of the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Thumbprint of the Certificate.",
 		},
 
 		"tags": commonschema.TagsDataSource(),

@@ -100,8 +100,8 @@ func resourceVpnSite() *pluginsdk.Resource {
 						"speed_in_mbps": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
 							Default:      0,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"ip_address": {
 							Type:         pluginsdk.TypeString,

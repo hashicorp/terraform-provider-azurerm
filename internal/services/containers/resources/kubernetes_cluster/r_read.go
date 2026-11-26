@@ -275,7 +275,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 			d.Set("workload_identity_enabled", workloadIdentity)
 
-			if err := d.Set("key_management_service", flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)); err != nil {
+			if err := d.Set("key_management_service", flattenKubernetesClusterKeyVaultKms(d, props.SecurityProfile)); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 

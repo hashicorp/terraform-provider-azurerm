@@ -11,48 +11,55 @@ import (
 func dnsMxRecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "@",
+			Description: "The name of the DNS MX Record.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     "@",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The DNS Zone where the resource exists.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"record": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "A list of values that make up the MX record.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			Set:         resourceDnsMxRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"preference": {
+						Description: "String representing the `preference` value of the MX records. Records with lower preference value take priority.",
 						// TODO: this should become an Int
 						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"exchange": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The mail server responsible for the domain covered by the MX record.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
-			Set: resourceDnsMxRecordHash,
 		},
 
 		"ttl": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The Time To Live (TTL) of the DNS record in seconds.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS MX Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

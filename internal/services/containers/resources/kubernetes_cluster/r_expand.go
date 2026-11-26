@@ -511,20 +511,27 @@ func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClien
 		KeyVaultNetworkAccess: &kvAccess,
 	}
 
-	// Set Key vault Resource ID in case public access is disabled
-	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
-		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultKeyId, err := keyvault.ParseNestedItemID(*azureKeyVaultKms.KeyId, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
 
-		keyVaultKeyId, err := keyvault.ParseNestedItemID(*azureKeyVaultKms.KeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
-		if err != nil {
-			return nil, err
-		}
-		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseURL)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseURL, err)
+	// KMS V1/V2 require KV ARM ID on Private types - versioned KVK ID
+	// New KMS (CMK) requires KV ARM ID on all types - versionless KVK ID
+	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate || keyVaultKeyId.Version == "" {
+		keyVaultID := raw["key_vault_id"].(string)
+		if keyVaultID == "" {
+			kvID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, commonids.NewSubscriptionID(subscriptionId), keyVaultKeyId.KeyVaultBaseURL)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseURL, err)
+			}
+
+			if kvID != nil {
+				keyVaultID = *kvID
+			}
 		}
 
-		azureKeyVaultKms.KeyVaultResourceId = keyVaultID
+		azureKeyVaultKms.KeyVaultResourceId = &keyVaultID
 	}
 
 	return azureKeyVaultKms, nil

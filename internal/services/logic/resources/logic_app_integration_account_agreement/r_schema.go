@@ -14,6 +14,7 @@ import (
 func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Logic App Integration Account Agreement.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"integration_account_name": {
+			Description:  "The name of the Logic App Integration Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,8 +32,9 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"agreement_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The type of the Logic App Integration Account Agreement.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(integrationaccountagreements.AgreementTypeASTwo),
 				string(integrationaccountagreements.AgreementTypeXOneTwo),
@@ -40,6 +43,7 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"content": {
+			Description:      "The content of the Logic App Integration Account Agreement.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -53,12 +57,14 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"qualifier": {
+						Description:  "The authenticating body that provides unique guest identities to organizations.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.IntegrationAccountPartnerBusinessIdentityQualifier(),
 					},
 
 					"value": {
+						Description:  "The value that identifies the documents that your Logic Apps receive.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.IntegrationAccountPartnerBusinessIdentityValue(),
@@ -68,6 +74,7 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"guest_partner_name": {
+			Description:  "The name of the guest Logic App Integration Account Partner.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.IntegrationAccountPartnerName(),
@@ -80,12 +87,14 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"qualifier": {
+						Description:  "The authenticating body that provides unique host identities to organizations.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.IntegrationAccountPartnerBusinessIdentityQualifier(),
 					},
 
 					"value": {
+						Description:  "The value that identifies the documents that your Logic Apps receive.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.IntegrationAccountPartnerBusinessIdentityValue(),
@@ -95,14 +104,16 @@ func logicAppIntegrationAccountAgreementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"host_partner_name": {
+			Description:  "The name of the host Logic App Integration Account Partner.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.IntegrationAccountPartnerName(),
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "The metadata of the Logic App Integration Account Agreement.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
