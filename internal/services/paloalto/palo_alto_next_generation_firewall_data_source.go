@@ -6,6 +6,12 @@ package paloalto
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_hub_local_rulestack"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_hub_panorama"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_network_local_rulestack"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_network_panorama"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/resources/palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,7 +32,7 @@ func (NextGenerationFirewallVHubLocalRulestackDataSource) ResourceType() string 
 }
 
 func (NextGenerationFirewallVHubLocalRulestackDataSource) ModelObject() interface{} {
-	return &NextGenerationFirewallVHubLocalRuleStackModel{}
+	return &palo_alto_next_generation_firewall_virtual_hub_local_rulestack.NextGenerationFirewallVHubLocalRuleStackModel{}
 }
 
 func (NextGenerationFirewallVHubLocalRulestackDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -43,7 +49,7 @@ func (NextGenerationFirewallVHubLocalRulestackDataSource) Read() sdk.ResourceFun
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state NextGenerationFirewallVHubLocalRuleStackModel
+			var state palo_alto_next_generation_firewall_virtual_hub_local_rulestack.NextGenerationFirewallVHubLocalRuleStackModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -81,7 +87,7 @@ func (NextGenerationFirewallVNetLocalRulestackDataSource) ResourceType() string 
 }
 
 func (NextGenerationFirewallVNetLocalRulestackDataSource) ModelObject() interface{} {
-	return &NextGenerationFirewallVnetLocalRulestackModel{}
+	return &palo_alto_next_generation_firewall_virtual_network_local_rulestack.NextGenerationFirewallVnetLocalRulestackModel{}
 }
 
 func (NextGenerationFirewallVNetLocalRulestackDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -98,7 +104,7 @@ func (NextGenerationFirewallVNetLocalRulestackDataSource) Read() sdk.ResourceFun
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state NextGenerationFirewallVnetLocalRulestackModel
+			var state palo_alto_next_generation_firewall_virtual_network_local_rulestack.NextGenerationFirewallVnetLocalRulestackModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -131,7 +137,7 @@ func (NextGenerationFirewallVHubPanoramaDataSource) ResourceType() string {
 }
 
 func (NextGenerationFirewallVHubPanoramaDataSource) ModelObject() interface{} {
-	return &NextGenerationFirewallVHubPanoramaResourceModel{}
+	return &palo_alto_next_generation_firewall_virtual_hub_panorama.NextGenerationFirewallVHubPanoramaResourceModel{}
 }
 
 func (NextGenerationFirewallVHubPanoramaDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -150,7 +156,7 @@ func (NextGenerationFirewallVHubPanoramaDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state NextGenerationFirewallVHubPanoramaResourceModel
+			var state palo_alto_next_generation_firewall_virtual_hub_panorama.NextGenerationFirewallVHubPanoramaResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -188,7 +194,7 @@ func (NextGenerationFirewallVNetPanoramaDataSource) ResourceType() string {
 }
 
 func (NextGenerationFirewallVNetPanoramaDataSource) ModelObject() interface{} {
-	return &NextGenerationFirewallVnetPanoramaModel{}
+	return &palo_alto_next_generation_firewall_virtual_network_panorama.NextGenerationFirewallVnetPanoramaModel{}
 }
 
 func (NextGenerationFirewallVNetPanoramaDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -207,7 +213,7 @@ func (NextGenerationFirewallVNetPanoramaDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state NextGenerationFirewallVnetPanoramaModel
+			var state palo_alto_next_generation_firewall_virtual_network_panorama.NextGenerationFirewallVnetPanoramaModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -239,7 +245,7 @@ func (NextGenerationFirewallVHubStrataCloudManagerDataSource) ResourceType() str
 }
 
 func (NextGenerationFirewallVHubStrataCloudManagerDataSource) ModelObject() interface{} {
-	return &NextGenerationFirewallVHubStrataCloudManagerModel{}
+	return &palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.NextGenerationFirewallVHubStrataCloudManagerModel{}
 }
 
 func (NextGenerationFirewallVHubStrataCloudManagerDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -258,7 +264,7 @@ func (NextGenerationFirewallVHubStrataCloudManagerDataSource) Read() sdk.Resourc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state NextGenerationFirewallVHubStrataCloudManagerModel
+			var state palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager.NextGenerationFirewallVHubStrataCloudManagerModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -298,7 +304,7 @@ func (NextGenerationFirewallVNetStrataCloudManagerDataSource) ResourceType() str
 }
 
 func (NextGenerationFirewallVNetStrataCloudManagerDataSource) ModelObject() interface{} {
-	return &NextGenerationFirewallVNetStrataCloudManagerModel{}
+	return &palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.NextGenerationFirewallVNetStrataCloudManagerModel{}
 }
 
 func (NextGenerationFirewallVNetStrataCloudManagerDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -317,7 +323,7 @@ func (NextGenerationFirewallVNetStrataCloudManagerDataSource) Read() sdk.Resourc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state NextGenerationFirewallVNetStrataCloudManagerModel
+			var state palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.NextGenerationFirewallVNetStrataCloudManagerModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}

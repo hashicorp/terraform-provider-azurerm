@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -70,6 +70,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
+										Set:      pluginsdk.HashString,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -77,13 +78,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"appendBlob",
 											}, false),
 										},
-										Set: pluginsdk.HashString,
 									},
 									"prefix_match": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 									"match_blob_index_tag": {
 										Type:     pluginsdk.TypeSet,
@@ -99,10 +99,10 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"operation": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
+													Default:  "==",
 													ValidateFunc: validation.StringInSlice([]string{
 														"==",
 													}, false),
-													Default: "==",
 												},
 
 												"value": {
@@ -314,7 +314,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
+	// The name of the Storage Account Management Policy. It should always be 'default' (from https://learn.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {

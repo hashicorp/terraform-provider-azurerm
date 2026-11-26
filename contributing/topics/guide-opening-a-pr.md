@@ -37,11 +37,11 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 1. Make / commit the changes.
 2. Run GitHub Actions linting and checks locally with the make command `make pr-check`.
 3. Run all relevant [Acceptance Tests](running-the-tests.md).
-4. Open a Pull Request (see below on `What makes a good PR?`).
-5. GitHub actions will trigger and run all linters.
-6. A Maintainer will review the PR and also run acceptance tests against our test subscription.
-7. Once all comments have been addressed and tests pass the PR will be merged
-8. The maintainer will update the CHANGELOG.md.
+4. Add a changelog entry if the change is user-facing (see [Adding a changelog entry](maintainer-merging.md#adding-a-changelog-entry)).
+5. Open a Pull Request (see below on `What makes a good PR?`).
+6. GitHub actions will trigger and run all linters.
+7. A Maintainer will review the PR and also run acceptance tests against our test subscription.
+8. Once all comments have been addressed and tests pass the PR will be merged.
 
 ## What makes a good PR?
 
@@ -79,63 +79,6 @@ Examples of poorly written PR titles:
 
 ### Body
 
-An example of our PR template is shown below.
-
-#### Community Note
-<!-- Please leave the community note as is. -->
-
-* Please vote on this PR by adding a :thumbsup: [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original PR to help the community and maintainers prioritize for review
-* Please do not leave "+1" or "me too" comments, they generate extra noise for PR followers and do not help prioritize for review
-
-#### PR Checklist
-
-- [ ] Have you followed the guidelines in our [Contributing Documentation](../README.md)?
-- [ ] Have you checked to ensure there aren't other open [Pull Requests](https://github.com/hashicorp/terraform-provider-azurerm/pulls) for the same update/change?
-- [ ] Have you used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work?
-Example:
-“`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
-- [ ] Do your changes close any open issues? If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
-
-<!-- You can erase any parts of this template below this point that are not applicable to your Pull Request. -->
-
-#### New Feature Submissions
-
-- [ ] Does your submission include Test coverage as described in the [Contribution Guide](guide-new-resource.md) and the tests pass? (if this is not possible for any reason, please include details of why below)
-
-#### Changes to existing Resource / Data Source
-
-- [ ] Have you added an explanation of what your changes do and why you'd like us to include them? (This may be covered by linking to an issue above, but may benefit from additional explanation)
-- [ ] Have you written new tests for your resource or datasource changes?
-- [ ] Have you successfully run tests with your changes locally? If not, please provide details on testing challenges that prevented you running the tests.
-
-#### Documentation Changes
-
-- [ ] Documentation is written in International English.
-- [ ] Documentation is written in a helpful and kind way to assist users that may be unfamiliar with the resource / data source.
-
-#### Description
-
-<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. It also helps to paste the output from running the acceptance tests. -->
-
-#### Related Issue(s)
-
- Use [linking keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) here like "fixes", "closes", "resolves", etc:
-
- ```
- Fixes #1234, fixes #5678, fixes #9101
- ```
-
-#### Change Log
-
-[Changelog Format](maintainer-merging.md#adding-a-changelog-entry)
-
-<!-- Replace the changelog example below with your entry. One resource per line. -->
-
-* `azurerm_resource` - support for the `thing1` property [GH-00000]
-
-<!-- What type of PR is this? -->
-
-- [ ] Bug Fix
-- [ ] New Feature
+GitHub pre-fills the body from [the pull request template](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/.github/pull_request_template.md). Fill in the description, say which issues it closes using [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword), and tick the boxes that apply. Leave the community note as it is.
 
 > **Note:** If this PR changes meaningfully during the course of review please update the title and description as required.

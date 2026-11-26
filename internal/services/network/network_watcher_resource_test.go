@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -84,6 +84,8 @@ func TestAccNetworkWatcher_sequential(t *testing.T) {
 			"tags":                    testAccNetworkWatcherFlowLog_tags,
 			"cannotCreateNewWithNSG":  testAccNetworkWatcherFlowLog_cannotCreateNewWithNSG,
 			"update":                  testAccNetworkWatcherFlowLog_update,
+			"list":                    testAccNetworkWatcherFlowLog_listByNetworkWatcherID,
+			"identity":                testAccNetworkWatcherFlowLog_resourceIdentity,
 		},
 	}
 
