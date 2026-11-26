@@ -1,0 +1,139 @@
+package serviceendpointpolicydefinitions
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ServiceEndpointPolicyDefinitionId{})
+}
+
+var _ resourceids.ResourceId = &ServiceEndpointPolicyDefinitionId{}
+
+// ServiceEndpointPolicyDefinitionId is a struct representing the Resource ID for a Service Endpoint Policy Definition
+type ServiceEndpointPolicyDefinitionId struct {
+	SubscriptionId                      string
+	ResourceGroupName                   string
+	ServiceEndpointPolicyName           string
+	ServiceEndpointPolicyDefinitionName string
+}
+
+// NewServiceEndpointPolicyDefinitionID returns a new ServiceEndpointPolicyDefinitionId struct
+func NewServiceEndpointPolicyDefinitionID(subscriptionId string, resourceGroupName string, serviceEndpointPolicyName string, serviceEndpointPolicyDefinitionName string) ServiceEndpointPolicyDefinitionId {
+	return ServiceEndpointPolicyDefinitionId{
+		SubscriptionId:                      subscriptionId,
+		ResourceGroupName:                   resourceGroupName,
+		ServiceEndpointPolicyName:           serviceEndpointPolicyName,
+		ServiceEndpointPolicyDefinitionName: serviceEndpointPolicyDefinitionName,
+	}
+}
+
+// ParseServiceEndpointPolicyDefinitionID parses 'input' into a ServiceEndpointPolicyDefinitionId
+func ParseServiceEndpointPolicyDefinitionID(input string) (*ServiceEndpointPolicyDefinitionId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&ServiceEndpointPolicyDefinitionId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	id := ServiceEndpointPolicyDefinitionId{}
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+// ParseServiceEndpointPolicyDefinitionIDInsensitively parses 'input' case-insensitively into a ServiceEndpointPolicyDefinitionId
+// note: this method should only be used for API response data and not user input
+func ParseServiceEndpointPolicyDefinitionIDInsensitively(input string) (*ServiceEndpointPolicyDefinitionId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&ServiceEndpointPolicyDefinitionId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	id := ServiceEndpointPolicyDefinitionId{}
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func (id *ServiceEndpointPolicyDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceEndpointPolicyName, ok = input.Parsed["serviceEndpointPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceEndpointPolicyName", input)
+	}
+
+	if id.ServiceEndpointPolicyDefinitionName, ok = input.Parsed["serviceEndpointPolicyDefinitionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceEndpointPolicyDefinitionName", input)
+	}
+
+	return nil
+}
+
+// ValidateServiceEndpointPolicyDefinitionID checks that 'input' can be parsed as a Service Endpoint Policy Definition ID
+func ValidateServiceEndpointPolicyDefinitionID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseServiceEndpointPolicyDefinitionID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Service Endpoint Policy Definition ID
+func (id ServiceEndpointPolicyDefinitionId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/serviceEndpointPolicies/%s/serviceEndpointPolicyDefinitions/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServiceEndpointPolicyName, id.ServiceEndpointPolicyDefinitionName)
+}
+
+// Segments returns a slice of Resource ID Segments which comprise this Service Endpoint Policy Definition ID
+func (id ServiceEndpointPolicyDefinitionId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
+		resourceids.StaticSegment("staticServiceEndpointPolicies", "serviceEndpointPolicies", "serviceEndpointPolicies"),
+		resourceids.UserSpecifiedSegment("serviceEndpointPolicyName", "serviceEndpointPolicyName"),
+		resourceids.StaticSegment("staticServiceEndpointPolicyDefinitions", "serviceEndpointPolicyDefinitions", "serviceEndpointPolicyDefinitions"),
+		resourceids.UserSpecifiedSegment("serviceEndpointPolicyDefinitionName", "serviceEndpointPolicyDefinitionName"),
+	}
+}
+
+// String returns a human-readable description of this Service Endpoint Policy Definition ID
+func (id ServiceEndpointPolicyDefinitionId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Service Endpoint Policy Name: %q", id.ServiceEndpointPolicyName),
+		fmt.Sprintf("Service Endpoint Policy Definition Name: %q", id.ServiceEndpointPolicyDefinitionName),
+	}
+	return fmt.Sprintf("Service Endpoint Policy Definition (%s)", strings.Join(components, "\n"))
+}
