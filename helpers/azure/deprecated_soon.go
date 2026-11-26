@@ -22,8 +22,8 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		DiffSuppressFunc: suppress.CaseDifference,
 		ValidateFunc:     resourcegroups.ValidateName,
+		DiffSuppressFunc: suppress.CaseDifference,
 	}
 }
 

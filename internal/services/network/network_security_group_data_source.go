@@ -63,8 +63,8 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_port_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_port_range": {
@@ -75,8 +75,8 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_port_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"source_address_prefix": {
@@ -87,15 +87,15 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_address_prefixes": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_address_prefix": {
@@ -106,15 +106,15 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_address_prefixes": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"access": {

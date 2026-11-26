@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_data_factory_dataset_azure_sql_table"
 }
 
+func (Resource) Description() string {
+	return "Manages an Azure SQL Table Dataset inside an Azure Data Factory."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.DataSetID
 }

@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -45,9 +45,10 @@ func suppressOmittedKubernetesClusterMessageOfTheDay(_, _, _ string, d *pluginsd
 
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MaxItems: 1,
+		Description: "The configuration for `System` mode node pool.",
+		Type:        pluginsdk.TypeList,
+		Required:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: func() map[string]*pluginsdk.Schema {
 				return map[string]*pluginsdk.Schema{
@@ -55,36 +56,41 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					// of `temporary_name_for_rotation` during the resizing of the default node pool should be allowed and
 					// not force cluster recreation
 					"name": {
+						Description:  "The name which should be used for the default Kubernetes Node Pool.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
 					"temporary_name_for_rotation": {
+						Description:  "The name of the temporary node pool used to cycle the default node pool for VM resizing.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+						Description: "The type of Node Pool which should be created.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
 						}, false),
 					},
 
 					"vm_size": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
 						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"capacity_reservation_group_id": {
+						Description:  "The ID of the Capacity Reservation Group within which this AKS Cluster should be created.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -96,11 +102,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"linux_os_config": SchemaNodePoolLinuxOSConfig(),
 
 					"fips_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the nodes in this Node Pool should have Federal Information Processing Standard enabled. `temporary_name_for_rotation` must be specified when changing this block.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"gpu_instance": {
+						Description:  "The GPU MIG instance profile for supported GPU VM SKU.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -108,6 +116,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"gpu_driver": {
+						Description:  "The driver type for GPU nodes.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -115,6 +124,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"kubelet_disk_type": {
+						Description:  "The type of disk used by kubelet. `temporary_name_for_rotation` must be specified when changing this block.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -122,16 +132,18 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"max_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						// NOTE: rather than setting `0` users should instead pass `null` here
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
 
 					"max_pods": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
@@ -142,8 +154,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"min_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 						// NOTE: rather than setting `0` users should instead pass `null` here
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
@@ -151,6 +164,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"node_network_profile": SchemaNodePoolNetworkProfile(),
 
 					"node_count": {
+						Description:  "The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000` and between `min_count` and `max_count`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -158,15 +172,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"node_labels": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"node_public_ip_prefix_id": {
+						Description:  "Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -177,6 +193,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"tags": commonschema.Tags(),
 
 					"os_disk_size_gb": {
+						Description:  "The size of the OS Disk which should be used for each agent in the Node Pool. `temporary_name_for_rotation` must be specified when attempting a change.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -184,6 +201,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"os_disk_type": {
+						Description:  "The type of disk which should be used for the Operating System. `temporary_name_for_rotation` must be specified when attempting a change.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      agentpools.OSDiskTypeManaged,
@@ -191,8 +209,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"os_sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The OS SKU used by the agent pool. If not specified, changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// Note: O+C because defaults to Ubuntu if using Linux
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
@@ -208,17 +227,20 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"ultra_ssd_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Default:  false,
-						Optional: true,
+						Description: "Used to specify whether the UltraSSD is enabled in the Default Node Pool. See [the documentation](https://learn.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"vnet_subnet_id": {
+						Description:  "The ID of a Subnet where the Kubernetes Node Pool should exist.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"orchestrator_version": {
+						Description:      "Version of Kubernetes used for the Agents. If not specified, the default node pool will be created with the version specified by `kubernetes_version`. If both are unspecified, the latest recommended version will be used at provisioning time (but won't auto-upgrade). AKS does not require an exact patch version to be specified, minor version aliases such as `1.22` are also supported. - The minor version's latest GA patch is automatically chosen in that case. More details can be found in [the documentation](https://learn.microsoft.com/azure/aks/supported-kubernetes-versions?tabs=azure-cli#alias-minor-version).",
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						Computed:         true, // azignore:AZS007 - pre-existing violation
@@ -226,35 +248,43 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						DiffSuppressFunc: SuppressKubernetesVersionDiff,
 					},
 					"pod_subnet_id": {
+						Description:  "The ID of the Subnet where the pods in the default Node Pool should exist.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"proximity_placement_group_id": {
+						Description:  "The ID of the Proximity Placement Group.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 					},
 					"only_critical_addons_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Enabling this option will taint default node pool with `CriticalAddonsOnly=true:NoSchedule` taint. `temporary_name_for_rotation` must be specified when changing this property.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"scale_down_mode": {
+						Description:  "The autoscaling behaviour of the Kubernetes Cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(managedclusters.ScaleDownModeDelete),
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForScaleDownMode(), false),
 					},
 
+					"security": SchemaNodePoolSecurity("default_node_pool.0.security"),
+
 					"snapshot_id": {
+						Description:  "The ID of the Snapshot which should be used to create this default Node Pool. `temporary_name_for_rotation` must be specified when changing this property.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: snapshots.ValidateSnapshotID,
 					},
 
 					"host_group_id": {
+						Description:  "The ID of the Host Group within which this AKS Cluster should be created.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -264,9 +294,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"upgrade_settings": UpgradeSettingsSchemaClusterDefaultNodePool(),
 
 					"workload_runtime": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
+						Description: "The workload runtime used by the node pool.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.WorkloadRuntimeKataVMIsolation),
 							string(managedclusters.WorkloadRuntimeOCIContainer),
@@ -276,18 +307,21 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"zones": commonschema.ZonesMultipleOptional(),
 
 					"auto_scaling_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether [the Kubernetes Auto Scaler](https://learn.microsoft.com/azure/aks/cluster-autoscaler) should be enabled for this Node Pool.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"node_public_ip_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether nodes in this Node Pool should have a Public IP Address. `temporary_name_for_rotation` must be specified when changing this property.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"host_encryption_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the nodes in the Default Node Pool should have host encryption enabled. `temporary_name_for_rotation` must be specified when changing this property.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 				}
 			}(),
@@ -295,16 +329,64 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 	}
 }
 
-func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
+func SchemaNodePoolSecurity(path string) *pluginsdk.Schema {
+	secureBootPath := fmt.Sprintf("%s.0.secure_boot_enabled", path)
+	vtpmPath := fmt.Sprintf("%s.0.vtpm_enabled", path)
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+			if k != fmt.Sprintf("%s.#", path) {
+				return false
+			}
+
+			if old == "1" && new == "0" {
+				oldSecureBoot, _ := d.GetChange(secureBootPath)
+				oldVtpmPath, _ := d.GetChange(vtpmPath)
+				if !oldSecureBoot.(bool) && !oldVtpmPath.(bool) {
+					return true
+				}
+			}
+
+			return false
+		},
+
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"secure_boot_enabled": {
+					Description:  "Whether to enable Secure Boot for this Node Pool.",
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					Default:      false,
+					AtLeastOneOf: []string{secureBootPath, vtpmPath},
+				},
+
+				"vtpm_enabled": {
+					Description:  "Whether to enable vTPM for this Node Pool.",
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					Default:      false,
+					AtLeastOneOf: []string{secureBootPath, vtpmPath},
+				},
+			},
+		},
+	}
+}
+
+func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Description: "`temporary_name_for_rotation` must be specified when changing this block.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cpu_manager_policy": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The CPU Manager policy to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"none",
 						"static",
@@ -312,31 +394,36 @@ func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				},
 
 				"cpu_cfs_quota_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Default:  true,
-					Optional: true,
+					Description: "Whether CPU CFS quota enforcement for containers is enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     true,
 				},
 
 				"cpu_cfs_quota_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The CPU CFS quota period value.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"image_gc_high_threshold": {
+					Description:  "The percent of disk usage above which image garbage collection is always run.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"image_gc_low_threshold": {
+					Description:  "The percent of disk usage lower than which image garbage collection is never run.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"topology_manager_policy": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The Topology Manager policy to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"none",
 						"best-effort",
@@ -346,27 +433,31 @@ func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				},
 
 				"allowed_unsafe_sysctls": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
+					Description: "The allow list of unsafe sysctls command or patterns (ending in `*`).",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"container_log_max_size_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The maximum size (e.g. 10MB) of container log file before it is rotated.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 
 				"container_log_max_files": {
+					Description:  "The maximum number of container log files that can be present for a container.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(2),
 				},
 
 				"pod_max_pid": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The maximum number of processes per pod.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 			},
 		},
@@ -375,16 +466,18 @@ func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
 
 func SchemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Description: "`temporary_name_for_rotation` must be specified when changing this block.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"sysctl_config": SchemaNodePoolSysctlConfig(),
 
 				"transparent_huge_page": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The Transparent Huge Page configuration.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"always",
 						"madvise",
@@ -393,8 +486,9 @@ func SchemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				},
 
 				"transparent_huge_page_defrag": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The defrag configuration for Transparent Huge Page.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"always",
 						"defer",
@@ -405,8 +499,9 @@ func SchemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				},
 
 				"swap_file_size_mb": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The size of the swap file on each node in MB.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 			},
 		},
@@ -421,173 +516,202 @@ func SchemaNodePoolSysctlConfig() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"fs_aio_max_nr": {
+					Description:  "The sysctl setting fs.aio-max-nr.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(65536, 6553500),
 				},
 
 				"fs_file_max": {
+					Description:  "The sysctl setting fs.file-max.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(8192, 12000500),
 				},
 
 				"fs_inotify_max_user_watches": {
+					Description:  "The sysctl setting fs.inotify.max_user_watches.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(781250, 2097152),
 				},
 
 				"fs_nr_open": {
+					Description:  "The sysctl setting fs.nr_open.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(8192, 20000500),
 				},
 
 				"kernel_threads_max": {
+					Description:  "The sysctl setting kernel.threads-max.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(20, 513785),
 				},
 
 				"net_core_netdev_max_backlog": {
+					Description:  "The sysctl setting net.core.netdev_max_backlog.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1000, 3240000),
 				},
 
 				"net_core_optmem_max": {
+					Description:  "The sysctl setting net.core.optmem_max.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(20480, 4194304),
 				},
 
 				"net_core_rmem_default": {
+					Description:  "The sysctl setting net.core.rmem_default.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(212992, 134217728),
 				},
 
 				"net_core_rmem_max": {
+					Description:  "The sysctl setting net.core.rmem_max.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(212992, 134217728),
 				},
 
 				"net_core_somaxconn": {
+					Description:  "The sysctl setting net.core.somaxconn.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(4096, 3240000),
 				},
 
 				"net_core_wmem_default": {
+					Description:  "The sysctl setting net.core.wmem_default.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(212992, 134217728),
 				},
 
 				"net_core_wmem_max": {
+					Description:  "The sysctl setting net.core.wmem_max.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(212992, 134217728),
 				},
 
 				"net_ipv4_ip_local_port_range_min": {
+					Description:  "The sysctl setting net.ipv4.ip_local_port_range min value.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1024, 60999),
 				},
 
 				"net_ipv4_ip_local_port_range_max": {
+					Description:  "The sysctl setting net.ipv4.ip_local_port_range max value.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(32768, 65535),
 				},
 
 				"net_ipv4_neigh_default_gc_thresh1": {
+					Description:  "The sysctl setting net.ipv4.neigh.default.gc_thresh1.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(128, 80000),
 				},
 
 				"net_ipv4_neigh_default_gc_thresh2": {
+					Description:  "The sysctl setting net.ipv4.neigh.default.gc_thresh2.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(512, 90000),
 				},
 
 				"net_ipv4_neigh_default_gc_thresh3": {
+					Description:  "The sysctl setting net.ipv4.neigh.default.gc_thresh3.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1024, 100000),
 				},
 
 				"net_ipv4_tcp_fin_timeout": {
+					Description:  "The sysctl setting net.ipv4.tcp_fin_timeout.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(5, 120),
 				},
 
 				"net_ipv4_tcp_keepalive_intvl": {
+					Description:  "The sysctl setting net.ipv4.tcp_keepalive_intvl.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(10, 90),
 				},
 
 				"net_ipv4_tcp_keepalive_probes": {
+					Description:  "The sysctl setting net.ipv4.tcp_keepalive_probes.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, 15),
 				},
 
 				"net_ipv4_tcp_keepalive_time": {
+					Description:  "The sysctl setting net.ipv4.tcp_keepalive_time.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(30, 432000),
 				},
 
 				"net_ipv4_tcp_max_syn_backlog": {
+					Description:  "The sysctl setting net.ipv4.tcp_max_syn_backlog.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(128, 3240000),
 				},
 
 				"net_ipv4_tcp_max_tw_buckets": {
+					Description:  "The sysctl setting net.ipv4.tcp_max_tw_buckets.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(8000, 1440000),
 				},
 
 				"net_ipv4_tcp_tw_reuse": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "Whether sysctl setting net.ipv4.tcp_tw_reuse is enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 
 				"net_netfilter_nf_conntrack_buckets": {
+					Description:  "The sysctl setting net.netfilter.nf_conntrack_buckets.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(65536, 524288),
 				},
 
 				"net_netfilter_nf_conntrack_max": {
+					Description:  "The sysctl setting net.netfilter.nf_conntrack_max.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(131072, 2097152),
 				},
 
 				"vm_max_map_count": {
+					Description:  "The sysctl setting vm.max_map_count.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(65530, 262144),
 				},
 
 				"vm_swappiness": {
+					Description:  "The sysctl setting vm.swappiness.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"vm_vfs_cache_pressure": {
+					Description:  "The sysctl setting vm.vfs_cache_pressure.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 100),
@@ -610,18 +734,21 @@ func SchemaNodePoolNetworkProfile() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"port_start": {
+								Description:  "The start of the port range.",
 								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								ValidateFunc: validation.IntBetween(1, 65535),
 							},
 
 							"port_end": {
+								Description:  "The end of the port range.",
 								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								ValidateFunc: validation.IntBetween(1, 65535),
 							},
 
 							"protocol": {
+								Description:  "The protocol of the port range.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForProtocol(), false),
@@ -631,8 +758,9 @@ func SchemaNodePoolNetworkProfile() *pluginsdk.Schema {
 				},
 
 				"application_security_group_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of Application Security Group IDs which should be associated with this Node Pool.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
@@ -640,9 +768,10 @@ func SchemaNodePoolNetworkProfile() *pluginsdk.Schema {
 				},
 
 				"node_public_ip_tags": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
-					ForceNew: true,
+					Description: "A mapping of tags to the instance-level public IPs.",
+					Type:        pluginsdk.TypeMap,
+					Optional:    true,
+					ForceNew:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -660,19 +789,23 @@ func UpgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honours pod disruption budgets for upgrades. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 				"node_soak_duration_in_minutes": {
+					Description:  "The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 30),
 				},
 				"undrainable_node_behavior": {
+					Description:  "The action when a node is undrainable during upgrade. Unsetting this after configuring it will force a new resource to be created.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
@@ -769,6 +902,17 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			networkProfile.NodePublicIPTags = &ipTags
 		}
 		agentpool.Properties.NetworkProfile = &networkProfile
+	}
+	if securityProfileRaw := defaultCluster.SecurityProfile; securityProfileRaw != nil {
+		agentpool.Properties.SecurityProfile = &agentpools.AgentPoolSecurityProfile{
+			EnableSecureBoot: securityProfileRaw.EnableSecureBoot,
+			EnableVTPM:       securityProfileRaw.EnableVTPM,
+		}
+
+		// Because SSHAccess is related to security, ensure the value set outside of Terraform is preserved until it is exposed in the provider.
+		if securityProfileRaw.SshAccess != nil {
+			agentpool.Properties.SecurityProfile.SshAccess = pointer.ToEnum[agentpools.AgentPoolSSHAccess](string(*securityProfileRaw.SshAccess))
+		}
 	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
 		agentpool.Properties.OsType = pointer.ToEnum[agentpools.OSType](string(*osTypeNodePool))
@@ -1022,6 +1166,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	if networkProfile := raw["node_network_profile"].([]any); len(networkProfile) > 0 {
 		profile.NetworkProfile = ExpandClusterPoolNetworkProfile(networkProfile)
+	}
+
+	if securityProfile := raw["security"].([]any); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandManagedClusterAgentPoolSecurityProfile(securityProfile)
 	}
 
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
@@ -1348,6 +1496,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	networkProfile := FlattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(agentPool.SecurityProfile)
 
 	out := map[string]any{
 		"auto_scaling_enabled":          enableAutoScaling,
@@ -1388,6 +1537,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
+		"security":                      securityProfile,
 	}
 
 	return &[]any{
@@ -1843,6 +1993,34 @@ func ExpandClusterPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]ma
 		out = append(out, ipTag)
 	}
 	return &out
+}
+
+func expandManagedClusterAgentPoolSecurityProfile(input []any) *managedclusters.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return &managedclusters.AgentPoolSecurityProfile{
+			EnableSecureBoot: pointer.To(false),
+			EnableVTPM:       pointer.To(false),
+		}
+	}
+
+	v := input[0].(map[string]any)
+	return &managedclusters.AgentPoolSecurityProfile{
+		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
+		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
+	}
+}
+
+func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+		},
+	}
 }
 
 func FlattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []any {

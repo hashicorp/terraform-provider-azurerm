@@ -12,12 +12,14 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Cost Management View for a Resource Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"resource_group_id": {
+			Description:  "The ID of the Resource Group this View is scoped to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -4,8 +4,7 @@
 package datadog_monitor_sso_configuration
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -13,33 +12,38 @@ import (
 func datadogMonitorSsoConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"datadog_monitor_id": {
+			Description:  "The Datadog Monitor ID which should be used for this Datadog Monitor SSO Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: monitorsresource.ValidateMonitorID,
+			ValidateFunc: datadogsinglesignonresources.ValidateMonitorID,
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "default",
+			Description: "The name of the SingleSignOn configuration.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "default",
 		},
 
 		"enterprise_application_id": {
+			Description:  "The application ID to perform SSO operation.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"single_sign_on": {
+			Description:  "The state of SingleSignOn configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(singlesignon.PossibleValuesForSingleSignOnStates(), false),
+			ValidateFunc: validation.StringInSlice(datadogsinglesignonresources.PossibleValuesForSingleSignOnStates(), false),
 		},
 
 		"login_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SingleSignOn URL to login to Datadog org.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionClassicCertificateCreate,
-		Read:   resourceAutomationConnectionClassicCertificateRead,
-		Update: resourceAutomationConnectionClassicCertificateUpdate,
-		Delete: resourceAutomationConnectionClassicCertificateDelete,
+		Description: "Manages an Automation Connection with type `AzureClassicCertificate`.",
+		Create:      resourceAutomationConnectionClassicCertificateCreate,
+		Read:        resourceAutomationConnectionClassicCertificateRead,
+		Update:      resourceAutomationConnectionClassicCertificateUpdate,
+		Delete:      resourceAutomationConnectionClassicCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := connection.ParseConnectionID(id)

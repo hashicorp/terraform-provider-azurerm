@@ -12,7 +12,7 @@ import (
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	azurestackhci_v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"
-	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
+	datadog_v2025_06_11 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
@@ -81,6 +81,7 @@ import (
 	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
+	horizondb "github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb/client"
 	hsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/client"
 	hybridcompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
@@ -201,7 +202,7 @@ type Client struct {
 	DatabaseMigration                 *datamigration.Client
 	DataBricks                        *databricks.Client
 	DataboxEdge                       *databoxedge.Client
-	Datadog                           *datadog_v2021_03_01.Client
+	Datadog                           *datadog_v2025_06_11.Client
 	DataFactory                       *datafactory.Client
 	DataProtection                    *dataprotection.Client
 	DataShare                         *datashare.Client
@@ -223,6 +224,7 @@ type Client struct {
 	Graph                             *graph.Client
 	HSM                               *hsm.Client
 	HDInsight                         *hdinsight_v2021_06_01.Client
+	HorizonDB                         *horizondb.Client
 	HybridCompute                     *hybridcompute.Client
 	HealthCare                        *healthcare.Client
 	IoTCentral                        *iotcentral.Client
@@ -489,6 +491,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
+	}
+	if client.HorizonDB, err = horizondb.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HorizonDB: %+v", err)
 	}
 	if client.HybridCompute, err = hybridcompute.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HybridCompute: %+v", err)

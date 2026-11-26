@@ -268,7 +268,7 @@ func validateUserIdentity(userIdentity *pool.UserIdentity) error {
 }
 
 func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
-	// Perform validation across multiple fields as per https://docs.microsoft.com/rest/api/batchmanagement/pool/create#resourcefile
+	// Perform validation across multiple fields as per https://learn.microsoft.com/rest/api/batchmanagement/pool/create#resourcefile
 
 	if pool.StartTask != nil {
 		startTask := *pool.StartTask
@@ -310,25 +310,28 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 func containerRegistry() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"registry_server": {
+			Description:  "The container registry URL.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"user_assigned_identity_id": {
+			Description:  "The reference to the User Assigned Identity to use to access an Azure Container Registry instead of username and password.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Description:  "The User Assigned Identity to use for Container Registry access.",
 		},
 		"user_name": {
+			Description:  "The user name to log into the registry server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"password": {
+			Description:  "The password to log into the registry server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

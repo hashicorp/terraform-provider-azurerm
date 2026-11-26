@@ -17,10 +17,11 @@ const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Read:   resourceFirewallPolicyRuleCollectionGroupRead,
-		Update: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
+		Description: "Manages a Firewall Policy Rule Collection Group.",
+		Create:      resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		Read:        resourceFirewallPolicyRuleCollectionGroupRead,
+		Update:      resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		Delete:      resourceFirewallPolicyRuleCollectionGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&firewallpolicyrulecollectiongroups.RuleCollectionGroupId{}),
 

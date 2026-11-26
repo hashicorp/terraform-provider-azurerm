@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDataProtectionBackupInstanceDiskCreateUpdate,
-		Read:   resourceDataProtectionBackupInstanceDiskRead,
-		Update: resourceDataProtectionBackupInstanceDiskCreateUpdate,
-		Delete: resourceDataProtectionBackupInstanceDiskDelete,
+		Description: "Manages a Backup Instance to back up Disk.",
+		Create:      resourceDataProtectionBackupInstanceDiskCreateUpdate,
+		Read:        resourceDataProtectionBackupInstanceDiskRead,
+		Update:      resourceDataProtectionBackupInstanceDiskCreateUpdate,
+		Delete:      resourceDataProtectionBackupInstanceDiskDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

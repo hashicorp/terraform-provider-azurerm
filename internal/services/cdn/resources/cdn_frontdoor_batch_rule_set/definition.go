@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,16 +40,19 @@ func cdnFrontDoorBatchRuleSetActionModifyHeaderSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"operator": {
+					Description:  "The action to take on `header_name`.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForHeaderAction(), false),
 				},
 				"header_name": {
+					Description:  "The name of the header to modify.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"header_value": {
+					Description:  "The value to append or overwrite.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -61,9 +64,10 @@ func cdnFrontDoorBatchRuleSetActionModifyHeaderSchema() *pluginsdk.Schema {
 
 func cdnFrontDoorBatchRuleSetConditionTransformsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		MaxItems: 4,
+		Description: "A list of condition transforms. A maximum of `4` transforms may be defined.",
+		Type:        pluginsdk.TypeSet,
+		Optional:    true,
+		MaxItems:    4,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForTransform(), false),
