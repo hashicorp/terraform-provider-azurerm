@@ -13,34 +13,34 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description:  "The desired name of the credential resource.",
+			Description:  "The name of the Credential.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"data_factory_id": {
-			Description:  "The resource ID of the parent Data Factory.",
+			Description:  "The Data Factory ID in which to associate the Credential with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: factories.ValidateFactoryID,
 		},
 		"identity_id": {
-			Description:  "The resource ID of the User Assigned Managed Identity.",
+			Description:  "The Resource ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 		"description": {
-			Description:  "Short text description.",
+			Description:  "The description for the Data Factory Credential.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"annotations": { // this property is not visible in the azure portal
-			Description: "List of string annotations.",
+			Description: "List of tags that can be used for describing the Data Factory Credential.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Elem: &pluginsdk.Schema{

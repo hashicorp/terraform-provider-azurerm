@@ -125,7 +125,7 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"support_state": {
-			Description: "Does this Authorization Server support State? If this is set to `true` the client may use the state parameter to raise protocol security.",
+			Description: "Whether this Authorization Server supports State. If this is set to `true` the client may use the state parameter to raise protocol security.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

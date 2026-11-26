@@ -19,6 +19,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Elastic SAN resource.",
 			Required:     true,
 			ForceNew:     true,
 			Type:         pluginsdk.TypeString,
@@ -32,12 +33,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"base_size_in_tib": {
+			Description:  "The base size of the Elastic SAN resource in TiB.",
 			Required:     true,
 			Type:         pluginsdk.TypeInt,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 
 		"extended_size_in_tib": {
+			Description:  "The extended size of the Elastic SAN resource in TiB.",
 			Optional:     true,
 			Type:         pluginsdk.TypeInt,
 			ValidateFunc: validation.IntBetween(1, 100),
@@ -51,9 +54,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required: true,
-						ForceNew: true,
-						Type:     pluginsdk.TypeString,
+						Description: "The SKU name.",
+						Required:    true,
+						ForceNew:    true,
+						Type:        pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(
 							elasticsans.PossibleValuesForSkuName(),
 							false,
@@ -61,9 +65,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tier": {
-						Optional: true,
-						Type:     pluginsdk.TypeString,
-						Default:  string(elasticsans.SkuTierPremium),
+						Description: "The SKU tier.",
+						Optional:    true,
+						Type:        pluginsdk.TypeString,
+						Default:     string(elasticsans.SkuTierPremium),
 						ValidateFunc: validation.StringInSlice(
 							elasticsans.PossibleValuesForSkuTier(),
 							false,
@@ -80,28 +85,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"total_iops": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total Provisioned IOPS of the Elastic SAN resource.",
+			Computed:    true,
+			Type:        pluginsdk.TypeInt,
 		},
 
 		"total_mbps": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total Provisioned MBps of the Elastic SAN resource.",
+			Computed:    true,
+			Type:        pluginsdk.TypeInt,
 		},
 
 		"total_size_in_tib": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total size of the Elastic SAN resource in TB.",
+			Computed:    true,
+			Type:        pluginsdk.TypeInt,
 		},
 
 		"total_volume_size_in_gib": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total size of the provisioned Volumes in GiB.",
+			Computed:    true,
+			Type:        pluginsdk.TypeInt,
 		},
 
 		"volume_group_count": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "Total number of volume groups in this Elastic SAN resource.",
+			Computed:    true,
+			Type:        pluginsdk.TypeInt,
 		},
 	}
 }

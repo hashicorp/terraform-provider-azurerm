@@ -56,6 +56,10 @@ func (c Resource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_rule"
 }
 
+func (c Resource) Description() string {
+	return "Manages a Front Door (standard/premium) Rule."
+}
+
 func (c Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return rules.ValidateRuleID
 }

@@ -34,30 +34,35 @@ type CostManagementExportBaseResource struct{}
 func (br CostManagementExportBaseResource) Arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
 		"active": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the cost management export is active.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"recurrence_type": {
+			Description:  "How often the request information will be exported.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForRecurrenceType(), false),
 		},
 
 		"recurrence_period_start_date": {
+			Description:  "The date the export will start capturing information.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
 		"recurrence_period_end_date": {
+			Description:  "The date the export will stop capturing information.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
 		"file_format": {
+			Description:  "Format for export.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(exports.FormatTypeCsv),
@@ -71,12 +76,14 @@ func (br CostManagementExportBaseResource) Arguments(fields map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_id": {
+						Description:  "The Resource Manager ID of the container where exports will be uploaded.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: commonids.ValidateStorageContainerID,
 					},
 					"root_folder_path": {
+						Description:  "The path of the directory where exports will be uploaded.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -93,14 +100,16 @@ func (br CostManagementExportBaseResource) Arguments(fields map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
+						Description:  "The type of the query.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(exports.PossibleValuesForExportType(), false),
 					},
 
 					"time_frame": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The time frame for pulling date for the query. If custom, then a specific time period must be provided.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(exports.TimeframeTypeCustom),
 							string(exports.TimeframeTypeBillingMonthToDate),

@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_dashboard_grafana"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Dashboard Grafana."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return managedgrafanas.ValidateGrafanaID
 }

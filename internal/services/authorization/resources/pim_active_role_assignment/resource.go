@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_pim_active_role_assignment"
 }
 
+func (Resource) Description() string {
+	return "Manages a PIM Active Role Assignment."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.PimRoleAssignmentID
 }

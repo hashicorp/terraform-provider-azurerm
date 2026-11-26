@@ -14,6 +14,7 @@ import (
 func logAnalyticsLinkedStorageAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_source_type": {
+			Description:  "The data source type which should be used for this Log Analytics Linked Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func logAnalyticsLinkedStorageAccountSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"workspace_id": {
+			Description:  "The resource ID of the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,9 +32,10 @@ func logAnalyticsLinkedStorageAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_ids": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Description: "The Storage Account resource IDs to be linked.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateStorageAccountID,

@@ -12,12 +12,14 @@ import (
 func mssqlOutboundFirewallRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the outbound firewall rule. This should be an FQDN.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"server_id": {
+			Description:  "The resource ID of the SQL Server on which to create the Outbound Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

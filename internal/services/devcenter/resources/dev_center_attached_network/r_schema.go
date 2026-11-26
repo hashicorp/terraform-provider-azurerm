@@ -14,15 +14,16 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Attached Network.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devcenters.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devcenters.DevCenterId{}, "Dev Center"),
 
-		"network_connection_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkconnections.NetworkConnectionId{}),
+		"network_connection_id": commonschema.ResourceIDReferenceRequiredForceNew(&networkconnections.NetworkConnectionId{}, "Dev Center Network Connection"),
 	}
 }
 

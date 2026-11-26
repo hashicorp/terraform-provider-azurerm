@@ -18,6 +18,7 @@ import (
 func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the endpoint. The name must be unique across endpoint types. The following names are reserved: `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 
 		// lintignore: S013
 		"iothub_id": {
+			Description:  "The IoTHub ID for the endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +37,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_type": {
+			Description:  "Type used to authenticate against the Event Hub endpoint.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(devices.AuthenticationTypeKeyBased),
@@ -42,6 +45,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"identity_id": {
+			Description:   "ID of the User Managed Identity used to authenticate against the Event Hub endpoint.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
@@ -49,6 +53,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"endpoint_uri": {
+			Description:  "URI of the Event Hubs Namespace endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -57,6 +62,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"entity_path": {
+			Description:  "Name of the Event Hub. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.ValidateEventHubName(),
@@ -64,8 +70,9 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"connection_string": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
 				sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
@@ -80,8 +87,9 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The subscription ID for the endpoint.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
 			Computed:     true,
 			ValidateFunc: validation.IsUUID,

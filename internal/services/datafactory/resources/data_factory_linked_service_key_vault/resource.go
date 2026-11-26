@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
-		Read:   resourceDataFactoryLinkedServiceKeyVaultRead,
-		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
-		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
+		Description: "Manages a Linked Service (connection) between Key Vault and Azure Data Factory.",
+		Create:      resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
+		Read:        resourceDataFactoryLinkedServiceKeyVaultRead,
+		Update:      resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
+		Delete:      resourceDataFactoryLinkedServiceKeyVaultDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.LinkedServiceID(id)

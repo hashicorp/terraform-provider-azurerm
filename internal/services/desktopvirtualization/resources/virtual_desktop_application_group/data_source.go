@@ -43,9 +43,14 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_virtual_desktop_application_group"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Application Group."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Application Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ApplicationGroupName,
@@ -60,28 +65,33 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of Application Group (`RemoteApp` or `Desktop`).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"host_pool_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Virtual Desktop Host Pool ID the Application Group is associated to.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"workspace_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Virtual Desktop Workspace ID the Application Group is associated to.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"friendly_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The friendly name of the Application Group.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Application Group.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

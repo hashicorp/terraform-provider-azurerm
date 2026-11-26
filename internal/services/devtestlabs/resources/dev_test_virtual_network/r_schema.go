@@ -15,6 +15,7 @@ import (
 func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Dev Test Virtual Network.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"lab_name": {
+			Description:  "The name of the Dev Test Lab in which the Virtual Network should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,8 +35,9 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for the Virtual Network.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"subnet": {
@@ -47,11 +50,13 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the Subnet for this Virtual Network.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"use_in_virtual_machine_creation": {
+						Description:  "Whether this subnet can be used for creating Virtual Machines.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(virtualnetworks.UsagePermissionTypeAllow),
@@ -59,6 +64,7 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"use_public_ip_address": {
+						Description:  "Whether Virtual Machines in this Subnet can use Public IP Addresses.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(virtualnetworks.UsagePermissionTypeAllow),
@@ -77,11 +83,13 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"backend_port": {
-												Type:     pluginsdk.TypeInt,
-												Optional: true,
+												Description: "The port on the Virtual Machine that the traffic will be sent to.",
+												Type:        pluginsdk.TypeInt,
+												Optional:    true,
 											},
 
 											"transport_protocol": {
+												Description:  "The transport protocol that the traffic will use.",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForTransportProtocol(), false),
@@ -99,8 +107,9 @@ func devTestVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"unique_identifier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The unique immutable identifier of the Dev Test Virtual Network.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
