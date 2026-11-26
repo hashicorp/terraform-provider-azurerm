@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription_cost_management_export
@@ -18,6 +18,10 @@ var _ sdk.Resource = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_subscription_cost_management_export"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Cost Management Export for a Subscription."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

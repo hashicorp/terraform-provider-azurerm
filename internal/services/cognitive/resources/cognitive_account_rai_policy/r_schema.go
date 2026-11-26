@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account_rai_policy
@@ -58,6 +58,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Cognitive Service Account RAI Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -65,6 +66,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_account_id": {
+			Description:  "The ID of the Cognitive Service Account to which this RAI Policy should be associated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -72,6 +74,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"base_policy_name": {
+			Description:  "The name of the base policy to use for this RAI Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -84,24 +87,29 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the content filter.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"block_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether the filter should block content.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 					"filter_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether the filter is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 					"source": {
+						Description:  "Content source to apply the content filter.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForRaiPolicyContentSource(), false),
 					},
 					"severity_threshold": {
+						Description:  "The severity threshold for the filter.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
@@ -111,6 +119,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
+			Description:  "The mode of the RAI Policy.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForRaiPolicyMode(), false),

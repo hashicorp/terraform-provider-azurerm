@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package communication_service
@@ -36,6 +36,10 @@ func (Resource) StateUpgraders() sdk.StateUpgradeData {
 
 func (Resource) ResourceType() string {
 	return "azurerm_communication_service"
+}
+
+func (Resource) Description() string {
+	return "Manages a Communication Service."
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

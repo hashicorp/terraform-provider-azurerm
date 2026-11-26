@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_certificate
@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationCertificateCreate,
-		Read:   resourceAutomationCertificateRead,
-		Update: resourceAutomationCertificateUpdate,
-		Delete: resourceAutomationCertificateDelete,
+		Description: "Manages an Automation Certificate.",
+		Create:      resourceAutomationCertificateCreate,
+		Read:        resourceAutomationCertificateRead,
+		Update:      resourceAutomationCertificateUpdate,
+		Delete:      resourceAutomationCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := certificate.ParseCertificateID(id)

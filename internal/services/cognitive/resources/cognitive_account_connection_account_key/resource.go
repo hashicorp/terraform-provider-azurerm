@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_account_connection_account_key
@@ -31,6 +31,10 @@ func (r Resource) Identity() resourceids.ResourceId {
 
 func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_account_key"
+}
+
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services (Microsoft Foundry) Account Connection with Account Key authentication."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

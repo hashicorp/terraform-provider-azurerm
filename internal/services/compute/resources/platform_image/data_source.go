@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package platform_image
@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePlatformImageRead,
+		Description: "Use this data source to access information about a Platform Image.",
+		Read:        dataSourcePlatformImageRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,23 +28,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"publisher": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Publisher associated with the Platform Image.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"offer": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Offer associated with the Platform Image.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The SKU of the Platform Image.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The version of the Platform Image.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 				// Note: O+C because Azure assigns a version when not explicitly set
 				Computed: true,
 			},

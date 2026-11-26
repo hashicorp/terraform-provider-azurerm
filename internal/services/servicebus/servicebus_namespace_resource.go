@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -95,9 +95,9 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 
 			"premium_messaging_partitions": {
 				Type:         pluginsdk.TypeInt,
+				Optional:     true,
 				ForceNew:     true,
 				Default:      0,
-				Optional:     true,
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4}),
 			},
 

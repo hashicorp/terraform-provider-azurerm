@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_connection_classic_certificate
@@ -13,6 +13,7 @@ import (
 func automationConnectionClassicCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func automationConnectionClassicCertificateSchema() map[string]*pluginsdk.Schema
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
+			Description:  "The name of the Automation Account in which the Connection is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,26 +31,30 @@ func automationConnectionClassicCertificateSchema() map[string]*pluginsdk.Schema
 		},
 
 		"subscription_id": {
+			Description:  "The ID of subscription.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"subscription_name": {
+			Description:  "The name of subscription.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"certificate_asset_name": {
+			Description:  "The name of the certificate asset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for this Connection.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_account
@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAutomationAccountRead,
+		Description: "Use this data source to access information about an existing Automation Account.",
+		Read:        dataSourceAutomationAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,27 +31,31 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"dsc_primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Access Key for the DSC Endpoint associated with this Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"dsc_server_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The DSC Server Endpoint associated with this Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dsc_secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Access Key for the DSC Endpoint associated with this Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"encryption": {
@@ -74,30 +79,35 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"local_authentication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether requests using non-AAD authentication are blocked.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"primary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Primary Access Key for the Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether public network access is allowed for the Automation Account.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"secondary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Secondary Access Key for the Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Endpoint for this Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_endpoint_connection": {
@@ -118,13 +128,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"hybrid_service_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL of automation hybrid service which is used for hybrid worker on-boarding With this Automation Account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU of the account.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

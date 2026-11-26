@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package application_insights_standard_web_test_test
@@ -363,6 +363,7 @@ resource "azurerm_application_insights_standard_web_test" "test" {
   }
   validation_rules {
     expected_status_code = 200
+    ignore_status_code   = true
 
     ssl_cert_remaining_lifetime = 20
     ssl_check_enabled           = true

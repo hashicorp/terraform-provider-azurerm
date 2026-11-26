@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_disk
@@ -63,10 +63,11 @@ type KeyEncryptionKey struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedDiskCreate,
-		Read:   resourceManagedDiskRead,
-		Update: resourceManagedDiskUpdate,
-		Delete: resourceManagedDiskDelete,
+		Description: "Manages a Managed Disk.",
+		Create:      resourceManagedDiskCreate,
+		Read:        resourceManagedDiskRead,
+		Update:      resourceManagedDiskUpdate,
+		Delete:      resourceManagedDiskDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

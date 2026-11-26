@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkmanager
@@ -38,70 +38,70 @@ func (NetworkSecurityPerimeterAccessRuleResource) Arguments() map[string]*plugin
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
 				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
 			),
-			ForceNew: true,
 		},
 
 		"network_security_perimeter_profile_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: networksecurityperimeteraccessrules.ValidateProfileID,
 			ForceNew:     true,
+			ValidateFunc: networksecurityperimeteraccessrules.ValidateProfileID,
 		},
 
 		"direction": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
 				networksecurityperimeteraccessrules.PossibleValuesForAccessRuleDirection(),
 				false,
 			),
-			ForceNew: true,
 		},
 
 		"address_prefixes": {
-			Type: pluginsdk.TypeList,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MinItems:     1,
+			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
 			},
-			Optional:     true,
-			MinItems:     1,
-			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 		},
 
 		"fqdns": {
-			Type: pluginsdk.TypeList,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
+			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MinItems:     1,
 			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"service_tags": {
-			Type: pluginsdk.TypeList,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
+			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MinItems:     1,
 			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"subscription_ids": {
-			Type: pluginsdk.TypeList,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MinItems:     1,
+			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateSubscriptionID,
 			},
-			Optional:     true,
-			MinItems:     1,
-			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 		},
 	}
 }

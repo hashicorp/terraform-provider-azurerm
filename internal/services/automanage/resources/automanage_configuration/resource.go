@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage_configuration
@@ -22,6 +22,10 @@ var (
 
 func (r Resource) ResourceType() string {
 	return "azurerm_automanage_configuration"
+}
+
+func (r Resource) Description() string {
+	return "Manages an Automanage Configuration."
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

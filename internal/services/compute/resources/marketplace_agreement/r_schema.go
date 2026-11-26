@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package marketplace_agreement
@@ -11,6 +11,7 @@ import (
 func marketplaceAgreementSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"offer": {
+			Description:  "The Offer of the Marketplace Image.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,6 +19,7 @@ func marketplaceAgreementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"plan": {
+			Description:  "The Plan of the Marketplace Image.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +27,7 @@ func marketplaceAgreementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"publisher": {
+			Description:  "The Publisher of the Marketplace Image.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

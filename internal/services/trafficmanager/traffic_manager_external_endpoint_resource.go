@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -123,14 +123,14 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 
 			"geo_mappings": {
 				Type:     pluginsdk.TypeList,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Optional: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"subnet": {
 				Type:     pluginsdk.TypeList,
-				ForceNew: true,
 				Optional: true,
+				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"first": {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_scale_set
@@ -37,7 +37,8 @@ type Output struct {
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceVirtualMachineScaleSetRead,
+		Description: "Use this data source to access information about an existing Virtual Machine Scale Set.",
+		Read:        dataSourceVirtualMachineScaleSetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -45,6 +46,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Virtual Machine Scale Set.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
@@ -64,64 +66,75 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"computer_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Hostname of this Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"instance_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Instance ID of this Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"latest_model_applied": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the latest model has been applied to this Virtual Machine.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the this Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Primary Private IP Address assigned to this Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_addresses": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of Private IP Addresses assigned to this Virtual Machine.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"public_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Primary Public IP Address assigned to this Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"public_ip_addresses": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of the Public IP Addresses assigned to this Virtual Machine.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"virtual_machine_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The unique ID of the Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"zone": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The zones of the Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"power_state": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The power state of the Virtual Machine.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

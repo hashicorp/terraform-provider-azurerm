@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_account
@@ -17,6 +17,7 @@ import (
 func automationAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Automation Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +29,7 @@ func automationAccountSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku_name": {
+			Description:  "The SKU of the account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(automationaccount.PossibleValuesForSkuNameEnum(), false),
@@ -41,12 +43,14 @@ func automationAccountSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"user_assigned_identity_id": {
+						Description:  "The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 
 					"key_vault_key_id": {
+						Description:  "The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
@@ -56,34 +60,39 @@ func automationAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether requests using non-AAD authentication are blocked.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tags": commonschema.Tags(),
 
 		"dsc_server_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The DSC Server Endpoint associated with this Automation Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dsc_primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary Access Key for the DSC Endpoint associated with this Automation Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"dsc_secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary Access Key for the DSC Endpoint associated with this Automation Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access is allowed for the Automation Account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"private_endpoint_connection": {
@@ -105,8 +114,9 @@ func automationAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"hybrid_service_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of automation hybrid service which is used for hybrid worker on-boarding With this Automation Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
