@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"container_registry_token_id": {
+			Description:  "The ID of the Container Registry Token that this Container Registry Token Password resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,8 +27,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiry": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The expiration date of the password in RFC3339 format. If not specified, the password never expires.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// TODO: Remove the force new and add customize diff to SetNewComputed on the `value` once https://github.com/hashicorp/terraform-plugin-sdk/issues/459 is addressed.
 						ForceNew:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -35,9 +37,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"value": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The value of the password.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
@@ -50,8 +53,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiry": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The expiration date of the password in RFC3339 format. If not specified, the password never expires.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						// TODO: Remove the force new and add customize diff to SetNewComputed on the `value` once https://github.com/hashicorp/terraform-plugin-sdk/issues/459 is addressed.
 						ForceNew:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -59,9 +63,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"value": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The value of the password.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},

@@ -95,7 +95,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}),
+		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}, "Spring Cloud Accelerator"),
 
 		"git_repository": {
 			Type:     pluginsdk.TypeList,
@@ -167,8 +167,8 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 					"branch": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 					},
 
 					"ca_certificate_id": {
@@ -180,15 +180,15 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 					"commit": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 					},
 
 					"git_tag": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 					},
 
 					"interval_in_seconds": {

@@ -20,10 +20,11 @@ var eventHubNamespaceResourceName = "azurerm_eventhub_namespace"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubAuthorizationRuleCreateUpdate,
-		Read:   resourceEventHubAuthorizationRuleRead,
-		Update: resourceEventHubAuthorizationRuleCreateUpdate,
-		Delete: resourceEventHubAuthorizationRuleDelete,
+		Description: "Manages an Event Hubs authorization Rule within an Event Hub.",
+		Create:      resourceEventHubAuthorizationRuleCreateUpdate,
+		Read:        resourceEventHubAuthorizationRuleRead,
+		Update:      resourceEventHubAuthorizationRuleCreateUpdate,
+		Delete:      resourceEventHubAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := eventhubs.ParseEventhubAuthorizationRuleID(id)
@@ -44,6 +45,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 		Schema: helpers.EventHubAuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the EventHub Authorization Rule resource.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -51,6 +53,7 @@ func RegisterResource() *pluginsdk.Resource {
 			},
 
 			"namespace_name": {
+				Description:  "The name of the grandparent EventHub Namespace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -58,6 +61,7 @@ func RegisterResource() *pluginsdk.Resource {
 			},
 
 			"eventhub_name": {
+				Description:  "The name of the EventHub.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,

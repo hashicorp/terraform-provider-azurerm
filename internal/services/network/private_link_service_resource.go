@@ -63,11 +63,11 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			"auto_approval_subscription_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"destination_ip_address": {
@@ -86,11 +86,11 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			"visibility_subscription_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"*"}, false)),
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"fqdns": {
@@ -126,10 +126,10 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"private_ip_address_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(privatelinkservices.IPVersionIPvFour),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(privatelinkservices.IPVersionIPvFour),
 							}, false),
-							Default: string(privatelinkservices.IPVersionIPvFour),
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
@@ -145,15 +145,15 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			},
 
 			"load_balancer_frontend_ip_configuration_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				ForceNew:     true,
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set:          pluginsdk.HashString,
-				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"alias": {

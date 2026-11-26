@@ -1,0 +1,117 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package iothub_shared_access_policy
+
+import (
+	"fmt"
+	"regexp"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Description: "Use this data source to access information about an existing IotHub Shared Access Policy.",
+		Read:        dataSourceIotHubSharedAccessPolicyRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Description: "The name of the IotHub Shared Access Policy resource.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9!._-]{1,64}`), ""+
+					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"iothub_name": {
+				Description:  "The name of the IoTHub to which this Shared Access Policy belongs.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.IoTHubName,
+			},
+
+			"primary_key": {
+				Description: "The primary key used to create the authentication token.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+			},
+
+			"primary_connection_string": {
+				Description: "The primary connection string of the Shared Access Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+			},
+
+			"secondary_key": {
+				Description: "The secondary key used to create the authentication token.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+			},
+
+			"secondary_connection_string": {
+				Description: "The secondary connection string of the Shared Access Policy.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+			},
+		},
+	}
+}
+
+func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := parse.NewSharedAccessPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
+
+	accessPolicy, err := client.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
+	if err != nil {
+		if response.WasNotFound(accessPolicy.Response.Response) {
+			return fmt.Errorf("%s was not found", id)
+		}
+
+		return fmt.Errorf("loading %s: %+v", id, err)
+	}
+
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
+	if err != nil {
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
+	}
+
+	d.Set("name", id.IotHubKeyName)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.SetId(id.ID())
+
+	d.Set("primary_key", accessPolicy.PrimaryKey)
+	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, id.IotHubKeyName, *accessPolicy.PrimaryKey)); err != nil {
+		return fmt.Errorf("setting `primary_connection_string`: %v", err)
+	}
+	d.Set("secondary_key", accessPolicy.SecondaryKey)
+	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, id.IotHubKeyName, *accessPolicy.SecondaryKey)); err != nil {
+		return fmt.Errorf("setting `secondary_connection_string`: %v", err)
+	}
+
+	return nil
+}

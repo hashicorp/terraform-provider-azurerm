@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorCustomDomainAssociationCreate,
-		Read:   resourceCdnFrontDoorCustomDomainAssociationRead,
-		Update: resourceCdnFrontDoorCustomDomainAssociationUpdate,
-		Delete: resourceCdnFrontDoorCustomDomainAssociationDelete,
+		Description: "Manages the association between a Front Door (standard/premium) Custom Domain and one or more Front Door (standard/premium) Routes.",
+		Create:      resourceCdnFrontDoorCustomDomainAssociationCreate,
+		Read:        resourceCdnFrontDoorCustomDomainAssociationRead,
+		Update:      resourceCdnFrontDoorCustomDomainAssociationUpdate,
+		Delete:      resourceCdnFrontDoorCustomDomainAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

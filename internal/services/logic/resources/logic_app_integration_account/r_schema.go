@@ -14,6 +14,7 @@ import (
 func logicAppIntegrationAccountSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Logic App Integration Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +26,9 @@ func logicAppIntegrationAccountSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The SKU name of the Logic App Integration Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(integrationaccounts.IntegrationAccountSkuNameBasic),
 				string(integrationaccounts.IntegrationAccountSkuNameFree),
@@ -35,6 +37,7 @@ func logicAppIntegrationAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"integration_service_environment_id": {
+			Description:  "The resource ID of the Integration Service Environment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

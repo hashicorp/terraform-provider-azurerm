@@ -38,6 +38,7 @@ type DevCenterNetworkConnectionDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Network Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DevCenterNetworkConnectionName,
@@ -50,30 +51,35 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"domain_join_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure Active Directory Join type.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Azure Active Directory domain.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"domain_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The username of the Azure Active Directory account (user or service account) that has permissions to create computer objects in Active Directory.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"organization_unit": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure Active Directory domain Organization Unit (OU).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"subnet_id": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The ID of the Subnet that is used to attach Virtual Machines.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -86,6 +92,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_network_connection"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Network Connection."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

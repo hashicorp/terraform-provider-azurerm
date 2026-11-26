@@ -54,16 +54,11 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 			),
 		},
 
-		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}),
+		"ipam_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&staticcidrs.IPamPoolId{}, "Network Manager IP Address Management (IPAM) Pool"),
 
 		"address_prefixes": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsCIDR,
-			},
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 				// If `number_of_ip_addresses_to_allocate` is used instead of `address_prefixes` there is a perpetual diff
 				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
@@ -75,12 +70,16 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 
 				return false
 			},
+			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
+			},
 		},
 
 		"number_of_ip_addresses_to_allocate": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
 			ValidateFunc: validate.NumberOfIpAddresses,
 			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 				rawAddressPrefixes := d.GetRawConfig().AsValueMap()["address_prefixes"]
@@ -90,6 +89,7 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 
 				return false
 			},
+			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
 		},
 	}
 }

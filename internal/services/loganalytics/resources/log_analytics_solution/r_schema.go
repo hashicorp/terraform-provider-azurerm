@@ -16,6 +16,7 @@ import (
 func (s Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"solution_name": {
+			Description:  "The name of the solution to be deployed. See [here for options](https://learn.microsoft.com/azure/log-analytics/log-analytics-add-solutions).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"workspace_name": {
+			Description:  "The full name of the Log Analytics Workspace with which the solution will be linked.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"workspace_resource_id": {
+			Description:      "The full resource ID of the Log Analytics Workspace with which the solution will be linked.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
