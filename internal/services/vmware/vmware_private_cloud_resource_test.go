@@ -19,6 +19,8 @@ import (
 type VmwarePrivateCloudResource struct{}
 
 func TestAccVmwarePrivateCloud_basic(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
@@ -34,6 +36,8 @@ func TestAccVmwarePrivateCloud_basic(t *testing.T) {
 }
 
 func TestAccVmwarePrivateCloud_requiresImport(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
@@ -49,6 +53,8 @@ func TestAccVmwarePrivateCloud_requiresImport(t *testing.T) {
 }
 
 func TestAccVmwarePrivateCloud_complete(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
@@ -65,6 +71,8 @@ func TestAccVmwarePrivateCloud_complete(t *testing.T) {
 
 // Internet availability, cluster size, identity sources, vcenter password or nsxt password cannot be updated at the same time
 func TestAccVmwarePrivateCloud_update(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
