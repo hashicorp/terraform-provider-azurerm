@@ -414,7 +414,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.Set("name", id.BlobName)
-	d.Set("storage_container_id", commonids.NewStorageContainerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
+	d.Set("storage_container_id", commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
