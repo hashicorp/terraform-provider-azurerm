@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
@@ -57,6 +58,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
@@ -65,6 +67,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/horizondb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
@@ -94,6 +97,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
@@ -131,6 +136,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads"
@@ -143,6 +149,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		aadb2c.Registration{},
 		apicenter.Registration{},
 		apimanagement.Registration{},
+		appgateway.Registration{},
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
@@ -179,9 +186,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		expressroute.Registration{},
 		fabric.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
+		horizondb.Registration{},
 		hybridcompute.Registration{},
 		iotcentral.Registration{},
 		iothub.Registration{},
@@ -204,6 +213,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		netapp.Registration{},
 		network.Registration{},
 		networkfunction.Registration{},
+		networkgateway.Registration{},
+		networkmanager.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
 		oracle.Registration{},
@@ -215,6 +226,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
+		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
@@ -232,6 +244,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		subscription.Registration{},
 		systemcentervirtualmachinemanager.Registration{},
 		videoindexer.Registration{},
+		virtualwan.Registration{},
 		vmware.Registration{},
 		web.Registration{},
 		workloads.Registration{},
@@ -245,8 +258,8 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
-			apicenter.Registration{},
 			apimanagement.Registration{},
+			appgateway.Registration{},
 			appconfiguration.Registration{},
 			applicationinsights.Registration{},
 			arckubernetes.Registration{},
@@ -283,6 +296,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			elastic.Registration{},
 			eventgrid.Registration{},
 			eventhub.Registration{},
+			expressroute.Registration{},
 			firewall.Registration{},
 			frontdoor.Registration{},
 			hdinsight.Registration{},
@@ -310,6 +324,8 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			mysql.Registration{},
 			netapp.Registration{},
 			network.Registration{},
+			networkgateway.Registration{},
+			networkmanager.Registration{},
 			notificationhub.Registration{},
 			policy.Registration{},
 			portal.Registration{},
@@ -334,6 +350,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			subscription.Registration{},
 			synapse.Registration{},
 			trafficmanager.Registration{},
+			virtualwan.Registration{},
 			vmware.Registration{},
 			web.Registration{},
 		}
@@ -348,7 +365,9 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		aadb2c.Registration{},
 		advisor.Registration{},
 		analysisservices.Registration{},
+		apicenter.Registration{},
 		apimanagement.Registration{},
+		appgateway.Registration{},
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
@@ -391,6 +410,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		graphservices.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
+		horizondb.Registration{},
 		hsm.Registration{},
 		hybridcompute.Registration{},
 		iotcentral.Registration{},
@@ -408,6 +428,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		expressroute.Registration{},
 		keyvault.Registration{},
 		legacy.Registration{},
 		lighthouse.Registration{},
@@ -431,6 +452,8 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		netapp.Registration{},
 		network.Registration{},
 		networkfunction.Registration{},
+		networkgateway.Registration{},
+		networkmanager.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
 		notificationhub.Registration{},
@@ -468,6 +491,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		systemcentervirtualmachinemanager.Registration{},
 		trafficmanager.Registration{},
 		videoindexer.Registration{},
+		virtualwan.Registration{},
 		vmware.Registration{},
 		web.Registration{},
 		workloads.Registration{},

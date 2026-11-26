@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -17,17 +17,17 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
 		"persist_id_on_create_before_polling_for_completion": {
+			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion.",
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
 		},
 
 		"skip_import_check_on_create_and_allow_overwriting_existing_resources": {
+			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present.",
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
 		},
 
 		// lintignore:XS003
@@ -38,28 +38,28 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"locations": {
+						Description: "Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
-						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
 					},
 					"resource_providers": {
+						Description: "Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
-						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
 					},
 					"preflight_enabled": {
+						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
-						Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 					},
 					"preflight_location_fallback": {
+						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_preflight_location_fallback", nil),
-						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 					},
 				},
 			},
@@ -145,77 +145,77 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"purge_soft_delete_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_certificates_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_keys_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_secrets_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_hardware_security_modules_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"purge_soft_deleted_hardware_security_module_keys_on_destroy": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g. purged), when destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_certificates": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_key_vaults": {
-						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_keys": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_key` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_secrets": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 
 					"recover_soft_deleted_hardware_security_module_keys": {
-						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -448,13 +448,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"delete_backups_on_backup_vault_destroy": {
-						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"prevent_volume_destruction": {
-						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -470,7 +470,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"force_delete": {
-						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Description: "When enabled, the managed Resource Group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -502,8 +502,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
@@ -513,8 +513,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: featuresMap,
 		},
