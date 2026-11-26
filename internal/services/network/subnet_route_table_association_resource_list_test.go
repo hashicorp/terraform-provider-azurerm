@@ -56,7 +56,7 @@ func (r SubnetRouteTableAssociationResource) basicList(data acceptance.TestData)
 %s
 
 resource "azurerm_subnet" "test" {
-  count				= 3
+  count				   = 3
   name                 = "acctest%d${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
