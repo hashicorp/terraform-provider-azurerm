@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `soft_delete_marker_value` - (Optional) The value of the custom metadata property that indicates a soft-deleted file.
 
-~> **Note:** `soft_delete_column_name` and `soft_delete_marker_value` must be specified together.
+~> **Note:** `soft_delete_column_name` is required when `soft_delete_marker_value` is specified.
 
 ---
 

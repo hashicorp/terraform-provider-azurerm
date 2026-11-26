@@ -11,9 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +30,9 @@ func TestAccSearchServiceDatasourceDataLakeStorageGen2_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("connection_string_wo_version"),
 	})
@@ -39,7 +45,9 @@ func TestAccSearchServiceDatasourceDataLakeStorageGen2_requiresImport(t *testing
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
@@ -52,7 +60,9 @@ func TestAccSearchServiceDatasourceDataLakeStorageGen2_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("connection_string_wo_version"),
 	})
@@ -65,19 +75,75 @@ func TestAccSearchServiceDatasourceDataLakeStorageGen2_update(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("connection_string_wo_version"),
 		{
-			Config: r.updated(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("connection_string_wo_version"),
 		{
 			Config: r.basic(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("connection_string_wo_version"),
+	})
+}
+
+func TestAccSearchServiceDatasourceDataLakeStorageGen2_encryptionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_data_lake_storage_gen2", "test")
+	r := SearchServiceDatasourceDataLakeStorageGen2Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withEncryptionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version"),
+		{
+			Config: r.withEncryptionKeyAndAppCredentials(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string_wo_version", "encryption_key.0.client_secret"),
+	})
+}
+
+func TestAccSearchServiceDatasourceDataLakeStorageGen2_writeOnlyConnectionStringUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_data_lake_storage_gen2", "test")
+	r := SearchServiceDatasourceDataLakeStorageGen2Resource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyConnectionString(data, 1),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("connection_string_wo_version"),
+			{
+				Config: r.writeOnlyConnectionString(data, 2),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("connection_string_wo_version"),
+		},
 	})
 }
 
@@ -88,6 +154,7 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Exists(ctx context.C
 	}
 
 	client := c.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
+
 	resp, err := client.Get(ctx, *id, datasources.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -95,21 +162,12 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Exists(ctx context.C
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if resp.Model == nil {
-		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-	if resp.Model.Type != datasources.SearchIndexerDataSourceTypeAdlsgenTwo {
-		return nil, fmt.Errorf("%s has type `%s`, expected `adlsgen2`", id, resp.Model.Type)
-	}
+
 	return pointer.To(true), nil
 }
 
 func (r SearchServiceDatasourceDataLakeStorageGen2Resource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -153,6 +211,10 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
 
 func (r SearchServiceDatasourceDataLakeStorageGen2Resource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
@@ -172,32 +234,36 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) requiresImport(data 
 %s
 
 resource "azurerm_search_service_datasource_data_lake_storage_gen2" "import" {
-  name                         = azurerm_search_service_datasource_data_lake_storage_gen2.test.name
+  name                         = "acctestds%d"
   search_service_endpoint      = azurerm_search_service.test.endpoint
   filesystem_name              = azurerm_storage_data_lake_gen2_filesystem.test.name
   connection_string_wo         = azurerm_storage_account.test.primary_connection_string
   connection_string_wo_version = 1
 }
-`, r.basic(data))
+`, r.basic(data), data.RandomInteger)
 }
 
-func (r SearchServiceDatasourceDataLakeStorageGen2Resource) updated(data acceptance.TestData) string {
+func (r SearchServiceDatasourceDataLakeStorageGen2Resource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+provider "azurerm" {
+  features {}
+}
 
-resource "azurerm_storage_data_lake_gen2_filesystem" "updated" {
-  name               = "acctestfs%[2]d-updated"
+%s
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test2" {
+  name               = "acctestfs%[2]d-2"
   storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
   name                         = "acctestds%[2]d"
   search_service_endpoint      = azurerm_search_service.test.endpoint
-  filesystem_name              = azurerm_storage_data_lake_gen2_filesystem.updated.name
+  filesystem_name              = azurerm_storage_data_lake_gen2_filesystem.test2.name
   container_query              = "documents"
-  connection_string_wo         = azurerm_storage_account.test.secondary_connection_string
-  connection_string_wo_version = 2
-  description                  = "updated description"
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+  description                  = "test description"
   soft_delete_column_name      = "IsDeleted"
   soft_delete_marker_value     = "true"
 
@@ -206,9 +272,9 @@ resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SearchServiceDatasourceDataLakeStorageGen2Resource) complete(data acceptance.TestData) string {
+func (r SearchServiceDatasourceDataLakeStorageGen2Resource) encryptionKeyTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%[2]s"
@@ -238,21 +304,35 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
   depends_on = [azurerm_role_assignment.current_user_keyvault]
 }
+`, r.template(data), data.RandomString)
+}
+
+func (r SearchServiceDatasourceDataLakeStorageGen2Resource) withEncryptionKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
-  name                         = "acctestds%[3]d"
+  name                         = "acctestds%d"
   search_service_endpoint      = azurerm_search_service.test.endpoint
   filesystem_name              = azurerm_storage_data_lake_gen2_filesystem.test.name
-  container_query              = "documents"
   connection_string_wo         = azurerm_storage_account.test.primary_connection_string
   connection_string_wo_version = 1
-  description                  = "complete description"
-  soft_delete_column_name      = "IsDeleted"
-  soft_delete_marker_value     = "true"
 
   encryption_key {
     key_vault_key_id = azurerm_key_vault_key.test.id
@@ -260,5 +340,106 @@ resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
 
   depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault]
 }
-`, r.template(data), data.RandomString, data.RandomInteger)
+`, r.encryptionKeyTemplate(data), data.RandomInteger)
+}
+
+func (r SearchServiceDatasourceDataLakeStorageGen2Resource) withEncryptionKeyAndAppCredentials(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+%[1]s
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application.test.client_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.id
+}
+
+resource "azurerm_role_assignment" "app_keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
+  name                         = "acctestds%[2]d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  filesystem_name              = azurerm_storage_data_lake_gen2_filesystem.test.name
+  connection_string_wo         = azurerm_storage_account.test.primary_connection_string
+  connection_string_wo_version = 1
+
+  encryption_key {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+    client_id        = azuread_service_principal.test.client_id
+    client_secret    = azuread_service_principal_password.test.value
+  }
+
+  depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault, azurerm_role_assignment.app_keyvault]
+}
+`, r.encryptionKeyTemplate(data), data.RandomInteger)
+}
+
+func (r SearchServiceDatasourceDataLakeStorageGen2Resource) writeOnlyConnectionString(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault" "wo_test" {
+  name                       = "accwotest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  rbac_authorization_enabled = false
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "wo_test" {
+  name         = "connection-string"
+  value        = azurerm_storage_account.test.primary_connection_string
+  key_vault_id = azurerm_key_vault.wo_test.id
+}
+
+ephemeral "azurerm_key_vault_secret" "wo_test" {
+  name         = azurerm_key_vault_secret.wo_test.name
+  key_vault_id = azurerm_key_vault.wo_test.id
+}
+
+resource "azurerm_search_service_datasource_data_lake_storage_gen2" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  filesystem_name              = azurerm_storage_data_lake_gen2_filesystem.test.name
+  connection_string_wo         = ephemeral.azurerm_key_vault_secret.wo_test.value
+  connection_string_wo_version = %d
+
+  depends_on = [azurerm_role_assignment.current_user_search]
+}
+`, r.template(data), data.RandomString, data.RandomInteger, version)
 }

@@ -5,7 +5,6 @@ package search
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -24,10 +23,7 @@ import (
 
 type SearchServiceDatasourceDataLakeStorageGen2Resource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate         = SearchServiceDatasourceDataLakeStorageGen2Resource{}
-	_ sdk.ResourceWithCustomImporter = SearchServiceDatasourceDataLakeStorageGen2Resource{}
-)
+var _ sdk.ResourceWithUpdate = SearchServiceDatasourceDataLakeStorageGen2Resource{}
 
 type SearchServiceDatasourceDataLakeStorageGen2Model struct {
 	Name                      string                                      `tfschema:"name"`
@@ -49,7 +45,7 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Arguments() map[stri
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,126}[a-z0-9]$`),
-				"the `name` must be 2-128 characters, start and end with an alphanumeric character, and contain only lowercase letters, digits, or dashes",
+				"The `name` must be 2-128 characters, start and end with an alphanumeric character, and contain only lowercase letters, digits, or dashes",
 			),
 		},
 
@@ -58,6 +54,12 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Arguments() map[stri
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: searchValidate.SearchServiceEndpoint,
+		},
+
+		"filesystem_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: storageValidate.StorageContainerName,
 		},
 
 		"connection_string_wo": {
@@ -71,12 +73,6 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Arguments() map[stri
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
-		},
-
-		"filesystem_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: storageValidate.StorageContainerName,
 		},
 
 		"container_query": {
@@ -97,7 +93,6 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Arguments() map[stri
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"soft_delete_marker_value"},
 		},
 
 		"soft_delete_marker_value": {
@@ -125,19 +120,6 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) IDValidationFunc() p
 	return datasources.ValidateDatasourceID
 }
 
-func (r SearchServiceDatasourceDataLakeStorageGen2Resource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-
-		client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
-		_, err = r.get(ctx, client, *id)
-		return err
-	}
-}
-
 func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -146,38 +128,59 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Create() sdk.Resourc
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := datasources.NewDatasourceID(model.SearchServiceEndpoint, model.Name)
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
-			existing, err := r.get(ctx, client, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return err
-			}
+			endpoint := model.SearchServiceEndpoint
+			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
+			id := datasources.NewDatasourceID(endpoint, model.Name)
 
-			opts := datasources.DefaultCreateOrUpdateOperationOptions()
-			if response.WasNotFound(existing.HttpResponse) {
-				opts.IfNoneMatch = pointer.To("*")
-			} else {
-				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, datasources.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				opts.IfMatch = existing.Model.OdataEtag
 			}
 
-			connectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
+			woConnectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
 			if err != nil {
 				return err
 			}
-			if connectionString.IsNull() || !connectionString.IsKnown() {
-				return fmt.Errorf("`connection_string_wo` must be provided when creating %s", id)
-			}
 
-			parameters, err := model.expand()
+			encryptionKey, err := schema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey)
 			if err != nil {
-				return err
+				return fmt.Errorf("expanding `encryption_key`: %+v", err)
 			}
-			parameters.Credentials.ConnectionString = pointer.To(connectionString.AsString())
 
-			if _, err := client.CreateOrUpdate(ctx, id, *parameters, opts); err != nil {
+			parameters := datasources.SearchIndexerDataSource{
+				Name: model.Name,
+				Type: datasources.SearchIndexerDataSourceTypeAdlsgenTwo,
+				Container: datasources.SearchIndexerDataContainer{
+					Name: model.FilesystemName,
+				},
+				Credentials: datasources.DataSourceCredentials{
+					ConnectionString: pointer.To(woConnectionString.AsString()),
+				},
+				EncryptionKey: encryptionKey,
+			}
+
+			if model.Description != "" {
+				parameters.Description = pointer.To(model.Description)
+			}
+
+			if model.ContainerQuery != "" {
+				parameters.Container.Query = pointer.To(model.ContainerQuery)
+			}
+
+			if model.SoftDeleteColumnName != "" {
+				parameters.DataDeletionDetectionPolicy = datasources.SoftDeleteColumnDeletionDetectionPolicy{
+					SoftDeleteColumnName:  pointer.To(model.SoftDeleteColumnName),
+					SoftDeleteMarkerValue: pointer.To(model.SoftDeleteMarkerValue),
+				}
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id, parameters, datasources.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -191,40 +194,44 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Create() sdk.Resourc
 func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
+			resourceId, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
-			resp, err := r.get(ctx, client, *id)
+			endpoint := resourceId.BaseURI
+			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
+			resp, err := client.Get(ctx, *resourceId, datasources.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return metadata.MarkAsGone(resourceId)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", *resourceId, err)
 			}
 
-			model := resp.Model
 			state := SearchServiceDatasourceDataLakeStorageGen2Model{
-				Name:                      id.DatasourceName,
-				SearchServiceEndpoint:     id.BaseURI,
-				FilesystemName:            model.Container.Name,
-				ContainerQuery:            pointer.From(model.Container.Query),
-				Description:               pointer.From(model.Description),
-				ConnectionStringWOVersion: int64(metadata.ResourceData.Get("connection_string_wo_version").(int)),
+				Name:                  resourceId.DatasourceName,
+				SearchServiceEndpoint: endpoint,
 			}
 
-			if policy, ok := model.DataDeletionDetectionPolicy.(datasources.SoftDeleteColumnDeletionDetectionPolicy); ok {
-				state.SoftDeleteColumnName = pointer.From(policy.SoftDeleteColumnName)
-				state.SoftDeleteMarkerValue = pointer.From(policy.SoftDeleteMarkerValue)
+			if respModel := resp.Model; respModel != nil {
+				state.FilesystemName = respModel.Container.Name
+				state.ContainerQuery = pointer.From(respModel.Container.Query)
+				state.Description = pointer.From(respModel.Description)
+				if policy, ok := respModel.DataDeletionDetectionPolicy.(datasources.SoftDeleteColumnDeletionDetectionPolicy); ok {
+					state.SoftDeleteColumnName = pointer.From(policy.SoftDeleteColumnName)
+					state.SoftDeleteMarkerValue = pointer.From(policy.SoftDeleteMarkerValue)
+				}
+
+				encryptionKey, err := schema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
+				if err != nil {
+					return fmt.Errorf("flattening `encryption_key`: %+v", err)
+				}
+
+				state.EncryptionKey = encryptionKey
 			}
 
-			encryptionKey, err := schema.FlattenSearchDatasourceEncryptionKey(model.EncryptionKey, metadata.ResourceData)
-			if err != nil {
-				return fmt.Errorf("flattening `encryption_key`: %+v", err)
-			}
-			state.EncryptionKey = encryptionKey
+			state.ConnectionStringWOVersion = int64(metadata.ResourceData.Get("connection_string_wo_version").(int))
 
 			return metadata.Encode(&state)
 		},
@@ -235,44 +242,79 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Read() sdk.ResourceF
 func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
+			resourceId, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
-			resp, err := r.get(ctx, client, *id)
-			if err != nil {
-				return err
-			}
+			endpoint := resourceId.BaseURI
 
-			var model SearchServiceDatasourceDataLakeStorageGen2Model
-			if err := metadata.Decode(&model); err != nil {
+			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
+
+			var state SearchServiceDatasourceDataLakeStorageGen2Model
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters, err := model.expand()
+			resp, err := client.Get(ctx, *resourceId, datasources.DefaultGetOperationOptions())
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %+v", *resourceId, err)
 			}
-			parameters.Credentials = resp.Model.Credentials
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *resourceId)
+			}
+
+			existing := *resp.Model
+			if metadata.ResourceData.HasChange("filesystem_name") {
+				existing.Container.Name = state.FilesystemName
+			}
+
+			if metadata.ResourceData.HasChange("container_query") {
+				existing.Container.Query = pointer.To(state.ContainerQuery)
+			}
+
 			if metadata.ResourceData.HasChange("connection_string_wo_version") {
-				connectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
+				woConnectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
 				if err != nil {
 					return err
 				}
-				if connectionString.IsNull() || !connectionString.IsKnown() {
-					return errors.New("`connection_string_wo` must be provided when updating `connection_string_wo_version`")
+				if !woConnectionString.IsNull() {
+					existing.Credentials.ConnectionString = pointer.To(woConnectionString.AsString())
 				}
-				parameters.Credentials.ConnectionString = pointer.To(connectionString.AsString())
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				existing.Description = pointer.To(state.Description)
+			}
+
+			if metadata.ResourceData.HasChange("encryption_key") {
+				encryptionKey, err := schema.ExpandSearchDatasourceEncryptionKey(state.EncryptionKey)
+				if err != nil {
+					return fmt.Errorf("expanding `encryption_key`: %+v", err)
+				}
+
+				existing.EncryptionKey = encryptionKey
+			}
+
+			// The SDK populates zero-value RawData*DetectionPolicyImpl structs from the GET response
+			// that serialize to invalid abstract-type payloads the API rejects. Nil them out and
+			// rebuild DataDeletionDetectionPolicy from current state.
+			existing.DataChangeDetectionPolicy = nil
+			existing.DataDeletionDetectionPolicy = nil
+			if state.SoftDeleteColumnName != "" {
+				existing.DataDeletionDetectionPolicy = datasources.SoftDeleteColumnDeletionDetectionPolicy{
+					SoftDeleteColumnName:  pointer.To(state.SoftDeleteColumnName),
+					SoftDeleteMarkerValue: pointer.To(state.SoftDeleteMarkerValue),
+				}
 			}
 
 			opts := datasources.CreateOrUpdateOperationOptions{
-				IfMatch: resp.Model.OdataEtag,
-				Prefer:  pointer.To(datasources.PreferReturnRepresentation),
+				Prefer: pointer.To(datasources.PreferReturnRepresentation),
 			}
-			if _, err := client.CreateOrUpdate(ctx, *id, *parameters, opts); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+
+			if _, err := client.CreateOrUpdate(ctx, *resourceId, existing, opts); err != nil {
+				return fmt.Errorf("updating %s: %+v", *resourceId, err)
 			}
 
 			return nil
@@ -284,65 +326,19 @@ func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Update() sdk.Resourc
 func (r SearchServiceDatasourceDataLakeStorageGen2Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
+			resourceId, err := datasources.ParseDatasourceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(id.BaseURI)
-			resp, err := r.get(ctx, client, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return nil
-				}
-				return err
+			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(resourceId.BaseURI)
+
+			if _, err := client.Delete(ctx, *resourceId, datasources.DefaultDeleteOperationOptions()); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *resourceId, err)
 			}
 
-			opts := datasources.DeleteOperationOptions{IfMatch: resp.Model.OdataEtag}
-			if resp, err := client.Delete(ctx, *id, opts); err != nil && !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
 			return nil
 		},
 		Timeout: 30 * time.Minute,
 	}
-}
-
-func (r SearchServiceDatasourceDataLakeStorageGen2Resource) get(ctx context.Context, client *datasources.DataSourcesClient, id datasources.DatasourceId) (datasources.GetOperationResponse, error) {
-	resp, err := client.Get(ctx, id, datasources.DefaultGetOperationOptions())
-	if err != nil {
-		return resp, fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-	if resp.Model == nil {
-		return resp, fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-	if resp.Model.Type != datasources.SearchIndexerDataSourceTypeAdlsgenTwo {
-		return resp, fmt.Errorf("%s has type `%s`, expected `adlsgen2`", id, resp.Model.Type)
-	}
-	return resp, nil
-}
-
-func (m SearchServiceDatasourceDataLakeStorageGen2Model) expand() (*datasources.SearchIndexerDataSource, error) {
-	encryptionKey, err := schema.ExpandSearchDatasourceEncryptionKey(m.EncryptionKey)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `encryption_key`: %+v", err)
-	}
-
-	parameters := &datasources.SearchIndexerDataSource{
-		Name: m.Name,
-		Type: datasources.SearchIndexerDataSourceTypeAdlsgenTwo,
-		Container: datasources.SearchIndexerDataContainer{
-			Name:  m.FilesystemName,
-			Query: pointer.To(m.ContainerQuery),
-		},
-		Description:   pointer.To(m.Description),
-		EncryptionKey: encryptionKey,
-	}
-	if m.SoftDeleteColumnName != "" {
-		parameters.DataDeletionDetectionPolicy = datasources.SoftDeleteColumnDeletionDetectionPolicy{
-			SoftDeleteColumnName:  pointer.To(m.SoftDeleteColumnName),
-			SoftDeleteMarkerValue: pointer.To(m.SoftDeleteMarkerValue),
-		}
-	}
-	return parameters, nil
 }
