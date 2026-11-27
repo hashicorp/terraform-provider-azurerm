@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -34,6 +34,7 @@ type AssignmentDataSourceModel struct {
 	Name                 string                                     `tfschema:"name"`
 	ScopeId              string                                     `tfschema:"scope_id"`
 	Description          string                                     `tfschema:"description"`
+	DefinitionVersion    string                                     `tfschema:"definition_version"`
 	DisplayName          string                                     `tfschema:"display_name"`
 	Enforce              bool                                       `tfschema:"enforce"`
 	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -75,6 +76,11 @@ func (DataSource) Arguments() map[string]*schema.Schema {
 func (DataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"description": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"definition_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -156,7 +162,7 @@ func (DataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := policyassignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
-			resp, err := client.Get(ctx, id)
+			resp, err := client.Get(ctx, id, policyassignments.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
@@ -182,6 +188,7 @@ func (DataSource) Read() sdk.ResourceFunc {
 				if v := props.Description; v != nil {
 					model.Description = *v
 				}
+				model.DefinitionVersion = pointer.From(props.DefinitionVersion)
 				if v := props.DisplayName; v != nil {
 					model.DisplayName = *v
 				}
