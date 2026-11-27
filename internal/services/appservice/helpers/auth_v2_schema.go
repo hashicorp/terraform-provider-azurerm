@@ -65,7 +65,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 						// blocks report a diff, we will instead rely on raw config to determine if block is still removed
 						configAuthExists := false
 						if configAuthParent, ok := d.GetRawConfig().AsValueMap()["auth_settings_v2"]; ok {
-							configAuthExists = configAuthParent.LengthInt() > 0
+							configAuthExists = !configAuthParent.IsKnown() || configAuthParent.LengthInt() > 0
 						}
 						// Suppress removal of `auth_settings_v2` and child blocks if `auth_settings_v2` was disabled (either explicitly or by omitting `auth_settings_v2` block)
 						if !oldAuthParentMap["auth_enabled"].(bool) && !configAuthExists {

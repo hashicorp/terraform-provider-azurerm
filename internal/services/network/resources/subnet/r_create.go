@@ -64,12 +64,14 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta any) error {
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 	}
 
 	subnet := subnets.Subnet{

@@ -57,7 +57,7 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta any) err
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

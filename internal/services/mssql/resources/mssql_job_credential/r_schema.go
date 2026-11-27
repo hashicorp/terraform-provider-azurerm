@@ -5,12 +5,13 @@ package mssql_job_credential
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobagents"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func mssqlJobCredentialSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description: "The name which should be used for this Elastic Job Credential.",
 			Type:        pluginsdk.TypeString,
@@ -53,7 +54,19 @@ func mssqlJobCredentialSchema() map[string]*pluginsdk.Schema {
 			Description:  "An integer value used to trigger an update for `password_wo`. This property should be incremented when updating `password_wo`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 			RequiredWith: []string{"password_wo"},
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["password_wo_version"] = &pluginsdk.Schema{
+			Description:  "An integer value used to trigger an update for `password_wo`. This property should be incremented when updating `password_wo`.",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			RequiredWith: []string{"password_wo"},
+		}
+	}
+
+	return s
 }

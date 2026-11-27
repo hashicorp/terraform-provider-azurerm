@@ -35,7 +35,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	id := servers.NewFlexibleServerID(subscriptionId, resourceGroup, name)
 
-	{
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

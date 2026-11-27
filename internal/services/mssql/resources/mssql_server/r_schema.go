@@ -8,13 +8,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverconnectionpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func mssqlServerSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Microsoft SQL Server. This needs to be globally unique within Azure.",
 			Type:         pluginsdk.TypeString,
@@ -72,6 +73,7 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 			Description:  "An integer value used to trigger an update for `administrator_login_password_wo`. This property should be incremented when updating `administrator_login_password_wo`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 			RequiredWith: []string{"administrator_login_password_wo"},
 		},
 
@@ -191,4 +193,15 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["administrator_login_password_wo_version"] = &pluginsdk.Schema{
+			Description:  "An integer value used to trigger an update for `administrator_login_password_wo`. This property should be incremented when updating `administrator_login_password_wo`.",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			RequiredWith: []string{"administrator_login_password_wo"},
+		}
+	}
+
+	return s
 }

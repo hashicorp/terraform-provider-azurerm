@@ -62,7 +62,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				parameters.Properties.Port = pointer.To(v)
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)

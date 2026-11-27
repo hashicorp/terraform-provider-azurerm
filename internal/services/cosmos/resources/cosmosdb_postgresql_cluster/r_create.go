@@ -111,7 +111,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				parameters.Tags = &v
 			}
 
-			if err := client.CreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

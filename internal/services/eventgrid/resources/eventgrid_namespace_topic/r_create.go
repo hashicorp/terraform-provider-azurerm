@@ -56,7 +56,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, namespaceTopic, metadata.SetIDCallback(&id)); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, namespaceTopic, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

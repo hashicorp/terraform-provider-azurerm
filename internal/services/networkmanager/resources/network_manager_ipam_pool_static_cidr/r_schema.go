@@ -35,7 +35,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
 				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `address_prefixes` to `number_of_ip_addresses_to_allocate`.
 				rawNumberOfIpAddressesToAllocate := d.GetRawConfig().AsValueMap()["number_of_ip_addresses_to_allocate"]
-				if !rawNumberOfIpAddressesToAllocate.IsNull() && rawNumberOfIpAddressesToAllocate.AsString() != "" {
+				if !rawNumberOfIpAddressesToAllocate.IsNull() && (!rawNumberOfIpAddressesToAllocate.IsKnown() || rawNumberOfIpAddressesToAllocate.AsString() != "") {
 					return true
 				}
 
@@ -54,7 +54,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.NumberOfIpAddresses,
 			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 				rawAddressPrefixes := d.GetRawConfig().AsValueMap()["address_prefixes"]
-				if !rawAddressPrefixes.IsNull() && len(rawAddressPrefixes.AsValueSlice()) > 0 {
+				if !rawAddressPrefixes.IsNull() && (!rawAddressPrefixes.IsKnown() || len(rawAddressPrefixes.AsValueSlice()) > 0) {
 					return true
 				}
 
