@@ -134,6 +134,12 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 		containerGroup.Properties.Priority = pointer.ToEnum[containerinstance.ContainerGroupPriority](priority)
 	}
 
+	if ccePolicy := d.Get("cce_policy").(string); ccePolicy != "" {
+		containerGroup.Properties.ConfidentialComputeProperties = &containerinstance.ConfidentialComputeProperties{
+			CcePolicy: pointer.To(ccePolicy),
+		}
+	}
+
 	// Avoid parallel provisioning if "subnet_ids" are given.
 	if subnets != nil && len(*subnets) != 0 {
 		for _, item := range *subnets {

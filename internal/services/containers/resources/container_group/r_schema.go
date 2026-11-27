@@ -498,6 +498,14 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupPriority(), false),
 		},
+
+		"cce_policy": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 	}
 }
 

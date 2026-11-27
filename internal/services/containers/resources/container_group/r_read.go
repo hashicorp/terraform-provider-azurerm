@@ -131,6 +131,10 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("setting `subnet_ids`: %+v", err)
 		}
 
+		if ccProps := props.ConfidentialComputeProperties; ccProps != nil {
+			d.Set("cce_policy", pointer.From(ccProps.CcePolicy))
+		}
+
 		if kvProps := props.EncryptionProperties; kvProps != nil {
 			var keyVaultUri, keyName, keyVersion string
 			if kvProps.VaultBaseURL != "" {
