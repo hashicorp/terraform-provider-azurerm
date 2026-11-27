@@ -54,11 +54,6 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
   storage_account_id = azurerm_storage_account.example.id
 }
 
-resource "azurerm_role_assignment" "storage_blob_data_reader" {
-  scope                = azurerm_storage_account.example.id
-  role_definition_name = "Storage Blob Data Reader"
-  principal_id         = azurerm_search_service.example.identity[0].principal_id
-}
 
 resource "azurerm_search_service_datasource_data_lake_storage_gen2" "example" {
   name                         = "example-search-service-datasource-data-lake-storage-gen2"
@@ -69,7 +64,6 @@ resource "azurerm_search_service_datasource_data_lake_storage_gen2" "example" {
 
   depends_on = [
     azurerm_role_assignment.search_service_contributor,
-    azurerm_role_assignment.storage_blob_data_reader,
   ]
 }
 ```
@@ -147,4 +141,8 @@ A Search Service Data Lake Storage Gen2 Data Source can be imported using the `r
 terraform import azurerm_search_service_datasource_data_lake_storage_gen2.example https://searchservice1.search.windows.net/datasources/datasource1
 ```
 
--> **Note:** Only Data Sources of type `adlsgen2` can be imported. After importing, configure `connection_string_wo` and `connection_string_wo_version` before applying changes.
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Search` - 2025-05-01
