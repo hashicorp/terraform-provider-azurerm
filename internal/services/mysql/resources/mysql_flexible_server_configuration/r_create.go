@@ -5,6 +5,7 @@ package mysql_flexible_server_configuration
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
@@ -21,12 +22,6 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	payload := configurations.Configuration{
-		Properties: &configurations.ConfigurationProperties{
-			Value: pointer.To(d.Get("value").(string)),
-		},
-	}
-
 	// NOTE: this resource intentionally doesn't support Requires Import
 	//       since a fallback route is created by default
 
@@ -35,8 +30,22 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
-	if err := client.UpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
-		return fmt.Errorf("creating %s: %v", id, err)
+	updateCallback := sdk.SetIDAndIdentityCallback(meta, &id, d)
+
+	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
+		if err := mysqlFlexibleServerConfigurationUpdateGTIDMode(ctx, client, id, d.Get("value").(string), updateCallback); err != nil {
+			return fmt.Errorf("creating %s: %v", id, err)
+		}
+	} else {
+		payload := configurations.Configuration{
+			Properties: &configurations.ConfigurationProperties{
+				Value: pointer.To(d.Get("value").(string)),
+			},
+		}
+
+		if err := client.UpdateCallbackThenPoll(ctx, id, payload, updateCallback); err != nil {
+			return fmt.Errorf("creating %s: %v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())

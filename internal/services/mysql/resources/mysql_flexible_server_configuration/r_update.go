@@ -5,6 +5,7 @@ package mysql_flexible_server_configuration
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
@@ -27,14 +28,20 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
-	payload := configurations.Configuration{
-		Properties: &configurations.ConfigurationProperties{
-			Value: pointer.To(d.Get("value").(string)),
-		},
-	}
+	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
+		if err := mysqlFlexibleServerConfigurationUpdateGTIDMode(ctx, client, *id, d.Get("value").(string), nil); err != nil {
+			return fmt.Errorf("updating GTID mode: %v", err)
+		}
+	} else {
+		payload := configurations.Configuration{
+			Properties: &configurations.ConfigurationProperties{
+				Value: pointer.To(d.Get("value").(string)),
+			},
+		}
 
-	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating %s: %v", id, err)
+		if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating %s: %v", id, err)
+		}
 	}
 
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
