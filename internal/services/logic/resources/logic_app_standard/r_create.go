@@ -372,6 +372,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		"storage_account_access_key",
 		"version",
 		"storage_key_vault_secret_id",
+		"content_share_force_enabled",
 	) {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
@@ -423,10 +424,14 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 	oMap := f(old)
 	cMap := f(new)
 
+	contentShareForceEnabled := metadata.ResourceData.Get("content_share_force_enabled").(bool)
+
 	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") && metadata.ResourceData.Get("storage_key_vault_secret_id").(string) != "" {
 		kvRef := fmt.Sprintf(helpers.StorageStringFmtKV, metadata.ResourceData.Get("storage_key_vault_secret_id").(string))
 		eMap[storageAppSettingName] = kvRef
-		eMap[contentFileConnStringAppSettingName] = kvRef
+		if contentShareForceEnabled {
+			eMap[contentFileConnStringAppSettingName] = kvRef
+		}
 	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
@@ -434,10 +439,12 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 
 		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
 		eMap[storageAppSettingName] = conn
-		eMap[contentFileConnStringAppSettingName] = conn
+		if contentShareForceEnabled {
+			eMap[contentFileConnStringAppSettingName] = conn
+		}
 	}
 
-	if metadata.ResourceData.HasChange("storage_account_share_name") {
+	if metadata.ResourceData.HasChange("storage_account_share_name") && contentShareForceEnabled {
 		n := metadata.ResourceData.Get("storage_account_share_name").(string)
 
 		if n != "" {
@@ -445,6 +452,29 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 		} else {
 			name := metadata.ResourceData.Get("name").(string)
 			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+		}
+	}
+
+	if metadata.ResourceData.HasChange("content_share_force_enabled") {
+		if !contentShareForceEnabled {
+			delete(eMap, contentShareAppSettingName)
+			delete(eMap, contentFileConnStringAppSettingName)
+		} else {
+			// Toggling from false to true — re-add content share settings
+			if kvSecretId := metadata.ResourceData.Get("storage_key_vault_secret_id").(string); kvSecretId != "" {
+				eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmtKV, kvSecretId)
+			} else {
+				accountName := metadata.ResourceData.Get("storage_account_name").(string)
+				accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
+				suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+				eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
+			}
+			if n := metadata.ResourceData.Get("storage_account_share_name").(string); n != "" {
+				eMap[contentShareAppSettingName] = n
+			} else {
+				name := metadata.ResourceData.Get("name").(string)
+				eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+			}
 		}
 	}
 

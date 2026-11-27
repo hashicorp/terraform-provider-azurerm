@@ -221,6 +221,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 		},
 
+		"content_share_force_enabled": {
+			Description: "Should the content share settings (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be enabled? Defaults to `true`. Set to `false` when deploying the Logic App to an App Service Environment (ASE) that uses the internal storage account. Note: when set to `false`, any value supplied for `storage_account_share_name` is ignored.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+		},
+
 		"virtual_network_subnet_id": {
 			Description:  "The subnet ID which will be used by this resource for [regional Virtual Network integration](https://learn.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,

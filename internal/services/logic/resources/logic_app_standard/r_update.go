@@ -6,6 +6,7 @@ package logic_app_standard
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,6 +71,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				"storage_account_name",
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
+				"content_share_force_enabled",
 			) {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
@@ -152,6 +154,43 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			// When toggling content_share_force_enabled, we need to explicitly update
+			// app settings via the dedicated API since SiteConfig.AppSettings changes
+			// may not be fully applied during CreateOrUpdate for existing resources.
+			if metadata.ResourceData.HasChange("content_share_force_enabled") {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("listing application settings for %s: %+v", *id, err)
+				}
+
+				if appSettingsResp.Model != nil {
+					currentSettings := pointer.From(appSettingsResp.Model.Properties)
+
+					if !data.ContentShareForceEnabled {
+						delete(currentSettings, contentShareAppSettingName)
+						delete(currentSettings, contentFileConnStringAppSettingName)
+					} else {
+						if data.StorageKeyVaultSecretID != "" {
+							currentSettings[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmtKV, data.StorageKeyVaultSecretID)
+						} else {
+							storageSuffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+							currentSettings[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmt, data.StorageAccountName, data.StorageAccountAccessKey, *storageSuffix)
+						}
+
+						if data.StorageAccountShareName != "" {
+							currentSettings[contentShareAppSettingName] = data.StorageAccountShareName
+						} else {
+							currentSettings[contentShareAppSettingName] = strings.ToLower(data.Name) + "-content"
+						}
+					}
+
+					appSettingsResp.Model.Properties = &currentSettings
+					if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsResp.Model); err != nil {
+						return fmt.Errorf("updating application settings for %s: %+v", *id, err)
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {

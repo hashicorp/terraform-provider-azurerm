@@ -110,6 +110,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 				}
 
 				state.StorageAccountShareName = appSettings[contentShareAppSettingName]
+
+				// Infer content_share_force_enabled from the presence of content share settings
+				_, hasContentFileConnString := appSettings[contentFileConnStringAppSettingName]
+				_, hasContentShare := appSettings[contentShareAppSettingName]
+				state.ContentShareForceEnabled = hasContentFileConnString || hasContentShare
+
 				delete(appSettings, contentFileConnStringAppSettingName)
 				delete(appSettings, "APP_KIND")
 				delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
@@ -293,8 +299,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		{Name: &storageAppSettingName, Value: &storageConnection},
 		{Name: &functionVersionAppSettingName, Value: pointer.To(d.Version)},
 		{Name: pointer.To("APP_KIND"), Value: pointer.To("workflowApp")},
-		{Name: &contentShareAppSettingName, Value: &contentShare},
-		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+	}
+
+	if d.ContentShareForceEnabled {
+		basicSettings = append(basicSettings,
+			webapps.NameValuePair{Name: &contentShareAppSettingName, Value: &contentShare},
+			webapps.NameValuePair{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+		)
 	}
 
 	if d.UseExtensionBundle {

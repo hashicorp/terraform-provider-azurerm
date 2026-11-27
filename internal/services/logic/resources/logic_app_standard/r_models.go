@@ -33,6 +33,7 @@ type LogicAppResourceModel struct {
 	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
 	Version                     string                                     `tfschema:"version"`
 	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
+	ContentShareForceEnabled    bool                                       `tfschema:"content_share_force_enabled"`
 	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
 	Tags                        map[string]string                          `tfschema:"tags"`
 
