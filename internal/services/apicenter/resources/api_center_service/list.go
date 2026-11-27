@@ -41,7 +41,7 @@ func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResou
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"resource_group_id": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: commonids.ValidateResourceGroupID,
