@@ -69,9 +69,9 @@ resource "azurerm_discovery_bookshelf" "example" {
 }
 ```
 
--> **Note:** Microsoft Discovery Bookshelves are only available in a subset of Azure Regions, and provisioning one requires Azure OpenAI model capacity (`text-embedding-3-small`, `gpt-5-mini` and `gpt-5.2` on the `GlobalStandard` SKU) in the same region. Requests which exceed the available quota are rejected during creation.
+-> **Note:** Microsoft Discovery Bookshelves are only available in a subset of Azure Regions (https://learn.microsoft.com/azure/microsoft-discovery/quickstart-infrastructure#supported-home-regions), and provisioning one requires Azure OpenAI model capacity (`text-embedding-3-small`, `gpt-5-mini` and `gpt-5.2` on the `GlobalStandard` SKU) in the same region. Requests which exceed the available quota are rejected during creation.
 
--> **Note:** The size of the search infrastructure provisioned for a Bookshelf is controlled by the `indexSize` tag, which accepts `small`, `medium` (the default) or `large`. Each size requires a corresponding amount of `Microsoft.App` memory optimized cores quota in the region - for example `medium` requires 80 cores. See [the Microsoft Discovery documentation](https://learn.microsoft.com/azure/microsoft-discovery/how-to-index-bookshelf-knowledgebase) for more information.
+-> **Note:** The size of a Bookshelf's search infrastructure is controlled by the `indexSize` tag - see the note under `tags` below.
 
 ## Arguments Reference
 
@@ -104,6 +104,8 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Microsoft Discovery Bookshelf. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Microsoft Discovery Bookshelf.
+
+-> **Note:** The size of the search infrastructure provisioned for a Bookshelf is controlled by the `indexSize` tag, which accepts `small`, `medium` (the default) or `large`. Each size requires a corresponding amount of `Microsoft.App` memory optimized cores quota in the region - for example `medium` requires 80 cores. See [the Microsoft Discovery documentation](https://learn.microsoft.com/azure/microsoft-discovery/how-to-index-bookshelf-knowledgebase) for more information.
 
 ---
 

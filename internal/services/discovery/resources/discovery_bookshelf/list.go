@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package discovery
+package discovery_bookshelf
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DiscoveryBookshelfListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(DiscoveryBookshelfListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (DiscoveryBookshelfListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = DiscoveryBookshelfResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (DiscoveryBookshelfListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(DiscoveryBookshelfResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (DiscoveryBookshelfListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Discovery.Bookshelves
 
 	var data sdk.DefaultListModel
@@ -43,7 +43,7 @@ func (DiscoveryBookshelfListResource) List(ctx context.Context, request list.Lis
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := DiscoveryBookshelfResource{}
+	r := Resource{}
 
 	var results []bookshelves.Bookshelf
 	switch {
