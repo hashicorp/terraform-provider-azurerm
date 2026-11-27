@@ -63,6 +63,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Auth Settings for %s: %+v", id, err)
 			}
 
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
+			}
+
 			var authV2 webapps.SiteAuthSettingsV2
 			if auth.Model != nil && auth.Model.Properties != nil && strings.EqualFold(pointer.From(auth.Model.Properties.ConfigVersion), "v2") {
 				authV2Resp, err := client.GetAuthSettingsV2(ctx, *id)
@@ -94,6 +99,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 				StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+				StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,

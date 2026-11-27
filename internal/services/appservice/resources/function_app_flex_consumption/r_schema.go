@@ -120,6 +120,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"storage_account": helpers.StorageAccountSchema(),
+
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),

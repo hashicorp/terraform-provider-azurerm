@@ -224,6 +224,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			storageConfig := helpers.ExpandStorageConfig(functionAppFlexConsumption.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id, *storageConfig); err != nil {
+					return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
 			auth := helpers.ExpandAuthSettings(functionAppFlexConsumption.AuthSettings)
 			if auth.Properties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id, *auth); err != nil {

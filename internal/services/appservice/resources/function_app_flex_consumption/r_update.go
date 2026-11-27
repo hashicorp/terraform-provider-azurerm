@@ -151,6 +151,13 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.InstanceMemoryMB = pointer.To(state.InstanceMemoryInMB)
 			}
 
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, *id, *storageAccountUpdate); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("always_ready") {
 				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 				if err != nil {

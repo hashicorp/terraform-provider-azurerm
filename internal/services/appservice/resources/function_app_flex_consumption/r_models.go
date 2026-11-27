@@ -41,6 +41,7 @@ type FunctionAppFlexConsumptionModel struct {
 	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
+	StorageAccounts               []helpers.StorageAccount                       `tfschema:"storage_account"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
 
