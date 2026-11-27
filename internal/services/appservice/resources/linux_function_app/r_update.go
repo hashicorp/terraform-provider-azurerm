@@ -106,6 +106,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
+			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}

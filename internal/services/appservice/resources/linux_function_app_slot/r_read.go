@@ -131,6 +131,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.VnetContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {

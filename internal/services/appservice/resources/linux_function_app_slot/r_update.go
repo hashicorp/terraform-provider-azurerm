@@ -134,6 +134,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
+			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
+			}
+
 			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {

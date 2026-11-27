@@ -50,6 +50,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetContentShareEnabled            bool                                       `tfschema:"vnet_content_share_enabled"`
 	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 

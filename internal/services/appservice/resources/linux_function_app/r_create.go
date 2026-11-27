@@ -193,6 +193,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					DailyMemoryTimeQuota:      pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					VnetBackupRestoreEnabled:  pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
+					VnetContentShareEnabled:   pointer.To(functionApp.VnetContentShareEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
 					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
 				},

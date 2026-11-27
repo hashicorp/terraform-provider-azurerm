@@ -224,6 +224,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Default:     false,
 		},
 
+		"vnet_content_share_enabled": {
+			Description: "Should the traffic for the content share be routed over virtual network? Defaults to `false`. Required for cross-stamp scaling on Elastic Premium and Dedicated plans when storage is restricted to virtual network.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
 		"end_to_end_tls_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,

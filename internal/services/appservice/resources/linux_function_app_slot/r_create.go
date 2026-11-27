@@ -210,6 +210,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
 					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
+					VnetContentShareEnabled:   pointer.To(functionAppSlot.VnetContentShareEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
 				},
