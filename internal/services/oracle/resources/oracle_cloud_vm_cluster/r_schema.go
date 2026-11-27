@@ -105,6 +105,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			ValidateFunc: validation.StringLenBetween(1, 1024),
 		},
 
 		"subnet_id": {
