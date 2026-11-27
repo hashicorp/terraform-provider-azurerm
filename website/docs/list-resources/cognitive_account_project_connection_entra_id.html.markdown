@@ -13,10 +13,16 @@ Lists Cognitive Account Project Connection Entra ID resources.
 ## Example Usage
 
 ```hcl
+data "azurerm_cognitive_account_project" "example" {
+  name                   = "existing-cognitive-account-project"
+  cognitive_account_name = "existing-cognitive-account"
+  resource_group_name    = "existing-resource-group"
+}
+
 list "azurerm_cognitive_account_project_connection_entra_id" "example" {
   provider = azurerm
   config {
-    cognitive_account_project_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.CognitiveServices/accounts/example-account/projects/example-project"
+    cognitive_account_project_id = data.azurerm_cognitive_account_project.example.id
   }
 }
 ```
