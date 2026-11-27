@@ -4,6 +4,7 @@
 package key_vault_certificate
 
 import (
+	"context"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -34,5 +35,22 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		Schema: keyVaultCertificateSchema(),
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
+			if d.Id() != "" {
+				return nil
+			}
+
+			policiesRaw, ok := d.Get("certificate_policy").([]any)
+			if !ok {
+				return nil
+			}
+
+			if err := validateDigiCertCertificateType(policiesRaw); err != nil {
+				return err
+			}
+
+			return nil
+		},
 	}
 }

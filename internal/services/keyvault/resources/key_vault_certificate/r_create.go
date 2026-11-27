@@ -49,6 +49,13 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	t := d.Get("tags").(map[string]any)
+
+	if policiesRaw, ok := d.Get("certificate_policy").([]any); ok {
+		if err := validateDigiCertCertificateType(policiesRaw); err != nil {
+			return fmt.Errorf("validating certificate type: %s", err)
+		}
+	}
+
 	policy, err := expandKeyVaultCertificatePolicy(d)
 	if err != nil {
 		return fmt.Errorf("expanding certificate policy: %s", err)

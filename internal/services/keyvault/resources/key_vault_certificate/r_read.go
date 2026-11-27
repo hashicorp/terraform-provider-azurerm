@@ -140,6 +140,9 @@ func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]b
 	if params := input.IssuerParameters; params != nil {
 		issuerParams := make(map[string]any)
 		issuerParams["name"] = *params.Name
+		if params.CertificateType != nil {
+			issuerParams["certificate_type"] = *params.CertificateType
+		}
 		policy["issuer_parameters"] = []any{issuerParams}
 	}
 

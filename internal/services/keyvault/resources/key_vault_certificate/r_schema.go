@@ -12,6 +12,15 @@ import (
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
+var validDigiCertCertificateTypes = []string{
+	"Basic-SSL",
+	"BasicEV-SSL",
+	"OV-SSL",
+	"EV-SSL",
+	"ProEV-SSL",
+	"ProOV-SSL",
+}
+
 func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -72,6 +81,12 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Description: "The name of the Certificate Issuer.",
 									Type:        pluginsdk.TypeString,
 									Required:    true,
+								},
+								"certificate_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(validDigiCertCertificateTypes, false),
 								},
 							},
 						},

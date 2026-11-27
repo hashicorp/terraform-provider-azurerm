@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +20,50 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
+
+func validateDigiCertCertificateType(policiesRaw []any) error {
+	if len(policiesRaw) == 0 || policiesRaw[0] == nil {
+		return nil
+	}
+
+	policy, ok := policiesRaw[0].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	issuerParametersRaw, ok := policy["issuer_parameters"].([]any)
+	if !ok || len(issuerParametersRaw) == 0 || issuerParametersRaw[0] == nil {
+		return nil
+	}
+
+	issuer, ok := issuerParametersRaw[0].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	issuerName := issuer["name"].(string)
+
+	certificateType := ""
+	if v, exists := issuer["certificate_type"]; exists && v != nil {
+		if s, ok := v.(string); ok {
+			certificateType = strings.TrimSpace(s)
+		}
+	}
+
+	if certificateType == "" {
+		return nil
+	}
+
+	if !strings.EqualFold(issuerName, "DigiCert") {
+		return errors.New("`certificate_type` can only be specified when the issuer is DigiCert")
+	}
+
+	if !slices.Contains(validDigiCertCertificateTypes, certificateType) {
+		return fmt.Errorf("`certificate_type` must be one of [%s] when the issuer is DigiCert", strings.Join(validDigiCertCertificateTypes, ", "))
+	}
+
+	return nil
+}
 
 func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]any)
@@ -30,9 +76,22 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 
 	issuers := policyRaw["issuer_parameters"].([]any)
 	issuer := issuers[0].(map[string]any)
-	policy.IssuerParameters = &keyvault.IssuerParameters{
+	certificateType := ""
+	if raw, ok := issuer["certificate_type"]; ok && raw != nil {
+		if v, ok := raw.(string); ok {
+			certificateType = strings.TrimSpace(v)
+		}
+	}
+
+	issuerParams := &keyvault.IssuerParameters{
 		Name: pointer.To(issuer["name"].(string)),
 	}
+
+	if certificateType != "" {
+		issuerParams.CertificateType = pointer.To(certificateType)
+	}
+
+	policy.IssuerParameters = issuerParams
 
 	properties := policyRaw["key_properties"].([]any)
 	props := properties[0].(map[string]any)
