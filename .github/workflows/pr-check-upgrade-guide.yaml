@@ -1,0 +1,84 @@
+---
+name: Upgrade Guide Check
+
+# Standalone PR check: a best-effort reminder to update the upgrade guide
+# (scripts/checks/upgrade-guide-check.sh). Diff based, so it is not mirrored
+# into main-checks.yaml.
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize', 'reopened']
+    paths:
+      - '.github/workflows/pr-check-upgrade-guide.yaml'
+      - 'scripts/checks/upgrade-guide-check.sh'
+      - 'website/docs/*-upgrade-guide.html.markdown'
+      - '**.go'
+
+concurrency:
+  group: 'upgrade-guide-${{ github.event.pull_request.number || github.run_id }}'
+  cancel-in-progress: true
+
+jobs:
+  # Deliberately not in MONITORED_CHECKS in scripts/automation/pr-close-failing-ci.sh
+  # (which matches job ids): this check cannot see every case, so it must not
+  # close a PR on its own. A failure still adds waiting-response.
+  upgrade-guide-check:
+    runs-on: ubuntu-latest
+    outputs:
+      # 1 = the upgrade guide was not updated, 2 = the check itself could not run
+      exit_code: ${{ steps.check.outputs.exit_code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check the upgrade guide
+        id: check
+        shell: bash
+        run: |
+          set +e
+          bash ./scripts/checks/upgrade-guide-check.sh 2>&1 | tee upgrade-guide-check-output.txt
+          code=${PIPESTATUS[0]}
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          if [ "${code}" != "0" ]; then
+            {
+              echo "### Upgrade Guide Check"
+              echo ""
+              echo '```'
+              cat upgrade-guide-check-output.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "${code}"
+      - name: Guidance on failure
+        if: ${{ failure() && steps.check.outputs.exit_code == '1' }}
+        run: |
+          echo "::error::This PR adds major version feature flag checks or deprecations without updating the upgrade guide. See the output of the previous step."
+      - name: Guidance on error
+        if: ${{ failure() && steps.check.outputs.exit_code != '1' }}
+        run: |
+          echo "::error::The upgrade guide check could not run (see the previous step for the error). This is not a problem with the upgrade guide."
+  # The PR comment and waiting-response label (via the saved artifact) are only
+  # for the upgrade guide not being updated, not for the check itself failing to run.
+  save-artifacts-on-fail:
+    needs: upgrade-guide-check
+    if: ${{ failure() && needs.upgrade-guide-check.outputs.exit_code == '1' }}
+    uses: $/.github/workflows/pr-save-artifacts.yaml
+  comment-on-fail:
+    needs: upgrade-guide-check
+    if: ${{ failure() && needs.upgrade-guide-check.outputs.exit_code == '1' }}
+    uses: $/.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
+  comment-outdated-on-pass:
+    needs: upgrade-guide-check
+    if: ${{ success() }}
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write

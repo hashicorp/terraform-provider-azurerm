@@ -60,6 +60,7 @@ jobs:
               'Provider Tests': 'Run `make testacc TEST=./internal/provider TESTARGS="-run \'^TestAcc\'"` locally to reproduce and fix the failing provider tests.',
               'Check for new usages of deprecated functionality': 'Your changes introduce new usages of deprecated functions or patterns. Please use the recommended replacements instead.',
               'Preview ARM API Version Linter': 'Your changes reference Azure ARM API versions that are in preview. Please update the API version references to use GA (stable) versions.',
+              'Upgrade Guide Check': 'Your changes add major version feature flag checks (e.g. `features.SixPointOh()`) or deprecate properties, resources or data sources without updating the upgrade guide (`website/docs/<version>-upgrade-guide.html.markdown`). The check output lists the lines it found; if they are already covered by the upgrade guide, a maintainer can disregard this. Run `bash ./scripts/checks/upgrade-guide-check.sh` locally to reproduce.',
             };
 
             const commitUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${sha}`;
