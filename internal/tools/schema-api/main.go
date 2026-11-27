@@ -53,7 +53,7 @@ func main() {
 	case pointer.From(detectBreakingChanges) != "":
 		{
 			d := differ.Differ{}
-			if violations := d.Diff(*detectBreakingChanges, *providerName); violations != nil {
+			if violations := d.Diff(*detectBreakingChanges, *providerName); violations != nil && len(violations) > 0 {
 				for _, v := range violations {
 					log.Println(v)
 				}

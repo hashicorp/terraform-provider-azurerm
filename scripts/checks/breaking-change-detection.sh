@@ -14,7 +14,7 @@ function on_failure {
 }
 
 function runDetect {
-  go run internal/tools/schema-api/main.go -detect .release/provider-schema.json
+  go run internal/tools/schema-api/main.go -detect .release/provider-schema.json -error-on-violation
 }
 
 function main {
