@@ -143,6 +143,13 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basicPremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
