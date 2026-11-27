@@ -48,6 +48,10 @@ output "service_key" {
 
 * `sku` - A `sku` block for the ExpressRoute circuit as documented below.
 
+* `activation_key` - The activation key of the ExpressRoute MultiCloud circuit.
+
+* `partner_account_id` - The ID of the account with the partner cloud provider for the ExpressRoute MultiCloud circuit.
+
 ---
 
 `service_provider_properties` supports the following:
@@ -71,7 +75,7 @@ output "service_key" {
 
 `sku` supports the following:
 
-* `tier` - The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
+* `tier` - The service tier. Possible values are `Basic`, `Local`, `MultiCloud`, `Premium`, and `Standard`.
 * `family` - The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 
 ## Timeouts
@@ -84,4 +88,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-07-01
+* `Microsoft.Network` - 2026-03-01

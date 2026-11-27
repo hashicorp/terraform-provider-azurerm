@@ -6,7 +6,7 @@ package express_route_port_authorization
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteportauthorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressrouteportauthorizations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

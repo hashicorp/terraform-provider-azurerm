@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteportauthorizations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressrouteportauthorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
