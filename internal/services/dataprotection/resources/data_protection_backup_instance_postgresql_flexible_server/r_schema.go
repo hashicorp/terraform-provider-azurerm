@@ -45,8 +45,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		arguments["backup_solution_type"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because changing from PhysicalBackup to LogicalBackup forces replacement and existing instances may already have PhysicalBackup configured outside Terraform; defaults to LogicalBackup in 6.0.
 			Computed:     true,
 			ValidateFunc: validation.StringInSlice(backupinstanceresources.PossibleValuesForBackupSolutionType(), false),
 		}
