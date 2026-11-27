@@ -385,7 +385,7 @@ func flattenDataSourceRedisConfiguration(input *redisresources.RedisCommonProper
 	}
 
 	if input.PreferredDataPersistenceAuthMethod != nil {
-		outputs["data_persistence_authentication_method"] = *input.PreferredDataPersistenceAuthMethod
+		outputs["data_persistence_authentication_method"] = normalizeDataPersistenceAuthenticationMethod(*input.PreferredDataPersistenceAuthMethod)
 	}
 
 	if input.MaxfragmentationmemoryReserved != nil {
