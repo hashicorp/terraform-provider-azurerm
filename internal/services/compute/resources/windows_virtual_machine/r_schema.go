@@ -287,9 +287,6 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
-			ConflictsWith: []string{
-				"os_managed_disk_id",
-			},
 		},
 
 		"patch_assessment_mode": {
@@ -298,9 +295,6 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
-			ConflictsWith: []string{
-				"os_managed_disk_id",
-			},
 		},
 
 		"hotpatching_enabled": {
