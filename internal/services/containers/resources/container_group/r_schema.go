@@ -247,7 +247,6 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 			Description: "The definition of a container that is part of the group.",
 			Type:        pluginsdk.TypeList,
 			Required:    true,
-			ForceNew:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -280,10 +279,19 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 						ForceNew:    true,
 					},
 
+					"config_map": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
 					"cpu_limit": {
 						Description:  "The upper limit of the number of CPU cores of the containers.",
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.FloatAtLeast(0.0),
 					},
 
@@ -291,6 +299,7 @@ func containerGroupSchema() map[string]*pluginsdk.Schema {
 						Description:  "The upper limit of the memory of the containers in GB.",
 						Type:         pluginsdk.TypeFloat,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.FloatAtLeast(0.0),
 					},
 

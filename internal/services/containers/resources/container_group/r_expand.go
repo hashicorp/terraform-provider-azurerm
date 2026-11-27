@@ -119,6 +119,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 					},
 				},
 				SecurityContext: expandContainerSecurityContext(data["security"].([]any)),
+				ConfigMap:       expandConfigMap(data["config_map"].(map[string]any)),
 			},
 		}
 
@@ -250,6 +251,17 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 	}
 
 	return containers, containerGroupPorts, containerGroupVolumes, nil
+}
+
+func expandConfigMap(input map[string]any) *containerinstance.ConfigMap {
+	if len(input) == 0 {
+		return nil
+	}
+	kv := map[string]string{}
+	for k, v := range input {
+		kv[k] = v.(string)
+	}
+	return &containerinstance.ConfigMap{KeyValuePairs: &kv}
 }
 
 func expandContainerVolume(v any, addedEmptyDirs map[string]bool, containerGroupVolumes []containerinstance.Volume) ([]containerinstance.Volume, error) {
