@@ -61,6 +61,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_named_value"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_policy_fragment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_product"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -171,6 +172,7 @@ func (r Registration) Resources() []sdk.Resource {
 		api_management_workspace_named_value.Resource{},
 		api_management_workspace_policy_fragment.Resource{},
 		api_management_workspace_policy.Resource{},
+		api_management_workspace_product.Resource{},
 		api_management_workspace.Resource{},
 	}
 }
