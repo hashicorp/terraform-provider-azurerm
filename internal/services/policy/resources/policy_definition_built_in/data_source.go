@@ -13,7 +13,8 @@ import (
 // dataSourcePolicyDefinitionBuiltIn read built-in policy definition only
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: helpers.PolicyDefinitionReadFunc(true),
+		Description: "Use this data source to access information about a Built-In Policy Definition. Retrieves Policy Definitions from your current subscription by default.",
+		Read:        helpers.PolicyDefinitionReadFunc(true),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

@@ -12,6 +12,7 @@ import (
 func (l Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"certificate_id": {
+			Description:  "The ID of the Certificate to use as the Outbound Trust Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

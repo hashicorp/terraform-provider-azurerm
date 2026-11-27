@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePortalTenantConfigurationCreateUpdate,
-		Read:   resourcePortalTenantConfigurationRead,
-		Update: resourcePortalTenantConfigurationCreateUpdate,
-		Delete: resourcePortalTenantConfigurationDelete,
+		Description: "Manages Portal Tenant Configuration.",
+		Create:      resourcePortalTenantConfigurationCreateUpdate,
+		Read:        resourcePortalTenantConfigurationRead,
+		Update:      resourcePortalTenantConfigurationCreateUpdate,
+		Delete:      resourcePortalTenantConfigurationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

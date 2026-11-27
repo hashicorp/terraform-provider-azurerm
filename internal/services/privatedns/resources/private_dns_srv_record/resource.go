@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateDnsSrvRecordCreateUpdate,
-		Read:   resourcePrivateDnsSrvRecordRead,
-		Update: resourcePrivateDnsSrvRecordCreateUpdate,
-		Delete: resourcePrivateDnsSrvRecordDelete,
+		Description: "Enables you to manage DNS SRV Records within Azure Private DNS.",
+		Create:      resourcePrivateDnsSrvRecordCreateUpdate,
+		Read:        resourcePrivateDnsSrvRecordRead,
+		Update:      resourcePrivateDnsSrvRecordCreateUpdate,
+		Delete:      resourcePrivateDnsSrvRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			resourceId, err := privatedns.ParseRecordTypeID(id)
 			if err != nil {

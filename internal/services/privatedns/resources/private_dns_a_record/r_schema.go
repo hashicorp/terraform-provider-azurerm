@@ -13,6 +13,7 @@ import (
 func privateDnsARecordSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the DNS A Record.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func privateDnsARecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_dns_zone_id": {
+			Description:  "The ID of the Private DNS Zone where the resource exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,21 +29,24 @@ func privateDnsARecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"records": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MaxItems: 20,
-			Set:      pluginsdk.HashString,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Description: "List of IPv4 Addresses.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MaxItems:    20,
+			Set:         pluginsdk.HashString,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The Time To Live (TTL) of the DNS record in seconds.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 		},
 
 		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the DNS A Record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

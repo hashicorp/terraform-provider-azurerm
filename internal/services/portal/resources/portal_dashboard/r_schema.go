@@ -12,6 +12,7 @@ import (
 func portalDashboardSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Shared Dashboard.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func portalDashboardSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"dashboard_properties": {
+			Description:  "JSON data representing dashboard body. See above for details on how to obtain this from the Portal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DashboardProperties,

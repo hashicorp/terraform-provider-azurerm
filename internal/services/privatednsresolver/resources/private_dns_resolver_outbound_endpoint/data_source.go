@@ -33,6 +33,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_outbound_endpoint"
 }
 
+func (r DataSource) Description() string {
+	return "Gets information about an existing Private DNS Resolver Outbound Endpoint."
+}
+
 func (r DataSource) ModelObject() any {
 	return &PrivateDNSResolverOutboundEndpointDataSourceModel{}
 }
@@ -44,12 +48,14 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the Private DNS Resolver Outbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"private_dns_resolver_id": {
+			Description:  "ID of the Private DNS Resolver Outbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: dnsresolvers.ValidateDnsResolverID,
@@ -60,8 +66,9 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),

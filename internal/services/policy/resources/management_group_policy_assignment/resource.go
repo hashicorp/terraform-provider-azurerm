@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_management_group_policy_assignment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Policy Assignment to a Management Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ManagementGroupAssignmentID
 }

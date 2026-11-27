@@ -42,6 +42,10 @@ func (l DataSource) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack"
 }
 
+func (l DataSource) Description() string {
+	return "Use this data source to access information about an existing Palo Alto Networks Rulestack."
+}
+
 func (l DataSource) ModelObject() any {
 	return &LocalRulestackDataSourceModel{}
 }
@@ -49,6 +53,7 @@ func (l DataSource) ModelObject() any {
 func (l DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Palo Alto Networks Rulestack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.LocalRuleStackName,
@@ -63,48 +68,57 @@ func (l DataSource) Attributes() map[string]*schema.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"vulnerability_profile": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Vulnerability Profile used by the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"anti_spyware_profile": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Anti-Spyware setting used by the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"anti_virus_profile": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Anti-Virus setting used by the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"url_filtering_profile": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL Filtering Profile used by the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"file_blocking_profile": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The File Blocking Profile used by the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dns_subscription": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The DNS Subscription setting used by the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_trust_certificate": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The trusted egress decryption profile data for the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_untrust_certificate": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The untrusted egress decryption profile data for the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Palo Alto Networks Rulestack.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

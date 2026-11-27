@@ -18,6 +18,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Policy Set Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_type": {
+			Description:  "The Policy Set Definition type.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,17 +34,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of this Policy Set Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of this Policy Set Definition.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"metadata": {
+			Description:      "The metadata for the Policy Set Definition in JSON format.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Computed:         true, // azignore:AZS007 - pre-existing violation
@@ -51,6 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"parameters": {
+			Description:      "The parameters for the Policy Set Definition in JSON format. Reducing the number of parameters forces a new resource to be created.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,

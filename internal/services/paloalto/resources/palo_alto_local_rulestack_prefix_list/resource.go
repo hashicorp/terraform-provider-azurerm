@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack_prefix_list"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Palo Alto Local Rulestack Prefix List."
+}

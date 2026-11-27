@@ -15,11 +15,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate,
-		Read:     resourcePrivateDnsZoneVirtualNetworkLinkRead,
-		Update:   resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate,
-		Delete:   resourcePrivateDnsZoneVirtualNetworkLinkDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&virtualnetworklinks.VirtualNetworkLinkId{}),
+		Description: "Enables you to manage Private DNS zone Virtual Network Links. These Links enable DNS resolution and registration inside Azure Virtual Networks using Azure Private DNS.",
+		Create:      resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate,
+		Read:        resourcePrivateDnsZoneVirtualNetworkLinkRead,
+		Update:      resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate,
+		Delete:      resourcePrivateDnsZoneVirtualNetworkLinkDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&virtualnetworklinks.VirtualNetworkLinkId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualnetworklinks.VirtualNetworkLinkId{}),

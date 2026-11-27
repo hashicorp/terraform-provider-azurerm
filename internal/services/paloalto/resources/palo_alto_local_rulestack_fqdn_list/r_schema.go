@@ -14,12 +14,14 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Local Rulestack FQDN List.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.LocalRuleStackFQDNListName, // TODO - Check this
 		},
 
 		"rulestack_id": {
+			Description:  "The ID of the Palo Alto Local Rulestack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,9 +29,10 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"fully_qualified_domain_names": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of Fully Qualified Domain Names.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -37,13 +40,15 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"audit_comment": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The comment for Audit purposes.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description for the FQDN List.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

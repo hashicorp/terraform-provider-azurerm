@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Next Generation Firewall VHub Local Rulestack.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"rulestack_id": {
+			Description:  "The ID of the Local Rulestack to be used for this Next Generation Firewall.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: localrulestackresources.ValidateLocalRulestackID,
@@ -37,6 +39,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"destination_nat": schema.DestinationNATSchema(),
 
 		"marketplace_offer_id": {
+			Description:  "The marketplace offer ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -45,6 +48,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"plan_id": {
+			Description:  "The billing plan ID as published by Liftr.PAN.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "panw-cngfw-payg",

@@ -24,10 +24,11 @@ var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePostgresqlFlexibleServerCreate,
-		Read:   resourcePostgresqlFlexibleServerRead,
-		Update: resourcePostgresqlFlexibleServerUpdate,
-		Delete: resourcePostgresqlFlexibleServerDelete,
+		Description: "Manages a PostgreSQL Flexible Server.",
+		Create:      resourcePostgresqlFlexibleServerCreate,
+		Read:        resourcePostgresqlFlexibleServerRead,
+		Update:      resourcePostgresqlFlexibleServerUpdate,
+		Delete:      resourcePostgresqlFlexibleServerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(1 * time.Hour),

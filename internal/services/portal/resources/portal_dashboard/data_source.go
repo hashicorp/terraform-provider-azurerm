@@ -25,7 +25,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePortalDashboardRead,
+		Description: "Use this data source to access information about an existing shared dashboard in the Azure Portal.",
+		Read:        dataSourcePortalDashboardRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -33,12 +34,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the shared Azure Portal Dashboard.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.DashboardName,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 			"display_name": {
+				Description:  "The display name of the shared Azure Portal Dashboard.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -47,10 +50,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"location":            commonschema.LocationComputed(),
 			"dashboard_properties": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Computed:  true, // azignore:AZS007 - pre-existing violation
-				StateFunc: pluginsdk.NormalizeJson,
+				Description: "JSON data representing dashboard body.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
+				StateFunc:   pluginsdk.NormalizeJson,
 			},
 			"tags": commonschema.TagsDataSource(),
 		},

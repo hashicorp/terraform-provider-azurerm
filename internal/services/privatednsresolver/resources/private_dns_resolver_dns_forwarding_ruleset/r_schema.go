@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Private DNS Resolver DNS Forwarding Ruleset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,8 +23,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"private_dns_resolver_outbound_endpoint_ids": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "The list of IDs of the Private DNS Resolver Outbound Endpoint that is linked to the Private DNS Resolver DNS Forwarding Ruleset.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: outboundendpoints.ValidateOutboundEndpointID,

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceResourceGroupPolicyRemediationCreateUpdate,
-		Read:   resourceResourceGroupPolicyRemediationRead,
-		Update: resourceResourceGroupPolicyRemediationCreateUpdate,
-		Delete: resourceResourceGroupPolicyRemediationDelete,
+		Description: "Manages an Azure Resource Group Policy Remediation.",
+		Create:      resourceResourceGroupPolicyRemediationCreateUpdate,
+		Read:        resourceResourceGroupPolicyRemediationRead,
+		Update:      resourceResourceGroupPolicyRemediationCreateUpdate,
+		Delete:      resourceResourceGroupPolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := remediations.ParseProviderRemediationID(id)

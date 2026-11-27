@@ -14,9 +14,10 @@ var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePostgresqlFlexibleServerAdministratorCreate,
-		Read:   resourcePostgresqlFlexibleServerAdministratorRead,
-		Delete: resourcePostgresqlFlexibleServerAdministratorDelete,
+		Description: "Allows you to set a user or group as the AD administrator for a PostgreSQL Flexible Server.",
+		Create:      resourcePostgresqlFlexibleServerAdministratorCreate,
+		Read:        resourcePostgresqlFlexibleServerAdministratorRead,
+		Delete:      resourcePostgresqlFlexibleServerAdministratorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := administratormicrosoftentras.ParseAdministratorID(id)
 			return err

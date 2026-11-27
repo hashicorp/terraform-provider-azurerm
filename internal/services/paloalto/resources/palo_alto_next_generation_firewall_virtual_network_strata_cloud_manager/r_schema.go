@@ -19,6 +19,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Next Generation Firewall Virtual Network Strata Cloud Manager.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +33,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"network_profile": schema.VnetNetworkProfileSchema(),
 
 		"strata_cloud_manager_tenant_name": {
+			Description:  "Strata Cloud Manager name which is intended to manage the policy for this firewall.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -42,6 +44,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"destination_nat": schema.DestinationNATSchema(),
 
 		"marketplace_offer_id": {
+			Description:  "The marketplace offer ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -50,6 +53,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"plan_id": {
+			Description:  "The billing plan ID as published by Liftr.PAN.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "panw-cngfw-payg",

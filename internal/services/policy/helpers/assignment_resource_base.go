@@ -392,9 +392,10 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 	output := map[string]*pluginsdk.Schema{
 		// NOTE: `name` isn't included since it varies depending on the resource, so it's expected to be passed in
 		"policy_definition_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The ID of the Policy Definition or Policy Definition Set.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				validate.PolicyDefinitionID,
 				validate.PolicySetDefinitionID,
@@ -402,13 +403,15 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of the Policy Assignment.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The display name of the Policy Assignment.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"location": commonschema.LocationOptional(),
@@ -416,16 +419,18 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"enforce": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enforce the policy.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"metadata": MetadataSchema(),
 
 		"not_scopes": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of resource scopes (for example a Subscription, or a Resource Group) that are excluded from this policy.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -437,12 +442,14 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
+						Description:  "The non-compliance message text. When assigning policy sets (initiatives), unless `policy_definition_reference_id` is specified then this message will be the default for all policies.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"policy_definition_reference_id": {
+						Description:  "When assigning policy sets (initiatives), this is the ID of the policy definition that the non-compliance message applies to.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -452,6 +459,7 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 		},
 
 		"parameters": {
+			Description:      "A JSON mapping of any parameters for this policy.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -469,17 +477,19 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"in": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of policy reference ID values to filter in. Cannot be used with `not_in`.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"kind": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  policyassignments.SelectorKindPolicyDefinitionReferenceId,
+									Description: "The characteristic which will narrow down the set of evaluated resources.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     policyassignments.SelectorKindPolicyDefinitionReferenceId,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(policyassignments.SelectorKindPolicyDefinitionReferenceId),
 										string(policyassignments.SelectorKindResourceLocation),
@@ -487,8 +497,9 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 								},
 
 								"not_in": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of policy reference ID values to filter out. Cannot be used with `in`.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -499,6 +510,7 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 
 					// more detail see https://learn.microsoft.com/azure/governance/policy/concepts/effects
 					"value": {
+						Description:  "The value to override the policy property. Possible values for `policyEffect` override are listed [policy effects](https://learn.microsoft.com/azure/governance/policy/concepts/effects).",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -513,6 +525,7 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
+						Description:  "The name of the resource selector.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -524,16 +537,18 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"in": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of allowed values for the specified kind. Cannot be used with `not_in`. Can contain up to 50 values.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"kind": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Description: "The characteristic which will narrow down the set of evaluated resources.",
+									Type:        pluginsdk.TypeString,
+									Required:    true,
 									ValidateFunc: validation.StringInSlice([]string{
 										// only 3 types supported for resourceSelector Kind
 										// https://learn.microsoft.com/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview
@@ -544,8 +559,9 @@ func (br AssignmentBaseResource) Arguments(fields map[string]*pluginsdk.Schema) 
 								},
 
 								"not_in": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of not-allowed values for the specified kind. Cannot be used with `in`. Can contain up to 50 values.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},

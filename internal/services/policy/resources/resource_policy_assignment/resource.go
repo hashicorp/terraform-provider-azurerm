@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_resource_policy_assignment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Policy Assignment to a Resource."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ResourceAssignmentId()
 }

@@ -53,15 +53,17 @@ type NonComplianceMessage struct {
 func (DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Policy Assignment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"scope_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The ID of the scope this Policy Assignment is assigned to. The `scope_id` can be a subscription ID, a Resource Group ID, a Management Group ID, or an ID of any resource that is assigned with a policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidateManagementGroupID,
 				commonids.ValidateSubscriptionID,
@@ -75,18 +77,21 @@ func (DataSource) Arguments() map[string]*schema.Schema {
 func (DataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of this Policy Assignment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name of this Policy Assignment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"enforce": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether this policy is enforced.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
@@ -94,8 +99,9 @@ func (DataSource) Attributes() map[string]*schema.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"metadata": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A JSON mapping of any Metadata for this Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"not_scopes": {
@@ -112,26 +118,30 @@ func (DataSource) Attributes() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The non-compliance message text.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"policy_definition_reference_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the Policy Definition that the non-compliance message applies to.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A JSON mapping of any Parameters for this Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"policy_definition_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the assigned Policy Definition.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -142,6 +152,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_policy_assignment"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Policy Assignment."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

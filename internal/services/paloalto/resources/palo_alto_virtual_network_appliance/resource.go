@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_palo_alto_virtual_network_appliance"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Palo Alto Network Virtual Appliance."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networkvirtualappliances.ValidateNetworkVirtualApplianceID
 }

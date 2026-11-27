@@ -14,12 +14,14 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Local Rulestack Prefix List.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
 		},
 
 		"rulestack_id": {
+			Description:  "The ID of the Local Rulestack on which to create this Prefix List.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,9 +29,10 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"prefix_list": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of Prefixes.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
@@ -37,13 +40,15 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"audit_comment": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The comment for Audit purposes.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description for the Prefix List.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

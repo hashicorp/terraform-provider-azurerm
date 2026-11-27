@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Local Network Virtual Appliance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"virtual_hub_id": {
+			Description:  "The ID of the Virtual Hub to deploy this appliance onto.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
