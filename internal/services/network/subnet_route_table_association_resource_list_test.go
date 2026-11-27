@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccSubnetRouteTableAssociation_listByRouteTableID(t *testing.T) {
+func TestAccSubnetRouteTableAssociation_listByVirtualNetworkID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "list")
 	r := SubnetRouteTableAssociationResource{}
 
@@ -57,12 +57,18 @@ func (r SubnetRouteTableAssociationResource) basicList(data acceptance.TestData)
 
 resource "azurerm_subnet" "test" {
   count                = 3
-  name                 = "acctest%d${count.index}"
+  name                 = "acctest%[2]d${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.${count.index}.0/24"]
 }
 
+resource "azurerm_subnet" "testnoassociation" {
+  name                 = "acctest%[2]d4"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.4.0/24"]
+}
 
 resource "azurerm_subnet_route_table_association" "test" {
   count          = 3

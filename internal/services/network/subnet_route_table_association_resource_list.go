@@ -76,6 +76,10 @@ func (SubnetRouteTableAssociationListResource) List(ctx context.Context, request
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
+			if item.Properties == nil || item.Properties.RouteTable == nil {
+				continue
+			}
+
 			rd := resourceSubnetRouteTableAssociation().Data(&terraform.InstanceState{})
 			id, err := commonids.ParseSubnetIDInsensitively(pointer.From(item.Id))
 			if err != nil {
