@@ -12,7 +12,7 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 * When selecting SKUs for testing, **pick the lowest or cheapest SKU** which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
 
-* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
+* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/resources/virtual_machine/resource_test.go)
 
 * Use a fixed password that meets the service's rules rather than generating one, unless the test is about generated passwords.
 

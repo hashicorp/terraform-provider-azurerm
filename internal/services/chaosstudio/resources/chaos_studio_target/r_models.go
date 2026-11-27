@@ -9,6 +9,6 @@ type ChaosStudioTargetResourceSchema struct {
 	TargetType       string `tfschema:"target_type"`
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ChaosStudioTargetResourceSchema{}
 }

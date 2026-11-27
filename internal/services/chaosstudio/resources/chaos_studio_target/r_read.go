@@ -8,11 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -39,22 +37,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.TargetResourceId = id.Scope
 				schema.TargetType = id.TargetName
-				if err := r.mapTargetToChaosStudioTargetResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
-				}
+				schema.Location = location.NormalizeNilable(model.Location)
 			}
 
 			return metadata.Encode(&schema)
 		},
 	}
-}
-
-func (r Resource) mapChaosStudioTargetResourceSchemaToTarget(input ChaosStudioTargetResourceSchema, output *targets.Target) error {
-	output.Location = pointer.To(location.Normalize(input.Location))
-	return nil
-}
-
-func (r Resource) mapTargetToChaosStudioTargetResourceSchema(input targets.Target, output *ChaosStudioTargetResourceSchema) error {
-	output.Location = location.NormalizeNilable(input.Location)
-	return nil
 }
