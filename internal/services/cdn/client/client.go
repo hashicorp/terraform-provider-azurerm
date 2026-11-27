@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactionexecutionfilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactionversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rules"
@@ -26,6 +28,8 @@ type Client struct {
 	AFDCustomDomainsClient          *afddomains.AFDDomainsClient
 	AFDEndpointsClient              *afdendpoints.AFDEndpointsClient
 	EdgeActionsClient               *edgeactions.EdgeActionsClient
+	EdgeActionVersionsClient        *edgeactionversions.EdgeActionVersionsClient
+	EdgeActionFiltersClient         *edgeactionexecutionfilters.EdgeActionExecutionFiltersClient
 	FrontDoorFirewallPoliciesClient *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 	FrontDoorOriginGroupsClient     *afdorigingroups.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *afdorigins.AFDOriginsClient
@@ -61,6 +65,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Edge Actions Client: %+v", err)
 	}
 	o.Configure(edgeActionsClient.Client, o.Authorizers.ResourceManager)
+
+	edgeActionFiltersClient, err := edgeactionexecutionfilters.NewEdgeActionExecutionFiltersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Edge Action Execution Filters Client: %+v", err)
+	}
+	o.Configure(edgeActionFiltersClient.Client, o.Authorizers.ResourceManager)
+
+	edgeActionVersionsClient, err := edgeactionversions.NewEdgeActionVersionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Edge Action Versions Client: %+v", err)
+	}
+	o.Configure(edgeActionVersionsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorFirewallPoliciesClient := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&frontDoorFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -126,6 +142,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AFDCustomDomainsClient:          afdCustomDomainsClient,
 		AFDEndpointsClient:              afdEndpointsClient,
 		EdgeActionsClient:               edgeActionsClient,
+		EdgeActionVersionsClient:        edgeActionVersionsClient,
+		EdgeActionFiltersClient:         edgeActionFiltersClient,
 		FrontDoorFirewallPoliciesClient: &frontDoorFirewallPoliciesClient,
 		FrontDoorOriginGroupsClient:     frontDoorOriginGroupsClient,
 		FrontDoorOriginsClient:          frontDoorOriginsClient,
