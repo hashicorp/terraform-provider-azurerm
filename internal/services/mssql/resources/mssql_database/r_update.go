@@ -59,6 +59,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return errors.New("serverless databases do not support license type")
 	}
 
+	if d.Get("free_limit_exhaustion_behavior").(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
+		return fmt.Errorf("`storage_account_type` must be set to `Local` when `free_limit_exhaustion_behavior` is `AutoPause`")
+	}
+
+	if d.HasChange("free_limit_exhaustion_behavior") {
+		old, new := d.GetChange("free_limit_exhaustion_behavior")
+		if old.(string) == string(databases.FreeLimitExhaustionBehaviorBillOverUsage) && new.(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause) {
+			return fmt.Errorf("`free_limit_exhaustion_behavior` cannot be changed from `BillOverUsage` to `AutoPause`")
+		}
+	}
+
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing server ID: %+v", err)
@@ -202,6 +213,18 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 				return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
 			}
 			props.RestorePointInTime = pointer.To(restorePointInTime)
+		}
+	}
+
+	if d.HasChange("use_free_limit") {
+		props.UseFreeLimit = pointer.To(d.Get("use_free_limit").(bool))
+	}
+
+	if d.HasChange("free_limit_exhaustion_behavior") {
+		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+			props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
+		} else {
+			props.FreeLimitExhaustionBehavior = nil
 		}
 	}
 

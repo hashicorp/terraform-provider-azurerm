@@ -52,6 +52,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		return errors.New("serverless databases do not support license type")
 	}
 
+	if d.Get("free_limit_exhaustion_behavior").(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
+		return fmt.Errorf("`storage_account_type` must be set to `Local` when `free_limit_exhaustion_behavior` is `AutoPause`")
+	}
+
 	name := d.Get("name").(string)
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
@@ -198,6 +202,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
+	}
+
+	if v := d.Get("use_free_limit").(bool); v {
+		input.Properties.UseFreeLimit = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+		input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...

@@ -112,6 +112,14 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
 			d.Set("enclave_type", enclaveType)
+			d.Set("use_free_limit", pointer.From(props.UseFreeLimit))
+
+			freeLimitExhaustionBehavior := ""
+			if props.FreeLimitExhaustionBehavior != nil {
+				freeLimitExhaustionBehavior = string(pointer.From(props.FreeLimitExhaustionBehavior))
+			}
+			d.Set("free_limit_exhaustion_behavior", freeLimitExhaustionBehavior)
+
 			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
 			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
 

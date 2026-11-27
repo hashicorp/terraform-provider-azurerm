@@ -395,6 +395,18 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForSecondaryType(), false),
 		},
 
+		"use_free_limit": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"free_limit_exhaustion_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"use_free_limit"},
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
