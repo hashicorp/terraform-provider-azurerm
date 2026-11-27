@@ -17,6 +17,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Backup Instance Data Lake Storage.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,10 +33,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.StorageAccountId{}, "Storage Account"),
 
 		"storage_container_names": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
-			MaxItems: 1000,
+			Description: "The names of the Storage Containers of the source Storage Account.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MinItems:    1,
+			MaxItems:    1000,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.All(
@@ -50,8 +52,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The protection state of the Backup Instance Data Lake Storage.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

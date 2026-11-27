@@ -4,6 +4,7 @@
 package express_route_circuit_peering
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -104,11 +105,11 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta an
 		if strings.EqualFold(id.PeeringName, string(expressroutecircuitpeerings.ExpressRoutePeeringTypeMicrosoftPeering)) {
 			peerings := d.Get("microsoft_peering_config").([]any)
 			if len(peerings) == 0 && primaryPeerAddressPrefix != "" {
-				return fmt.Errorf("`microsoft_peering_config` must be specified when config for Ipv4 and `peering_type` is set to `MicrosoftPeering`")
+				return errors.New("`microsoft_peering_config` must be specified when config for Ipv4 and `peering_type` is set to `MicrosoftPeering`")
 			}
 
 			if len(peerings) != 0 && (primaryPeerAddressPrefix == "" || secondaryPeerAddressPrefix == "") {
-				return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
+				return errors.New("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 			}
 
 			payload.Properties.MicrosoftPeeringConfig = expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
@@ -119,14 +120,14 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta an
 				}
 			}
 		} else if routeFilterId != "" {
-			return fmt.Errorf("`routeFilterId` may only be specified when `peering_type` is set to `MicrosoftPeering`")
+			return errors.New("`routeFilterId` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 		}
 	}
 
 	if d.HasChange("ipv6") {
 		ipv6Peering := d.Get("ipv6").([]any)
 		if len(ipv6Peering) != 0 && id.PeeringName == string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePublicPeering) {
-			return fmt.Errorf("`ipv6` may only be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`")
+			return errors.New("`ipv6` may only be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`")
 		}
 
 		ipv6PeeringConfig, err := expandExpressRouteCircuitIpv6PeeringConfig(ipv6Peering)

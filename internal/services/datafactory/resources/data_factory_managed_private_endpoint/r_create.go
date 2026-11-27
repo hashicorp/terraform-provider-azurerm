@@ -4,6 +4,7 @@
 package data_factory_managed_private_endpoint
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -57,15 +58,15 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 
 	if _, err := privatelinkservices.ParsePrivateLinkServiceID(targetResourceId); err == nil {
 		if len(subResourceName) > 0 {
-			return fmt.Errorf("`subresource_name` should not be specified when target resource is `Private Link Service`")
+			return errors.New("`subresource_name` should not be specified when target resource is `Private Link Service`")
 		}
 
 		if len(fqdns) == 0 {
-			return fmt.Errorf("`fqdns` should be specified when target resource is `Private Link Service`")
+			return errors.New("`fqdns` should be specified when target resource is `Private Link Service`")
 		}
 	} else {
 		if len(strings.TrimSpace(subResourceName)) < 3 {
-			return fmt.Errorf("`subresource_name` must be at least 3 characters in length")
+			return errors.New("`subresource_name` must be at least 3 characters in length")
 		}
 
 		if len(fqdns) > 0 {

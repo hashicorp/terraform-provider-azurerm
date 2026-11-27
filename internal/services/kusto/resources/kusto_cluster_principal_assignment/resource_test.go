@@ -5,6 +5,7 @@ package kusto_cluster_principal_assignment_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -45,7 +46,7 @@ func (KustoClusterPrincipalAssignmentResource) Exists(ctx context.Context, clien
 	}
 
 	if resp.Model == nil {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 
 	return pointer.To(resp.Model.Properties != nil), nil

@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -107,10 +108,10 @@ func parseDataPlaneResource(input *url.URL, expectedType string, requireVersion 
 func validateSegment(input string) error {
 	val := strings.TrimSpace(input)
 	if val == "" {
-		return fmt.Errorf("unexpected empty value")
+		return errors.New("unexpected empty value")
 	}
 	if val != input {
-		return fmt.Errorf("contained extra whitespace")
+		return errors.New("contained extra whitespace")
 	}
 
 	return nil

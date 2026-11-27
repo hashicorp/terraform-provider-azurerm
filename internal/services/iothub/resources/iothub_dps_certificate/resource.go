@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubDPSCertificateCreate,
-		Read:   resourceIotHubDPSCertificateRead,
-		Update: resourceIotHubDPSCertificateUpdate,
-		Delete: resourceIotHubDPSCertificateDelete,
+		Description: "Manages an IotHub Device Provisioning Service Certificate.",
+		Create:      resourceIotHubDPSCertificateCreate,
+		Read:        resourceIotHubDPSCertificateRead,
+		Update:      resourceIotHubDPSCertificateUpdate,
+		Delete:      resourceIotHubDPSCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dpscertificate.ParseCertificateID(id)

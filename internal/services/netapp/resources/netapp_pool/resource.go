@@ -5,7 +5,7 @@ package netapp_pool
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
@@ -47,12 +47,12 @@ func RegisterResource() *pluginsdk.Resource {
 				if customThroughput > 0 {
 					// customThroughputMibps should only be accepted if manual qosType is set
 					if qosType != string(capacitypools.QosTypeManual) {
-						return fmt.Errorf("`custom_throughput_mibps` can only be set when `qos_type` is set to `Manual`")
+						return errors.New("`custom_throughput_mibps` can only be set when `qos_type` is set to `Manual`")
 					}
 
 					// customThroughputMibps should only be accepted for Flexible service level
 					if serviceLevel != string(capacitypools.ServiceLevelFlexible) {
-						return fmt.Errorf("`custom_throughput_mibps` can only be set when `service_level` is set to `Flexible`")
+						return errors.New("`custom_throughput_mibps` can only be set when `service_level` is set to `Flexible`")
 					}
 				}
 

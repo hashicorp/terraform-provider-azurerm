@@ -37,7 +37,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Description:  "`sku_name` is a string consisting of two parts separated by an underscore(\\_). The first part is the `name`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).",
+			Description:  "`sku_name` is a string consisting of two parts separated by an underscore (\\_). The first part is the `name`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ApimSkuName(),
@@ -70,14 +70,14 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_enabled": {
-			Description: "Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.",
+			Description: "Whether to enforce a client certificate to be presented on each request to the gateway. This is only supported when SKU type is `Consumption`.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"gateway_disabled": {
-			Description: "Disable the gateway in main region? This is only supported when `additional_location` is set.",
+			Description: "Whether to disable the gateway in the main region. This is only supported when `additional_location` is set.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -146,10 +146,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_addresses": {
 						Description: "Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.",
 						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Computed: true,
 					},
 
 					"public_ip_address_id": {
@@ -162,10 +162,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"private_ip_addresses": {
 						Description: "The Private IP addresses of the API Management Service. Available only when the API Manager instance is using Virtual Network mode.",
 						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Computed: true,
 					},
 				},
 			},
@@ -227,7 +227,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"http2_enabled": {
-						Description: "Should HTTP/2 be supported by the API Management Service?",
+						Description: "Whether HTTP/2 should be supported by the API Management Service.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -244,107 +244,107 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"backend_ssl30_enabled": {
-						Description: "Should SSL 3.0 be enabled on the backend of the gateway?",
+						Description: "Whether SSL 3.0 should be enabled on the backend of the gateway.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"backend_tls10_enabled": {
-						Description: "Should TLS 1.0 be enabled on the backend of the gateway?",
+						Description: "Whether TLS 1.0 should be enabled on the backend of the gateway.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"backend_tls11_enabled": {
-						Description: "Should TLS 1.1 be enabled on the backend of the gateway?",
+						Description: "Whether TLS 1.1 should be enabled on the backend of the gateway.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 
 					"frontend_ssl30_enabled": {
-						Description: "Should SSL 3.0 be enabled on the frontend of the gateway?",
+						Description: "Whether SSL 3.0 should be enabled on the frontend of the gateway.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 
 					"frontend_tls10_enabled": {
-						Description: "Should TLS 1.0 be enabled on the frontend of the gateway?",
+						Description: "Whether TLS 1.0 should be enabled on the frontend of the gateway.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 
 					"frontend_tls11_enabled": {
-						Description: "Should TLS 1.1 be enabled on the frontend of the gateway?",
+						Description: "Whether TLS 1.1 should be enabled on the frontend of the gateway.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 
 					"triple_des_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)?",
+						Description: "Whether the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher should be enabled for alL TLS versions (1.0, 1.1 and 1.2).",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
-						Description: "Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled?",
+						Description: "Whether the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
-						Description: "Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled?",
+						Description: "Whether the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-						Description: "Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled?",
+						Description: "Whether the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-						Description: "Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled?",
+						Description: "Whether the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled?",
+						Description: "Whether the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled?",
+						Description: "Whether the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled?",
+						Description: "Whether the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_rsa_with_aes256_gcm_sha384_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_AES_256_GCM_SHA384` cipher be enabled?",
+						Description: "Whether the `TLS_RSA_WITH_AES_256_GCM_SHA384` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled?",
+						Description: "Whether the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-						Description: "Should the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher be enabled?",
+						Description: "Whether the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -361,44 +361,44 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"management": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"portal": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"developer_portal": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"proxy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameProxySchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"scm": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 				},
 			},
@@ -412,7 +412,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Description: "Should anonymous users be redirected to the sign in page?",
+						Description: "Whether anonymous users should be redirected to the sign in page.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
 					},
@@ -428,13 +428,13 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subscriptions_enabled": {
-						Description: "Should subscription requests be delegated to an external URL?",
+						Description: "Whether subscription requests should be delegated to an external URL.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"user_registration_enabled": {
-						Description: "Should user registration requests be delegated to an external URL?",
+						Description: "Whether user registration requests should be delegated to an external URL.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -449,8 +449,8 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Description:  "A base64-encoded validation key to validate, that a request is coming from Azure API Management.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 					},
 				},
 			},
@@ -464,7 +464,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Description: "Can users sign up on the development portal?",
+						Description: "Whether users can sign up on the development portal.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
 					},
@@ -476,17 +476,17 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
-									Description: "Should Terms of Service be displayed during sign up?",
+									Description: "Whether Terms of Service should be displayed during sign up.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
 								"consent_required": {
-									Description: "Should the user be asked for consent during sign up?",
+									Description: "Whether the user should be asked for consent during sign up.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
 								"text": {
-									Description: "The Terms of Service which users are required to agree to in order to sign up.",
+									Description: "The Terms of Service which users are required to agree to before signing up.",
 									Type:        pluginsdk.TypeString,
 									Optional:    true,
 								},
@@ -534,7 +534,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is public access to the service allowed?",
+			Description: "Whether public access to the service is allowed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -575,7 +575,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Description: "Should the access to the management API be enabled?",
+						Description: "Whether the access to the management API should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
 					},

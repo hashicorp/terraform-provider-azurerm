@@ -4,6 +4,7 @@
 package cdn_frontdoor_origin
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -112,7 +113,7 @@ func expandCdnFrontDoorOriginPrivateLinkSettings(input []any, skuName profiles.S
 	}
 
 	if !enableCertNameCheck {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
+		return nil, errors.New("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
 	}
 
 	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
@@ -122,7 +123,7 @@ func expandCdnFrontDoorOriginPrivateLinkSettings(input []any, skuName profiles.S
 	targetType := config["target_type"].(string)
 	if _, err := privatelinkservices.ParsePrivateLinkServiceID(config["private_link_target_id"].(string)); err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
-		return nil, fmt.Errorf("either `private_link_target_id` or `target_type` must be specified")
+		return nil, errors.New("either `private_link_target_id` or `target_type` must be specified")
 	}
 
 	return &afdorigins.SharedPrivateLinkResourceProperties{

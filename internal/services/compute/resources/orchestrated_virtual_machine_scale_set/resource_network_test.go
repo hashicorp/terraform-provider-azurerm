@@ -5,6 +5,7 @@ package orchestrated_virtual_machine_scale_set_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -396,7 +397,7 @@ func (OrchestratedVirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Co
 		}
 	}
 
-	return fmt.Errorf("load balancer configuration was missing")
+	return errors.New("load balancer configuration was missing")
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {

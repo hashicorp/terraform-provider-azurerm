@@ -5,6 +5,7 @@ package machinelearning
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -96,9 +97,9 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 		"service_data_auth_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(datastore.ServiceDataAccessAuthIdentityNone),
 			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
-			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
 
 		"account_key": {
@@ -128,7 +129,7 @@ func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
 
 			if metadata.ResourceDiff.Get("service_data_auth_identity").(string) == string(datastore.ServiceDataAccessAuthIdentityNone) {
 				if accountKey.IsNull() && sharedAccessSignature.IsNull() {
-					return fmt.Errorf("one of `account_key` or `shared_access_signature` must be specified")
+					return errors.New("one of `account_key` or `shared_access_signature` must be specified")
 				}
 			}
 

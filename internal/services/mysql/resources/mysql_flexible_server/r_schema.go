@@ -51,9 +51,9 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			WriteOnly:     true,
-			ConflictsWith: []string{"administrator_password"},
-			RequiredWith:  []string{"administrator_password_wo_version"},
 			ValidateFunc:  validate.FlexibleServerAdministratorPassword,
+			RequiredWith:  []string{"administrator_password_wo_version"},
+			ConflictsWith: []string{"administrator_password"},
 		},
 
 		"administrator_password_wo_version": {

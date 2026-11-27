@@ -10,13 +10,15 @@ import (
 
 func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Description: "The HTTPS Connectivity Endpoint for this HDInsight Hadoop Cluster.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"access_modes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Description: "A list of access modes for the application.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -24,23 +26,27 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 				},
 
 				"destination_port": {
+					Description:  "The destination port to connect to.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"disable_gateway_auth": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "The value indicates whether the gateway authentication is enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 
 				"private_ip_address": {
+					Description:  "The private IP address of the endpoint.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsIPAddress,
 				},
 
 				"sub_domain_suffix": {
+					Description:  "The application's subdomain suffix.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,

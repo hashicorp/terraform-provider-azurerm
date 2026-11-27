@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_iotcentral_organization"
 }
 
+func (r Resource) Description() string {
+	return "Manages an IoT Central Organization."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.OrganizationID
 }

@@ -34,8 +34,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"quota_type": {
 			Description:  "Quota type. Please note that `IndividualGroupQuota` and `DefaultGroupQuota` are not applicable to SMB and dual-protocol volumes.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForQuotaType(), false),
 		},
 
@@ -49,8 +49,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"quota_target": {
 			Description:  "Quota Target. This can be Unix UID/GID for NFSv3/NFSv4.1 volumes and Windows User SID for CIFS based volumes.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}

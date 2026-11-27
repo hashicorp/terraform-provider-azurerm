@@ -22,3 +22,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_mongo_cluster"
 }
+
+func (r Resource) Description() string {
+	return "Manages a MongoDB Cluster using vCore Architecture."
+}

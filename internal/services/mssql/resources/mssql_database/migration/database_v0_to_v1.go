@@ -41,8 +41,8 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"create_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"collation": {
@@ -61,8 +61,8 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"storage_account_access_key": {
@@ -209,8 +209,8 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"creation_source_database_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"storage_account_type": {
@@ -245,17 +245,17 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"email_account_admins": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						Default:          "Disabled",
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"email_addresses": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"retention_days": {
@@ -266,8 +266,8 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"state": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						Default:          "Disabled",
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"storage_account_access_key": {
@@ -284,8 +284,8 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"use_server_default": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						Default:          "Disabled",
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 				},
 			},

@@ -4,6 +4,7 @@
 package machinelearning
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -97,11 +98,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  "Default",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Default",
 					"FeatureStore",
 				}, false),
-				Default: "Default",
 			},
 
 			"feature_store": {
@@ -344,7 +345,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta any)
 	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]any))
 	if serverlessCompute != nil {
 		if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && networkAccessBehindVnetEnabled == workspaces.PublicNetworkAccessDisabled {
-			return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
+			return errors.New("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
 		}
 	}
 
@@ -377,11 +378,11 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta any)
 	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]any))
 	if strings.EqualFold(*workspace.Kind, "Default") {
 		if featureStore != nil {
-			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
+			return errors.New("`feature_store` can only be set when `kind` is `FeatureStore`")
 		}
 	} else {
 		if featureStore == nil {
-			return fmt.Errorf("`feature_store` can not be empty when `kind` is `FeatureStore`")
+			return errors.New("`feature_store` can not be empty when `kind` is `FeatureStore`")
 		}
 		workspace.Properties.FeatureStoreSettings = featureStore
 	}
@@ -435,11 +436,11 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta any)
 		featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]any))
 		if strings.EqualFold(*payload.Kind, "Default") {
 			if featureStore != nil {
-				return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
+				return errors.New("`feature_store` can only be set when `kind` is `FeatureStore`")
 			}
 		} else {
 			if featureStore == nil {
-				return fmt.Errorf("`feature_store` can not be empty when `kind` is `FeatureStore`")
+				return errors.New("`feature_store` can not be empty when `kind` is `FeatureStore`")
 			}
 			payload.Properties.FeatureStoreSettings = featureStore
 		}
@@ -496,13 +497,13 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta any)
 				networkAccessBehindVnetEnabled = true
 			}
 			if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && !networkAccessBehindVnetEnabled {
-				return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
+				return errors.New("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
 			}
 
 			if serverlessCompute.ServerlessComputeCustomSubnet == nil {
 				oldVal, newVal := d.GetChange("serverless_compute.0.public_ip_enabled")
 				if oldVal.(bool) && !newVal.(bool) {
-					return fmt.Errorf("`public_ip_enabled` cannot be updated from `true` to `false` when `subnet_id` is null or empty")
+					return errors.New("`public_ip_enabled` cannot be updated from `true` to `false` when `subnet_id` is null or empty")
 				}
 			}
 		}

@@ -43,6 +43,7 @@ type DevCenterProjectEnvironmentTypeDataSourceUserRoleAssignment struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Project Environment Type.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DevCenterProjectEnvironmentTypeName,
@@ -57,15 +58,17 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"deployment_target_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the subscription that the Environment Type is mapped to.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"creator_role_assignment_roles": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
+			Description: "A list of roles assigned to the environment creator.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -77,13 +80,15 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"user_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The user object ID that is assigned roles.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"roles": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
+						Description: "A list of roles to assign to the `user_id`.",
+						Type:        pluginsdk.TypeSet,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -102,6 +107,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_project_environment_type"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Project Environment Type."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

@@ -14,6 +14,7 @@ import (
 func containerRegistryAgentPoolSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Container Registry Agent Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func containerRegistryAgentPoolSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"container_registry_name": {
+			Description:  "Name of Azure Container Registry to create an Agent Pool for.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,16 +34,18 @@ func containerRegistryAgentPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"instance_count": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
+			Description: "VMSS instance count.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     1,
 		},
 
 		"tier": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "S1",
+			Description: "Sets the VM your agent pool will run on.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     "S1",
 			ValidateFunc: validation.StringInSlice([]string{
 				"S1",
 				"S2",
@@ -51,6 +55,7 @@ func containerRegistryAgentPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_subnet_id": {
+			Description:  "The ID of the Virtual Network Subnet Resource where the agent machines will be running.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

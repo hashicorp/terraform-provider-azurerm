@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_dynatrace_monitor"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Dynatrace monitor."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return monitors.ValidateMonitorID
 }

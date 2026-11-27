@@ -49,8 +49,8 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 
 		"exclude_disk_luns": {
 			Type:          pluginsdk.TypeSet,
-			ConflictsWith: []string{"include_disk_luns"},
 			Optional:      true,
+			ConflictsWith: []string{"include_disk_luns"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeInt,
 				ValidateFunc: validation.IntAtLeast(0),
@@ -59,8 +59,8 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 
 		"include_disk_luns": {
 			Type:          pluginsdk.TypeSet,
-			ConflictsWith: []string{"exclude_disk_luns"},
 			Optional:      true,
+			ConflictsWith: []string{"exclude_disk_luns"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeInt,
 				ValidateFunc: validation.IntAtLeast(0),

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBlueprintAssignmentCreateUpdate,
-		Update: resourceBlueprintAssignmentCreateUpdate,
-		Read:   resourceBlueprintAssignmentRead,
-		Delete: resourceBlueprintAssignmentDelete,
+		Description: "Manages a Blueprint Assignment resource.",
+		Create:      resourceBlueprintAssignmentCreateUpdate,
+		Update:      resourceBlueprintAssignmentCreateUpdate,
+		Read:        resourceBlueprintAssignmentRead,
+		Delete:      resourceBlueprintAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := assignment.ParseScopedBlueprintAssignmentID(id)

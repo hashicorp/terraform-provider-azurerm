@@ -25,7 +25,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultCertificateRead,
+		Description: "Use this data source to access information about an existing Key Vault Certificate.",
+		Read:        dataSourceKeyVaultCertificateRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
@@ -34,6 +35,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Key Vault Certificate.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyvault.ValidateNestedItemName,
@@ -42,18 +44,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"resource_manager_id": {
-				Computed: true,
-				Type:     pluginsdk.TypeString,
+				Description: "The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"resource_manager_versionless_id": {
-				Computed: true,
-				Type:     pluginsdk.TypeString,
+				Description: "The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The version of the certificate to look up.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 				// Note: O+C because Azure returns a version in the ID, which is set into state
 				Computed: true,
 			},
@@ -70,8 +75,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The name of the Certificate Issuer.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -86,20 +92,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed: true,
 									},
 									"exportable": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
+										Description: "Whether this Certificate is exportable.",
+										Type:        pluginsdk.TypeBool,
+										Computed:    true,
 									},
 									"key_size": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The size of the Key used in the Certificate.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 									"key_type": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Type of Key, for example `RSA`.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"reuse_key": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
+										Description: "Whether the key is reusable.",
+										Type:        pluginsdk.TypeBool,
+										Computed:    true,
 									},
 								},
 							},
@@ -116,8 +126,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     pluginsdk.TypeString,
-													Computed: true,
+													Description: "The Type of action to be performed when the lifetime trigger is triggered.",
+													Type:        pluginsdk.TypeString,
+													Computed:    true,
 												},
 											},
 										},
@@ -128,12 +139,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"days_before_expiry": {
-													Type:     pluginsdk.TypeInt,
-													Computed: true,
+													Description: "The number of days before the Certificate expires that the action associated with this Trigger should run.",
+													Type:        pluginsdk.TypeInt,
+													Computed:    true,
 												},
 												"lifetime_percentage": {
-													Type:     pluginsdk.TypeInt,
-													Computed: true,
+													Description: "The percentage at which during the Certificates Lifetime the action associated with this Trigger should run.",
+													Type:        pluginsdk.TypeInt,
+													Computed:    true,
 												},
 											},
 										},
@@ -148,8 +161,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"content_type": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Content-Type of the Certificate, for example `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
@@ -161,22 +175,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"extended_key_usage": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
+										Description: "A list of Extended/Enhanced Key Usages.",
+										Type:        pluginsdk.TypeList,
+										Computed:    true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
 									},
 									"key_usage": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
+										Description: "A list of uses associated with this Key.",
+										Type:        pluginsdk.TypeList,
+										Computed:    true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
 									},
 									"subject": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The Certificate's Subject.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
@@ -184,22 +201,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"emails": {
-													Type:     pluginsdk.TypeList,
-													Computed: true,
+													Description: "A list of email addresses identified by this Certificate.",
+													Type:        pluginsdk.TypeList,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
 												},
 												"dns_names": {
-													Type:     pluginsdk.TypeList,
-													Computed: true,
+													Description: "A list of alternative DNS names (FQDNs) identified by the Certificate.",
+													Type:        pluginsdk.TypeList,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
 												},
 												"upns": {
-													Type:     pluginsdk.TypeList,
-													Computed: true,
+													Description: "A list of User Principal Names identified by the Certificate.",
+													Type:        pluginsdk.TypeList,
+													Computed:    true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -208,8 +228,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 										},
 									},
 									"validity_in_months": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
+										Description: "The Certificates Validity Period in Months.",
+										Type:        pluginsdk.TypeInt,
+										Computed:    true,
 									},
 								},
 							},
@@ -219,43 +240,51 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"secret_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the associated Key Vault Secret.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"versionless_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Base ID of the Key Vault Certificate.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"versionless_secret_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Base ID of the Key Vault Secret.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"certificate_data": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The raw Key Vault Certificate data represented as a hexadecimal string.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"certificate_data_base64": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The raw Key Vault Certificate data represented as a base64 string.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"thumbprint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"expires": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Expiry date of certificate in RFC3339 format.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"not_before": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Not Before date of certificate in RFC3339 format.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

@@ -18,6 +18,7 @@ import (
 func iothubDpsSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Iot Device Provisioning Service resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,19 +31,21 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 
 		"sku": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the SKU. Currently can only be set to `S1`.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(devices.IotHubSkuS1),
 						}, false),
 					},
 
 					"capacity": {
+						Description:  "The number of provisioned IoT Device Provisioning Service units.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 200),
@@ -57,8 +60,10 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"connection_string": {
+						Description:  "The connection string to connect to the IoT Hub.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 						// Azure returns the key as ****. We'll suppress that here.
 						DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
@@ -66,28 +71,31 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 							maskedNew := secretKeyRegex.ReplaceAllString(new, "$1=****")
 							return (new == d.Get(k).(string)) && (maskedNew == old)
 						},
-						Sensitive: true,
 					},
 					"location": {
+						Description:  "The location of the IoT hub.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 						StateFunc:    location.StateFunc,
 					},
 					"apply_allocation_policy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether to apply allocation policies to the IoT Hub.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"allocation_weight": {
+						Description:  "The weight applied to the IoT Hub.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					"hostname": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The IoT Hub hostname.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -99,21 +107,25 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the filter.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"ip_mask": {
+						Description:  "The IP address range in CIDR notation for the rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"action": {
+						Description:  "The desired action for requests captured by this rule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInEnumSlice(devices.PossibleIPFilterActionTypeValues(), false),
 					},
 					"target": {
+						Description:  "Target for requests captured by this rule.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForIPFilterTargetType(), false),
@@ -123,6 +135,7 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allocation_policy": {
+			Description:  "The allocation policy of the IoT Device Provisioning Service (`Hashed`, `GeoLatency` or `Static`).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(iotdpsresource.AllocationPolicyHashed),
@@ -130,31 +143,36 @@ func iothubDpsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_residency_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether the IoT Device Provisioning Service has data residency enabled, removing the cross geo-pair disaster recovery.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether requests from Public Network are allowed.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"device_provisioning_host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The device endpoint of the IoT Device Provisioning Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"id_scope": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The unique identifier of the IoT Device Provisioning Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"service_operations_host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The service endpoint of the IoT Device Provisioning Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

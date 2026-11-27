@@ -17,9 +17,10 @@ const cosmosDBAccountDataSourceType = "Microsoft.DocumentDB/databaseAccounts"
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Data Protection Backup Instance for the Cosmos DB Database Account.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringDoesNotContainAny("/"),
@@ -39,8 +40,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The protection state of the Cosmos DB Database Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

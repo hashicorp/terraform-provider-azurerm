@@ -24,6 +24,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_automation_runtime_environment_package"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Package within an Automation Runtime Environment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return packageresource.ValidatePackageID
 }

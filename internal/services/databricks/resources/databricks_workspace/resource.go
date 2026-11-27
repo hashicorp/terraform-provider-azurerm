@@ -5,6 +5,7 @@ package databricks_workspace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -21,10 +22,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceDatabricksWorkspaceCreate,
-		Read:   resourceDatabricksWorkspaceRead,
-		Update: resourceDatabricksWorkspaceUpdate,
-		Delete: resourceDatabricksWorkspaceDelete,
+		Description: "Manages a Databricks Workspace.",
+		Create:      resourceDatabricksWorkspaceCreate,
+		Read:        resourceDatabricksWorkspaceRead,
+		Update:      resourceDatabricksWorkspaceUpdate,
+		Delete:      resourceDatabricksWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -63,7 +65,7 @@ func RegisterResource() *pluginsdk.Resource {
 						return fmt.Errorf("having `network_security_group_rules_required` set to %q and `public_network_access_enabled` set to `false` is an invalid configuration", string(workspaces.RequiredNsgRulesAllRules))
 					}
 					if backendPool.(string) != "" {
-						return fmt.Errorf("having `load_balancer_backend_address_pool_id` defined and having `public_network_access_enabled` set to `false` is an invalid configuration")
+						return errors.New("having `load_balancer_backend_address_pool_id` defined and having `public_network_access_enabled` set to `false` is an invalid configuration")
 					}
 				}
 
@@ -101,7 +103,7 @@ func RegisterResource() *pluginsdk.Resource {
 				_, enhancedSecurityMonitoringEnabled := d.GetChange("enhanced_security_compliance.0.enhanced_security_monitoring_enabled")
 
 				if complianceSecurityProfileEnabled.(bool) && (!automaticClusterUpdateEnabled.(bool) || !enhancedSecurityMonitoringEnabled.(bool)) {
-					return fmt.Errorf("`automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to true when `compliance_security_profile_enabled` is set to true")
+					return errors.New("`automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to true when `compliance_security_profile_enabled` is set to true")
 				}
 
 				return nil
@@ -113,7 +115,7 @@ func RegisterResource() *pluginsdk.Resource {
 				_, complianceStandards := d.GetChange("enhanced_security_compliance.0.compliance_security_profile_standards")
 
 				if !complianceSecurityProfileEnabled.(bool) && complianceStandards.(*pluginsdk.Set).Len() > 0 {
-					return fmt.Errorf("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is false")
+					return errors.New("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is false")
 				}
 
 				return nil

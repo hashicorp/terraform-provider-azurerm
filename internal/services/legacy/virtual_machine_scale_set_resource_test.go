@@ -5,6 +5,7 @@ package legacy_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -832,7 +833,7 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 		}
 	}
 
-	return fmt.Errorf("load balancer configuration was missing")
+	return errors.New("load balancer configuration was missing")
 }
 
 func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -876,7 +877,7 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 		}
 	}
 
-	return fmt.Errorf("application gateway configuration was missing")
+	return errors.New("application gateway configuration was missing")
 }
 
 func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

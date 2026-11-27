@@ -7,6 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/resources/storage_mover"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/resources/storage_mover_agent"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/resources/storage_mover_job_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/resources/storage_mover_project"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/resources/storage_mover_source_endpoint"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/resources/storage_mover_target_endpoint"
 )
 
 type Registration struct{}
@@ -40,12 +46,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		StorageMoverAgentResource{},
-		StorageMoverJobDefinitionResource{},
-		StorageMoverProjectResource{},
-		StorageMoverResource{},
-		StorageMoverSourceEndpointResource{},
-		StorageMoverTargetEndpointResource{},
+		storage_mover_agent.Resource{},
+		storage_mover_job_definition.Resource{},
+		storage_mover_project.Resource{},
+		storage_mover.Resource{},
+		storage_mover_source_endpoint.Resource{},
+		storage_mover_target_endpoint.Resource{},
 	}
 }
 
@@ -67,11 +73,11 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		StorageMoverAgentListResource{},
-		StorageMoverJobDefinitionListResource{},
-		StorageMoverListResource{},
-		StorageMoverProjectListResource{},
-		StorageMoverSourceEndpointListResource{},
-		StorageMoverTargetEndpointListResource{},
+		storage_mover_agent.ListResource{},
+		storage_mover_job_definition.ListResource{},
+		storage_mover.ListResource{},
+		storage_mover_project.ListResource{},
+		storage_mover_source_endpoint.ListResource{},
+		storage_mover_target_endpoint.ListResource{},
 	}
 }

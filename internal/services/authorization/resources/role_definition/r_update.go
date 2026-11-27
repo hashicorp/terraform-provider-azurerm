@@ -5,6 +5,7 @@ package role_definition
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -94,7 +95,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			log.Printf("[DEBUG] Waiting for %s to settle down..", stateId)
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal error: context had no deadline")
+				return errors.New("internal error: context had no deadline")
 			}
 			stateConf := &pluginsdk.StateChangeConf{
 				ContinuousTargetOccurence: 12,

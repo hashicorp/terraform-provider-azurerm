@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/resources/application_load_balancer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/resources/application_load_balancer_frontend"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/resources/application_load_balancer_security_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/resources/application_load_balancer_subnet_association"
 )
 
 type Registration struct{}
@@ -26,10 +30,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ApplicationLoadBalancerResource{},
-		ApplicationLoadBalancerSubnetAssociationResource{},
-		FrontendsResource{},
-		SecurityPoliciesResource{},
+		application_load_balancer.Resource{},
+		application_load_balancer_subnet_association.Resource{},
+		application_load_balancer_frontend.Resource{},
+		application_load_balancer_security_policy.Resource{},
 	}
 }
 

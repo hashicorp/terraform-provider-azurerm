@@ -1,0 +1,46 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package helpers
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+const (
+	SpringCloudAppAssociationTypeCosmosDb = "Microsoft.DocumentDB"
+	SpringCloudAppAssociationTypeMysql    = "Microsoft.DBforMySQL"
+	SpringCloudAppAssociationTypeRedis    = "Microsoft.Cache"
+)
+
+func ImportSpringCloudAppAssociation(resourceType string) pluginsdk.ImporterFunc {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
+		// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+		// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+		id, err := appplatform.ParseBindingIDInsensitively(d.Id())
+		if err != nil {
+			return []*pluginsdk.ResourceData{}, err
+		}
+
+		client := meta.(*clients.Client).AppPlatform.BindingsClient
+		resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.BindingName)
+		if err != nil {
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if resp.Properties == nil || resp.Properties.ResourceType == nil {
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties` or `properties.resourceType` was nil", id)
+		}
+
+		if *resp.Properties.ResourceType != resourceType {
+			return []*pluginsdk.ResourceData{}, fmt.Errorf(`spring Cloud App Association "type" mismatch, expected "%s", got "%s"`, resourceType, *resp.Properties.ResourceType)
+		}
+
+		return []*pluginsdk.ResourceData{d}, nil
+	}
+}

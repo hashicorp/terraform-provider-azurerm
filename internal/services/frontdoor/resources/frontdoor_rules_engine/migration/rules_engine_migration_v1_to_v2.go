@@ -45,8 +45,8 @@ func (s RulesEngineV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 		"rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -61,8 +61,8 @@ func (s RulesEngineV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 					"match_condition": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"variable": {
@@ -109,14 +109,14 @@ func (s RulesEngineV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 					"action": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"request_header": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"header_action_type": {
@@ -139,8 +139,8 @@ func (s RulesEngineV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 								"response_header": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"header_action_type": {

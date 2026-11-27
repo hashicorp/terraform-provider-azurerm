@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMonitorScheduledQueryRulesLogRead,
+		Description: "Use this data source to access the properties of a LogToMetricAction scheduled query rule.",
+		Read:        dataSourceMonitorScheduledQueryRulesLogRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,8 +27,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the scheduled query rule.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -35,8 +37,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"authorized_resource_ids": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Description: "A list of IDs of Resources referred into query.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -52,16 +55,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Name of the dimension.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "Operator for dimension values.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 									"values": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
+										Description: "List of dimension values.",
+										Type:        pluginsdk.TypeList,
+										Computed:    true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
@@ -70,23 +76,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 							},
 						},
 						"metric_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Name of the metric.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 			"data_source_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The resource URI over which log search query is to be run.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of the scheduled query rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this scheduled query rule is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

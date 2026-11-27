@@ -36,9 +36,10 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 		},
 
 		"file_system_nfs_user": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_username"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_id": {
@@ -55,7 +56,6 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_username"},
 		},
 
 		"file_system_cifs_username": {

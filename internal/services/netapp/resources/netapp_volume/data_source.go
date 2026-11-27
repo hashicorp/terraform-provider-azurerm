@@ -225,9 +225,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"accept_grow_capacity_pool_for_short_term_clone_split": {
+				Description: "The accept grow capacity pool for short term clone split property.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The accept grow capacity pool for short term clone split property.",
 			},
 		},
 	}

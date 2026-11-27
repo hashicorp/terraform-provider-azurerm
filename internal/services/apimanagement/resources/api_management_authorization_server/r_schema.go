@@ -30,11 +30,11 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 			Description: "The HTTP Verbs supported by the Authorization Endpoint.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForAuthorizationMethod(), false),
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"client_id": {
@@ -62,11 +62,11 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 			Description: "Form of Authorization Grants required when requesting an Access Token.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForGrantType(), false),
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		// Optional
@@ -74,22 +74,22 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 			Description: "The mechanism by which Access Tokens are passed to the API.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForBearerTokenSendingMethod(), false),
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"client_authentication_method": {
 			Description: "The Authentication Methods supported by the Token endpoint of this Authorization Server.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForClientAuthenticationMethod(), false),
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"client_secret": {
@@ -125,7 +125,7 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"support_state": {
-			Description: "Does this Authorization Server support State? If this is set to `true` the client may use the state parameter to raise protocol security.",
+			Description: "Whether this Authorization Server supports State. If this is set to `true` the client may use the state parameter to raise protocol security.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

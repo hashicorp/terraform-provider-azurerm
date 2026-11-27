@@ -15,7 +15,7 @@ import (
 
 func apiManagementPolicyFragmentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName("The name which should be used for this Api Management Policy Fragment."),
+		"name": schemaz.SchemaApiManagementChildName("The name which should be used for this API Management Policy Fragment."),
 
 		"api_management_id": commonschema.ResourceIDReferenceRequiredForceNew(&apimanagementservice.ServiceId{}, "API Management Service"),
 
@@ -23,8 +23,8 @@ func apiManagementPolicyFragmentSchema() map[string]*pluginsdk.Schema {
 			Description:  "The format of the Policy Fragment.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
 			Default:      policyfragment.PolicyFragmentContentFormatXml,
+			ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
 		},
 
 		"value": {

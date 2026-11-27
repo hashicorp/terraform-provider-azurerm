@@ -1,0 +1,204 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package private_link_service
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Description: "Use this data source to access information about an existing Private Link Service.",
+		Read:        dataSourcePrivateLinkServiceRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Description:  "The name of the Private Link Service.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.PrivateLinkName,
+			},
+
+			"location": commonschema.LocationComputed(),
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"auto_approval_subscription_ids": {
+				Description: "The list of subscription(s) globally unique identifiers that will be auto approved to use the Private Link Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"destination_ip_address": {
+				Description: "The destination IP address of the Private Link Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+			},
+
+			"fqdns": {
+				Description: "List of FQDNs allowed for the Private Link Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"proxy_protocol_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"visibility_subscription_ids": {
+				Description: "The list of subscription(s) globally unique identifiers(GUID) that will be able to see the Private Link Service.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"nat_ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Description: "The name of Private Link Service NAT IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"private_ip_address": {
+							Description: "The private IP address of the NAT IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"private_ip_address_version": {
+							Description: "The version of the IP Protocol.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"subnet_id": {
+							Description: "The ID of the subnet to be used by the service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"primary": {
+							Description: "Value that indicates if the IP configuration is the primary configuration or not.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
+						},
+					},
+				},
+			},
+
+			"load_balancer_frontend_ip_configuration_ids": {
+				Description: "The list of Standard Load Balancer(SLB) resource IDs. The Private Link Service is tied to the frontend IP address of an SLB. All traffic destined for the Private Link Service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"alias": {
+				Description: "The alias is a globally unique name for your Private Link Service which Azure generates for you. Your can use this alias to request a connection to your Private Link Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
+		},
+	}
+}
+
+func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.PrivateLinkServices
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := privatelinkservices.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.Set("name", id.PrivateLinkServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("alias", props.Alias)
+
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
+
+			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
+
+			if autoApproval := props.AutoApproval; autoApproval != nil {
+				if err := d.Set("auto_approval_subscription_ids", pluginsdk.FlattenSlice(autoApproval.Subscriptions)); err != nil {
+					return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
+				}
+			}
+			if visibility := props.Visibility; visibility != nil {
+				if err := d.Set("visibility_subscription_ids", pluginsdk.FlattenSlice(visibility.Subscriptions)); err != nil {
+					return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
+				}
+			}
+
+			if props.IPConfigurations != nil {
+				if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+					return fmt.Errorf("setting `nat_ip_configuration`: %+v", err)
+				}
+			}
+			if props.LoadBalancerFrontendIPConfigurations != nil {
+				if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+					return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
+				}
+			}
+			if err := d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns)); err != nil {
+				return fmt.Errorf("setting `fqdns`: %+v", err)
+			}
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+	}
+	d.SetId(id.ID())
+	return nil
+}
+
+func dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(input *[]privatelinkservices.FrontendIPConfiguration) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if id := item.Id; id != nil {
+			results = append(results, *id)
+		}
+	}
+
+	return results
+}
