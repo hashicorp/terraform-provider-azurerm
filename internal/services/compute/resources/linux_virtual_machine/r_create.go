@@ -124,6 +124,13 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
 
+	osDiskTier := d.Get("os_disk.0.tier").(string)
+	if osDiskTier != "" {
+		if err := helpers.ValidateVirtualMachineOSDiskTier(osDiskRaw); err != nil {
+			return err
+		}
+	}
+
 	securityEncryptionType := ""
 
 	if !osDiskIsImported {
@@ -412,6 +419,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	if osDiskTier != "" {
+		if err := helpers.UpdateVirtualMachineOSDiskTier(ctx, client, meta.(*clients.Client).Compute.DisksClient, id, osDiskTier); err != nil {
+			return fmt.Errorf("setting the performance tier of the OS Disk for Linux %s: %+v", id, err)
+		}
 	}
 
 	return resourceLinuxVirtualMachineRead(d, meta)
