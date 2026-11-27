@@ -1353,7 +1353,6 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether this Kubernetes Cluster should have its API server only exposed on internal IP addresses. This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			ForceNew:    true,
 			Default:     false,
 		},
 

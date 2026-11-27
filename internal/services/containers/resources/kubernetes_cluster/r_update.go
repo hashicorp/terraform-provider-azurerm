@@ -154,7 +154,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		}
 	}
 
-	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
+	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile", "private_cluster_enabled") {
 		updateCluster = true
 
 		existing.Model.Properties.ApiServerAccessProfile = expandKubernetesClusterAPIAccessProfile(d)
