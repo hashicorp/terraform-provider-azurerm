@@ -678,6 +678,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			"default_node_pool.0.ultra_ssd_enabled",
 			"default_node_pool.0.vnet_subnet_id",
 			"default_node_pool.0.vm_size",
+			"default_node_pool.0.workload_runtime",
 			"default_node_pool.0.zones",
 		}
 
