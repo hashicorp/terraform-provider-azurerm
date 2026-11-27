@@ -6,18 +6,18 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	MonitorsClient *monitors.MonitorsClient
+	MonitorsClient *newrelicmonitorresources.NewRelicMonitorResourcesClient
 	TagRulesClient *tagrules.TagRulesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	monitorsClient, err := monitors.NewMonitorsClientWithBaseURI(o.Environment.ResourceManager)
+	monitorsClient, err := newrelicmonitorresources.NewNewRelicMonitorResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Monitors client: %+v", err)
 	}

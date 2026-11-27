@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 

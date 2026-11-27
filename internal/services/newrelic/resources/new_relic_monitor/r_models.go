@@ -4,28 +4,28 @@
 package new_relic_monitor
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 )
 
 type NewRelicMonitorModel struct {
-	Name                  string                         `tfschema:"name"`
-	ResourceGroupName     string                         `tfschema:"resource_group_name"`
-	AccountCreationSource monitors.AccountCreationSource `tfschema:"account_creation_source"`
-	AccountId             string                         `tfschema:"account_id"`
-	IngestionKey          string                         `tfschema:"ingestion_key"`
-	Location              string                         `tfschema:"location"`
-	OrganizationId        string                         `tfschema:"organization_id"`
-	OrgCreationSource     monitors.OrgCreationSource     `tfschema:"org_creation_source"`
-	PlanData              []PlanDataModel                `tfschema:"plan"`
-	UserId                string                         `tfschema:"user_id"`
-	UserInfo              []UserInfoModel                `tfschema:"user"`
+	Name                  string                                         `tfschema:"name"`
+	ResourceGroupName     string                                         `tfschema:"resource_group_name"`
+	AccountCreationSource newrelicmonitorresources.AccountCreationSource `tfschema:"account_creation_source"`
+	AccountId             string                                         `tfschema:"account_id"`
+	IngestionKey          string                                         `tfschema:"ingestion_key"`
+	Location              string                                         `tfschema:"location"`
+	OrganizationId        string                                         `tfschema:"organization_id"`
+	OrgCreationSource     newrelicmonitorresources.OrgCreationSource     `tfschema:"org_creation_source"`
+	PlanData              []PlanDataModel                                `tfschema:"plan"`
+	UserId                string                                         `tfschema:"user_id"`
+	UserInfo              []UserInfoModel                                `tfschema:"user"`
 }
 
 type PlanDataModel struct {
-	EffectiveDate string             `tfschema:"effective_date"`
-	BillingCycle  string             `tfschema:"billing_cycle"`
-	PlanDetails   string             `tfschema:"plan_id"`
-	UsageType     monitors.UsageType `tfschema:"usage_type"`
+	EffectiveDate string                             `tfschema:"effective_date"`
+	BillingCycle  string                             `tfschema:"billing_cycle"`
+	PlanDetails   string                             `tfschema:"plan_id"`
+	UsageType     newrelicmonitorresources.UsageType `tfschema:"usage_type"`
 }
 
 type UserInfoModel struct {

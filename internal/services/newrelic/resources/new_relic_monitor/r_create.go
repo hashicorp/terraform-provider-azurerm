@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -27,10 +27,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.NewRelic.MonitorsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := newrelicmonitorresources.NewMonitorID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id)
+				existing, err := client.MonitorsGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
@@ -40,9 +40,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			properties := &monitors.NewRelicMonitorResource{
+			properties := &newrelicmonitorresources.NewRelicMonitorResource{
 				Location: location.Normalize(model.Location),
-				Properties: monitors.MonitorProperties{
+				Properties: newrelicmonitorresources.MonitorProperties{
 					AccountCreationSource:     &model.AccountCreationSource,
 					NewRelicAccountProperties: expandNewRelicAccountPropertiesModel(&model),
 					OrgCreationSource:         &model.OrgCreationSource,
@@ -57,10 +57,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
 			if identityValue.Type != identity.TypeNone {
-				properties.Identity = identityValue
+				properties.Identity = &identity.LegacySystemAndUserAssignedMap{
+					Type: identityValue.Type,
+				}
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.MonitorsCreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -70,8 +72,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 	}
 }
 
-func expandNewRelicAccountPropertiesModel(model *NewRelicMonitorModel) *monitors.NewRelicAccountProperties {
-	output := monitors.NewRelicAccountProperties{}
+func expandNewRelicAccountPropertiesModel(model *NewRelicMonitorModel) *newrelicmonitorresources.NewRelicAccountProperties {
+	output := newrelicmonitorresources.NewRelicAccountProperties{}
 	containsValue := false
 
 	accountInfo := expandAccountInfoModel(model)
@@ -98,8 +100,8 @@ func expandNewRelicAccountPropertiesModel(model *NewRelicMonitorModel) *monitors
 	return &output
 }
 
-func expandAccountInfoModel(model *NewRelicMonitorModel) *monitors.AccountInfo {
-	output := monitors.AccountInfo{}
+func expandAccountInfoModel(model *NewRelicMonitorModel) *newrelicmonitorresources.AccountInfo {
+	output := newrelicmonitorresources.AccountInfo{}
 	containsValue := false
 
 	if model.AccountId != "" {
@@ -119,22 +121,22 @@ func expandAccountInfoModel(model *NewRelicMonitorModel) *monitors.AccountInfo {
 	return &output
 }
 
-func expandOrganizationInfoModel(model *NewRelicMonitorModel) *monitors.OrganizationInfo {
+func expandOrganizationInfoModel(model *NewRelicMonitorModel) *newrelicmonitorresources.OrganizationInfo {
 	if model.OrganizationId == "" {
 		return nil
 	}
 
-	return &monitors.OrganizationInfo{
+	return &newrelicmonitorresources.OrganizationInfo{
 		OrganizationId: &model.OrganizationId,
 	}
 }
 
-func expandPlanDataModel(inputList []PlanDataModel) *monitors.PlanData {
+func expandPlanDataModel(inputList []PlanDataModel) *newrelicmonitorresources.PlanData {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := &inputList[0]
-	output := monitors.PlanData{
+	output := newrelicmonitorresources.PlanData{
 		BillingCycle:  &input.BillingCycle,
 		EffectiveDate: &input.EffectiveDate,
 		UsageType:     &input.UsageType,
@@ -146,12 +148,12 @@ func expandPlanDataModel(inputList []PlanDataModel) *monitors.PlanData {
 	return &output
 }
 
-func expandUserInfoModel(inputList []UserInfoModel) *monitors.UserInfo {
+func expandUserInfoModel(inputList []UserInfoModel) *newrelicmonitorresources.UserInfo {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := &inputList[0]
-	output := monitors.UserInfo{}
+	output := newrelicmonitorresources.UserInfo{}
 
 	if input.EmailAddress != "" {
 		output.EmailAddress = &input.EmailAddress

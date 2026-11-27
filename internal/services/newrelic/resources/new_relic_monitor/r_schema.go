@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -71,8 +71,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						Default:      string(monitors.UsageTypePAYG),
-						ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForUsageType(), false),
+						Default:      string(newrelicmonitorresources.UsageTypePAYG),
+						ValidateFunc: validation.StringInSlice(newrelicmonitorresources.PossibleValuesForUsageType(), false),
 					},
 				},
 			},
@@ -120,8 +120,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Default:      string(monitors.AccountCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForAccountCreationSource(), false),
+			Default:      string(newrelicmonitorresources.AccountCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(newrelicmonitorresources.PossibleValuesForAccountCreationSource(), false),
 		},
 
 		"account_id": {
@@ -154,8 +154,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Default:      string(monitors.OrgCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForOrgCreationSource(), false),
+			Default:      string(newrelicmonitorresources.OrgCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(newrelicmonitorresources.PossibleValuesForOrgCreationSource(), false),
 		},
 
 		"user_id": {

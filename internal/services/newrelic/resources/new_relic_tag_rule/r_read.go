@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -37,7 +37,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 
 			state := NewRelicTagRuleModel{
-				NewRelicMonitorId: monitors.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName).ID(),
+				NewRelicMonitorId: newrelicmonitorresources.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -77,8 +77,8 @@ func flattenFilteringTagModelArray(inputList *[]tagrules.FilteringTag) []Filteri
 	return outputList
 }
 
-func (r Resource) getEmail(ctx context.Context, monitorClient *monitors.MonitorsClient, monitorId *monitors.MonitorId) (string, error) {
-	monitor, err := monitorClient.Get(ctx, *monitorId)
+func (r Resource) getEmail(ctx context.Context, monitorClient *newrelicmonitorresources.NewRelicMonitorResourcesClient, monitorId *newrelicmonitorresources.MonitorId) (string, error) {
+	monitor, err := monitorClient.MonitorsGet(ctx, *monitorId)
 	if err != nil {
 		return "", fmt.Errorf("getting monitor: %+v", err)
 	}

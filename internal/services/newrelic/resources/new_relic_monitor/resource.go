@@ -4,7 +4,7 @@
 package new_relic_monitor
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -18,5 +18,5 @@ func (r Resource) ResourceType() string {
 }
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return monitors.ValidateMonitorID
+	return newrelicmonitorresources.ValidateMonitorID
 }

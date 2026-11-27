@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -23,12 +23,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NewRelic.MonitorsClient
 
-			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
+			id, err := newrelicmonitorresources.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.MonitorsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -51,7 +51,16 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+				var identityValue *identity.SystemAssigned
+				if model.Identity != nil {
+					identityValue = &identity.SystemAssigned{
+						Type:        model.Identity.Type,
+						PrincipalId: model.Identity.PrincipalId,
+						TenantId:    model.Identity.TenantId,
+					}
+				}
+
+				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(identityValue)); err != nil {
 					return fmt.Errorf("setting `identity`: %+v", err)
 				}
 
@@ -86,7 +95,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
+func flattenPlanDataModel(input *newrelicmonitorresources.PlanData) []PlanDataModel {
 	var outputList []PlanDataModel
 	if input == nil {
 		return []PlanDataModel{}
@@ -111,7 +120,7 @@ func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 	return append(outputList, output)
 }
 
-func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
+func flattenUserInfoModel(input *newrelicmonitorresources.UserInfo) []UserInfoModel {
 	var outputList []UserInfoModel
 	if input == nil {
 		return []UserInfoModel{}

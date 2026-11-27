@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -25,7 +25,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.NewRelic.TagRulesClient
-			monitorId, err := monitors.ParseMonitorID(model.NewRelicMonitorId)
+			monitorId, err := newrelicmonitorresources.ParseMonitorID(model.NewRelicMonitorId)
 			if err != nil {
 				return err
 			}

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -18,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NewRelic.MonitorsClient
-			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
+			id, err := newrelicmonitorresources.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -32,7 +32,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 				return errors.New("deleting: `user` not found")
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id, monitors.DeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {
+			if err = client.MonitorsDeleteThenPoll(ctx, *id, newrelicmonitorresources.MonitorsDeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
