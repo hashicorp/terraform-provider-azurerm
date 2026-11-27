@@ -58,6 +58,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_api_version_set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_logger_application_insights"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_logger_eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_named_value"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_policy_fragment"
@@ -168,6 +170,8 @@ func (r Registration) Resources() []sdk.Resource {
 		api_management_standalone_gateway.Resource{},
 		api_management_workspace_api_version_set.Resource{},
 		api_management_workspace_certificate.Resource{},
+		api_management_workspace_logger_application_insights.Resource{},
+		api_management_workspace_logger_eventhub.Resource{},
 		api_management_workspace_named_value.Resource{},
 		api_management_workspace_policy_fragment.Resource{},
 		api_management_workspace_policy.Resource{},
