@@ -177,14 +177,15 @@ func (r Resource) Update() sdk.ResourceFunc {
 				if !state.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					contentShareOverVnetEnabledSiteSetting := state.VnetContentShareEnabled
 					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
 					if _, contentShareConnectionStringPresent := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
 						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 
 					if !contentSharePresent {
-						if contentOverVnetEnabled {
-							return errors.New("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
+						if contentOverVnetEnabled || contentShareOverVnetEnabledSiteSetting {
+							return errors.New("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
 						}
 						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
 					}
@@ -228,6 +229,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("website_content_share_over_vnet_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {

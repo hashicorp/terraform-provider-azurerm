@@ -224,6 +224,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
+			if metadata.ResourceData.HasChange("website_content_share_over_vnet_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)
 			}

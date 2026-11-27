@@ -45,6 +45,7 @@ type WindowsFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
 	EndToEndTLSEncryptionEnabled       bool                                   `tfschema:"end_to_end_tls_encryption_enabled"`
+	VnetContentShareEnabled            bool                                   `tfschema:"website_content_share_over_vnet_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`

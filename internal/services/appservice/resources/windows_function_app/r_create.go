@@ -154,14 +154,15 @@ func (r Resource) Create() sdk.ResourceFunc {
 				if !functionApp.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					contentShareOverVnetEnabledSiteSetting := functionApp.VnetContentShareEnabled
 					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
 					if _, contentShareConnectionStringPresent := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 
 					if !contentSharePresent {
-						if contentOverVnetEnabled {
-							return errors.New("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
+						if contentOverVnetEnabled || contentShareOverVnetEnabledSiteSetting {
+							return errors.New("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}
@@ -196,6 +197,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
 					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
+					VnetContentShareEnabled:   pointer.To(functionApp.VnetContentShareEnabled),
 				},
 			}
 

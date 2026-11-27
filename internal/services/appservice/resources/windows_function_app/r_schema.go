@@ -223,6 +223,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
+		"website_content_share_over_vnet_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the traffic between the function app and the storage account be routed through the virtual network when Apps running in a Premium plan use a file share to store content? Defaults to `false`.",
+		},
+
 		"vnet_image_pull_enabled": {
 			Description: "Whether container image pull over Virtual Network is enabled.",
 			Type:        pluginsdk.TypeBool,
