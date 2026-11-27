@@ -6,6 +6,7 @@ package data_protection_backup_instance_blob_storage
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -27,6 +28,7 @@ import (
 func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	policyClient := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -57,6 +59,26 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	if err != nil {
 		return err
 	}
+	// need to know if the backup policy is hybrid or vault type; see https://github.com/hashicorp/terraform-provider-azurerm/issues/15844 for partial discussion
+	policyInfoResp, err := policyClient.BackupPoliciesGet(ctx, *policyId)
+	if err != nil {
+		if response.WasNotFound(policyInfoResp.HttpResponse) {
+			log.Printf("[DEBUG] %s does not exist", policyId)
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", policyId, err)
+	}
+	vaultDefaultRetentionDurationSet := false
+	if policyInfoResp.Model != nil {
+		if policyInfoResp.Model.Properties != nil {
+			if props, ok := policyInfoResp.Model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
+				vaultDefaultRetentionDuration := helpers.FlattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesVaultStore)
+				if vaultDefaultRetentionDuration != nil {
+					vaultDefaultRetentionDurationSet = true
+				}
+			}
+		}
+	}
 
 	parameters := backupinstanceresources.BackupInstanceResource{
 		Properties: &backupinstanceresources.BackupInstance{
@@ -84,6 +106,8 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 				},
 			},
 		}
+	} else if vaultDefaultRetentionDurationSet && len(v.([]any)) == 0 {
+		return fmt.Errorf("backup policy has a vault default retention set; storage_account_container_names cannot be empty")
 	}
 
 	if d.IsNewResource() {
@@ -107,7 +131,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection), "UpdatingProtection"},
 		Target:     []string{string(backupinstanceresources.StatusProtectionConfigured)},
-		Refresh:    helpers.PolicyProtectionStateRefreshFunc(ctx, client, id),
+		Refresh:    helpers.BackupInstanceProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
 	}

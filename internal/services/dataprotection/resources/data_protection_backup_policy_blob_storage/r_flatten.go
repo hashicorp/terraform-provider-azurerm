@@ -11,25 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []basebackuppolicyresources.BasePolicyRule, dsType basebackuppolicyresources.DataStoreTypes) any {
-	if input == nil {
-		return nil
-	}
-
-	for _, item := range input {
-		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
-					if retentionRule.Lifecycles[0].SourceDataStore.DataStoreType == dsType {
-						return deleteOption.Duration
-					}
-				}
-			}
-		}
-	}
-	return nil
-}
-
 func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []any {
 	if input == nil {
 		return make([]any, 0)

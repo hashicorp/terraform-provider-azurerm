@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -43,11 +44,11 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyBlobStorageVaultBackupRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `backup_repeating_time_intervals`: %+v", err)
 				}
-				if err := d.Set("operational_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesOperationalStore)); err != nil {
+				if err := d.Set("operational_default_retention_duration", helpers.FlattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesOperationalStore)); err != nil {
 					return fmt.Errorf("setting `operational_default_retention_duration`: %+v", err)
 				}
 				d.Set("time_zone", flattenBackupPolicyBlobStorageVaultBackupTimeZone(&props.PolicyRules))
-				if err := d.Set("vault_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesVaultStore)); err != nil {
+				if err := d.Set("vault_default_retention_duration", helpers.FlattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesVaultStore)); err != nil {
 					return fmt.Errorf("setting `vault_default_retention_duration`: %+v", err)
 				}
 				if err := d.Set("retention_rule", flattenBackupPolicyBlobStorageRetentionRuleArray(&props.PolicyRules)); err != nil {
