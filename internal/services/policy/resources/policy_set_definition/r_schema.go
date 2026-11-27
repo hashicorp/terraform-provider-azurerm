@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/helpers"
@@ -71,6 +72,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// `parameters` cannot have values removed or renamed so we'll ForceNew if any existing parameter is missing between Terraform runs
 			if metadata.ResourceDiff.HasChange("parameters") {
 				oldParametersRaw, newParametersRaw := metadata.ResourceDiff.GetChange("parameters")
 				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
@@ -89,7 +91,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(*newParameters) < len(*oldParameters) {
+					if helpers.ParametersRemoved(pointer.From(oldParameters), pointer.From(newParameters)) {
 						return metadata.ResourceDiff.ForceNew("parameters")
 					}
 				}

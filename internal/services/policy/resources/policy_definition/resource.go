@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -34,7 +35,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Schema: resourcePolicyDefinitionSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
-			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
+			// `parameters` cannot have values removed or renamed so we'll ForceNew if any existing parameter is missing between Terraform runs
 			if d.HasChange("parameters") {
 				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
 				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
@@ -53,7 +54,7 @@ func RegisterResource() *pluginsdk.Resource {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(newParameters) < len(oldParameters) {
+					if helpers.ParametersRemoved(oldParameters, newParameters) {
 						return d.ForceNew("parameters")
 					}
 				}
