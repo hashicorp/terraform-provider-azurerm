@@ -9,9 +9,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "resource_group_name,service_name:api_management_name" -compare-values "api_id:id"
+
+const azureApiManagementApiResourceName = "azurerm_api_management_api"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -20,10 +25,11 @@ func RegisterResource() *pluginsdk.Resource {
 		Read:        resourceApiManagementApiRead,
 		Update:      resourceApiManagementApiUpdate,
 		Delete:      resourceApiManagementApiDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := api.ParseApiID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&api.ApiId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&api.ApiId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

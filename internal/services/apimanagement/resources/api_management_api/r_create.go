@@ -44,7 +44,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta any) error {
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
+			return tf.ImportAsExistsError(azureApiManagementApiResourceName, id.ID())
 		}
 	}
 
@@ -142,6 +142,9 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
 		poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)

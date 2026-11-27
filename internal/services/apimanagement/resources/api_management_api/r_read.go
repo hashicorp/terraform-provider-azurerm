@@ -37,11 +37,15 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceApiManagementApiFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementApiFlatten(d *pluginsdk.ResourceData, id *api.ApiId, model *api.ApiContract) error {
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("name", helpers.GetApiName(id.ApiId))
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			apiType := pointer.FromEnum(props.Type)
 			if len(apiType) == 0 {
@@ -87,7 +91,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func soapApiTypeFromApiType(apiType api.ApiType) api.SoapApiType {
