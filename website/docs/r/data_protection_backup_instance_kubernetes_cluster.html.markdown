@@ -211,7 +211,9 @@ The following arguments are supported:
 
 * `snapshot_resource_group_name` - (Required) The name of the Resource Group where snapshots are stored. Changing this forces a new resource to be created.
 
-* `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
+* `backup_datasource_parameters` - (Required) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
+
+* `snapshot_subscription_id` - (Optional) The Subscription ID of the Resource Group where snapshots are stored. The default value is the Subscription ID of the Backup Vault. Changing this forces a new resource to be created.
 
 ---
 

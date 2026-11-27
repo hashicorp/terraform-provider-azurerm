@@ -60,7 +60,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			snapshotResourceGroupId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
+			snapshotSubscriptionId := vaultId.SubscriptionId
+			if model.SnapshotSubscriptionId != "" {
+				snapshotSubscriptionId = model.SnapshotSubscriptionId
+			}
+			snapshotResourceGroupId := commonids.NewResourceGroupID(snapshotSubscriptionId, model.SnapshotResourceGroupName)
+
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
 					DataSourceInfo: backupinstanceresources.Datasource{

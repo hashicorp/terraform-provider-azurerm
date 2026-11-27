@@ -60,6 +60,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 									if err != nil {
 										return err
 									}
+									state.SnapshotSubscriptionId = resourceGroupId.SubscriptionId
 									state.SnapshotResourceGroupName = resourceGroupId.ResourceGroupName
 								}
 							}
