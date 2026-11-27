@@ -5,7 +5,6 @@ package log_analytics_saved_search
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -42,23 +41,13 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta any) 
 
 	parameters := savedsearches.SavedSearch{
 		Properties: savedsearches.SavedSearchProperties{
-			Category:      d.Get("category").(string),
-			DisplayName:   d.Get("display_name").(string),
-			Query:         d.Get("query").(string),
-			FunctionAlias: pointer.To(d.Get("function_alias").(string)),
-			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]any)), // expand tags because it's defined as object set in service
+			Category:           d.Get("category").(string),
+			DisplayName:        d.Get("display_name").(string),
+			Query:              d.Get("query").(string),
+			FunctionAlias:      pointer.To(d.Get("function_alias").(string)),
+			FunctionParameters: expandSavedSearchFunctionParameters(d.Get("function_parameters").([]any)),
+			Tags:               expandSavedSearchTag(d.Get("tags").(map[string]any)), // expand tags because it's defined as object set in service
 		},
-	}
-
-	if v, ok := d.GetOk("function_parameters"); ok {
-		attrs := v.([]any)
-		result := make([]string, 0)
-		for _, item := range attrs {
-			if item != nil {
-				result = append(result, item.(string))
-			}
-		}
-		parameters.Properties.FunctionParameters = pointer.To(strings.Join(result, ", "))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -67,16 +56,4 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta any) 
 
 	d.SetId(id.ID())
 	return resourceLogAnalyticsSavedSearchRead(d, meta)
-}
-
-func expandSavedSearchTag(input map[string]any) *[]savedsearches.Tag {
-	results := make([]savedsearches.Tag, 0)
-	for key, value := range input {
-		result := savedsearches.Tag{
-			Name:  key,
-			Value: value.(string),
-		}
-		results = append(results, result)
-	}
-	return &results
 }

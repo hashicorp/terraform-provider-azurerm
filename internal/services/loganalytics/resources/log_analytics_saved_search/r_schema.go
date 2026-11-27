@@ -41,7 +41,6 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 			Description:  "The name that Saved Search will be displayed as.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -49,7 +48,6 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 			Description:  "The query expression for the saved search.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -57,7 +55,6 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 			Description:  "The function alias if the query serves as a function.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -65,7 +62,6 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 			Description: "The function parameters if the query serves as a function. For more examples and proper syntax refer to [this document](https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions).",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				// https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions
@@ -76,6 +72,6 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": commonschema.TagsForceNew(),
+		"tags": commonschema.Tags(),
 	}
 }
