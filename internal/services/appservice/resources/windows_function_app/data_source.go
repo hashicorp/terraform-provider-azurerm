@@ -413,6 +413,8 @@ func (d DataSource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 				}
 
+				// Unlike resource state, the read-only data source reports the actual .NET host.
+				siteConfig.ApplicationStack[0].DotNetVersion = pointer.From(configResp.Model.Properties.NetFrameworkVersion)
 				functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
 				functionApp.unpackWindowsFunctionAppSettings(appSettingsResp.Model)
