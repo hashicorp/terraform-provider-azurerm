@@ -74,14 +74,21 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) 
 		d.Set("alerts_for_all_job_failures_enabled", alertsForAllJobFailures)
 
 		crossRegionStoreEnabled := false
+		crossSubscriptionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
 			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
 				if pointer.From(crossRegionRestore.State) == backupvaultresources.CrossRegionRestoreStateEnabled {
 					crossRegionStoreEnabled = true
 				}
 			}
+			if crossSubscriptionRestore := featureSetting.CrossSubscriptionRestoreSettings; crossSubscriptionRestore != nil {
+				if pointer.From(crossSubscriptionRestore.State) == backupvaultresources.CrossSubscriptionRestoreStateEnabled {
+					crossSubscriptionStoreEnabled = true
+				}
+			}
 		}
 		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
+		d.Set("cross_subscription_restore_enabled", crossSubscriptionStoreEnabled)
 
 		identity, err := flattenBackupVaultDppIdentityDetails(model.Identity)
 		if err != nil {

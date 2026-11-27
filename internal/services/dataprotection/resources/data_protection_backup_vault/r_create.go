@@ -87,14 +87,29 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
-		parameters.Properties.FeatureSettings = &backupvaultresources.FeatureSettings{
-			CrossRegionRestoreSettings: &backupvaultresources.CrossRegionRestoreSettings{},
+	// Handle cross-region and cross-subscription restore settings
+	crossRegionEnabled := !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled")
+	crossSubscriptionEnabled := !pluginsdk.IsExplicitlyNullInConfig(d, "cross_subscription_restore_enabled")
+
+	if crossRegionEnabled || crossSubscriptionEnabled {
+		parameters.Properties.FeatureSettings = &backupvaultresources.FeatureSettings{}
+
+		if crossRegionEnabled {
+			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings = &backupvaultresources.CrossRegionRestoreSettings{}
+			if d.Get("cross_region_restore_enabled").(bool) {
+				parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaultresources.CrossRegionRestoreStateEnabled)
+			} else {
+				parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaultresources.CrossRegionRestoreStateDisabled)
+			}
 		}
-		if d.Get("cross_region_restore_enabled").(bool) {
-			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaultresources.CrossRegionRestoreStateEnabled)
-		} else {
-			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaultresources.CrossRegionRestoreStateDisabled)
+
+		if crossSubscriptionEnabled {
+			parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings = &backupvaultresources.CrossSubscriptionRestoreSettings{}
+			if d.Get("cross_subscription_restore_enabled").(bool) {
+				parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings.State = pointer.To(backupvaultresources.CrossSubscriptionRestoreStateEnabled)
+			} else {
+				parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings.State = pointer.To(backupvaultresources.CrossSubscriptionRestoreStateDisabled)
+			}
 		}
 	}
 
