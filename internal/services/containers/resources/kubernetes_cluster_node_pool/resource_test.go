@@ -1038,6 +1038,39 @@ func TestAccKubernetesClusterNodePool_osSkuAzureLinux(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinux(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, true, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, false, false, false),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.secure_boot_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
+		},
+	})
+}
+
+func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinuxSecurityDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, true, false, true),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.vtpm_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
+		},
+	})
+}
+
 func TestAccKubernetesClusterNodePool_osSkuMigration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -3295,6 +3328,67 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSku)
+}
+
+func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData, kubernetesVersion string, secureBootEnabled, vtpmEnabled, includeOSSKU bool) string {
+	osSKU := ""
+	if includeOSSKU {
+		osSKU = `os_sku = "AzureContainerLinux"`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v4"
+  node_count            = 1
+  %s
+
+  security {
+    secure_boot_enabled = %t
+    vtpm_enabled        = %t
+  }
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesVersion, osSKU, secureBootEnabled, vtpmEnabled)
 }
 
 func (KubernetesClusterNodePoolResource) dedicatedHost(data acceptance.TestData) string {
