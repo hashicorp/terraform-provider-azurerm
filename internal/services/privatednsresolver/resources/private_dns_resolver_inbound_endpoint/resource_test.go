@@ -19,6 +19,16 @@ import (
 
 type DNSResolverInboundEndpointResource struct{}
 
+func TestAccDNSResolverInboundEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
+	r := DNSResolverInboundEndpointResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDNSResolverInboundEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
 	r := DNSResolverInboundEndpointResource{}

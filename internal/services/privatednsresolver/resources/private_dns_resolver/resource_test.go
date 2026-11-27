@@ -19,6 +19,16 @@ import (
 
 type PrivateDNSResolverDnsResolverResource struct{}
 
+func TestAccPrivateDNSResolverDnsResolver_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
+	r := PrivateDNSResolverDnsResolverResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPrivateDNSResolverDnsResolver_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver", "test")
 	r := PrivateDNSResolverDnsResolverResource{}

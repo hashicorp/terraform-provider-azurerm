@@ -13,6 +13,17 @@ import (
 
 type PrivateDnsZoneVirtualNetworkLinkDataSource struct{}
 
+func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone_virtual_network_link", "test")
+	r := PrivateDnsZoneVirtualNetworkLinkDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone_virtual_network_link", "test")
 	r := PrivateDnsZoneVirtualNetworkLinkDataSource{}

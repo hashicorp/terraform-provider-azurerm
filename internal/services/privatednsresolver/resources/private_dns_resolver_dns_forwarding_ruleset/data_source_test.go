@@ -14,6 +14,17 @@ import (
 
 type PrivateDNSResolverDnsForwardingRulesetDataSource struct{}
 
+func TestAccPrivateDNSResolverDnsForwardingRulesetDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_resolver_dns_forwarding_ruleset", "test")
+	d := PrivateDNSResolverDnsForwardingRulesetDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPrivateDNSResolverDnsForwardingRulesetDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_resolver_dns_forwarding_ruleset", "test")
 	d := PrivateDNSResolverDnsForwardingRulesetDataSource{}

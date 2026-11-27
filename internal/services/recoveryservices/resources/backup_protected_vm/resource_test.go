@@ -18,6 +18,17 @@ import (
 
 type BackupProtectedVmResource struct{}
 
+func TestAccBackupProtectedVm_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBackupProtectedVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}

@@ -19,6 +19,17 @@ import (
 
 type RelayHybridConnectionAuthorizationRuleResource struct{}
 
+func TestAccRelayHybridConnectionAuthorizationRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection_authorization_rule", "test")
+	r := RelayHybridConnectionAuthorizationRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRelayHybridConnectionAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection_authorization_rule", "test")
 	r := RelayHybridConnectionAuthorizationRuleResource{}

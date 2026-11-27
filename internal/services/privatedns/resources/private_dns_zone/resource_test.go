@@ -18,6 +18,16 @@ import (
 
 type PrivateDnsZoneResource struct{}
 
+func TestAccPrivateDnsZone_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
+	r := PrivateDnsZoneResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPrivateDnsZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	r := PrivateDnsZoneResource{}

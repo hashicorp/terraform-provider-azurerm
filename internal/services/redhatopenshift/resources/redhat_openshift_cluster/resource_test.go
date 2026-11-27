@@ -20,6 +20,17 @@ import (
 
 type RedhatOpenshiftClusterResource struct{}
 
+func TestAccRedhatOpenshiftCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := RedhatOpenshiftClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRedhatOpenshiftCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := RedhatOpenshiftClusterResource{}

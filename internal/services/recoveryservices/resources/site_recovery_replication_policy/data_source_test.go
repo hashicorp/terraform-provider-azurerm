@@ -13,6 +13,17 @@ import (
 
 type SiteRecoveryReplicationPolicyDataSource struct{}
 
+func TestAccDataSourceSiteRecoveryReplicationPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy", "test")
+	r := SiteRecoveryReplicationPolicyDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data, 24*60, 4*60),
+		},
+	}, "")
+}
+
 func TestAccDataSourceSiteRecoveryReplicationPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy", "test")
 	r := SiteRecoveryReplicationPolicyDataSource{}

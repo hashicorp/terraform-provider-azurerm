@@ -19,6 +19,23 @@ import (
 
 type SiteRecoveryVMWareReplicationPolicyAssociationResource struct{}
 
+func TestAccSiteRecoveryVMWareReplicationPolicyAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_vmware_replication_policy_association", "test")
+	r := SiteRecoveryVMWareReplicationPolicyAssociationResource{}
+
+	vaultId := os.Getenv("ARM_TEST_VMWARE_VAULT_ID")
+	if vaultId == "" {
+		t.Skip("Skipping as ARM_TEST_VMWARE_VAULT_ID is not specified")
+		return
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, vaultId),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryVMWareReplicationPolicyAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_vmware_replication_policy_association", "test")
 	r := SiteRecoveryVMWareReplicationPolicyAssociationResource{}

@@ -19,6 +19,16 @@ import (
 
 type PrivateDnsResolverForwardingRuleResource struct{}
 
+func TestAccPrivateDNSResolverForwardingRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
+	r := PrivateDnsResolverForwardingRuleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPrivateDNSResolverForwardingRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
 	r := PrivateDnsResolverForwardingRuleResource{}

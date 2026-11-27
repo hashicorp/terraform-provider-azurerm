@@ -18,6 +18,17 @@ import (
 
 type RelayHybridConnectionResource struct{}
 
+func TestAccRelayHybridConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
+	r := RelayHybridConnectionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRelayHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 	r := RelayHybridConnectionResource{}

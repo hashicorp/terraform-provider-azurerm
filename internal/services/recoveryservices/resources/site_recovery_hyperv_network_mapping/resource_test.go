@@ -19,6 +19,26 @@ import (
 
 type SiteRecoveryHyperVNetworkMappingResource struct{}
 
+func TestAccSiteRecoveryHyperVNetworkMapping_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_network_mapping", "test")
+	r := SiteRecoveryHyperVNetworkMappingResource{}
+
+	vaultId := os.Getenv("ARM_TEST_HYPERV_VAULT_ID")
+	vmmName := os.Getenv("ARM_TEST_HYPERV_VMM_NAME")
+	networkName := os.Getenv("ARM_TEST_HYPERV_VMM_NETWORK_NAME")
+
+	if vaultId == "" || vmmName == "" || networkName == "" {
+		t.Skip("Skipping as ARM_TEST_HYPERV_VAULT_ID, ARM_TEST_HYPERV_VMM_NAME or ARM_TEST_HYPERV_VMM_NETWORK_NAME not set")
+		return
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, vaultId, vmmName, networkName),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryHyperVNetworkMapping_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_network_mapping", "test")
 	r := SiteRecoveryHyperVNetworkMappingResource{}

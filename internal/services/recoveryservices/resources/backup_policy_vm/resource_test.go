@@ -20,6 +20,17 @@ type BackupProtectionPolicyVMResource struct{}
 
 type BackupPolicyVmResource = BackupProtectionPolicyVMResource
 
+func TestAccBackupProtectionPolicyVM_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDaily(data, "V1"),
+		},
+	}, "")
+}
+
 func TestAccBackupProtectionPolicyVM_policyTypeDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 	r := BackupProtectionPolicyVMResource{}

@@ -13,6 +13,17 @@ import (
 
 type SiteRecoveryReplicationRecoveryPlanDataSource struct{}
 
+func TestAccDataSourceSiteRecoveryReplicationRecoveryPlan_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlanDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceSiteRecoveryReplicationRecoveryPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
 	r := SiteRecoveryReplicationRecoveryPlanDataSource{}

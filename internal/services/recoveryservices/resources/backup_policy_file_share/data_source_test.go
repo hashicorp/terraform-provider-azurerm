@@ -13,6 +13,17 @@ import (
 
 type BackupProtectionPolicyFileShareDataSource struct{}
 
+func TestAccDataSourceBackupPolicyFileShare_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceBackupPolicyFileShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_backup_policy_file_share", "test")
 	r := BackupProtectionPolicyFileShareDataSource{}

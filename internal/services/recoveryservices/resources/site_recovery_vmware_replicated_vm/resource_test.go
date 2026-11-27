@@ -86,6 +86,29 @@ func (r SiteRecoveryVMWareReplicatedVmResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccSiteVMWareRecoveryReplicatedVM_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_vmware_replicated_vm", "test")
+	r, err := newSiteRecoveryVMWareReplicatedVMResource(
+		os.Getenv("ARM_TEST_VMWARE_VAULT_ID"),
+		os.Getenv("ARM_TEST_VMWARE_SOURCE_VM_NAME"),
+		os.Getenv("ARM_TEST_VMWARE_APPLIANCE_NAME"),
+		os.Getenv("ARM_TEST_VMWARE_VAULT_LOCATION"),
+		os.Getenv("ARM_TEST_VMWARE_CREDENTIAL_NAME"),
+		os.Getenv("ARM_TEST_VMWARE_SOURCE_MAC_ADDRESS"),
+	)
+	if err != nil {
+		t.Skipf("failed to create SiteRecoveryVMWareReplicatedVmResource: %+v", err)
+	}
+
+	r.preCheck(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSiteVMWareRecoveryReplicatedVM_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_vmware_replicated_vm", "test")
 	r, err := newSiteRecoveryVMWareReplicatedVMResource(

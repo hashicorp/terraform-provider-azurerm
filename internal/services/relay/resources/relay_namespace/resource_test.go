@@ -19,6 +19,17 @@ import (
 
 type RelayNamespaceResource struct{}
 
+func TestAccRelayNamespace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+	r := RelayNamespaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccRelayNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 	r := RelayNamespaceResource{}

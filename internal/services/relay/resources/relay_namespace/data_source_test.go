@@ -13,6 +13,17 @@ import (
 
 type RelayNamespaceDataSource struct{}
 
+func TestAccRelayNamespaceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_relay_namespace", "test")
+	r := RelayNamespaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRelayNamespaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_relay_namespace", "test")
 	r := RelayNamespaceDataSource{}

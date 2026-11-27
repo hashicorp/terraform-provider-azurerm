@@ -28,8 +28,20 @@ func TestAccPurviewAccount_sequential(t *testing.T) {
 			"update":                       testAccPurviewAccount_update,
 			"withManagedResourceGroupName": testAccPurviewAccount_withManagedResourceGroupName,
 			"updateWithUserIdentity":       testAccPurviewAccount_updateWithUserIdentity,
+			"regression":                   testAccPurviewAccount_regressionTest,
 		},
 	})
+}
+
+func testAccPurviewAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func testAccPurviewAccount_updateWithUserIdentity(t *testing.T) {

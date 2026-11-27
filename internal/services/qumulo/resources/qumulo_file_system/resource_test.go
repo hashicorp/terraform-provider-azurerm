@@ -18,6 +18,17 @@ import (
 
 type FileSystemTestResource struct{}
 
+func TestAccQumuloFileSystem_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_qumulo_file_system", "test")
+	r := FileSystemTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccQumuloFileSystem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_qumulo_file_system", "test")
 	r := FileSystemTestResource{}

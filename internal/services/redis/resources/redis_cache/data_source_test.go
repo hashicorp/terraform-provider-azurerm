@@ -13,6 +13,17 @@ import (
 
 type RedisCacheDataSource struct{}
 
+func TestAccRedisCacheDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_redis_cache", "test")
+	r := RedisCacheDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.standardWithDataSource(data),
+		},
+	}, "")
+}
+
 func TestAccRedisCacheDataSource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_redis_cache", "test")
 	r := RedisCacheDataSource{}

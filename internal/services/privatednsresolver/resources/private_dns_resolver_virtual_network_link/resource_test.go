@@ -19,6 +19,16 @@ import (
 
 type PrivateDNSResolverVirtualNetworkLinkResource struct{}
 
+func TestAccPrivateDNSResolverVirtualNetworkLink_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_virtual_network_link", "test")
+	r := PrivateDNSResolverVirtualNetworkLinkResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPrivateDNSResolverVirtualNetworkLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_virtual_network_link", "test")
 	r := PrivateDNSResolverVirtualNetworkLinkResource{}

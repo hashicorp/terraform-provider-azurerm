@@ -18,6 +18,17 @@ import (
 
 type SiteRecoveryFabricResource struct{}
 
+func TestAccSiteRecoveryFabric_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_fabric", "test")
+	r := SiteRecoveryFabricResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryFabric_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_fabric", "test")
 	r := SiteRecoveryFabricResource{}

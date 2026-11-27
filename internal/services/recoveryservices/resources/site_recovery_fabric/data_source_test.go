@@ -13,6 +13,17 @@ import (
 
 type SiteRecoveryFabricDataSource struct{}
 
+func TestAccDataSourceSiteRecoveryFabric_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_fabric", "test")
+	r := SiteRecoveryFabricDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceSiteRecoveryFabric_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_fabric", "test")
 	r := SiteRecoveryFabricDataSource{}

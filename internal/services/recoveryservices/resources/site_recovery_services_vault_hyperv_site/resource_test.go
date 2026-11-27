@@ -18,6 +18,17 @@ import (
 
 type HyperVSiteResource struct{}
 
+func TestAccSiteRecoveryHyperVSite_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_services_vault_hyperv_site", "test")
+	r := HyperVSiteResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSiteRecoveryHyperVSite_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_services_vault_hyperv_site", "test")
 	r := HyperVSiteResource{}

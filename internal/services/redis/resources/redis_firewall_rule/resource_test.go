@@ -18,6 +18,17 @@ import (
 
 type RedisFirewallRuleResource struct{}
 
+func TestAccRedisFirewallRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
+	r := RedisFirewallRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRedisFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
 	r := RedisFirewallRuleResource{}

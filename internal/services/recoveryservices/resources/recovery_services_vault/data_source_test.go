@@ -13,6 +13,17 @@ import (
 
 type RecoveryServicesVaultDataSource struct{}
 
+func TestAccDataSourceAzureRMRecoveryServicesVault_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultDataSource{}
