@@ -36,7 +36,8 @@ func resourceGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 			Description: "The contents of the ARM Template which should be deployed into this Resource Group.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Computed:    true, // azignore:AZS007 - pre-existing violationStateFunc: pluginsdk.NormalizeJson,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			StateFunc:   pluginsdk.NormalizeJson,
 			ExactlyOneOf: []string{
 				"template_content",
 				"template_spec_version_id",
@@ -44,9 +45,10 @@ func resourceGroupTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"template_spec_version_id": {
-			Description: "The ID of the Template Spec Version to deploy.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true, ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
+			Description:  "The ID of the Template Spec Version to deploy.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 			ExactlyOneOf: []string{
 				"template_content",
 				"template_spec_version_id",

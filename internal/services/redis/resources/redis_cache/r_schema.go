@@ -69,8 +69,8 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		"non_ssl_port_enabled": {
 			Description: "Enable the non-SSL port (6379) - disabled by default.",
 			Type:        pluginsdk.TypeBool,
-
-			Optional: true, Default: false,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"subnet_id": {

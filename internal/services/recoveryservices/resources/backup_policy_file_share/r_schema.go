@@ -48,8 +48,8 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 		"backup": {
 			Description: "Configures the Policy backup frequency and times.",
 			Type:        pluginsdk.TypeList,
-
-			Required: true, MaxItems: 1,
+			Required:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
