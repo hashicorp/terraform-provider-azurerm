@@ -5,6 +5,7 @@ package network_security_group
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -56,24 +57,16 @@ func validateSecurityRule(sgRule map[string]any) error {
 	destinationAddressPrefixes := sgRule["destination_address_prefixes"].(*pluginsdk.Set)
 
 	if sourcePortRange != "" && sourcePortRanges.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule"))
 	}
 	if destinationPortRange != "" && destinationPortRanges.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule"))
 	}
 	if sourceAddressPrefix != "" && sourceAddressPrefixes.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule"))
 	}
 	if destinationAddressPrefix != "" && destinationAddressPrefixes.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule"))
 	}
 
 	return err.ErrorOrNil()

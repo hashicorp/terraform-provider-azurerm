@@ -4,6 +4,7 @@
 package monitor_diagnostic_setting
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -89,7 +90,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta any)
 
 	// if no logs/metrics are enabled the API "creates" but 404's on Read
 	if !hasEnabledMetrics && !hasEnabledLogs {
-		return fmt.Errorf("at least one type of Log or Metric must be enabled")
+		return errors.New("at least one type of Log or Metric must be enabled")
 	}
 
 	parameters := diagnosticsettings.DiagnosticSettingsResource{

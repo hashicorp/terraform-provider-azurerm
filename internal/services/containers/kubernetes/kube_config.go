@@ -108,7 +108,7 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 
 func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
 	if config == "" {
-		return nil, fmt.Errorf("cannot parse empty config")
+		return nil, errors.New("cannot parse empty config")
 	}
 
 	var kubeConfig KubeConfigAAD

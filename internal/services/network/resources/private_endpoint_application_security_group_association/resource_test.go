@@ -5,6 +5,7 @@ package private_endpoint_application_security_group_association_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -109,7 +110,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 	}
 
 	if endpointId == nil || securityGroupId == nil {
-		return &exists, fmt.Errorf("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
+		return &exists, errors.New("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
 	}
 
 	privateEndpointClient := client.Network.PrivateEndpoints

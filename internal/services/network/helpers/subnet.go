@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -97,6 +98,6 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
 			return res, string(*res.Model.Properties.ProvisioningState), nil
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }

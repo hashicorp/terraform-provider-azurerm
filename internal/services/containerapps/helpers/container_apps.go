@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -97,13 +98,13 @@ func ContainerAppRegistrySchemaComputed() *pluginsdk.Schema {
 
 func ValidateContainerAppRegistry(r Registry) error {
 	if r.Identity != "" && (r.UserName != "" || r.PasswordSecretRef != "") {
-		return fmt.Errorf("identity and username/password_secret_name are mutually exclusive")
+		return errors.New("identity and username/password_secret_name are mutually exclusive")
 	}
 	if r.Identity == "" && r.UserName == "" && r.PasswordSecretRef == "" {
-		return fmt.Errorf("must supply either identity or username/password_secret_name")
+		return errors.New("must supply either identity or username/password_secret_name")
 	}
 	if (r.UserName != "" && r.PasswordSecretRef == "") || (r.UserName == "" && r.PasswordSecretRef != "") {
-		return fmt.Errorf("must supply both username and password_secret_name")
+		return errors.New("must supply both username and password_secret_name")
 	}
 	return nil
 }

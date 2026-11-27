@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -2472,7 +2473,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig) (*SiteConfigLinuxFunctionApp, error) {
 	if functionAppSiteConfig == nil {
-		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+		return nil, errors.New("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigLinuxFunctionApp{
@@ -2542,7 +2543,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 
 func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteConfig *webapps.SiteConfig) (*SiteConfigFunctionAppFlexConsumption, error) {
 	if functionAppFlexConsumptionSiteConfig == nil {
-		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+		return nil, errors.New("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigFunctionAppFlexConsumption{
@@ -2594,7 +2595,7 @@ func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteC
 
 func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConfig) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
-		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
+		return nil, errors.New("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigWindowsFunctionApp{

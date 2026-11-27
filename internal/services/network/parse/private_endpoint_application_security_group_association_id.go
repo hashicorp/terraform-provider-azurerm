@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -55,7 +56,7 @@ func PrivateEndpointApplicationSecurityGroupAssociationID(input string) (Private
 	}
 
 	if endpointId == nil || securityGroupId == nil {
-		return PrivateEndpointApplicationSecurityGroupAssociationId{}, fmt.Errorf("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
+		return PrivateEndpointApplicationSecurityGroupAssociationId{}, errors.New("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
 	}
 
 	return PrivateEndpointApplicationSecurityGroupAssociationId{

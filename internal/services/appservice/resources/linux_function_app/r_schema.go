@@ -5,6 +5,7 @@ package linux_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -317,11 +318,11 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
 						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *aspModel.Properties.HostingEnvironmentProfile.Id != "" && !newValue.(bool) {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						return errors.New("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 					if sku := aspModel.Sku; sku != nil {
 						if helpers.PlanIsConsumption(sku.Name) && newValue.(bool) {
-							return fmt.Errorf("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
+							return errors.New("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
 						}
 					}
 				}
@@ -352,10 +353,10 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
-					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
+					return errors.New("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
 				}
 				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
-					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
+					return errors.New("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
 				}
 
 				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw.(string) == "" {

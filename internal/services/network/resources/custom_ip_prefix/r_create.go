@@ -5,6 +5,7 @@ package custom_ip_prefix
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -30,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context has no deadline")
+				return errors.New("internal-error: context has no deadline")
 			}
 
 			var model CustomIpPrefixModel
@@ -141,7 +142,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 			if commissionedState == nil {
-				return fmt.Errorf("waiting for CommissionedState: final commissionedState was nil")
+				return errors.New("waiting for CommissionedState: final commissionedState was nil")
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)

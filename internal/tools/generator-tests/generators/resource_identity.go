@@ -5,6 +5,7 @@ package generators
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -120,7 +121,7 @@ func (c *ResourceIdentityCommand) Run(args []string) int {
 	return 0
 }
 
-func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
+func (d *resourceIdentityData) parseArgs(args []string) (errs []error) {
 	if currentDir, err := os.Getwd(); err == nil && currentDir != "" {
 		cwd = currentDir
 	}
@@ -142,7 +143,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.ParentResource, "parent-resource", "", "(Optional) the parent resource that hosts the sequential test suite for this resource.")
 
 	if err := argSet.Parse(args); err != nil {
-		errors = append(errors, err)
+		errs = append(errs, err)
 		return
 	}
 
@@ -160,7 +161,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 
 	// check we have the essentials
 	if d.ResourceName == "" {
-		errors = append(errors, fmt.Errorf("`resource-name` is required (or must be run via go:generate to infer from $GOFILE)"))
+		errs = append(errs, errors.New("`resource-name` is required (or must be run via go:generate to infer from $GOFILE)"))
 	}
 
 	// remove accidental provider prefix
@@ -209,7 +210,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 			case 2:
 				d.PropertyNameMap[v[0]] = v[1]
 			default:
-				errors = append(errors, fmt.Errorf("invalid property name: %s", property))
+				errs = append(errs, fmt.Errorf("invalid property name: %s", property))
 				return
 			}
 		}
@@ -222,7 +223,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		for v := range kv {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
-				errors = append(errors, fmt.Errorf("invalid property format in compare-values: '%s'", v))
+				errs = append(errs, fmt.Errorf("invalid property format in compare-values: '%s'", v))
 				return
 			}
 
@@ -353,11 +354,11 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				}
 			}
 		} else if len(d.PropertyNameMap) == 0 && d.ParentID == "" && d.CompareValues == "" {
-			errors = append(errors, fmt.Errorf("neither -properties, -id, -parent-id, -compare-values nor $GOFILE AST inference succeeded: %w", err))
+			errs = append(errs, fmt.Errorf("neither -properties, -id, -parent-id, -compare-values nor $GOFILE AST inference succeeded: %w", err))
 			return
 		}
 	} else if len(d.PropertyNameMap) == 0 && d.ParentID == "" && d.CompareValues == "" {
-		errors = append(errors, fmt.Errorf("neither -properties, -id, -parent-id, -compare-values nor $GOFILE were provided to determine identity properties"))
+		errs = append(errs, errors.New("neither -properties, -id, -parent-id, -compare-values nor $GOFILE were provided to determine identity properties"))
 		return
 	}
 
@@ -376,7 +377,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		for v := range kv {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
-				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
+				errs = append(errs, fmt.Errorf("invalid property format in known-values: '%s'", v))
 				return
 			}
 

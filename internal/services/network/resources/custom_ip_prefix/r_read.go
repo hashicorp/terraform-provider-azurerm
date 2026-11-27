@@ -5,6 +5,7 @@ package custom_ip_prefix
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"slices"
@@ -271,7 +272,7 @@ func (r Resource) waitForCommissionedState(ctx context.Context, id customipprefi
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
 	timeout, ok := ctx.Deadline()
 	if !ok {
-		return nil, fmt.Errorf("internal-error: context has no deadline")
+		return nil, errors.New("internal-error: context has no deadline")
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{

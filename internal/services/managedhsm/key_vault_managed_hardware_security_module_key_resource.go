@@ -6,6 +6,7 @@ package managedhsm
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -241,14 +242,14 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 
 			if config.Curve != "" {
 				if config.KeyType != string(keyvault.JSONWebKeyTypeECHSM) {
-					return fmt.Errorf("`key_type` must be `EC-HSM` when `curve` is set")
+					return errors.New("`key_type` must be `EC-HSM` when `curve` is set")
 				}
 				parameters.Curve = keyvault.JSONWebKeyCurveName(config.Curve)
 			}
 
 			if config.KeySize > 0 {
 				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) && config.KeyType != string(keyvault.JSONWebKeyTypeOctHSM) {
-					return fmt.Errorf("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
+					return errors.New("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
 				}
 				parameters.KeySize = pointer.To(int32(config.KeySize))
 			}

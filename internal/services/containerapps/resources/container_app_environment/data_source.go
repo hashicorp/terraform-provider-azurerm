@@ -5,6 +5,7 @@ package container_app_environment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -207,11 +208,11 @@ func findLogAnalyticsWorkspaceName(ctx context.Context, client *workspaces.Works
 	}
 
 	if resp.Model == nil {
-		return "", fmt.Errorf("model was nil")
+		return "", errors.New("model was nil")
 	}
 
 	if resp.Model.Value == nil {
-		return "", fmt.Errorf("value was nil")
+		return "", errors.New("value was nil")
 	}
 
 	for _, law := range *resp.Model.Value {

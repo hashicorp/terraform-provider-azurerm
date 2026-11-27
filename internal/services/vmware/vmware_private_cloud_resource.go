@@ -5,6 +5,7 @@ package vmware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -252,7 +253,7 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta any) error
 	// we have no capacity to test this resource at the moment so leaving it be for now.
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(privateclouds.PrivateCloudProvisioningStateBuilding)},
@@ -345,7 +346,7 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta any) error
 	}
 
 	if d.HasChange("management_cluster") && d.HasChange("internet_connection_enabled") {
-		return fmt.Errorf("`management_cluster.0.size` and `internet_connection_enabled` could not be changed together")
+		return errors.New("`management_cluster.0.size` and `internet_connection_enabled` could not be changed together")
 	}
 
 	if d.HasChange("management_cluster") {
@@ -402,6 +403,6 @@ func privateCloudStateRefreshFunc(ctx context.Context, client *privateclouds.Pri
 				return res, string(*res.Model.Properties.ProvisioningState), nil
 			}
 		}
-		return nil, "", fmt.Errorf("unable to read the provisioning state")
+		return nil, "", errors.New("unable to read the provisioning state")
 	}
 }

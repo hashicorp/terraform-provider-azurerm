@@ -5,7 +5,7 @@ package subnet
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -27,7 +27,7 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				// Validate `sharing_scope` cannot be set when `default_outbound_access_enabled` is true.
 				if diff.Get("sharing_scope").(string) != "" && diff.Get("default_outbound_access_enabled").(bool) {
-					return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
+					return errors.New("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
 				}
 				return nil
 			}),

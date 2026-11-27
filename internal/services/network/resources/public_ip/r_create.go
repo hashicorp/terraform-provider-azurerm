@@ -4,6 +4,7 @@
 package public_ip
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -48,7 +49,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) || strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)) {
 		if !strings.EqualFold(ipAllocationMethod, string(publicipaddresses.IPAllocationMethodStatic)) {
-			return fmt.Errorf("`allocation_method` must be set to `Static` when `sku` is set to `Standard` or `StandardV2`")
+			return errors.New("`allocation_method` must be set to `Static` when `sku` is set to `Standard` or `StandardV2`")
 		}
 	}
 
@@ -76,7 +77,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta any) error {
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
 	if planOk {
 		if !strings.EqualFold(ddosProtectionMode, "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+			return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 		}
 		publicIp.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
 			Id: pointer.To(ddosProtectionPlanId.(string)),

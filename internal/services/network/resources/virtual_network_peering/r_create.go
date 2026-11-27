@@ -4,6 +4,7 @@
 package virtual_network_peering
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -78,7 +79,7 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta any) er
 	// TODO: implement `CallbackThenPoll`, rework to remove StateChangeConf
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"Pending"},

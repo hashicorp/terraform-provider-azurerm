@@ -4,6 +4,7 @@
 package public_ip
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -53,7 +54,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("ddos_protection_plan_id") {
 		if !strings.EqualFold(string(*payload.Properties.DdosSettings.ProtectionMode), "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+			return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 		}
 		if payload.Properties.DdosSettings == nil {
 			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}

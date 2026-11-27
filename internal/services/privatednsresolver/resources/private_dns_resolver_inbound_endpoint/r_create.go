@@ -5,6 +5,7 @@ package private_dns_resolver_inbound_endpoint
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -75,11 +76,11 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 		output := inboundendpoints.IPConfiguration{}
 
 		if input.PrivateIPAllocationMethod == inboundendpoints.IPAllocationMethodDynamic && input.PrivateIPAddress != "" {
-			return nil, fmt.Errorf("`private_ip_address` cannot be set when `private_ip_allocation_method` is `Dynamic`")
+			return nil, errors.New("`private_ip_address` cannot be set when `private_ip_allocation_method` is `Dynamic`")
 		}
 
 		if input.PrivateIPAllocationMethod == inboundendpoints.IPAllocationMethodStatic && input.PrivateIPAddress == "" {
-			return nil, fmt.Errorf("`private_ip_address` must be set when `private_ip_allocation_method` is `Static`")
+			return nil, errors.New("`private_ip_address` must be set when `private_ip_allocation_method` is `Static`")
 		}
 
 		if input.PrivateIPAllocationMethod != "" {

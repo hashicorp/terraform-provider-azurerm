@@ -5,7 +5,7 @@ package custom_ip_prefix
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
 	"time"
 
@@ -44,7 +44,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 			if commissionedState == nil {
-				return fmt.Errorf("waiting for CommissionedState: final commissionedState was nil")
+				return errors.New("waiting for CommissionedState: final commissionedState was nil")
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)

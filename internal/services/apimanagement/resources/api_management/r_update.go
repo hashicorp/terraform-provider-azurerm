@@ -55,7 +55,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		if publicIpAddressId != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium && sku.Name != apimanagementservice.SkuTypeDeveloper {
 				if d.Get("virtual_network_type").(string) == string(apimanagementservice.VirtualNetworkTypeNone) {
-					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network")
+					return errors.New("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			props.PublicIPAddressId = pointer.To(publicIpAddressId)
@@ -80,7 +80,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		if virtualNetworkType == string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration != nil {
-				return fmt.Errorf("you must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
+				return errors.New("you must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
 			}
 		}
 	}
@@ -227,7 +227,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 	if d.HasChange("tenant_access") {
 		tenantAccessRaw := d.Get("tenant_access").([]any)
 		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
-			return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
+			return errors.New("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
 		}
 		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
 			tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")

@@ -4,6 +4,7 @@
 package cdn_endpoint_custom_domain
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
@@ -46,7 +47,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta an
 	if d.HasChange("cdn_managed_https") {
 		props := resp.CustomDomainProperties
 		if props == nil {
-			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
+			return errors.New("unexpected nil of `CustomDomainProperties` in response")
 		}
 
 		cdnManagedHTTPSParams = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]any))
@@ -65,7 +66,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta an
 	if d.HasChange("user_managed_https") {
 		props := resp.CustomDomainProperties
 		if props == nil {
-			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
+			return errors.New("unexpected nil of `CustomDomainProperties` in response")
 		}
 
 		var err error

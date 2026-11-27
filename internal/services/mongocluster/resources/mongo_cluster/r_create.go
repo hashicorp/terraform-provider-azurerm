@@ -5,6 +5,7 @@ package mongo_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -84,7 +85,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			if state.CreateMode == string(mongoclusters.CreateModeGeoReplica) {
 				if state.SourceServerId == "" {
-					return fmt.Errorf("`source_server_id` is required when `create_mode` is `GeoReplica`")
+					return errors.New("`source_server_id` is required when `create_mode` is `GeoReplica`")
 				}
 
 				parameter.Properties.ReplicaParameters = &mongoclusters.MongoClusterReplicaParameters{

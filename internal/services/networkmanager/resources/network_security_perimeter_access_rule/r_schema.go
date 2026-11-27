@@ -5,7 +5,7 @@ package network_security_perimeter_access_rule
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"regexp"
 	"time"
 
@@ -101,21 +101,21 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) {
 				if v, ok := rd.GetOk("address_prefixes"); ok && len(v.([]any)) > 0 {
-					return fmt.Errorf("`address_prefixes` cannot be specified when `direction` is Outbound")
+					return errors.New("`address_prefixes` cannot be specified when `direction` is Outbound")
 				}
 
 				if v, ok := rd.GetOk("subscription_ids"); ok && len(v.([]any)) > 0 {
-					return fmt.Errorf("`subscription_ids` cannot be specified when `direction` is Outbound")
+					return errors.New("`subscription_ids` cannot be specified when `direction` is Outbound")
 				}
 
 				if v, ok := rd.GetOk("service_tags"); ok && len(v.([]any)) > 0 {
-					return fmt.Errorf("`service_tags` cannot be specified when `direction` is Outbound")
+					return errors.New("`service_tags` cannot be specified when `direction` is Outbound")
 				}
 			}
 
 			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionInbound) {
 				if v, ok := rd.GetOk("fqdns"); ok && len(v.([]any)) > 0 {
-					return fmt.Errorf("`fqdns` cannot be specified when `direction` is Inbound")
+					return errors.New("`fqdns` cannot be specified when `direction` is Inbound")
 				}
 			}
 

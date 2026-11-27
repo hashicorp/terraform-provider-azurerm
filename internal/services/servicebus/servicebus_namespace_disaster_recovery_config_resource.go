@@ -5,6 +5,7 @@ package servicebus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -279,7 +280,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	// this is mainly here 	to enable updating the resource in place
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
@@ -314,7 +315,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *armdisasterrecoveries.ArmDisasterRecoveriesClient, id armdisasterrecoveries.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(armdisasterrecoveries.ProvisioningStateDRAccepted)},
