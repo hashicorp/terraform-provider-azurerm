@@ -45,7 +45,6 @@ func (r Resource) Create() sdk.ResourceFunc {
 			properties := &autonomousdatabases.AutonomousDatabaseProperties{
 				AdminPassword:                     pointer.To(model.AdminPassword),
 				BackupRetentionPeriodInDays:       pointer.To(model.BackupRetentionPeriodInDays),
-				CharacterSet:                      pointer.To(model.CharacterSet),
 				ComputeCount:                      pointer.To(model.ComputeCount),
 				ComputeModel:                      pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				DataBaseType:                      "Regular",
@@ -57,9 +56,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				IsAutoScalingForStorageEnabled:    pointer.To(model.AutoScalingForStorageEnabled),
 				IsMtlsConnectionRequired:          pointer.To(model.MtlsConnectionRequired),
 				LicenseModel:                      pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
-				NcharacterSet:                     pointer.To(model.NationalCharacterSet),
 				AutonomousMaintenanceScheduleType: pointer.ToEnum[autonomousdatabases.AutonomousMaintenanceScheduleType](model.MaintenancePatchLevel),
 				WhitelistedIPs:                    pointer.To(model.AllowedIps),
+			}
+
+			// AJD only supports the service defaults and rejects character-set selection.
+			if model.DbWorkload != string(autonomousdatabases.WorkloadTypeAJD) {
+				properties.CharacterSet = pointer.To(model.CharacterSet)
+				properties.NcharacterSet = pointer.To(model.NationalCharacterSet)
 			}
 
 			if len(model.CustomerContacts) > 0 {

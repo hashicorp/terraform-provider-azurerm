@@ -41,7 +41,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"character_set": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Default:      "AL32UTF8",
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -134,7 +135,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"national_character_set": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Default:      "AL16UTF16",
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},

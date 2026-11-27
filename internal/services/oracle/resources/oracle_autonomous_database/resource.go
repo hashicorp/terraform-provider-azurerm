@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = Resource{}
+var (
+	_ sdk.Resource                  = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
+)
 
 type Resource struct{}
 
