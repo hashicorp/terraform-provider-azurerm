@@ -114,3 +114,5 @@ require (
 )
 
 go 1.26.11
+
+replace github.com/hashicorp/go-azure-sdk/resource-manager => /home/v-yyeo/azurerm-development-automation/go-azure-sdk/resource-manager

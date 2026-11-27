@@ -5,6 +5,7 @@ package manageddevopspools
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -17,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2026-06-02/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/validate"
@@ -218,6 +219,18 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					// Naming according to portal
+					"agent_sizes": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MinItems: 1,
+						MaxItems: 5,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 
 					"os_disk_storage_account_type": {
@@ -432,9 +445,12 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
 				Location: config.Location,
-				Identity: expandedIdentity,
+				Identity: pointer.To(identity.LegacySystemAndUserAssignedMap{
+					Type:        expandedIdentity.Type,
+					IdentityIds: expandedIdentity.IdentityIds,
+				}),
 				Properties: &pools.PoolProperties{
-					DevCenterProjectResourceId: config.DevCenterProjectId,
+					DevCenterProjectResourceId: pointer.To(config.DevCenterProjectId),
 					MaximumConcurrency:         config.MaximumConcurrency,
 					AgentProfile:               agentProfile,
 					OrganizationProfile:        expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization),
@@ -491,11 +507,14 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				payload.Identity = expandedIdentity
+				payload.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap{
+					Type:        expandedIdentity.Type,
+					IdentityIds: expandedIdentity.IdentityIds,
+				})
 			}
 
 			if metadata.ResourceData.HasChange("dev_center_project_id") {
-				payload.Properties.DevCenterProjectResourceId = config.DevCenterProjectId
+				payload.Properties.DevCenterProjectResourceId = pointer.To(config.DevCenterProjectId)
 			}
 
 			if metadata.ResourceData.HasChange("maximum_concurrency") {
@@ -561,6 +580,11 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			var config ManagedDevOpsPoolModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			state := ManagedDevOpsPoolModel{
 				Name:              id.PoolName,
 				ResourceGroupName: id.ResourceGroupName,
@@ -571,15 +595,23 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if model.Identity != nil {
-					flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+					flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %+v", err)
 					}
-					state.Identity = *flattenedIdentity
+
+					if len(flattenedIdentity) > 0 {
+						state.Identity = []identity.ModelUserAssigned{
+							{
+								Type:        flattenedIdentity[0].Type,
+								IdentityIds: flattenedIdentity[0].IdentityIds,
+							},
+						}
+					}
 				}
 
 				if props := model.Properties; props != nil {
-					devCenterProjectId, err := projects.ParseProjectID(props.DevCenterProjectResourceId)
+					devCenterProjectId, err := projects.ParseProjectID(pointer.From(props.DevCenterProjectResourceId))
 					if err != nil {
 						return fmt.Errorf("parsing `dev_center_project_id`: %+v", err)
 					}
@@ -598,6 +630,10 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
 						if azureDevOpsOrganization, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
 							state.AzureDevOpsOrganization = flattenAzureDevOpsOrganizationToModel(azureDevOpsOrganization)
+							// `permissionProfile` is not returned via `GET` request, hence state `Permission` is assigned config value to avoid perpetual change
+							if len(config.AzureDevOpsOrganization) > 0 && len(config.AzureDevOpsOrganization[0].Permission) > 0 {
+								state.AzureDevOpsOrganization[0].Permission = config.AzureDevOpsOrganization[0].Permission
+							}
 						}
 					}
 
@@ -689,6 +725,14 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 					if err := validateManualAgentCounts("stateless_agent", manualPredictions, maxConcurrency); err != nil {
 						return err
 					}
+				}
+			}
+
+			if len(model.VirtualMachineScaleSetFabric) > 0 {
+				if len(model.VirtualMachineScaleSetFabric[0].AgentSizes) > 0 && model.VirtualMachineScaleSetFabric[0].SkuName != "Mix" {
+					return errors.New("`virtual_machine_scale_set_fabric.0.sku_name` property must be set to `Mix` when `virtual_machine_scale_set_fabric.0.agent_sizes` property is set")
+				} else if len(model.VirtualMachineScaleSetFabric[0].AgentSizes) == 0 && model.VirtualMachineScaleSetFabric[0].SkuName == "Mix" {
+					return errors.New("`virtual_machine_scale_set_fabric.0.agent_sizes` property must be set when `virtual_machine_scale_set_fabric.0.sku_name` property is set to `Mix`")
 				}
 			}
 

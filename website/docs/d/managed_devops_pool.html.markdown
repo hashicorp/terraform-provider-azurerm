@@ -203,6 +203,8 @@ A `storage` block exports the following:
 
 A `virtual_machine_scale_set_fabric` block exports the following:
 
+* `agent_sizes` - The list of virtual machine sizes for instance-mix allocation.
+
 * `image` - One or more `image` blocks as defined below.
 
 * `os_disk_storage_account_type` - The storage account type for the OS disk.
@@ -225,4 +227,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DevOpsInfrastructure` - 2025-09-20
+* `Microsoft.DevOpsInfrastructure` - 2026-06-02

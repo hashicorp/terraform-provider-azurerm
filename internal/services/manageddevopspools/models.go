@@ -46,6 +46,7 @@ type VirtualMachineScaleSetFabricModel struct {
 	SubnetId                 string          `tfschema:"subnet_id"`
 	Security                 []SecurityModel `tfschema:"security"`
 	SkuName                  string          `tfschema:"sku_name"`
+	AgentSizes               []string        `tfschema:"agent_sizes"`
 	OsDiskStorageAccountType string          `tfschema:"os_disk_storage_account_type"`
 	Storage                  []StorageModel  `tfschema:"storage"`
 }
