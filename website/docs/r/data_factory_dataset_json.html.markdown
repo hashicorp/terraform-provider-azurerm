@@ -75,6 +75,8 @@ The following supported arguments are specific to JSON Dataset:
 
 * `azure_blob_storage_location` - (Optional) A `azure_blob_storage_location` block as defined below.
 
+* `compression` - (Optional) A `compression` block as defined below.
+
 The following supported arguments are specific to Delimited Text Dataset:
 
 * `encoding` - (Optional) The encoding format for the file.
@@ -118,6 +120,24 @@ A `azure_blob_storage_location` block supports the following:
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
+
+---
+
+A `compression` block supports the following:
+
+* `type` - (Required) The type of compression used during transport. Possible values are `BZip2`, `Deflate`, `GZip`, `Tar`, `TarGZip`, `ZipDeflate`, `snappy`, and `lz4`.
+
+~> **Note:** `type` must be one of the possible values listed above when `dynamic_type_enabled` is `false`. When `dynamic_type_enabled` is `true`, `type` can be a dynamic expression.
+
+* `dynamic_type_enabled` - (Optional) Is the `type` using dynamic expression, function or system variables? Defaults to `false`.
+
+* `level` - (Optional) The level of compression. Possible values are `Fastest` and `Optimal`.
+
+~> **Note:** `level` must be one of the possible values listed above when `dynamic_level_enabled` is `false`. When `dynamic_level_enabled` is `true`, `level` can be a dynamic expression.
+
+* `dynamic_level_enabled` - (Optional) Is the `level` using dynamic expression, function or system variables? Defaults to `false`.
+
+---
 
 ## Attributes Reference
 
