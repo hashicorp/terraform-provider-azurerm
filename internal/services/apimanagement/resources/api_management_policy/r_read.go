@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -44,7 +45,7 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	serviceId := policy.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
-	resp, err := client.Get(ctx, serviceId, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatXml)})
+	resp, err := client.Get(ctx, serviceId, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatRawxml)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
@@ -58,7 +59,10 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error 
 		if props := model.Properties; props != nil {
 			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 			// as such there is no way to set `xml_link` and we'll let Terraform handle it
-			d.Set("xml_content", html.UnescapeString(props.Value))
+			policyContent := html.UnescapeString(props.Value)
+			if currentContent := d.Get("xml_content").(string); !helpers.XmlWithDotNetInterpolationsDiffSuppress("xml_content", currentContent, policyContent, d) {
+				d.Set("xml_content", policyContent)
+			}
 		}
 	}
 
