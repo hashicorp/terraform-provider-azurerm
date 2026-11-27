@@ -15,6 +15,10 @@ import (
 func ExpandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscriptions.EventSubscriptionDestination {
 	deliveryMappings := ExpandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]any))
 
+	if val, ok := d.GetOk("azure_alert_monitor"); ok && len(val.([]any)) == 1 {
+		return ExpandEventGridEventSubscriptionAzureAlertMonitor(d.Get("azure_alert_monitor").([]any))
+	}
+
 	if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]any)) == 1 {
 		return ExpandEventSubscriptionDestinationAzureFunction(d.Get("azure_function_endpoint").([]any), deliveryMappings)
 	}
@@ -83,6 +87,37 @@ func ExpandEventGridEventSubscriptionWebhookEndpoint(input []any, deliveryMappin
 	}
 
 	return webhookDestination
+}
+
+func ExpandEventGridEventSubscriptionAzureAlertMonitor(input []any) eventsubscriptions.MonitorAlertEventSubscriptionDestination {
+	item := input[0].(map[string]any)
+	props := eventsubscriptions.MonitorAlertEventSubscriptionDestinationProperties{
+		Description: pointer.To(item["description"].(string)),
+		Severity:    pointer.ToEnum[eventsubscriptions.MonitorAlertSeverity](item["severity"].(string)),
+	}
+
+	if v, ok := item["action_groups"]; ok && v != nil {
+		props.ActionGroups = pluginsdk.ExpandStringSlice(v.([]any))
+	}
+
+	return eventsubscriptions.MonitorAlertEventSubscriptionDestination{
+		Properties: &props,
+	}
+}
+
+func FlattenEventSubscriptionDestinationAzureAlertMonitor(input any) []any {
+	output := make([]any, 0)
+	val, ok := input.(eventsubscriptions.MonitorAlertEventSubscriptionDestination)
+
+	if ok && val.Properties != nil {
+		output = append(output, map[string]any{
+			"severity":      pointer.From(val.Properties.Severity),
+			"description":   pointer.From(val.Properties.Description),
+			"action_groups": val.Properties.ActionGroups,
+		})
+	}
+
+	return output
 }
 
 func ExpandEventSubscriptionDestinationAzureFunction(input []any, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
@@ -259,6 +294,7 @@ func FlattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 	if v, ok := input.(eventsubscriptions.HybridConnectionEventSubscriptionDestination); ok && v.Properties != nil && v.Properties.DeliveryAttributeMappings != nil {
 		mappings = *v.Properties.DeliveryAttributeMappings
 	}
+	// NOTE: `MonitorAlertEventSubscriptionDestination` doesn't contain DeliveryAttributeMappings
 	if v, ok := input.(eventsubscriptions.ServiceBusQueueEventSubscriptionDestination); ok && v.Properties != nil && v.Properties.DeliveryAttributeMappings != nil {
 		mappings = *v.Properties.DeliveryAttributeMappings
 	}
