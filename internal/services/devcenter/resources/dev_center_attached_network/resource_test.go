@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterAttachedNetworkTestResource struct{}
+type DevCenterAttachedNetworkResource struct{}
 
 func TestAccDevCenterAttachedNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_attached_network", "test")
-	r := DevCenterAttachedNetworkTestResource{}
+	r := DevCenterAttachedNetworkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenterAttachedNetwork_basic(t *testing.T) {
 
 func TestAccDevCenterAttachedNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_attached_network", "test")
-	r := DevCenterAttachedNetworkTestResource{}
+	r := DevCenterAttachedNetworkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccDevCenterAttachedNetwork_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DevCenterAttachedNetworkTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterAttachedNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := attachednetworkconnections.ParseDevCenterAttachedNetworkID(state.ID)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (r DevCenterAttachedNetworkTestResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterAttachedNetworkTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterAttachedNetworkResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -78,7 +78,7 @@ resource "azurerm_dev_center_attached_network" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterAttachedNetworkTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterAttachedNetworkResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -90,7 +90,7 @@ resource "azurerm_dev_center_attached_network" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterAttachedNetworkTestResource) template(data acceptance.TestData) string {
+func (r DevCenterAttachedNetworkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-dcan-%d"

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TriggerBlobEventResource struct{}
+type DataFactoryTriggerBlobEventResource struct{}
 
 func TestAccDataFactoryTriggerBlobEvent_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_blob_event", "test")
-	r := TriggerBlobEventResource{}
+	r := DataFactoryTriggerBlobEventResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryTriggerBlobEvent_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryTriggerBlobEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_blob_event", "test")
-	r := TriggerBlobEventResource{}
+	r := DataFactoryTriggerBlobEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryTriggerBlobEvent_basic(t *testing.T) {
 
 func TestAccDataFactoryTriggerBlobEvent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_blob_event", "test")
-	r := TriggerBlobEventResource{}
+	r := DataFactoryTriggerBlobEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryTriggerBlobEvent_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryTriggerBlobEvent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_blob_event", "test")
-	r := TriggerBlobEventResource{}
+	r := DataFactoryTriggerBlobEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryTriggerBlobEvent_complete(t *testing.T) {
 
 func TestAccDataFactoryTriggerBlobEvent_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_blob_event", "test")
-	r := TriggerBlobEventResource{}
+	r := DataFactoryTriggerBlobEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -105,7 +105,7 @@ func TestAccDataFactoryTriggerBlobEvent_update(t *testing.T) {
 
 func TestAccDataFactoryTriggerBlobEvent_startStop(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_blob_event", "test")
-	r := TriggerBlobEventResource{}
+	r := DataFactoryTriggerBlobEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,7 +135,7 @@ func TestAccDataFactoryTriggerBlobEvent_startStop(t *testing.T) {
 	})
 }
 
-func (t TriggerBlobEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryTriggerBlobEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TriggerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (t TriggerBlobEventResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r TriggerBlobEventResource) basic(data acceptance.TestData) string {
+func (r DataFactoryTriggerBlobEventResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +168,7 @@ resource "azurerm_data_factory_trigger_blob_event" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TriggerBlobEventResource) activated(data acceptance.TestData, activated bool) string {
+func (r DataFactoryTriggerBlobEventResource) activated(data acceptance.TestData, activated bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -188,7 +188,7 @@ resource "azurerm_data_factory_trigger_blob_event" "test" {
 `, r.template(data), data.RandomInteger, activated)
 }
 
-func (r TriggerBlobEventResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryTriggerBlobEventResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -209,7 +209,7 @@ resource "azurerm_data_factory_trigger_blob_event" "import" {
 `, r.basic(data))
 }
 
-func (r TriggerBlobEventResource) complete(data acceptance.TestData) string {
+func (r DataFactoryTriggerBlobEventResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -241,7 +241,7 @@ resource "azurerm_data_factory_trigger_blob_event" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (TriggerBlobEventResource) template(data acceptance.TestData) string {
+func (DataFactoryTriggerBlobEventResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

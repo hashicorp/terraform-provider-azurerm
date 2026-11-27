@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventGridPartnerConfigurationsTestResource struct{}
+type EventgridPartnerConfigurationResource struct{}
 
 func TestAccEventGridPartnerConfiguration_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccEventGridPartnerConfiguration_regressionTest(t *testing.T) {
 
 func TestAccEventGridPartnerConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccEventGridPartnerConfiguration_basic(t *testing.T) {
 
 func TestAccEventGridPartnerConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccEventGridPartnerConfiguration_requiresImport(t *testing.T) {
 
 func TestAccEventGridPartnerConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccEventGridPartnerConfiguration_complete(t *testing.T) {
 
 func TestAccEventGridPartnerConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -100,7 +100,7 @@ func TestAccEventGridPartnerConfiguration_update(t *testing.T) {
 
 func TestAccEventGridPartnerConfiguration_withoutPartnerName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -129,7 +129,7 @@ func TestAccEventGridPartnerConfiguration_withoutPartnerName(t *testing.T) {
 
 func TestAccEventGridPartnerConfiguration_withoutPartnerIdentifiers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
-	r := EventGridPartnerConfigurationsTestResource{}
+	r := EventgridPartnerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccEventGridPartnerConfiguration_withoutPartnerIdentifiers(t *testing.T
 	})
 }
 
-func (EventGridPartnerConfigurationsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventgridPartnerConfigurationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (EventGridPartnerConfigurationsTestResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (EventGridPartnerConfigurationsTestResource) basic(data acceptance.TestData) string {
+func (EventgridPartnerConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,7 +171,7 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r EventGridPartnerConfigurationsTestResource) requiresImport(data acceptance.TestData) string {
+func (r EventgridPartnerConfigurationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -181,7 +181,7 @@ resource "azurerm_eventgrid_partner_configuration" "import" {
 `, r.basic(data))
 }
 
-func (EventGridPartnerConfigurationsTestResource) complete(data acceptance.TestData) string {
+func (EventgridPartnerConfigurationResource) complete(data acceptance.TestData) string {
 	expiryTime := time.Now().In(time.UTC).Add(7 * 24 * time.Hour).Format(time.RFC3339)
 
 	return fmt.Sprintf(`
@@ -211,7 +211,7 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, expiryTime)
 }
 
-func (EventGridPartnerConfigurationsTestResource) withoutPartnerName(data acceptance.TestData) string {
+func (EventgridPartnerConfigurationResource) withoutPartnerName(data acceptance.TestData) string {
 	expiryTime := time.Now().UTC().Add(7 * 24 * time.Hour).Format(time.RFC3339)
 
 	return fmt.Sprintf(`
@@ -240,7 +240,7 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, expiryTime)
 }
 
-func (EventGridPartnerConfigurationsTestResource) withoutPartnerIdentifiers(data acceptance.TestData) string {
+func (EventgridPartnerConfigurationResource) withoutPartnerIdentifiers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

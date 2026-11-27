@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
 
-type CosmosGremlinDatabaseResource struct{}
+type CosmosdbGremlinDatabaseResource struct{}
 
-func (r CosmosGremlinDatabaseResource) basic(data acceptance.TestData) string {
+func (r CosmosdbGremlinDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -24,7 +24,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 `, r.template(data, []string{"EnableGremlin"}), data.RandomInteger)
 }
 
-func (r CosmosGremlinDatabaseResource) serverless(data acceptance.TestData) string {
+func (r CosmosdbGremlinDatabaseResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -36,7 +36,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 `, r.template(data, []string{"EnableGremlin", "EnableServerless"}), data.RandomInteger)
 }
 
-func (r CosmosGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
+func (r CosmosdbGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
 	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
 		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)

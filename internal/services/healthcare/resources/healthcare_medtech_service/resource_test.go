@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HealthCareWorkspaceMedTechServiceResource struct{}
+type HealthcareMedtechServiceResource struct{}
 
 func TestAccHealthCareMedTechService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
-	r := HealthCareWorkspaceMedTechServiceResource{}
+	r := HealthcareMedtechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccHealthCareMedTechService_basic(t *testing.T) {
 
 func TestAccHealthCareMedTechService_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
-	r := HealthCareWorkspaceMedTechServiceResource{}
+	r := HealthcareMedtechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,7 +57,7 @@ func TestAccHealthCareMedTechService_updateIdentity(t *testing.T) {
 
 func TestAccHealthCareMedTechService_updateTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
-	r := HealthCareWorkspaceMedTechServiceResource{}
+	r := HealthcareMedtechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccHealthCareMedTechService_updateTemplate(t *testing.T) {
 
 func TestAccHealthCareMedTechService_updateEventhubs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
-	r := HealthCareWorkspaceMedTechServiceResource{}
+	r := HealthcareMedtechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -101,7 +101,7 @@ func TestAccHealthCareMedTechService_updateEventhubs(t *testing.T) {
 
 func TestAccHealthCareMedTechService_updateConsumerGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
-	r := HealthCareWorkspaceMedTechServiceResource{}
+	r := HealthcareMedtechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -121,7 +121,7 @@ func TestAccHealthCareMedTechService_updateConsumerGroups(t *testing.T) {
 	})
 }
 
-func (r HealthCareWorkspaceMedTechServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r HealthcareMedtechServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := iotconnectors.ParseIotConnectorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (r HealthCareWorkspaceMedTechServiceResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r HealthCareWorkspaceMedTechServiceResource) basic(data acceptance.TestData) string {
+func (r HealthcareMedtechServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +156,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceMedTechServiceResource) identity(data acceptance.TestData) string {
+func (r HealthcareMedtechServiceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_medtech_service" "test" {
@@ -198,7 +198,7 @@ JSON
 }`, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceMedTechServiceResource) updateEventhubs(data acceptance.TestData) string {
+func (r HealthcareMedtechServiceResource) updateEventhubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -221,7 +221,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceMedTechServiceResource) updateConsumerGroup(data acceptance.TestData) string {
+func (r HealthcareMedtechServiceResource) updateConsumerGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -244,7 +244,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceMedTechServiceResource) updateTemplate(data acceptance.TestData) string {
+func (r HealthcareMedtechServiceResource) updateTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -284,7 +284,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (HealthCareWorkspaceMedTechServiceResource) template(data acceptance.TestData) string {
+func (HealthcareMedtechServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

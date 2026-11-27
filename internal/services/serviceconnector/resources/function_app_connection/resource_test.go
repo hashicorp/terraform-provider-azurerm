@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FunctionAppConnectorResource struct{}
+type FunctionAppConnectionResource struct{}
 
-func (r FunctionAppConnectorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r FunctionAppConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servicelinker.ParseScopedLinkerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (r FunctionAppConnectorResource) Exists(ctx context.Context, client *client
 
 func TestAccServiceConnectorFunctionApp_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccServiceConnectorFunctionApp_cosmosdbBasic(t *testing.T) {
 
 func TestAccServiceConnectorFunctionApp_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccServiceConnectorFunctionApp_cosmosdbSecretAuth(t *testing.T) {
 
 func TestAccServiceConnectorFunctionApp_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccServiceConnectorFunctionApp_cosmosdbServicePrincipalSecretAuth(t *te
 
 func TestAccServiceConnectorFunctionApp_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccServiceConnectorFunctionApp_cosmosdbUserAssignedIdentity(t *testing.
 
 func TestAccServiceConnectorFunctionApp_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -112,7 +112,7 @@ func TestAccServiceConnectorFunctionApp_storageBlobBasic(t *testing.T) {
 
 func TestAccServiceConnectorFunctionApp_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -127,7 +127,7 @@ func TestAccServiceConnectorFunctionApp_storageBlobSecretStore(t *testing.T) {
 
 func TestAccServiceConnectorFunctionApp_cosmosdbUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -148,7 +148,7 @@ func TestAccServiceConnectorFunctionApp_cosmosdbUpdate(t *testing.T) {
 
 func TestAccServiceConnectorFunctionApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
-	r := FunctionAppConnectorResource{}
+	r := FunctionAppConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -161,7 +161,7 @@ func TestAccServiceConnectorFunctionApp_complete(t *testing.T) {
 	})
 }
 
-func (r FunctionAppConnectorResource) storageBlob(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) storageBlob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -216,7 +216,7 @@ resource "azurerm_function_app_connection" "test" {
 `, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func (r FunctionAppConnectorResource) secretStore(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) secretStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -294,7 +294,7 @@ resource "azurerm_function_app_connection" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r FunctionAppConnectorResource) complete(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -311,7 +311,7 @@ resource "azurerm_function_app_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FunctionAppConnectorResource) cosmosdbBasic(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) cosmosdbBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -327,7 +327,7 @@ resource "azurerm_function_app_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FunctionAppConnectorResource) cosmosdbSecretAuth(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) cosmosdbSecretAuth(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -345,7 +345,7 @@ resource "azurerm_function_app_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r FunctionAppConnectorResource) cosmosdbServicePrincipalSecretAuth(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) cosmosdbServicePrincipalSecretAuth(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -370,7 +370,7 @@ resource "azurerm_function_app_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r FunctionAppConnectorResource) cosmosdbWithUserAssignedIdentity(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) cosmosdbWithUserAssignedIdentity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -396,7 +396,7 @@ resource "azurerm_function_app_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r FunctionAppConnectorResource) cosmosdbUpdate(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) cosmosdbUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -427,7 +427,7 @@ resource "azurerm_function_app_connection" "test" {
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r FunctionAppConnectorResource) template(data acceptance.TestData) string {
+func (r FunctionAppConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

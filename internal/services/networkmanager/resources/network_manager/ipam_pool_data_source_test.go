@@ -39,5 +39,5 @@ data "azurerm_network_manager_ipam_pool" "test" {
   name               = azurerm_network_manager_ipam_pool.test.name
   network_manager_id = azurerm_network_manager_ipam_pool.test.network_manager_id
 }
-`, ManagerIpamPoolResource{}.complete(data))
+`, NetworkManagerIpamPoolResource{}.complete(data))
 }

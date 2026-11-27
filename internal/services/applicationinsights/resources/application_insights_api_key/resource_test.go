@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AppInsightsAPIKey struct{}
+type ApplicationInsightsApiKeyResource struct{}
 
 func TestAccApplicationInsightsAPIKey_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleKeys(data),
@@ -31,7 +31,7 @@ func TestAccApplicationInsightsAPIKey_regressionTest(t *testing.T) {
 
 func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -43,7 +43,7 @@ func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 
 func TestAccApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 
 func TestAccApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 
 func TestAccApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccApplicationInsightsAPIKey_write_annotations_permission(t *testing.T)
 
 func TestAccApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +114,7 @@ func TestAccApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 
 func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -131,7 +131,7 @@ func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 
 func TestAccApplicationInsightsAPIKey_multiple_keys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "read_key")
-	r := AppInsightsAPIKey{}
+	r := ApplicationInsightsApiKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -145,7 +145,7 @@ func TestAccApplicationInsightsAPIKey_multiple_keys(t *testing.T) {
 	})
 }
 
-func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ApplicationInsightsApiKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := componentapikeysapis.ParseApiKeyID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AppInsightsAPIKey) basic(data acceptance.TestData, readPerms, writePerms string) string {
+func (ApplicationInsightsApiKeyResource) basic(data acceptance.TestData, readPerms, writePerms string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,7 +186,7 @@ resource "azurerm_application_insights_api_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, readPerms, writePerms)
 }
 
-func (AppInsightsAPIKey) multipleKeys(data acceptance.TestData) string {
+func (ApplicationInsightsApiKeyResource) multipleKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -218,8 +218,8 @@ resource "azurerm_application_insights_api_key" "write_key" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (AppInsightsAPIKey) requiresImport(data acceptance.TestData, readPerms, writePerms string) string {
-	template := AppInsightsAPIKey{}.basic(data, readPerms, writePerms)
+func (ApplicationInsightsApiKeyResource) requiresImport(data acceptance.TestData, readPerms, writePerms string) string {
+	template := ApplicationInsightsApiKeyResource{}.basic(data, readPerms, writePerms)
 	return fmt.Sprintf(`
 %s
 

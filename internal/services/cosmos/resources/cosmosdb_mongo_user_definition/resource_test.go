@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosMongoUserDefinitionResource struct{}
+type CosmosdbMongoUserDefinitionResource struct{}
 
 func TestAccCosmosDbMongoUserDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_user_definition", "test")
-	r := CosmosMongoUserDefinitionResource{}
+	r := CosmosdbMongoUserDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCosmosDbMongoUserDefinition_basic(t *testing.T) {
 
 func TestAccCosmosDbMongoUserDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_user_definition", "test")
-	r := CosmosMongoUserDefinitionResource{}
+	r := CosmosdbMongoUserDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccCosmosDbMongoUserDefinition_requiresImport(t *testing.T) {
 
 func TestAccCosmosDbMongoUserDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_user_definition", "test")
-	r := CosmosMongoUserDefinitionResource{}
+	r := CosmosdbMongoUserDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccCosmosDbMongoUserDefinition_complete(t *testing.T) {
 
 func TestAccCosmosDbMongoUserDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_user_definition", "test")
-	r := CosmosMongoUserDefinitionResource{}
+	r := CosmosdbMongoUserDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccCosmosDbMongoUserDefinition_update(t *testing.T) {
 	})
 }
 
-func (r CosmosMongoUserDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbMongoUserDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongorbacs.ParseMongodbUserDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r CosmosMongoUserDefinitionResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosMongoUserDefinitionResource) basic(data acceptance.TestData) string {
+func (r CosmosdbMongoUserDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -111,7 +111,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CosmosMongoUserDefinitionResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbMongoUserDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -123,7 +123,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "import" {
 `, r.basic(data))
 }
 
-func (r CosmosMongoUserDefinitionResource) complete(data acceptance.TestData) string {
+func (r CosmosdbMongoUserDefinitionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -141,7 +141,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CosmosMongoUserDefinitionResource) update(data acceptance.TestData) string {
+func (r CosmosdbMongoUserDefinitionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -164,7 +164,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CosmosMongoUserDefinitionResource) template(data acceptance.TestData) string {
+func (r CosmosdbMongoUserDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

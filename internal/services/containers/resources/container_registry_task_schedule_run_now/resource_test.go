@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ContainerRegistryTaskScheduleResource struct {
+type ContainerRegistryTaskScheduleRunNowResource struct {
 	githubRepo
 }
 
@@ -24,7 +24,7 @@ func TestAccContainerRegistryTaskSchedule_regressionTest(t *testing.T) {
 
 	preCheckGithubRepo(t)
 
-	r := ContainerRegistryTaskScheduleResource{
+	r := ContainerRegistryTaskScheduleRunNowResource{
 		githubRepo: githubRepo{
 			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
 			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
@@ -43,7 +43,7 @@ func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
 
 	preCheckGithubRepo(t)
 
-	r := ContainerRegistryTaskScheduleResource{
+	r := ContainerRegistryTaskScheduleRunNowResource{
 		githubRepo: githubRepo{
 			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
 			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
@@ -66,11 +66,11 @@ func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
 	})
 }
 
-func (r ContainerRegistryTaskScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ContainerRegistryTaskScheduleRunNowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return pointer.To(false), nil
 }
 
-func (r ContainerRegistryTaskScheduleResource) basic(data acceptance.TestData, tpl func(data acceptance.TestData) string) string {
+func (r ContainerRegistryTaskScheduleRunNowResource) basic(data acceptance.TestData, tpl func(data acceptance.TestData) string) string {
 	template := tpl(data)
 	return fmt.Sprintf(`
 %s
@@ -81,7 +81,7 @@ resource "azurerm_container_registry_task_schedule_run_now" "test" {
 `, template)
 }
 
-func (r ContainerRegistryTaskScheduleResource) dockerTaskStep(data acceptance.TestData) string {
+func (r ContainerRegistryTaskScheduleRunNowResource) dockerTaskStep(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -102,7 +102,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.url, r.token)
 }
 
-func (r ContainerRegistryTaskScheduleResource) fileTaskStep(data acceptance.TestData) string {
+func (r ContainerRegistryTaskScheduleRunNowResource) fileTaskStep(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -122,7 +122,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.url, r.token)
 }
 
-func (r ContainerRegistryTaskScheduleResource) encodedTaskStep(data acceptance.TestData) string {
+func (r ContainerRegistryTaskScheduleRunNowResource) encodedTaskStep(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -149,7 +149,7 @@ EOF
 `, template, data.RandomInteger, r.url, r.token)
 }
 
-func (r ContainerRegistryTaskScheduleResource) template(data acceptance.TestData) string {
+func (r ContainerRegistryTaskScheduleRunNowResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

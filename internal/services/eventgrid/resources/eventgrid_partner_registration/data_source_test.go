@@ -48,5 +48,5 @@ data "azurerm_eventgrid_partner_registration" "test" {
   name                = azurerm_eventgrid_partner_registration.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, EventGridPartnerRegistrationTestResource{}.basic(data))
+`, EventgridPartnerRegistrationResource{}.basic(data))
 }

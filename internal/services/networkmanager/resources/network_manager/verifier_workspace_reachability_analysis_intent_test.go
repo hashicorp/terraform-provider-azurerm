@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerVerifierWorkspaceReachabilityAnalysisIntentResource struct{}
+type NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource struct{}
 
 func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace_reachability_analysis_intent", "test")
-	r := ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
+	r := NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic(t *t
 
 func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace_reachability_analysis_intent", "test")
-	r := ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
+	r := NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresIm
 
 func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace_reachability_analysis_intent", "test")
-	r := ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
+	r := NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete(t
 	})
 }
 
-func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := reachabilityanalysisintents.ParseReachabilityAnalysisIntentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Exists(ctx c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -101,7 +101,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -121,7 +121,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
 `, r.basic(data))
 }
 
-func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -146,7 +146,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) template(data acceptance.TestData) string {
+func (r NetworkManagerVerifierWorkspaceReachabilityAnalysisIntentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-vw-%[1]d"

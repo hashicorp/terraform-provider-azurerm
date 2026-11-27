@@ -37,5 +37,5 @@ data "azurerm_dev_center_catalog" "test" {
   name          = azurerm_dev_center_catalog.test.name
   dev_center_id = azurerm_dev_center_catalog.test.dev_center_id
 }
-`, DevCenterCatalogsResource{}.basic(data))
+`, DevCenterCatalogResource{}.basic(data))
 }

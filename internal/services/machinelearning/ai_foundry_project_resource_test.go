@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AIFoundryProject struct{}
+type AiFoundryProjectResource struct{}
 
 func TestAccAIFoundryProject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+	r := AiFoundryProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAIFoundryProject_basic(t *testing.T) {
 
 func TestAccAIFoundryProject_userIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+	r := AiFoundryProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,7 +57,7 @@ func TestAccAIFoundryProject_userIdentity(t *testing.T) {
 
 func TestAccAIFoundryProject_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+	r := AiFoundryProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccAIFoundryProject_requiresImport(t *testing.T) {
 
 func TestAccAIFoundryProject_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+	r := AiFoundryProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccAIFoundryProject_complete(t *testing.T) {
 
 func TestAccAIFoundryProject_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+	r := AiFoundryProjectResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func TestAccAIFoundryProject_update(t *testing.T) {
 	})
 }
 
-func (AIFoundryProject) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (AiFoundryProjectResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (AIFoundryProject) Exists(ctx context.Context, clients *clients.Client, sta
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AIFoundryProject) basic(data acceptance.TestData) string {
+func (r AiFoundryProjectResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,10 +134,10 @@ resource "azurerm_ai_foundry_project" "test" {
     type = "SystemAssigned"
   }
 }
-`, AIFoundry{}.basic(data), data.RandomInteger)
+`, AiFoundryResource{}.basic(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentityTemplate(data acceptance.TestData) string {
+func (r AiFoundryProjectResource) userIdentityTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -163,10 +163,10 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
   ]
 }
-`, AIFoundry{}.basic(data), data.RandomInteger)
+`, AiFoundryResource{}.basic(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentity(data acceptance.TestData) string {
+func (r AiFoundryProjectResource) userIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -186,7 +186,7 @@ resource "azurerm_ai_foundry_project" "test" {
 `, r.userIdentityTemplate(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentityUpdate(data acceptance.TestData) string {
+func (r AiFoundryProjectResource) userIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -229,7 +229,7 @@ resource "azurerm_ai_foundry_project" "test" {
 `, r.userIdentityTemplate(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) complete(data acceptance.TestData) string {
+func (r AiFoundryProjectResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -250,10 +250,10 @@ resource "azurerm_ai_foundry_project" "test" {
     model = "regression"
   }
 }
-`, AIFoundry{}.complete(data), data.RandomInteger)
+`, AiFoundryResource{}.complete(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) update(data acceptance.TestData) string {
+func (r AiFoundryProjectResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -281,11 +281,11 @@ resource "azurerm_ai_foundry_project" "test" {
     env   = "test"
   }
 }
-`, AIFoundry{}.complete(data), data.RandomInteger)
+`, AiFoundryResource{}.complete(data), data.RandomInteger)
 }
 
-func (AIFoundryProject) requiresImport(data acceptance.TestData) string {
-	template := AIFoundryProject{}.basic(data)
+func (AiFoundryProjectResource) requiresImport(data acceptance.TestData) string {
+	template := AiFoundryProjectResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

@@ -35,5 +35,5 @@ data "azurerm_healthcare_medtech_service" "test" {
   name         = azurerm_healthcare_medtech_service.test.name
   workspace_id = azurerm_healthcare_workspace.test.id
 }
-`, HealthCareWorkspaceMedTechServiceResource{}.basic(data))
+`, HealthcareMedtechServiceResource{}.basic(data))
 }

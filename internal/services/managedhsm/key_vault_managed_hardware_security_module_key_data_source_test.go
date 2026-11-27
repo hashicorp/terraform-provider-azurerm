@@ -37,5 +37,5 @@ data "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   name           = azurerm_key_vault_managed_hardware_security_module_key.test.name
 }
-`, KeyVaultMHSMKeyTestResource{}.basic(data))
+`, KeyVaultManagedHardwareSecurityModuleKeyResource{}.basic(data))
 }

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ChaosStudioCapabilityTestResource struct{}
+type ChaosStudioCapabilityResource struct{}
 
 func TestAccChaosStudioCapability_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_capability", "test")
-	r := ChaosStudioCapabilityTestResource{}
+	r := ChaosStudioCapabilityResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccChaosStudioCapability_regressionTest(t *testing.T) {
 
 func TestAccChaosStudioCapability_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_capability", "test")
-	r := ChaosStudioCapabilityTestResource{}
+	r := ChaosStudioCapabilityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccChaosStudioCapability_basic(t *testing.T) {
 
 func TestAccChaosStudioCapability_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_capability", "test")
-	r := ChaosStudioCapabilityTestResource{}
+	r := ChaosStudioCapabilityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccChaosStudioCapability_requiresImport(t *testing.T) {
 
 func TestAccChaosStudioCapability_multipleCapabilities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_capability", "test")
-	r := ChaosStudioCapabilityTestResource{}
+	r := ChaosStudioCapabilityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -73,7 +73,7 @@ func TestAccChaosStudioCapability_multipleCapabilities(t *testing.T) {
 	})
 }
 
-func (r ChaosStudioCapabilityTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ChaosStudioCapabilityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseChaosStudioCapabilityID(state.ID)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (r ChaosStudioCapabilityTestResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ChaosStudioCapabilityTestResource) basic(data acceptance.TestData) string {
+func (r ChaosStudioCapabilityResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -102,7 +102,7 @@ resource "azurerm_chaos_studio_capability" "test" {
 `, r.template(data))
 }
 
-func (r ChaosStudioCapabilityTestResource) requiresImport(data acceptance.TestData) string {
+func (r ChaosStudioCapabilityResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -113,7 +113,7 @@ resource "azurerm_chaos_studio_capability" "import" {
 `, r.basic(data))
 }
 
-func (r ChaosStudioCapabilityTestResource) complete(data acceptance.TestData) string {
+func (r ChaosStudioCapabilityResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -133,7 +133,7 @@ resource "azurerm_chaos_studio_capability" "test" {
 `, r.template(data))
 }
 
-func (r ChaosStudioCapabilityTestResource) template(data acceptance.TestData) string {
+func (r ChaosStudioCapabilityResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

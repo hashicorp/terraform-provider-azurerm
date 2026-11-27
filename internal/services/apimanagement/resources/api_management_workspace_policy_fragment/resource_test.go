@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementWorkspacePolicyFragmentTestResource struct{}
+type ApiManagementWorkspacePolicyFragmentResource struct{}
 
 func TestAccApiManagementWorkspacePolicyFragment_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
-	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	r := ApiManagementWorkspacePolicyFragmentResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccApiManagementWorkspacePolicyFragment_regressionTest(t *testing.T) {
 
 func TestAccApiManagementWorkspacePolicyFragment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
-	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	r := ApiManagementWorkspacePolicyFragmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccApiManagementWorkspacePolicyFragment_basic(t *testing.T) {
 
 func TestAccApiManagementWorkspacePolicyFragment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
-	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	r := ApiManagementWorkspacePolicyFragmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccApiManagementWorkspacePolicyFragment_requiresImport(t *testing.T) {
 
 func TestAccApiManagementWorkspacePolicyFragment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
-	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	r := ApiManagementWorkspacePolicyFragmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccApiManagementWorkspacePolicyFragment_complete(t *testing.T) {
 
 func TestAccApiManagementWorkspacePolicyFragment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
-	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	r := ApiManagementWorkspacePolicyFragmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccApiManagementWorkspacePolicyFragment_update(t *testing.T) {
 	})
 }
 
-func (ApiManagementWorkspacePolicyFragmentTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementWorkspacePolicyFragmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := policyfragment.ParseWorkspacePolicyFragmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (ApiManagementWorkspacePolicyFragmentTestResource) Exists(ctx context.Conte
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ApiManagementWorkspacePolicyFragmentTestResource) basic(data acceptance.TestData) string {
+func (r ApiManagementWorkspacePolicyFragmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -145,7 +145,7 @@ resource "azurerm_api_management_workspace_policy_fragment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspacePolicyFragmentTestResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementWorkspacePolicyFragmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_api_management_workspace_policy_fragment" "import" {
 `, r.basic(data))
 }
 
-func (r ApiManagementWorkspacePolicyFragmentTestResource) complete(data acceptance.TestData) string {
+func (r ApiManagementWorkspacePolicyFragmentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -175,7 +175,7 @@ resource "azurerm_api_management_workspace_policy_fragment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspacePolicyFragmentTestResource) update(data acceptance.TestData) string {
+func (r ApiManagementWorkspacePolicyFragmentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -193,7 +193,7 @@ resource "azurerm_api_management_workspace_policy_fragment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (ApiManagementWorkspacePolicyFragmentTestResource) template(data acceptance.TestData) string {
+func (ApiManagementWorkspacePolicyFragmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

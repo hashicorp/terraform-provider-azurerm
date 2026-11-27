@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CredentialUserAssignedManagedIdentityResource struct{}
+type DataFactoryCredentialUserManagedIdentityResource struct{}
 
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
-	r := CredentialUserAssignedManagedIdentityResource{}
+	r := DataFactoryCredentialUserManagedIdentityResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryCredentialUserAssignedManagedIdentity_regressionTest(t *t
 
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
-	r := CredentialUserAssignedManagedIdentityResource{}
+	r := DataFactoryCredentialUserManagedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccDataFactoryCredentialUserAssignedManagedIdentity_basic(t *testing.T)
 
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
-	r := CredentialUserAssignedManagedIdentityResource{}
+	r := DataFactoryCredentialUserManagedIdentityResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -62,7 +62,7 @@ func TestAccDataFactoryCredentialUserAssignedManagedIdentity_requiresImport(t *t
 
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
-	r := CredentialUserAssignedManagedIdentityResource{}
+	r := DataFactoryCredentialUserManagedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccDataFactoryCredentialUserAssignedManagedIdentity_update(t *testing.T
 	})
 }
 
-func (t CredentialUserAssignedManagedIdentityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryCredentialUserManagedIdentityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := credentials.ParseCredentialID(state.ID)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ resource "azurerm_data_factory" "test" {
 }`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CredentialUserAssignedManagedIdentityResource) basic(data acceptance.TestData) string {
+func (r DataFactoryCredentialUserManagedIdentityResource) basic(data acceptance.TestData) string {
 	base := templateBase(data)
 
 	return fmt.Sprintf(`
@@ -143,7 +143,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 `, base, data.RandomInteger)
 }
 
-func (r CredentialUserAssignedManagedIdentityResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryCredentialUserManagedIdentityResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,7 +155,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "import" {
 `, r.basic(data))
 }
 
-func (r CredentialUserAssignedManagedIdentityResource) update(data acceptance.TestData) string {
+func (r DataFactoryCredentialUserManagedIdentityResource) update(data acceptance.TestData) string {
 	base := templateBase(data)
 
 	return fmt.Sprintf(`

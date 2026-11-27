@@ -26,12 +26,12 @@ type dynatraceInfo struct {
 	UserPhoneNumber string
 }
 
-type MonitorsResource struct {
+type DynatraceMonitorResource struct {
 	dynatraceInfo dynatraceInfo
 }
 
-func NewDynatraceMonitorResource() MonitorsResource {
-	return MonitorsResource{
+func NewDynatraceMonitorResource() DynatraceMonitorResource {
+	return DynatraceMonitorResource{
 		dynatraceInfo: dynatraceInfo{
 			UserCountry:     os.Getenv("DYNATRACE_USER_COUNTRY"),
 			UserEmail:       os.Getenv("DYNATRACE_USER_EMAIL"),
@@ -121,7 +121,7 @@ func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
 	})
 }
 
-func (r MonitorsResource) preCheck(t *testing.T) {
+func (r DynatraceMonitorResource) preCheck(t *testing.T) {
 	if r.dynatraceInfo.UserCountry == "" {
 		t.Skipf("DYNATRACE_USER_COUNTRY must be set for acceptance tests")
 	}
@@ -139,7 +139,7 @@ func (r MonitorsResource) preCheck(t *testing.T) {
 	}
 }
 
-func (r MonitorsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DynatraceMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitors.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (r MonitorsResource) Exists(ctx context.Context, client *clients.Client, st
 	return pointer.To(true), nil
 }
 
-func (r MonitorsResource) basic(data acceptance.TestData) string {
+func (r DynatraceMonitorResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -192,7 +192,7 @@ resource "azurerm_dynatrace_monitor" "test" {
 }
 
 // For `environment_properties`, since it is a computed field, we lean on ignoring changes in the lifecycle block to avoid diffs during creation.
-func (r MonitorsResource) complete(data acceptance.TestData) string {
+func (r DynatraceMonitorResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -272,7 +272,7 @@ resource "azurerm_dynatrace_monitor" "test2" {
 `, template, data.RandomInteger, data.RandomInteger, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
-func (r MonitorsResource) updated(data acceptance.TestData) string {
+func (r DynatraceMonitorResource) updated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -308,7 +308,7 @@ resource "azurerm_dynatrace_monitor" "test" {
 `, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
-func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
+func (r DynatraceMonitorResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -339,7 +339,7 @@ resource "azurerm_dynatrace_monitor" "import" {
 `, template)
 }
 
-func (r MonitorsResource) template(data acceptance.TestData) string {
+func (r DynatraceMonitorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

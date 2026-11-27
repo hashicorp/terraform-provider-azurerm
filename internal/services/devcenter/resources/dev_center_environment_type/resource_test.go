@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterEnvironmentTypeTestResource struct{}
+type DevCenterEnvironmentTypeResource struct{}
 
 func TestAccDevCenterEnvironmentType_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
-	r := DevCenterEnvironmentTypeTestResource{}
+	r := DevCenterEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenterEnvironmentType_basic(t *testing.T) {
 
 func TestAccDevCenterEnvironmentType_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
-	r := DevCenterEnvironmentTypeTestResource{}
+	r := DevCenterEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDevCenterEnvironmentType_requiresImport(t *testing.T) {
 
 func TestAccDevCenterEnvironmentType_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
-	r := DevCenterEnvironmentTypeTestResource{}
+	r := DevCenterEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDevCenterEnvironmentType_complete(t *testing.T) {
 
 func TestAccDevCenterEnvironmentType_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
-	r := DevCenterEnvironmentTypeTestResource{}
+	r := DevCenterEnvironmentTypeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func TestAccDevCenterEnvironmentType_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterEnvironmentTypeTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterEnvironmentTypeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := environmenttypes.ParseDevCenterEnvironmentTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r DevCenterEnvironmentTypeTestResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterEnvironmentTypeTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterEnvironmentTypeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -128,7 +128,7 @@ resource "azurerm_dev_center_environment_type" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterEnvironmentTypeTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterEnvironmentTypeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -139,7 +139,7 @@ resource "azurerm_dev_center_environment_type" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterEnvironmentTypeTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterEnvironmentTypeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -158,7 +158,7 @@ resource "azurerm_dev_center_environment_type" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterEnvironmentTypeTestResource) update(data acceptance.TestData) string {
+func (r DevCenterEnvironmentTypeResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,7 +177,7 @@ resource "azurerm_dev_center_environment_type" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterEnvironmentTypeTestResource) template(data acceptance.TestData) string {
+func (r DevCenterEnvironmentTypeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-dcet-%d"

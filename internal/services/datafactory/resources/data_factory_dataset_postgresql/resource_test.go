@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetPostgreSQLResource struct{}
+type DataFactoryDatasetPostgresqlResource struct{}
 
 func TestAccDataFactoryDatasetPostgreSQL_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
-	r := DatasetPostgreSQLResource{}
+	r := DataFactoryDatasetPostgresqlResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetPostgreSQL_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
-	r := DatasetPostgreSQLResource{}
+	r := DataFactoryDatasetPostgresqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetPostgreSQL_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
-	r := DatasetPostgreSQLResource{}
+	r := DataFactoryDatasetPostgresqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDataFactoryDatasetPostgreSQL_update(t *testing.T) {
 	})
 }
 
-func (t DatasetPostgreSQLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetPostgresqlResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (t DatasetPostgreSQLResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetPostgreSQLResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetPostgresqlResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetPostgreSQLResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetPostgresqlResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,7 +172,7 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetPostgreSQLResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetPostgresqlResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

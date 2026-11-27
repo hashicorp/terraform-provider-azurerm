@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetJSONResource struct{}
+type DataFactoryDatasetJsonResource struct{}
 
 func TestAccDataFactoryDatasetJSON_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
-	r := DatasetJSONResource{}
+	r := DataFactoryDatasetJsonResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetJSON_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetJSON_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
-	r := DatasetJSONResource{}
+	r := DataFactoryDatasetJsonResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetJSON_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetJSON_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
-	r := DatasetJSONResource{}
+	r := DataFactoryDatasetJsonResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccDataFactoryDatasetJSON_update(t *testing.T) {
 
 func TestAccDataFactoryDatasetJSON_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
-	r := DatasetJSONResource{}
+	r := DataFactoryDatasetJsonResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccDataFactoryDatasetJSON_blob(t *testing.T) {
 
 func TestAccDataFactoryDatasetJSON_blobWithoutFileName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
-	r := DatasetJSONResource{}
+	r := DataFactoryDatasetJsonResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,7 +108,7 @@ func TestAccDataFactoryDatasetJSON_blobWithoutFileName(t *testing.T) {
 
 func TestAccDataFactoryDatasetJSON_blobDynamicContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
-	r := DatasetJSONResource{}
+	r := DataFactoryDatasetJsonResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,7 +135,7 @@ func TestAccDataFactoryDatasetJSON_blobDynamicContainer(t *testing.T) {
 	})
 }
 
-func (t DatasetJSONResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetJsonResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (t DatasetJSONResource) Exists(ctx context.Context, clients *clients.Client
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetJSONResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetJsonResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -189,7 +189,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetJSONResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetJsonResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -251,7 +251,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetJSONResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetJsonResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -317,7 +317,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetJSONResource) blob(data acceptance.TestData) string {
+func (DataFactoryDatasetJsonResource) blob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -374,7 +374,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetJSONResource) blobDynamicContainer(data acceptance.TestData) string {
+func (DataFactoryDatasetJsonResource) blobDynamicContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -429,7 +429,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetJSONResource) blobWithEmptyFileNameAndPath(data acceptance.TestData) string {
+func (DataFactoryDatasetJsonResource) blobWithEmptyFileNameAndPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

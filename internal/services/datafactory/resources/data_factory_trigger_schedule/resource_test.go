@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TriggerScheduleResource struct{}
+type DataFactoryTriggerScheduleResource struct{}
 
 func TestAccDataFactoryTriggerSchedule_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
-	r := TriggerScheduleResource{}
+	r := DataFactoryTriggerScheduleResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryTriggerSchedule_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
-	r := TriggerScheduleResource{}
+	r := DataFactoryTriggerScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 
 func TestAccDataFactoryTriggerSchedule_pipeline(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
-	r := TriggerScheduleResource{}
+	r := DataFactoryTriggerScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryTriggerSchedule_pipeline(t *testing.T) {
 
 func TestAccDataFactoryTriggerSchedule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
-	r := TriggerScheduleResource{}
+	r := DataFactoryTriggerScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccDataFactoryTriggerSchedule_complete(t *testing.T) {
 
 func TestAccDataFactoryTriggerSchedule_scheduleWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
-	r := TriggerScheduleResource{}
+	r := DataFactoryTriggerScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccDataFactoryTriggerSchedule_scheduleWeekly(t *testing.T) {
 
 func TestAccDataFactoryTriggerSchedule_scheduleMonthly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
-	r := TriggerScheduleResource{}
+	r := DataFactoryTriggerScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +111,7 @@ func TestAccDataFactoryTriggerSchedule_scheduleMonthly(t *testing.T) {
 	})
 }
 
-func (t TriggerScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryTriggerScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TriggerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (t TriggerScheduleResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (TriggerScheduleResource) basic(data acceptance.TestData) string {
+func (DataFactoryTriggerScheduleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -161,7 +161,7 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (TriggerScheduleResource) pipeline(data acceptance.TestData) string {
+func (DataFactoryTriggerScheduleResource) pipeline(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -215,7 +215,7 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (TriggerScheduleResource) update(data acceptance.TestData) string {
+func (DataFactoryTriggerScheduleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -258,7 +258,7 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (TriggerScheduleResource) scheduleWeekly(data acceptance.TestData) string {
+func (DataFactoryTriggerScheduleResource) scheduleWeekly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -302,7 +302,7 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (TriggerScheduleResource) scheduleMonthly(data acceptance.TestData) string {
+func (DataFactoryTriggerScheduleResource) scheduleMonthly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

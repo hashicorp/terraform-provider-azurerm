@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementWorkspaceTestResource struct{}
+type ApiManagementWorkspaceResource struct{}
 
 func TestAccApiManagementWorkspace_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
-	r := ApiManagementWorkspaceTestResource{}
+	r := ApiManagementWorkspaceResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccApiManagementWorkspace_regressionTest(t *testing.T) {
 
 func TestAccApiManagementWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
-	r := ApiManagementWorkspaceTestResource{}
+	r := ApiManagementWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,7 +44,7 @@ func TestAccApiManagementWorkspace_basic(t *testing.T) {
 
 func TestAccApiManagementWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
-	r := ApiManagementWorkspaceTestResource{}
+	r := ApiManagementWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -58,7 +58,7 @@ func TestAccApiManagementWorkspace_requiresImport(t *testing.T) {
 
 func TestAccApiManagementWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
-	r := ApiManagementWorkspaceTestResource{}
+	r := ApiManagementWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -72,7 +72,7 @@ func TestAccApiManagementWorkspace_complete(t *testing.T) {
 
 func TestAccApiManagementWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
-	r := ApiManagementWorkspaceTestResource{}
+	r := ApiManagementWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -105,7 +105,7 @@ func TestAccApiManagementWorkspace_update(t *testing.T) {
 	})
 }
 
-func (r ApiManagementWorkspaceTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApiManagementWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspace.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (r ApiManagementWorkspaceTestResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ApiManagementWorkspaceTestResource) template(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"
@@ -137,7 +137,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApiManagementWorkspaceTestResource) basic(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,7 +153,7 @@ resource "azurerm_api_management_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceTestResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -165,7 +165,7 @@ resource "azurerm_api_management_workspace" "import" {
 `, r.basic(data))
 }
 
-func (r ApiManagementWorkspaceTestResource) complete(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -182,7 +182,7 @@ resource "azurerm_api_management_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementWorkspaceTestResource) update(data acceptance.TestData) string {
+func (r ApiManagementWorkspaceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

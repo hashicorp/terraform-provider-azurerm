@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadBalancerNatRule struct{}
+type LbNatRuleResource struct{}
 
 func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPool(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolUpdate(t *testing.
 
 func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -118,7 +118,7 @@ func TestAccAzureRMLoadBalancerNatRule_mapToBackendAddressPoolMultiple(t *testin
 
 func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -147,7 +147,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -162,7 +162,7 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -176,7 +176,7 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test2")
 
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -204,7 +204,7 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_zeroPortNumber(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	r := LoadBalancerNatRule{}
+	r := LbNatRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -217,7 +217,7 @@ func TestAccAzureRMLoadBalancerNatRule_zeroPortNumber(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerNatRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbNatRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseInboundNatRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func (r LoadBalancerNatRule) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(found), nil
 }
 
-func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbNatRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseInboundNatRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -286,7 +286,7 @@ func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerNatRule) template(data acceptance.TestData) string {
+func (r LbNatRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -319,7 +319,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerNatRule) basic(data acceptance.TestData) string {
+func (r LbNatRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -335,7 +335,7 @@ resource "azurerm_lb_nat_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) complete(data acceptance.TestData) string {
+func (r LbNatRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -357,7 +357,7 @@ resource "azurerm_lb_nat_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData) string {
+func (r LbNatRuleResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -379,7 +379,7 @@ resource "azurerm_lb_nat_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) requiresImport(data acceptance.TestData) string {
+func (r LbNatRuleResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -396,7 +396,7 @@ resource "azurerm_lb_nat_rule" "import" {
 `, template)
 }
 
-func (r LoadBalancerNatRule) multipleRules(data, data2 acceptance.TestData) string {
+func (r LbNatRuleResource) multipleRules(data, data2 acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -423,7 +423,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 `, template, data.RandomInteger, data2.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
+func (r LbNatRuleResource) multipleRulesUpdate(data, data2 acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -449,7 +449,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 `, template, data.RandomInteger, data2.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) mapToBackendAddressPool(data acceptance.TestData) string {
+func (r LbNatRuleResource) mapToBackendAddressPool(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -488,7 +488,7 @@ resource "azurerm_lb_nat_rule" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) multipleRuleMapToBackendAddressPool(data acceptance.TestData) string {
+func (r LbNatRuleResource) multipleRuleMapToBackendAddressPool(data acceptance.TestData) string {
 	template := r.mapToBackendAddressPool(data)
 	return fmt.Sprintf(`
 %s
@@ -508,7 +508,7 @@ resource "azurerm_lb_nat_rule" "test1" {
 `, template, data.RandomInteger)
 }
 
-func (r LoadBalancerNatRule) zeroPortNumber(data acceptance.TestData) string {
+func (r LbNatRuleResource) zeroPortNumber(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

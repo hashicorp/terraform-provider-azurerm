@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosMongoDatabaseResource struct{}
+type CosmosdbMongoDatabaseResource struct{}
 
 func TestAccCosmosDbMongoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
-	r := CosmosMongoDatabaseResource{}
+	r := CosmosdbMongoDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccCosmosDbMongoDatabase_basic(t *testing.T) {
 
 func TestAccCosmosDbMongoDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
-	r := CosmosMongoDatabaseResource{}
+	r := CosmosdbMongoDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccCosmosDbMongoDatabase_complete(t *testing.T) {
 
 func TestAccCosmosDbMongoDatabase_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
-	r := CosmosMongoDatabaseResource{}
+	r := CosmosdbMongoDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccCosmosDbMongoDatabase_autoscale(t *testing.T) {
 
 func TestAccCosmosDbMongoDatabase_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
-	r := CosmosMongoDatabaseResource{}
+	r := CosmosdbMongoDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccCosmosDbMongoDatabase_serverless(t *testing.T) {
 	})
 }
 
-func (t CosmosMongoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbMongoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseMongodbDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (t CosmosMongoDatabaseResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosMongoDatabaseResource) basic(data acceptance.TestData) string {
+func (CosmosdbMongoDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -124,7 +124,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
 `, CosmosDBAccountResource{}.basicMongoDB(data, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger)
 }
 
-func (CosmosMongoDatabaseResource) complete(data acceptance.TestData) string {
+func (CosmosdbMongoDatabaseResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -137,7 +137,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
 `, CosmosDBAccountResource{}.basicMongoDB(data, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger)
 }
 
-func (CosmosMongoDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+func (CosmosdbMongoDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -152,7 +152,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
 `, CosmosDBAccountResource{}.basicMongoDB(data, cosmosdb.DefaultConsistencyLevelStrong), data.RandomInteger, maxThroughput)
 }
 
-func (CosmosMongoDatabaseResource) serverless(data acceptance.TestData) string {
+func (CosmosdbMongoDatabaseResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

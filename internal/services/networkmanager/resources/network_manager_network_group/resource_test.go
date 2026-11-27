@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerNetworkGroupResource struct{}
+type NetworkManagerNetworkGroupResource struct{}
 
 func TestAccNetworkManagerNetworkGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
-	r := ManagerNetworkGroupResource{}
+	r := NetworkManagerNetworkGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccNetworkManagerNetworkGroup_basic(t *testing.T) {
 
 func TestAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
-	r := ManagerNetworkGroupResource{}
+	r := NetworkManagerNetworkGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccNetworkManagerNetworkGroup_requiresImport(t *testing.T) {
 
 func TestAccNetworkManagerNetworkGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
-	r := ManagerNetworkGroupResource{}
+	r := NetworkManagerNetworkGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccNetworkManagerNetworkGroup_complete(t *testing.T) {
 
 func TestAccNetworkManagerNetworkGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_network_group", "test")
-	r := ManagerNetworkGroupResource{}
+	r := NetworkManagerNetworkGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -96,7 +96,7 @@ func TestAccNetworkManagerNetworkGroup_update(t *testing.T) {
 	})
 }
 
-func (r ManagerNetworkGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerNetworkGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networkgroups.ParseNetworkGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r ManagerNetworkGroupResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerNetworkGroupResource) template(data acceptance.TestData) string {
+func (r NetworkManagerNetworkGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,7 +136,7 @@ resource "azurerm_network_manager" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r ManagerNetworkGroupResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerNetworkGroupResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -147,7 +147,7 @@ resource "azurerm_network_manager_network_group" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerNetworkGroupResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerNetworkGroupResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -158,7 +158,7 @@ resource "azurerm_network_manager_network_group" "import" {
 `, config)
 }
 
-func (r ManagerNetworkGroupResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerNetworkGroupResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -171,7 +171,7 @@ resource "azurerm_network_manager_network_group" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerNetworkGroupResource) update(data acceptance.TestData) string {
+func (r NetworkManagerNetworkGroupResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

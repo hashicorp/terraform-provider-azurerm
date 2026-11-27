@@ -37,5 +37,5 @@ data "azurerm_palo_alto_local_rulestack" "test" {
   resource_group_name = azurerm_palo_alto_local_rulestack.test.resource_group_name
 }
 
-`, LocalRulestackResource{}.complete(data))
+`, PaloAltoLocalRulestackResource{}.complete(data))
 }

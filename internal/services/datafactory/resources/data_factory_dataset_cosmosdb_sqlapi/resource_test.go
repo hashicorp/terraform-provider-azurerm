@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetCosmosDbSQLAPIResource struct{}
+type DataFactoryDatasetCosmosdbSqlapiResource struct{}
 
 func TestAccDataFactoryDatasetCosmosDbSQLAPI_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
-	r := DatasetCosmosDbSQLAPIResource{}
+	r := DataFactoryDatasetCosmosdbSqlapiResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetCosmosDbSQLAPI_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetCosmosDbSQLAPI_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
-	r := DatasetCosmosDbSQLAPIResource{}
+	r := DataFactoryDatasetCosmosdbSqlapiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetCosmosDbSQLAPI_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetCosmosDbSQLAPI_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
-	r := DatasetCosmosDbSQLAPIResource{}
+	r := DataFactoryDatasetCosmosdbSqlapiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryDatasetCosmosDbSQLAPI_update(t *testing.T) {
 	})
 }
 
-func (t DatasetCosmosDbSQLAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetCosmosdbSqlapiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (t DatasetCosmosDbSQLAPIResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetCosmosDbSQLAPIResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetCosmosdbSqlapiResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -124,7 +124,7 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetCosmosDbSQLAPIResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetCosmosdbSqlapiResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -177,7 +177,7 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetCosmosDbSQLAPIResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetCosmosdbSqlapiResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

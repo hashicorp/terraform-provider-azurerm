@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AppInsightsSmartDetectionRule struct{}
+type ApplicationInsightsSmartDetectionRuleResource struct{}
 
 func TestAccApplicationInsightsSmartDetectionRule_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
-	r := AppInsightsSmartDetectionRule{}
+	r := ApplicationInsightsSmartDetectionRuleResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,7 +30,7 @@ func TestAccApplicationInsightsSmartDetectionRule_regressionTest(t *testing.T) {
 
 func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
-	r := AppInsightsSmartDetectionRule{}
+	r := ApplicationInsightsSmartDetectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 
 func TestAccApplicationInsightsSmartDetectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
-	r := AppInsightsSmartDetectionRule{}
+	r := ApplicationInsightsSmartDetectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccApplicationInsightsSmartDetectionRule_update(t *testing.T) {
 
 func TestAccApplicationInsightsSmartDetectionRule_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
-	r := AppInsightsSmartDetectionRule{}
+	r := ApplicationInsightsSmartDetectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccApplicationInsightsSmartDetectionRule_multiple(t *testing.T) {
 
 func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
-	r := AppInsightsSmartDetectionRule{}
+	r := ApplicationInsightsSmartDetectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 // created all the smart detection rules are created with it and are set to enabled. They cannot be deleted, only disabled -
 // but this still causes issues when the resource performs a d.IsNewResource() check, where the tf.ImportAsExistsError is thrown.
 
-func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ApplicationInsightsSmartDetectionRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := componentproactivedetectionapis.ParseProactiveDetectionConfigID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AppInsightsSmartDetectionRule) basic(data acceptance.TestData) string {
+func (ApplicationInsightsSmartDetectionRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +150,7 @@ resource "azurerm_application_insights_smart_detection_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsSmartDetectionRule) update(data acceptance.TestData) string {
+func (ApplicationInsightsSmartDetectionRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -179,7 +179,7 @@ resource "azurerm_application_insights_smart_detection_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsSmartDetectionRule) multiple(data acceptance.TestData) string {
+func (ApplicationInsightsSmartDetectionRuleResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,7 +259,7 @@ resource "azurerm_application_insights_smart_detection_rule" "test10" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AppInsightsSmartDetectionRule) longDependencyDuration(data acceptance.TestData) string {
+func (ApplicationInsightsSmartDetectionRuleResource) longDependencyDuration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -38,5 +38,5 @@ data "azurerm_dev_center_project" "test" {
   name                = azurerm_dev_center_project.test.name
   resource_group_name = azurerm_dev_center_project.test.resource_group_name
 }
-`, DevCenterProjectTestResource{}.basic(data))
+`, DevCenterProjectResource{}.basic(data))
 }

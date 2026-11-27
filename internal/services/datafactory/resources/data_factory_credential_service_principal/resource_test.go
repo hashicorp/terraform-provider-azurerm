@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CredentialServicePrincipalResource struct{}
+type DataFactoryCredentialServicePrincipalResource struct{}
 
 func TestAccDataFactoryCredentialServicePrincipal_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
-	r := CredentialServicePrincipalResource{}
+	r := DataFactoryCredentialServicePrincipalResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryCredentialServicePrincipal_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryCredentialServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
-	r := CredentialServicePrincipalResource{}
+	r := DataFactoryCredentialServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryCredentialServicePrincipal_basic(t *testing.T) {
 
 func TestAccDataFactoryCredentialServicePrincipal_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
-	r := CredentialServicePrincipalResource{}
+	r := DataFactoryCredentialServicePrincipalResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -60,7 +60,7 @@ func TestAccDataFactoryCredentialServicePrincipal_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryCredentialServicePrincipal_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
-	r := CredentialServicePrincipalResource{}
+	r := DataFactoryCredentialServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDataFactoryCredentialServicePrincipal_complete(t *testing.T) {
 
 func TestAccDataFactoryCredentialServicePrincipal_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
-	r := CredentialServicePrincipalResource{}
+	r := DataFactoryCredentialServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccDataFactoryCredentialServicePrincipal_update(t *testing.T) {
 	})
 }
 
-func (r CredentialServicePrincipalResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryCredentialServicePrincipalResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := credentials.ParseCredentialID(state.ID)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (r CredentialServicePrincipalResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CredentialServicePrincipalResource) template(data acceptance.TestData) string {
+func (r DataFactoryCredentialServicePrincipalResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -194,7 +194,7 @@ resource "azurerm_key_vault_secret" "test2" {
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r CredentialServicePrincipalResource) basic(data acceptance.TestData) string {
+func (r DataFactoryCredentialServicePrincipalResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -211,7 +211,7 @@ resource "azurerm_data_factory_credential_service_principal" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CredentialServicePrincipalResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryCredentialServicePrincipalResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -229,7 +229,7 @@ resource "azurerm_data_factory_credential_service_principal" "import" {
 `, config)
 }
 
-func (r CredentialServicePrincipalResource) complete(data acceptance.TestData) string {
+func (r DataFactoryCredentialServicePrincipalResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

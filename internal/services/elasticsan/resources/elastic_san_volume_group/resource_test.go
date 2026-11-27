@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticSANVolumeGroupTestResource struct{}
+type ElasticSanVolumeGroupResource struct{}
 
 func TestAccElasticSANVolumeGroup_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccElasticSANVolumeGroup_regressionTest(t *testing.T) {
 
 func TestAccElasticSANVolumeGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccElasticSANVolumeGroup_basic(t *testing.T) {
 
 func TestAccElasticSANVolumeGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccElasticSANVolumeGroup_requiresImport(t *testing.T) {
 
 func TestAccElasticSANVolumeGroup_encryptionWithSystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccElasticSANVolumeGroup_encryptionWithSystemAssignedIdentity(t *testin
 
 func TestAccElasticSANVolumeGroup_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccElasticSANVolumeGroup_updateIdentity(t *testing.T) {
 
 func TestAccElasticSANVolumeGroup_wrongEncryptionConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -125,7 +125,7 @@ func TestAccElasticSANVolumeGroup_wrongEncryptionConfig(t *testing.T) {
 
 func TestAccElasticSANVolumeGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccElasticSANVolumeGroup_complete(t *testing.T) {
 
 func TestAccElasticSANVolumeGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
-	r := ElasticSANVolumeGroupTestResource{}
+	r := ElasticSanVolumeGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -174,7 +174,7 @@ func TestAccElasticSANVolumeGroup_update(t *testing.T) {
 	})
 }
 
-func (r ElasticSANVolumeGroupTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ElasticSanVolumeGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := volumegroups.ParseVolumeGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -188,7 +188,7 @@ func (r ElasticSANVolumeGroupTestResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ElasticSANVolumeGroupTestResource) basic(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -203,7 +203,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) requiresImport(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -214,7 +214,7 @@ resource "azurerm_elastic_san_volume_group" "import" {
 `, r.basic(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -240,7 +240,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -259,7 +259,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) encryptionWithSystemAssignedIdentityRoleAssignment(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) encryptionWithSystemAssignedIdentityRoleAssignment(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,7 +328,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) encryptionWithSystemAssignedIdentity(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) encryptionWithSystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -402,7 +402,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) wrongEncryptionConfig(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) wrongEncryptionConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -507,7 +507,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) update(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -612,7 +612,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) complete(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -734,7 +734,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 `, r.template(data))
 }
 
-func (r ElasticSANVolumeGroupTestResource) template(data acceptance.TestData) string {
+func (r ElasticSanVolumeGroupResource) template(data acceptance.TestData) string {
 	// some of the features are supported in limited regions, see https://learn.microsoft.com/azure/storage/elastic-san/elastic-san-networking-concepts#regional-availability
 	volumeGroupTestLocation := "westus2"
 	return fmt.Sprintf(`

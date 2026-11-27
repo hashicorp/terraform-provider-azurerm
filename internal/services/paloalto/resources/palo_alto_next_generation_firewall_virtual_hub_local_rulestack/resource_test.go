@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallVWanResource struct{}
+type PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource struct{}
 
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
-	r := NextGenerationFirewallVWanResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_basic(t *testing.T)
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
-	r := NextGenerationFirewallVWanResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_requiresImport(t *t
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
-	r := NextGenerationFirewallVWanResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_complete(t *testing
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
-	r := NextGenerationFirewallVWanResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +111,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_update(t *testing.T
 	})
 }
 
-func (r NextGenerationFirewallVWanResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (r NextGenerationFirewallVWanResource) Exists(ctx context.Context, client *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVWanResource) basic(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +150,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallVWanResource) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -168,7 +168,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 `, r.basic(data))
 }
 
-func (r NextGenerationFirewallVWanResource) complete(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +224,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallVWanResource) completeUpdate(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -266,7 +266,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallVWanResource) template(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubLocalRulestackResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWVH-%[1]d"

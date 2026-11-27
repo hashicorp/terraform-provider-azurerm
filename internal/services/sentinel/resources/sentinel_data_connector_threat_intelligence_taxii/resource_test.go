@@ -25,13 +25,13 @@ type taxiiInfo struct {
 	Password     string
 }
 
-type DataConnectorThreatIntelligenceTAXIIResource struct {
+type SentinelDataConnectorThreatIntelligenceTaxiiResource struct {
 	taxiiInfo    taxiiInfo
 	taxiiInfoAlt taxiiInfo
 }
 
-func NewDataConnectorThreatIntelligenceTAXIIResource() DataConnectorThreatIntelligenceTAXIIResource {
-	return DataConnectorThreatIntelligenceTAXIIResource{
+func NewDataConnectorThreatIntelligenceTAXIIResource() SentinelDataConnectorThreatIntelligenceTaxiiResource {
+	return SentinelDataConnectorThreatIntelligenceTaxiiResource{
 		taxiiInfo: taxiiInfo{
 			APIRootURL:   os.Getenv("ARM_TEST_TAXII_API_ROOT_URL"),
 			CollectionID: os.Getenv("ARM_TEST_TAXII_COLLECTION_ID"),
@@ -47,7 +47,7 @@ func NewDataConnectorThreatIntelligenceTAXIIResource() DataConnectorThreatIntell
 	}
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) preCheck(t *testing.T, forUpdate bool) {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) preCheck(t *testing.T, forUpdate bool) {
 	if r.taxiiInfo.APIRootURL == "" {
 		t.Skipf(`"ARM_TEST_TAXII_API_ROOT_URL" not specified`)
 	}
@@ -142,7 +142,7 @@ func TestAccDataConnectorThreatIntelligenceTAXII_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.DataConnectorsClient
 
 	id, err := dataconnectors.ParseDataConnectorID(state.ID)
@@ -160,7 +160,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Exists(ctx context.Context
 	return pointer.To(true), nil
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) basic(data acceptance.TestData) string {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -177,7 +177,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
 `, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) complete(data acceptance.TestData) string {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -196,7 +196,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
 `, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) update(data acceptance.TestData) string {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -215,7 +215,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
 `, template, data.RandomInteger, r.taxiiInfoAlt.APIRootURL, r.taxiiInfoAlt.CollectionID, r.taxiiInfoAlt.UserName, r.taxiiInfoAlt.Password)
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) requiresImport(data acceptance.TestData) string {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -230,7 +230,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "import" {
 `, template)
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) template(data acceptance.TestData) string {
+func (r SentinelDataConnectorThreatIntelligenceTaxiiResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

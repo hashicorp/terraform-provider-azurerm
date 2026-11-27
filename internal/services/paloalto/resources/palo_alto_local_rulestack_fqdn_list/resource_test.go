@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRulestackFQDNList struct{}
+type PaloAltoLocalRulestackFqdnListResource struct{}
 
 func TestAccPaloAltoLocalRulestackFQDNList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
-	r := LocalRulestackFQDNList{}
+	r := PaloAltoLocalRulestackFqdnListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_basic(t *testing.T) {
 func TestAccPaloAltoLocalRulestackFQDNList_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
-	r := LocalRulestackFQDNList{}
+	r := PaloAltoLocalRulestackFqdnListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_complete(t *testing.T) {
 func TestAccPaloAltoLocalRulestackFQDNList_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
-	r := LocalRulestackFQDNList{}
+	r := PaloAltoLocalRulestackFqdnListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_update(t *testing.T) {
 func TestAccPaloAltoLocalRulestackFQDNList_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
-	r := LocalRulestackFQDNList{}
+	r := PaloAltoLocalRulestackFqdnListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_requiresImport(t *testing.T) {
 	})
 }
 
-func (r LocalRulestackFQDNList) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoLocalRulestackFqdnListResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fqdnlistlocalrulestackresources.ParseLocalRulestackFqdnListID(state.ID)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (r LocalRulestackFQDNList) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRulestackFQDNList) basic(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackFqdnListResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -126,7 +126,7 @@ resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRulestackFQDNList) complete(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackFqdnListResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,7 +148,7 @@ resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRulestackFQDNList) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackFqdnListResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -165,7 +165,7 @@ resource "azurerm_palo_alto_local_rulestack_fqdn_list" "import" {
 `, r.basic(data))
 }
 
-func (r LocalRulestackFQDNList) template(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackFqdnListResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CustomDatasetResource struct{}
+type DataFactoryCustomDatasetResource struct{}
 
 func TestAccDataFactoryCustomDataset_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryCustomDataset_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryCustomDataset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryCustomDataset_basic(t *testing.T) {
 
 func TestAccDataFactoryCustomDataset_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryCustomDataset_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryCustomDataset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryCustomDataset_complete(t *testing.T) {
 
 func TestAccDataFactoryCustomDataset_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -105,7 +105,7 @@ func TestAccDataFactoryCustomDataset_update(t *testing.T) {
 
 func TestAccDataFactoryCustomDataset_delimitedText(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -120,7 +120,7 @@ func TestAccDataFactoryCustomDataset_delimitedText(t *testing.T) {
 
 func TestAccDataFactoryCustomDataset_avro(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
-	r := CustomDatasetResource{}
+	r := DataFactoryCustomDatasetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +133,7 @@ func TestAccDataFactoryCustomDataset_avro(t *testing.T) {
 	})
 }
 
-func (t CustomDatasetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryCustomDatasetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (t CustomDatasetResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r CustomDatasetResource) basic(data acceptance.TestData) string {
+func (r DataFactoryCustomDatasetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,7 +172,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CustomDatasetResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryCustomDatasetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -189,7 +189,7 @@ resource "azurerm_data_factory_custom_dataset" "import" {
 `, r.basic(data))
 }
 
-func (r CustomDatasetResource) complete(data acceptance.TestData) string {
+func (r DataFactoryCustomDatasetResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -257,7 +257,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CustomDatasetResource) delimitedText(data acceptance.TestData) string {
+func (r DataFactoryCustomDatasetResource) delimitedText(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -308,7 +308,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CustomDatasetResource) avro(data acceptance.TestData) string {
+func (r DataFactoryCustomDatasetResource) avro(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -361,7 +361,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (CustomDatasetResource) template(data acceptance.TestData) string {
+func (DataFactoryCustomDatasetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

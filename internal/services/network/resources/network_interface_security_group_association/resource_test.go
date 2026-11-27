@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkInterfaceNetworkSecurityGroupAssociationResource struct{}
+type NetworkInterfaceSecurityGroupAssociationResource struct{}
 
 func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	r := NetworkInterfaceSecurityGroupAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -38,7 +38,7 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 
 func TestAccNetworkInterfaceSecurityGroupAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	r := NetworkInterfaceSecurityGroupAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -56,7 +56,7 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_requiresImport(t *testing.T
 
 func TestAccNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	r := NetworkInterfaceSecurityGroupAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentionally not using a DisappearsStep since this is a Virtual Resource
@@ -73,7 +73,7 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
 
 func TestAccNetworkInterfaceSecurityGroupAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
-	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
+	r := NetworkInterfaceSecurityGroupAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -93,7 +93,7 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_updateNIC(t *testing.T) {
 	})
 }
 
-func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t NetworkInterfaceSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &networksecuritygroups.NetworkSecurityGroupId{})
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx cont
 	return pointer.To(found), nil
 }
 
-func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+func (NetworkInterfaceSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &networksecuritygroups.NetworkSecurityGroupId{})
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx conte
 	return nil
 }
 
-func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) basic(data acceptance.TestData) string {
+func (r NetworkInterfaceSecurityGroupAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,7 +161,7 @@ resource "azurerm_network_interface_security_group_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkInterfaceSecurityGroupAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,7 +172,7 @@ resource "azurerm_network_interface_security_group_association" "import" {
 `, r.basic(data))
 }
 
-func (r NetworkInterfaceNetworkSecurityGroupAssociationResource) updateNIC(data acceptance.TestData) string {
+func (r NetworkInterfaceSecurityGroupAssociationResource) updateNIC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -202,7 +202,7 @@ resource "azurerm_network_interface_security_group_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (NetworkInterfaceNetworkSecurityGroupAssociationResource) template(data acceptance.TestData) string {
+func (NetworkInterfaceSecurityGroupAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StandbyPoolStandbyVirtualMachinePoolResource struct{}
+type VirtualMachineScaleSetStandbyPoolResource struct{}
 
 func TestAccStandbyPoolStandbyVirtualMachinePool_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
-	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	r := VirtualMachineScaleSetStandbyPoolResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -31,7 +31,7 @@ func TestAccStandbyPoolStandbyVirtualMachinePool_regressionTest(t *testing.T) {
 
 func TestAccStandbyPoolStandbyVirtualMachinePool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
-	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	r := VirtualMachineScaleSetStandbyPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,7 +45,7 @@ func TestAccStandbyPoolStandbyVirtualMachinePool_basic(t *testing.T) {
 
 func TestAccStandbyPoolStandbyVirtualMachinePool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
-	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	r := VirtualMachineScaleSetStandbyPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -59,7 +59,7 @@ func TestAccStandbyPoolStandbyVirtualMachinePool_requiresImport(t *testing.T) {
 
 func TestAccStandbyPoolStandbyVirtualMachinePool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
-	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	r := VirtualMachineScaleSetStandbyPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -73,7 +73,7 @@ func TestAccStandbyPoolStandbyVirtualMachinePool_complete(t *testing.T) {
 
 func TestAccStandbyPoolStandbyVirtualMachinePool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
-	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	r := VirtualMachineScaleSetStandbyPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -108,7 +108,7 @@ func TestAccStandbyPoolStandbyVirtualMachinePool_update(t *testing.T) {
 
 func TestAccStandbyPoolStandbyVirtualMachinePool_minCapacityExceedMaxCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
-	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	r := VirtualMachineScaleSetStandbyPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.minCapacityExceedMaxCapacity(data),
@@ -117,7 +117,7 @@ func TestAccStandbyPoolStandbyVirtualMachinePool_minCapacityExceedMaxCapacity(t 
 	})
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VirtualMachineScaleSetStandbyPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := standbyvirtualmachinepools.ParseStandbyVirtualMachinePoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) template(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetStandbyPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,7 +194,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) basic(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetStandbyPoolResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -214,7 +214,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
 `, template, data.RandomIntOfLength(16), data.Locations.Primary)
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetStandbyPoolResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -234,7 +234,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "import" {
 `, config, data.Locations.Primary)
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) complete(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetStandbyPoolResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -258,7 +258,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
 `, template, data.RandomIntOfLength(16), data.Locations.Primary)
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) update(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetStandbyPoolResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -292,7 +292,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(16), data.Locations.Primary)
 }
 
-func (r StandbyPoolStandbyVirtualMachinePoolResource) minCapacityExceedMaxCapacity(data acceptance.TestData) string {
+func (r VirtualMachineScaleSetStandbyPoolResource) minCapacityExceedMaxCapacity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s

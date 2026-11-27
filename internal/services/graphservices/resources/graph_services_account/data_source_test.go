@@ -49,5 +49,5 @@ data "azurerm_graph_services_account" "test" {
   name                = azurerm_graph_services_account.test.name
   resource_group_name = azurerm_graph_services_account.test.resource_group_name
 }
-`, AccountTestResource{}.basic(data))
+`, GraphServicesAccountResource{}.basic(data))
 }

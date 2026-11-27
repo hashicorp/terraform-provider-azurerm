@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
-type MsSqlManagedDatabase struct{}
+type MssqlManagedDatabaseResource struct{}
 
 func TestAccMsSqlManagedDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccMsSqlManagedDatabase_basic(t *testing.T) {
 
 func TestAccMsSqlManagedDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccMsSqlManagedDatabase_complete(t *testing.T) {
 
 func TestAccMsSqlManagedDatabase_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccMsSqlManagedDatabase_update(t *testing.T) {
 
 func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 
 func TestAccMsSqlManagedDatabase_withPartialRetentionPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	weekly := `weekly_retention = "P10D"`
 	monthly := `monthly_retention = "P10D"`
@@ -149,7 +149,7 @@ func TestAccMsSqlManagedDatabase_withPartialRetentionPolicies(t *testing.T) {
 
 func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "pitr")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -168,7 +168,7 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 
 func TestAccMsSqlManagedDatabase_recoverDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "recovery")
-	r := MsSqlManagedDatabase{}
+	r := MssqlManagedDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -184,7 +184,7 @@ func TestAccMsSqlManagedDatabase_recoverDatabase(t *testing.T) {
 	})
 }
 
-func (r MsSqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
+func (r MssqlManagedDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
 	id, err := commonids.ParseManagedInstanceDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -201,7 +201,7 @@ func (r MsSqlManagedDatabase) Exists(ctx context.Context, client *clients.Client
 	return pointer.To(true), nil
 }
 
-func (r MsSqlManagedDatabase) basic(data acceptance.TestData) string {
+func (r MssqlManagedDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -212,7 +212,7 @@ resource "azurerm_mssql_managed_database" "test" {
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) complete(data acceptance.TestData) string {
+func (r MssqlManagedDatabaseResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -224,7 +224,7 @@ resource "azurerm_mssql_managed_database" "test" {
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) withRetentionPolicies(data acceptance.TestData) string {
+func (r MssqlManagedDatabaseResource) withRetentionPolicies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -245,7 +245,7 @@ resource "azurerm_mssql_managed_database" "test" {
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) withRetentionPoliciesUpdated(data acceptance.TestData) string {
+func (r MssqlManagedDatabaseResource) withRetentionPoliciesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -266,7 +266,7 @@ resource "azurerm_mssql_managed_database" "test" {
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) withPartialRetentionPolicies(data acceptance.TestData, retention string) string {
+func (r MssqlManagedDatabaseResource) withPartialRetentionPolicies(data acceptance.TestData, retention string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -281,7 +281,7 @@ resource "azurerm_mssql_managed_database" "test" {
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger, retention)
 }
 
-func (r MsSqlManagedDatabase) pointInTimeRestore(data acceptance.TestData) string {
+func (r MssqlManagedDatabaseResource) pointInTimeRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -304,10 +304,10 @@ resource "azurerm_mssql_managed_database" "pitr" {
     source_database_id    = azurerm_mssql_managed_database.test.id
   }
 }
-`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
+`, MssqlManagedDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) recovery(data acceptance.TestData) string {
+func (r MssqlManagedDatabaseResource) recovery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -316,5 +316,5 @@ resource "azurerm_mssql_managed_database" "recovery" {
   name                = "acctest-%[2]d-rec"
   recover_database_id = "${azurerm_mssql_managed_database.test.managed_instance_id}/recoverableDatabases/${azurerm_mssql_managed_database.test.name}"
 }
-`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
+`, MssqlManagedDatabaseResource{}.basic(data), data.RandomInteger)
 }

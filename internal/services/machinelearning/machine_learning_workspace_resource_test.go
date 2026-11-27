@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkspaceResource struct{}
+type MachineLearningWorkspaceResource struct{}
 
 func TestAccMachineLearningWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -40,7 +40,7 @@ func TestAccMachineLearningWorkspace_basic(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccMachineLearningWorkspace_requiresImport(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccMachineLearningWorkspace_basicUpdate(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,7 +108,7 @@ func TestAccMachineLearningWorkspace_complete(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_serviceSideEncryptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,7 +123,7 @@ func TestAccMachineLearningWorkspace_serviceSideEncryptionDisabled(t *testing.T)
 
 func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -153,7 +153,7 @@ func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -170,7 +170,7 @@ func TestAccMachineLearningWorkspace_userAssignedIdentity(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_systemAssignedUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -187,7 +187,7 @@ func TestAccMachineLearningWorkspace_systemAssignedUserAssignedIdentity(t *testi
 
 func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -211,7 +211,7 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_identityTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -243,7 +243,7 @@ func TestAccMachineLearningWorkspace_identityTypeUpdate(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_userAssignedAndCustomManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -262,7 +262,7 @@ func TestAccMachineLearningWorkspace_userAssignedAndCustomManagedKey(t *testing.
 
 func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -279,7 +279,7 @@ func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testin
 
 func TestAccMachineLearningWorkspace_featureStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -295,7 +295,7 @@ func TestAccMachineLearningWorkspace_featureStore(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_featureStoreUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -319,7 +319,7 @@ func TestAccMachineLearningWorkspace_featureStoreUpdate(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_kindUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -351,7 +351,7 @@ func TestAccMachineLearningWorkspace_kindUpdate(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_purgeSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -370,7 +370,7 @@ func TestAccMachineLearningWorkspace_purgeSoftDelete(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -392,7 +392,7 @@ func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
 
 func TestAccMachineLearningWorkspace_serverlessCompute_withoutSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-	r := WorkspaceResource{}
+	r := MachineLearningWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -407,7 +407,7 @@ func TestAccMachineLearningWorkspace_serverlessCompute_withoutSubnet(t *testing.
 	})
 }
 
-func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	workspacesClient := client.MachineLearning.Workspaces
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
@@ -425,7 +425,7 @@ func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, s
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r WorkspaceResource) basic(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -457,7 +457,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WorkspaceResource) basicUpdated(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) basicUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -495,7 +495,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WorkspaceResource) complete(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -577,7 +577,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomIntOfLength(16))
 }
 
-func (r WorkspaceResource) serviceSideEncryptionDisabled(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) serviceSideEncryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -632,7 +632,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, r.template(data), data.RandomIntOfLength(16))
 }
 
-func (r WorkspaceResource) completeUpdated(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) completeUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -714,7 +714,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomIntOfLength(16))
 }
 
-func (r WorkspaceResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -734,7 +734,7 @@ resource "azurerm_machine_learning_workspace" "import" {
 `, template)
 }
 
-func (r WorkspaceResource) template(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -790,7 +790,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
 }
 
-func (r WorkspaceResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -839,7 +839,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -901,7 +901,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r WorkspaceResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -941,7 +941,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WorkspaceResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -978,7 +978,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WorkspaceResource) systemAssignedAndCustomManagedKey(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) systemAssignedAndCustomManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1046,7 +1046,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
 	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1180,7 +1180,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 }`, r.template(data), data.RandomInteger)
 }
 
-func (r WorkspaceResource) featureStore(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) featureStore(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1220,7 +1220,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WorkspaceResource) featureStoreUpdate(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) featureStoreUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1260,7 +1260,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WorkspaceResource) purgeSoftDelete(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) purgeSoftDelete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1292,7 +1292,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WorkspaceResource) serverlessCompute(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) serverlessCompute(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1335,7 +1335,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r WorkspaceResource) serverlessComputeWithoutSubnet(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceResource) serverlessComputeWithoutSubnet(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {

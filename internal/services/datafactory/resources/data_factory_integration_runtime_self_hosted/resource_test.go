@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type IntegrationRuntimeSelfHostedResource struct{}
+type DataFactoryIntegrationRuntimeSelfHostedResource struct{}
 
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := DataFactoryIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryIntegrationRuntimeSelfHosted_regressionTest(t *testing.T)
 
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := DataFactoryIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_selfContainedInteractiveAuthoringEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := DataFactoryIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryIntegrationRuntimeSelfHosted_selfContainedInteractiveAuth
 
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_selfContainedInteractiveAuthoringEnabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := DataFactoryIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDataFactoryIntegrationRuntimeSelfHosted_selfContainedInteractiveAuth
 
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_rbac(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "target")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := DataFactoryIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccDataFactoryIntegrationRuntimeSelfHosted_rbac(t *testing.T) {
 	})
 }
 
-func (IntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeSelfHostedResource) selfContainedInteractiveAuthoringEnabled(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeSelfHostedResource) selfContainedInteractiveAuthoringEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,7 +153,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeSelfHostedResource) rbac(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeSelfHostedResource) rbac(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -294,7 +294,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "target" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (t IntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryIntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err

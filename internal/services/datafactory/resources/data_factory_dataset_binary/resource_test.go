@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetBinaryResource struct{}
+type DataFactoryDatasetBinaryResource struct{}
 
 func TestAccDataFactoryDatasetBinary_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetBinary_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetBinary_blob(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_blob_with_filepath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryDatasetBinary_blob_with_filepath(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryDatasetBinary_http(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_sftp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccDataFactoryDatasetBinary_sftp(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_sftpComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccDataFactoryDatasetBinary_sftpComplete(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_blobDynamicContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,7 +135,7 @@ func TestAccDataFactoryDatasetBinary_blobDynamicContainer(t *testing.T) {
 
 func TestAccDataFactoryDatasetBinary_compression(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
-	r := DatasetBinaryResource{}
+	r := DataFactoryDatasetBinaryResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -151,7 +151,7 @@ func TestAccDataFactoryDatasetBinary_compression(t *testing.T) {
 	})
 }
 
-func (t DatasetBinaryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetBinaryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ func (t DatasetBinaryResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetBinaryResource) blob(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) blob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -215,7 +215,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetBinaryResource) blob_with_filepath(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) blob_with_filepath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -267,7 +267,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetBinaryResource) http(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) http(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -310,7 +310,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetBinaryResource) sftp(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) sftp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -350,7 +350,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetBinaryResource) sftp_complete(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) sftp_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -411,7 +411,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetBinaryResource) blobDynamicContainer(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) blobDynamicContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -462,7 +462,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetBinaryResource) compression(data acceptance.TestData) string {
+func (DataFactoryDatasetBinaryResource) compression(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

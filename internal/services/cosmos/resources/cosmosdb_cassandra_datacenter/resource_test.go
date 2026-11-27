@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CassandraDatacenterResource struct{}
+type CosmosdbCassandraDatacenterResource struct{}
 
 func TestAccCassandraDatacenter_sequential(t *testing.T) {
 	if os.Getenv("CASSANDRA_VERY_EXPENSIVE_TEST_ENABLED") != "true" {
@@ -36,7 +36,7 @@ func TestAccCassandraDatacenter_sequential(t *testing.T) {
 
 func testAccCassandraDatacenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
-	r := CassandraDatacenterResource{}
+	r := CosmosdbCassandraDatacenterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 
 func testAccCassandraDatacenter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
-	r := CassandraDatacenterResource{}
+	r := CosmosdbCassandraDatacenterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 func testAccCassandraDatacenter_updateSku(t *testing.T) {
 	// Regression test case for MS IcM
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
-	r := CassandraDatacenterResource{}
+	r := CosmosdbCassandraDatacenterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 	})
 }
 
-func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbCassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedcassandras.ParseDataCenterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CassandraDatacenterResource) basic(data acceptance.TestData) string {
+func (r CosmosdbCassandraDatacenterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -136,7 +136,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CassandraDatacenterResource) basicSku(data acceptance.TestData, skuName string) string {
+func (r CosmosdbCassandraDatacenterResource) basicSku(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -153,7 +153,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
 `, r.template(data), data.RandomInteger, skuName)
 }
 
-func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
+func (r CosmosdbCassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -250,7 +250,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
 `, r.template(data), data.RandomString, data.RandomString, data.RandomInteger, nodeCount)
 }
 
-func (r CassandraDatacenterResource) update(data acceptance.TestData, nodeCount int) string {
+func (r CosmosdbCassandraDatacenterResource) update(data acceptance.TestData, nodeCount int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -365,7 +365,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
 `, r.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, nodeCount)
 }
 
-func (CassandraDatacenterResource) template(data acceptance.TestData) string {
+func (CosmosdbCassandraDatacenterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ExternalEndpointResource struct{}
+type TrafficManagerExternalEndpointResource struct{}
 
 func TestAccExternalEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccExternalEndpoint_basic(t *testing.T) {
 
 func TestAccExternalEndpoint_priority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccExternalEndpoint_priority(t *testing.T) {
 
 func TestAccExternalEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccExternalEndpoint_requiresImport(t *testing.T) {
 
 func TestAccExternalEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccExternalEndpoint_complete(t *testing.T) {
 
 func TestAccExternalEndpoint_subnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccExternalEndpoint_subnets(t *testing.T) {
 
 func TestAccExternalEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -125,7 +125,7 @@ func TestAccExternalEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) 
 
 func TestAccExternalEndpoint_performancePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
-	r := ExternalEndpointResource{}
+	r := TrafficManagerExternalEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -138,7 +138,7 @@ func TestAccExternalEndpoint_performancePolicy(t *testing.T) {
 	})
 }
 
-func (r ExternalEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r TrafficManagerExternalEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trafficmanagers.ParseEndpointTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (r ExternalEndpointResource) Exists(ctx context.Context, client *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ExternalEndpointResource) basic(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -170,7 +170,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ExternalEndpointResource) priority(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,7 +206,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ExternalEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -219,7 +219,7 @@ resource "azurerm_traffic_manager_external_endpoint" "import" {
 `, r.basic(data))
 }
 
-func (r ExternalEndpointResource) complete(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -247,7 +247,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ExternalEndpointResource) multiple(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -273,7 +273,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test2" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ExternalEndpointResource) subnets(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -319,7 +319,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ExternalEndpointResource) performancePolicy(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) performancePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -357,7 +357,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ExternalEndpointResource) template(data acceptance.TestData) string {
+func (r TrafficManagerExternalEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {

@@ -43,5 +43,5 @@ data "azurerm_network_manager_connectivity_configuration" "test" {
   name               = azurerm_network_manager_connectivity_configuration.test.name
   network_manager_id = azurerm_network_manager_connectivity_configuration.test.network_manager_id
 }
-`, ManagerConnectivityConfigurationResource{}.complete(data))
+`, NetworkManagerConnectivityConfigurationResource{}.complete(data))
 }

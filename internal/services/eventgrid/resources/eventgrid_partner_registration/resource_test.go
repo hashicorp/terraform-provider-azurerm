@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventGridPartnerRegistrationTestResource struct{}
+type EventgridPartnerRegistrationResource struct{}
 
 func TestAccEventGridPartnerRegistration_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_registration", "test")
-	r := EventGridPartnerRegistrationTestResource{}
+	r := EventgridPartnerRegistrationResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccEventGridPartnerRegistration_regressionTest(t *testing.T) {
 
 func TestAccEventGridPartnerRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_registration", "test")
-	r := EventGridPartnerRegistrationTestResource{}
+	r := EventgridPartnerRegistrationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccEventGridPartnerRegistration_basic(t *testing.T) {
 
 func TestAccEventGridPartnerRegistration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_registration", "test")
-	r := EventGridPartnerRegistrationTestResource{}
+	r := EventgridPartnerRegistrationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccEventGridPartnerRegistration_requiresImport(t *testing.T) {
 
 func TestAccEventGridPartnerRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_registration", "test")
-	r := EventGridPartnerRegistrationTestResource{}
+	r := EventgridPartnerRegistrationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccEventGridPartnerRegistration_update(t *testing.T) {
 	})
 }
 
-func (EventGridPartnerRegistrationTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventgridPartnerRegistrationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := partnerregistrations.ParsePartnerRegistrationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (EventGridPartnerRegistrationTestResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r EventGridPartnerRegistrationTestResource) basic(data acceptance.TestData) string {
+func (r EventgridPartnerRegistrationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -114,7 +114,7 @@ resource "azurerm_eventgrid_partner_registration" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r EventGridPartnerRegistrationTestResource) update(data acceptance.TestData) string {
+func (r EventgridPartnerRegistrationResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,7 +133,7 @@ resource "azurerm_eventgrid_partner_registration" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r EventGridPartnerRegistrationTestResource) requiresImport(data acceptance.TestData) string {
+func (r EventgridPartnerRegistrationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

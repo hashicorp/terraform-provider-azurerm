@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceKeyVaultResource struct{}
+type DataFactoryLinkedServiceKeyVaultResource struct{}
 
 func TestAccDataFactoryLinkedServiceKeyVault_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
-	r := LinkedServiceKeyVaultResource{}
+	r := DataFactoryLinkedServiceKeyVaultResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceKeyVault_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
-	r := LinkedServiceKeyVaultResource{}
+	r := DataFactoryLinkedServiceKeyVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceKeyVault_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceKeyVault_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
-	r := LinkedServiceKeyVaultResource{}
+	r := DataFactoryLinkedServiceKeyVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -73,7 +73,7 @@ func TestAccDataFactoryLinkedServiceKeyVault_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceKeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceKeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (t LinkedServiceKeyVaultResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceKeyVaultResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceKeyVaultResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -124,7 +124,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceKeyVaultResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceKeyVaultResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -173,7 +173,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceKeyVaultResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceKeyVaultResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

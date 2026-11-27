@@ -20,11 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkInterfaceBackendAddressPoolResource struct{}
+type NetworkInterfaceBackendAddressPoolAssociationResource struct{}
 
 func TestAccNetworkInterfaceBackendAddressPoolAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	r := NetworkInterfaceBackendAddressPoolResource{}
+	r := NetworkInterfaceBackendAddressPoolAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -39,7 +39,7 @@ func TestAccNetworkInterfaceBackendAddressPoolAssociation_basic(t *testing.T) {
 
 func TestAccNetworkInterfaceBackendAddressPoolAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	r := NetworkInterfaceBackendAddressPoolResource{}
+	r := NetworkInterfaceBackendAddressPoolAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -57,7 +57,7 @@ func TestAccNetworkInterfaceBackendAddressPoolAssociation_requiresImport(t *test
 
 func TestAccNetworkInterfaceBackendAddressPoolAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	r := NetworkInterfaceBackendAddressPoolResource{}
+	r := NetworkInterfaceBackendAddressPoolAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentionally not using a DisppearsStep as this is a Virtual Resource
@@ -74,7 +74,7 @@ func TestAccNetworkInterfaceBackendAddressPoolAssociation_deleted(t *testing.T) 
 
 func TestAccNetworkInterfaceBackendAddressPoolAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_backend_address_pool_association", "test")
-	r := NetworkInterfaceBackendAddressPoolResource{}
+	r := NetworkInterfaceBackendAddressPoolAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -94,7 +94,7 @@ func TestAccNetworkInterfaceBackendAddressPoolAssociation_updateNIC(t *testing.T
 	})
 }
 
-func (t NetworkInterfaceBackendAddressPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t NetworkInterfaceBackendAddressPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.BackendAddressPoolId{})
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (t NetworkInterfaceBackendAddressPoolResource) Exists(ctx context.Context, 
 	return pointer.To(found), nil
 }
 
-func (NetworkInterfaceBackendAddressPoolResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+func (NetworkInterfaceBackendAddressPoolAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.BackendAddressPoolId{})
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func (NetworkInterfaceBackendAddressPoolResource) destroy(ctx context.Context, c
 	return nil
 }
 
-func (r NetworkInterfaceBackendAddressPoolResource) basic(data acceptance.TestData) string {
+func (r NetworkInterfaceBackendAddressPoolAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkInterfaceBackendAddressPoolResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkInterfaceBackendAddressPoolAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -208,7 +208,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "import" {
 `, r.basic(data))
 }
 
-func (r NetworkInterfaceBackendAddressPoolResource) updateNIC(data acceptance.TestData) string {
+func (r NetworkInterfaceBackendAddressPoolAssociationResource) updateNIC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -239,7 +239,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (NetworkInterfaceBackendAddressPoolResource) template(data acceptance.TestData) string {
+func (NetworkInterfaceBackendAddressPoolAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

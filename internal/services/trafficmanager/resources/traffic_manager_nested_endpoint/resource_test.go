@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NestedEndpointResource struct{}
+type TrafficManagerNestedEndpointResource struct{}
 
 func TestAccNestedEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := NestedEndpointResource{}
+	r := TrafficManagerNestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccNestedEndpoint_basic(t *testing.T) {
 
 func TestAccNestedEndpoint_priority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := NestedEndpointResource{}
+	r := TrafficManagerNestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccNestedEndpoint_priority(t *testing.T) {
 
 func TestAccNestedEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := NestedEndpointResource{}
+	r := TrafficManagerNestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccNestedEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
 
 func TestAccNestedEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := NestedEndpointResource{}
+	r := TrafficManagerNestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccNestedEndpoint_requiresImport(t *testing.T) {
 
 func TestAccNestedEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := NestedEndpointResource{}
+	r := TrafficManagerNestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccNestedEndpoint_complete(t *testing.T) {
 
 func TestAccNestedEndpoint_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
-	r := NestedEndpointResource{}
+	r := TrafficManagerNestedEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,7 +123,7 @@ func TestAccNestedEndpoint_subnet(t *testing.T) {
 	})
 }
 
-func (r NestedEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r TrafficManagerNestedEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trafficmanagers.ParseEndpointTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (r NestedEndpointResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NestedEndpointResource) basic(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -156,7 +156,7 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NestedEndpointResource) priority(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -210,7 +210,7 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r NestedEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -224,7 +224,7 @@ resource "azurerm_traffic_manager_nested_endpoint" "import" {
 `, r.basic(data))
 }
 
-func (r NestedEndpointResource) complete(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -248,7 +248,7 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NestedEndpointResource) template(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%[1]d"
@@ -291,7 +291,7 @@ resource "azurerm_traffic_manager_profile" "child" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r NestedEndpointResource) subnets(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -355,7 +355,7 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r NestedEndpointResource) multiple(data acceptance.TestData) string {
+func (r TrafficManagerNestedEndpointResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

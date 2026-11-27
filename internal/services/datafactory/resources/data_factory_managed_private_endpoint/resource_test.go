@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagedPrivateEndpointResource struct{}
+type DataFactoryManagedPrivateEndpointResource struct{}
 
 func TestAccDataFactoryManagedPrivateEndpoint_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DataFactoryManagedPrivateEndpointResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryManagedPrivateEndpoint_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DataFactoryManagedPrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryManagedPrivateEndpoint_basic(t *testing.T) {
 
 func TestAccDataFactoryManagedPrivateEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DataFactoryManagedPrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryManagedPrivateEndpoint_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryManagedPrivateEndpoint_privateServiceLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DataFactoryManagedPrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestAccDataFactoryManagedPrivateEndpoint_privateServiceLink(t *testing.T) {
 	})
 }
 
-func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryManagedPrivateEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, client *clie
 	return pointer.To(false), nil
 }
 
-func (r ManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
+func (r DataFactoryManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 	%s
@@ -117,7 +117,7 @@ resource "azurerm_data_factory_managed_private_endpoint" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r ManagedPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryManagedPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 	%s
@@ -131,7 +131,7 @@ resource "azurerm_data_factory_managed_private_endpoint" "import" {
 `, config)
 }
 
-func (r ManagedPrivateEndpointResource) privateServiceLink(data acceptance.TestData) string {
+func (r DataFactoryManagedPrivateEndpointResource) privateServiceLink(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 	%[1]s
@@ -197,7 +197,7 @@ resource "azurerm_data_factory_managed_private_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagedPrivateEndpointResource) template(data acceptance.TestData) string {
+func (r DataFactoryManagedPrivateEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceWebResource struct{}
+type DataFactoryLinkedServiceWebResource struct{}
 
 func TestAccDataFactoryLinkedServiceWeb_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
-	r := LinkedServiceWebResource{}
+	r := DataFactoryLinkedServiceWebResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceWeb_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
-	r := LinkedServiceWebResource{}
+	r := DataFactoryLinkedServiceWebResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceWeb_basic_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
-	r := LinkedServiceWebResource{}
+	r := DataFactoryLinkedServiceWebResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDataFactoryLinkedServiceWeb_basic_auth(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceWeb_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
-	r := LinkedServiceWebResource{}
+	r := DataFactoryLinkedServiceWebResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccDataFactoryLinkedServiceWeb_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceWebResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceWebResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (t LinkedServiceWebResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceWebResource) anon_auth(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceWebResource) anon_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -137,7 +137,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceWebResource) basic_auth(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceWebResource) basic_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,7 +165,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceWebResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceWebResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -203,7 +203,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceWebResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceWebResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

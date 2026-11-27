@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type sqlManagedInstanceStartStopScheduleResource struct{}
+type MssqlManagedInstanceStartStopScheduleResource struct{}
 
 func TestAccMsSqlManagedInstanceStartStopSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
-	r := sqlManagedInstanceStartStopScheduleResource{}
+	r := MssqlManagedInstanceStartStopScheduleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccMsSqlManagedInstanceStartStopSchedule_basic(t *testing.T) {
 
 func TestAccMsSqlManagedInstanceStartStopSchedule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
-	r := sqlManagedInstanceStartStopScheduleResource{}
+	r := MssqlManagedInstanceStartStopScheduleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -49,7 +49,7 @@ func TestAccMsSqlManagedInstanceStartStopSchedule_complete(t *testing.T) {
 
 func TestAccMsSqlManagedInstanceStartStopSchedule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
-	r := sqlManagedInstanceStartStopScheduleResource{}
+	r := MssqlManagedInstanceStartStopScheduleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -70,7 +70,7 @@ func TestAccMsSqlManagedInstanceStartStopSchedule_update(t *testing.T) {
 
 func TestAccMsSqlManagedInstanceStartStopSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
-	r := sqlManagedInstanceStartStopScheduleResource{}
+	r := MssqlManagedInstanceStartStopScheduleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -82,7 +82,7 @@ func TestAccMsSqlManagedInstanceStartStopSchedule_requiresImport(t *testing.T) {
 	})
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MssqlManagedInstanceStartStopScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceStartStopScheduleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,11 +99,11 @@ func (r sqlManagedInstanceStartStopScheduleResource) Exists(ctx context.Context,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) template(data acceptance.TestData) string {
+func (r MssqlManagedInstanceStartStopScheduleResource) template(data acceptance.TestData) string {
 	return MsSqlManagedInstanceResource{}.basic(data)
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) basic(data acceptance.TestData) string {
+func (r MssqlManagedInstanceStartStopScheduleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
@@ -118,7 +118,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
 `, r.template(data))
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) complete(data acceptance.TestData) string {
+func (r MssqlManagedInstanceStartStopScheduleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
@@ -135,7 +135,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
 `, r.template(data))
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) update(data acceptance.TestData) string {
+func (r MssqlManagedInstanceStartStopScheduleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
@@ -158,7 +158,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
 `, r.template(data))
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlManagedInstanceStartStopScheduleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

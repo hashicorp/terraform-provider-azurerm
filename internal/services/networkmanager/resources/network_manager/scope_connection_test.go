@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerScopeConnectionResource struct{}
+type NetworkManagerScopeConnectionResource struct{}
 
 func testAccNetworkManagerScopeConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_scope_connection", "test")
-	r := ManagerScopeConnectionResource{}
+	r := NetworkManagerScopeConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -38,7 +38,7 @@ func testAccNetworkManagerScopeConnection_basic(t *testing.T) {
 
 func testAccNetworkManagerScopeConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_scope_connection", "test")
-	r := ManagerScopeConnectionResource{}
+	r := NetworkManagerScopeConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -52,7 +52,7 @@ func testAccNetworkManagerScopeConnection_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerScopeConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_scope_connection", "test")
-	r := ManagerScopeConnectionResource{}
+	r := NetworkManagerScopeConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -66,7 +66,7 @@ func testAccNetworkManagerScopeConnection_complete(t *testing.T) {
 
 func testAccNetworkManagerScopeConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_scope_connection", "test")
-	r := ManagerScopeConnectionResource{}
+	r := NetworkManagerScopeConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -85,7 +85,7 @@ func testAccNetworkManagerScopeConnection_update(t *testing.T) {
 	})
 }
 
-func (r ManagerScopeConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerScopeConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scopeconnections.ParseScopeConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (r ManagerScopeConnectionResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerScopeConnectionResource) template(data acceptance.TestData) string {
+func (r NetworkManagerScopeConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,7 +131,7 @@ resource "azurerm_network_manager" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ManagerScopeConnectionResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerScopeConnectionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -145,7 +145,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerScopeConnectionResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerScopeConnectionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -159,7 +159,7 @@ resource "azurerm_network_manager_scope_connection" "import" {
 `, config)
 }
 
-func (r ManagerScopeConnectionResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerScopeConnectionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -174,7 +174,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerScopeConnectionResource) update(data acceptance.TestData) string {
+func (r NetworkManagerScopeConnectionResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

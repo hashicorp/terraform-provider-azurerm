@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagementGroupSubscriptionAssociation struct{}
+type ManagementGroupSubscriptionAssociationResource struct{}
 
 // NOTE: this is a combined test rather than separate split out tests due to
 // all testcases in this file share the same subscription instance so that
@@ -47,7 +47,7 @@ func TestAccManagementGroupSubscriptionAssociation_sequential(t *testing.T) {
 func testAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
 
-	r := ManagementGroupSubscriptionAssociation{}
+	r := ManagementGroupSubscriptionAssociationResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func testAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {
 func testAccManagementGroupSubscriptionAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
 
-	r := ManagementGroupSubscriptionAssociation{}
+	r := ManagementGroupSubscriptionAssociationResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func testAccManagementGroupSubscriptionAssociation_requiresImport(t *testing.T) 
 	})
 }
 
-func (r ManagementGroupSubscriptionAssociation) basic() string {
+func (r ManagementGroupSubscriptionAssociationResource) basic() string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -95,7 +95,7 @@ resource "azurerm_management_group_subscription_association" "test" {
 `, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"))
 }
 
-func (r ManagementGroupSubscriptionAssociation) requiresImport(_ acceptance.TestData) string {
+func (r ManagementGroupSubscriptionAssociationResource) requiresImport(_ acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -106,7 +106,7 @@ resource "azurerm_management_group_subscription_association" "import" {
 `, r.basic())
 }
 
-func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ManagementGroupSubscriptionAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managementgroups.ParseSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err

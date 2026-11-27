@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MHSMKeyRotationPolicyTestResource struct{}
+type KeyVaultManagedHardwareSecurityModuleKeyRotationPolicyResource struct{}
 
 func testAccMHSMKeyRotationPolicy_all(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy", "test")
-	r := MHSMKeyRotationPolicyTestResource{}
+	r := KeyVaultManagedHardwareSecurityModuleKeyRotationPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -41,7 +41,7 @@ func testAccMHSMKeyRotationPolicy_all(t *testing.T) {
 	})
 }
 
-func (r MHSMKeyRotationPolicyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KeyVaultManagedHardwareSecurityModuleKeyRotationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := clients.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
 		return nil, fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", clients.Account.Environment.Name)
@@ -68,7 +68,7 @@ func (r MHSMKeyRotationPolicyTestResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Attributes != nil), nil
 }
 
-func (r MHSMKeyRotationPolicyTestResource) basic(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyRotationPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -84,7 +84,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
 `, r.template(data))
 }
 
-func (r MHSMKeyRotationPolicyTestResource) update(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyRotationPolicyResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,7 +100,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
 `, r.template(data))
 }
 
-func (r MHSMKeyRotationPolicyTestResource) template(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleKeyRotationPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {
 }

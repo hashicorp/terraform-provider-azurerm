@@ -39,5 +39,5 @@ data "azurerm_private_dns_resolver_outbound_endpoint" "test" {
   name                    = azurerm_private_dns_resolver_outbound_endpoint.test.name
   private_dns_resolver_id = azurerm_private_dns_resolver.test.id
 }
-`, DNSResolverOutboundEndpointResource{}.basic(data))
+`, PrivateDnsResolverOutboundEndpointResource{}.basic(data))
 }

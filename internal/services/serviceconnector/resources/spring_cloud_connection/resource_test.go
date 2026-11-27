@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceConnectorSpringCloudResource struct{}
+type SpringCloudConnectionResource struct{}
 
-func (r ServiceConnectorSpringCloudResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SpringCloudConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servicelinker.ParseScopedLinkerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (r ServiceConnectorSpringCloudResource) Exists(ctx context.Context, client 
 
 func TestAccServiceConnectorSpringCloud_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccServiceConnectorSpringCloud_cosmosdbBasic(t *testing.T) {
 
 func TestAccServiceConnectorSpringCloud_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccServiceConnectorSpringCloud_cosmosdbSecretAuth(t *testing.T) {
 
 func TestAccServiceConnectorSpringCloud_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccServiceConnectorSpringCloud_cosmosdbServicePrincipalSecretAuth(t *te
 
 func TestAccServiceConnectorSpringCloud_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccServiceConnectorSpringCloud_cosmosdbUserAssignedIdentity(t *testing.
 
 func TestAccServiceConnectorSpringCloud_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -112,7 +112,7 @@ func TestAccServiceConnectorSpringCloud_storageBlobBasic(t *testing.T) {
 
 func TestAccServiceConnectorSpringCloud_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -127,7 +127,7 @@ func TestAccServiceConnectorSpringCloud_storageBlobSecretStore(t *testing.T) {
 
 func TestAccServiceConnectorSpringCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
+	r := SpringCloudConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccServiceConnectorSpringCloud_complete(t *testing.T) {
 	})
 }
 
-func (r ServiceConnectorSpringCloudResource) cosmosdbBasic(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) cosmosdbBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -156,7 +156,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r ServiceConnectorSpringCloudResource) cosmosdbWithSecretAuth(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) cosmosdbWithSecretAuth(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -174,7 +174,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ServiceConnectorSpringCloudResource) cosmosdbWithServicePrincipalSecretAuth(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) cosmosdbWithServicePrincipalSecretAuth(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -199,7 +199,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r ServiceConnectorSpringCloudResource) cosmosdbWithUserAssignedIdentity(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) cosmosdbWithUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -287,7 +287,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ServiceConnectorSpringCloudResource) storageBlob(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) storageBlob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -338,7 +338,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r ServiceConnectorSpringCloudResource) secretStore(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) secretStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -412,7 +412,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r ServiceConnectorSpringCloudResource) complete(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -429,7 +429,7 @@ resource "azurerm_spring_cloud_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ServiceConnectorSpringCloudResource) template(data acceptance.TestData) string {
+func (r SpringCloudConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

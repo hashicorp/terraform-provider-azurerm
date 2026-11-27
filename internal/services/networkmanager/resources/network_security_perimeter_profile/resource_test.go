@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkSecurityPerimeterProfileTestResource struct{}
+type NetworkSecurityPerimeterProfileResource struct{}
 
 func TestAccNetworkSecurityPerimeterProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_profile", "test")
-	r := NetworkSecurityPerimeterProfileTestResource{}
+	r := NetworkSecurityPerimeterProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccNetworkSecurityPerimeterProfile_basic(t *testing.T) {
 
 func TestAccNetworkSecurityPerimeterProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_profile", "test")
-	r := NetworkSecurityPerimeterProfileTestResource{}
+	r := NetworkSecurityPerimeterProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccNetworkSecurityPerimeterProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func (NetworkSecurityPerimeterProfileTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (NetworkSecurityPerimeterProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecurityperimeterprofiles.ParseProfileID(state.ID)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (NetworkSecurityPerimeterProfileTestResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (NetworkSecurityPerimeterProfileTestResource) basic(data acceptance.TestData) string {
+func (NetworkSecurityPerimeterProfileResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -86,7 +86,7 @@ resource "azurerm_network_security_perimeter_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r NetworkSecurityPerimeterProfileTestResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkSecurityPerimeterProfileResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

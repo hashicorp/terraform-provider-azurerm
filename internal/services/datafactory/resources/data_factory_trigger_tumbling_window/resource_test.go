@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TriggerTumblingWindowResource struct{}
+type DataFactoryTriggerTumblingWindowResource struct{}
 
 func TestAccDataFactoryTriggerTumblingWindow_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
-	r := TriggerTumblingWindowResource{}
+	r := DataFactoryTriggerTumblingWindowResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryTriggerTumblingWindow_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryTriggerTumblingWindow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
-	r := TriggerTumblingWindowResource{}
+	r := DataFactoryTriggerTumblingWindowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryTriggerTumblingWindow_basic(t *testing.T) {
 
 func TestAccDataFactoryTriggerTumblingWindow_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
-	r := TriggerTumblingWindowResource{}
+	r := DataFactoryTriggerTumblingWindowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryTriggerTumblingWindow_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryTriggerTumblingWindow_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
-	r := TriggerTumblingWindowResource{}
+	r := DataFactoryTriggerTumblingWindowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryTriggerTumblingWindow_complete(t *testing.T) {
 
 func TestAccDataFactoryTriggerTumblingWindow_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
-	r := TriggerTumblingWindowResource{}
+	r := DataFactoryTriggerTumblingWindowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccDataFactoryTriggerTumblingWindow_update(t *testing.T) {
 	})
 }
 
-func (r TriggerTumblingWindowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryTriggerTumblingWindowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TriggerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (r TriggerTumblingWindowResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r TriggerTumblingWindowResource) basic(data acceptance.TestData) string {
+func (r DataFactoryTriggerTumblingWindowResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -135,7 +135,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TriggerTumblingWindowResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryTriggerTumblingWindowResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +156,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "import" {
 `, r.basic(data))
 }
 
-func (r TriggerTumblingWindowResource) complete(data acceptance.TestData) string {
+func (r DataFactoryTriggerTumblingWindowResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -205,7 +205,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (TriggerTumblingWindowResource) template(data acceptance.TestData) string {
+func (DataFactoryTriggerTumblingWindowResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

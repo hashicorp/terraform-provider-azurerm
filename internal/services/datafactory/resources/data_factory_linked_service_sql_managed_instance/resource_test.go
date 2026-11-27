@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceSQLManagedInstanceResource struct{}
+type DataFactoryLinkedServiceSqlManagedInstanceResource struct{}
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_regressionTest(t *testing
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_requiresImport(t *testing
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_complete(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_servicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -144,7 +144,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_servicePrincipal(t *testi
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -173,7 +173,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultPassword(t *testi
 
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
-	r := LinkedServiceSQLManagedInstanceResource{}
+	r := DataFactoryLinkedServiceSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -200,7 +200,7 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultConnectionString(
 	})
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := linkedservices.ParseLinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -214,7 +214,7 @@ func (r LinkedServiceSQLManagedInstanceResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) basic(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,7 +227,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -239,7 +239,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "import" {
 `, r.basic(data))
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) update(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -258,7 +258,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) servicePrincipal(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) servicePrincipal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -273,7 +273,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) keyVaultPassword(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) keyVaultPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
  %s
 
@@ -305,7 +305,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomIntOfLength(10), data.RandomInteger, data.Locations.Primary, data.Client().TenantID)
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) keyVaultConnectionString(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) keyVaultConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -338,7 +338,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomIntOfLength(10), data.RandomInteger, data.Locations.Primary, data.Client().TenantID)
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) keyVaultRemoved(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) keyVaultRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -369,7 +369,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomIntOfLength(10), data.RandomInteger, data.Locations.Primary, data.Client().TenantID)
 }
 
-func (r LinkedServiceSQLManagedInstanceResource) complete(data acceptance.TestData) string {
+func (r DataFactoryLinkedServiceSqlManagedInstanceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -392,7 +392,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceSQLManagedInstanceResource) template(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceSqlManagedInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

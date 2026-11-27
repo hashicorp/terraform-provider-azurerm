@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AzureRMDesktopVirtualizationWorkspaceResource struct{}
+type VirtualDesktopWorkspaceResource struct{}
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	r := AzureRMDesktopVirtualizationWorkspaceResource{}
+	r := VirtualDesktopWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	r := AzureRMDesktopVirtualizationWorkspaceResource{}
+	r := VirtualDesktopWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_complete(t *testing.T) {
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	r := AzureRMDesktopVirtualizationWorkspaceResource{}
+	r := VirtualDesktopWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_update(t *testing.T) {
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	r := AzureRMDesktopVirtualizationWorkspaceResource{}
+	r := VirtualDesktopWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AzureRMDesktopVirtualizationWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualDesktopWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspace.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (t AzureRMDesktopVirtualizationWorkspaceResource) Exists(ctx context.Contex
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AzureRMDesktopVirtualizationWorkspaceResource) basic(data acceptance.TestData) string {
+func (VirtualDesktopWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_virtual_desktop_workspace" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
-func (AzureRMDesktopVirtualizationWorkspaceResource) complete(data acceptance.TestData) string {
+func (VirtualDesktopWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +150,7 @@ resource "azurerm_virtual_desktop_workspace" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AzureRMDesktopVirtualizationWorkspaceResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualDesktopWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

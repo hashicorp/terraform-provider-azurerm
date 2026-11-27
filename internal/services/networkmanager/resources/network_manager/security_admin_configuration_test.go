@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerSecurityAdminConfigurationResource struct{}
+type NetworkManagerSecurityAdminConfigurationResource struct{}
 
 func testAccNetworkManagerSecurityAdminConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_security_admin_configuration", "test")
-	r := ManagerSecurityAdminConfigurationResource{}
+	r := NetworkManagerSecurityAdminConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func testAccNetworkManagerSecurityAdminConfiguration_basic(t *testing.T) {
 
 func testAccNetworkManagerSecurityAdminConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_security_admin_configuration", "test")
-	r := ManagerSecurityAdminConfigurationResource{}
+	r := NetworkManagerSecurityAdminConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func testAccNetworkManagerSecurityAdminConfiguration_requiresImport(t *testing.T
 
 func testAccNetworkManagerSecurityAdminConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_security_admin_configuration", "test")
-	r := ManagerSecurityAdminConfigurationResource{}
+	r := NetworkManagerSecurityAdminConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func testAccNetworkManagerSecurityAdminConfiguration_complete(t *testing.T) {
 
 func testAccNetworkManagerSecurityAdminConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_security_admin_configuration", "test")
-	r := ManagerSecurityAdminConfigurationResource{}
+	r := NetworkManagerSecurityAdminConfigurationResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -89,7 +89,7 @@ func testAccNetworkManagerSecurityAdminConfiguration_update(t *testing.T) {
 	})
 }
 
-func (r ManagerSecurityAdminConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerSecurityAdminConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (r ManagerSecurityAdminConfigurationResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerSecurityAdminConfigurationResource) template(data acceptance.TestData) string {
+func (r NetworkManagerSecurityAdminConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -146,7 +146,7 @@ resource "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ManagerSecurityAdminConfigurationResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerSecurityAdminConfigurationResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -158,7 +158,7 @@ resource "azurerm_network_manager_security_admin_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerSecurityAdminConfigurationResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerSecurityAdminConfigurationResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -170,7 +170,7 @@ resource "azurerm_network_manager_security_admin_configuration" "import" {
 `, config)
 }
 
-func (r ManagerSecurityAdminConfigurationResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerSecurityAdminConfigurationResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -184,7 +184,7 @@ resource "azurerm_network_manager_security_admin_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerSecurityAdminConfigurationResource) update(data acceptance.TestData) string {
+func (r NetworkManagerSecurityAdminConfigurationResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

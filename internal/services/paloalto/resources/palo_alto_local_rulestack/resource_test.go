@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRulestackResource struct{}
+type PaloAltoLocalRulestackResource struct{}
 
 func TestAccPaloAltoLocalRulestack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
-	r := LocalRulestackResource{}
+	r := PaloAltoLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccPaloAltoLocalRulestack_basic(t *testing.T) {
 func TestAccPaloAltoLocalRulestack_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
-	r := LocalRulestackResource{}
+	r := PaloAltoLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccPaloAltoLocalRulestack_requiresImport(t *testing.T) {
 func TestAccPaloAltoLocalRulestack_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
-	r := LocalRulestackResource{}
+	r := PaloAltoLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccPaloAltoLocalRulestack_complete(t *testing.T) {
 func TestAccPaloAltoLocalRulestack_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
-	r := LocalRulestackResource{}
+	r := PaloAltoLocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccPaloAltoLocalRulestack_update(t *testing.T) {
 	})
 }
 
-func (r LocalRulestackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoLocalRulestackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := localrulestackresources.ParseLocalRulestackID(state.ID)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (r LocalRulestackResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRulestackResource) basic(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -118,7 +118,7 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LocalRulestackResource) complete(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -145,7 +145,7 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LocalRulestackResource) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -159,7 +159,7 @@ resource "azurerm_palo_alto_local_rulestack" "import" {
 `, r.basic(data))
 }
 
-func (r LocalRulestackResource) template(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PALRS-%[1]d"

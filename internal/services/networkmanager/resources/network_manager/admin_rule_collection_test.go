@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkAdminRuleCollectionResource struct{}
+type NetworkManagerAdminRuleCollectionResource struct{}
 
 func testAccNetworkManagerAdminRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_admin_rule_collection", "test")
-	r := NetworkAdminRuleCollectionResource{}
+	r := NetworkManagerAdminRuleCollectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func testAccNetworkManagerAdminRuleCollection_basic(t *testing.T) {
 
 func testAccNetworkManagerAdminRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_admin_rule_collection", "test")
-	r := NetworkAdminRuleCollectionResource{}
+	r := NetworkManagerAdminRuleCollectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func testAccNetworkManagerAdminRuleCollection_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerAdminRuleCollection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_admin_rule_collection", "test")
-	r := NetworkAdminRuleCollectionResource{}
+	r := NetworkManagerAdminRuleCollectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func testAccNetworkManagerAdminRuleCollection_complete(t *testing.T) {
 
 func testAccNetworkManagerAdminRuleCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_admin_rule_collection", "test")
-	r := NetworkAdminRuleCollectionResource{}
+	r := NetworkManagerAdminRuleCollectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -82,7 +82,7 @@ func testAccNetworkManagerAdminRuleCollection_update(t *testing.T) {
 	})
 }
 
-func (r NetworkAdminRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerAdminRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r NetworkAdminRuleCollectionResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NetworkAdminRuleCollectionResource) template(data acceptance.TestData) string {
+func (r NetworkManagerAdminRuleCollectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,7 +135,7 @@ resource "azurerm_network_manager_security_admin_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkAdminRuleCollectionResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerAdminRuleCollectionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 	%s
@@ -148,7 +148,7 @@ resource "azurerm_network_manager_admin_rule_collection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r NetworkAdminRuleCollectionResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerAdminRuleCollectionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -161,7 +161,7 @@ resource "azurerm_network_manager_admin_rule_collection" "import" {
 `, config)
 }
 
-func (r NetworkAdminRuleCollectionResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerAdminRuleCollectionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -180,7 +180,7 @@ resource "azurerm_network_manager_admin_rule_collection" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkAdminRuleCollectionResource) update(data acceptance.TestData) string {
+func (r NetworkManagerAdminRuleCollectionResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

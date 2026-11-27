@@ -24,11 +24,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RoleAssignmentMarketplaceResource struct{}
+type MarketplaceRoleAssignmentResource struct{}
 
 func TestAccRoleAssignmentMarketplace_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Reader"
 
 	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
@@ -42,7 +42,7 @@ func TestAccRoleAssignmentMarketplace_regressionTest(t *testing.T) {
 
 func TestAccRoleAssignmentMarketplace_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Reader"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,7 +63,7 @@ func TestAccRoleAssignmentMarketplace_roleName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	id := uuid.New().String()
 
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Log Analytics Reader"
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -85,7 +85,7 @@ func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	id := uuid.New().String()
 
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "ContainerApp Reader"
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -110,7 +110,7 @@ func TestAccRoleAssignmentMarketplace_builtin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	id := uuid.New().String()
 
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Monitoring Reader"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -131,7 +131,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipal(t *testing.T) {
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Contributor"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -152,7 +152,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipalWithType(t *testing.T) {
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Log Analytics Contributor"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -172,7 +172,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipalGroup(t *testing.T) {
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
-	r := RoleAssignmentMarketplaceResource{}
+	r := MarketplaceRoleAssignmentResource{}
 	roleName := "Monitoring Contributor"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -187,7 +187,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipalGroup(t *testing.T) {
 	})
 }
 
-func (r RoleAssignmentMarketplaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MarketplaceRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ScopedRoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func (r RoleAssignmentMarketplaceResource) Exists(ctx context.Context, client *c
 	return pointer.To(true), nil
 }
 
-func (RoleAssignmentMarketplaceResource) emptyNameConfig(roleName string) string {
+func (MarketplaceRoleAssignmentResource) emptyNameConfig(roleName string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "test" {}
 
@@ -237,7 +237,7 @@ resource "azurerm_marketplace_role_assignment" "test" {
 `, roleName)
 }
 
-func (RoleAssignmentMarketplaceResource) roleNameConfig(id string, roleName string) string {
+func (MarketplaceRoleAssignmentResource) roleNameConfig(id string, roleName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -260,7 +260,7 @@ resource "azurerm_marketplace_role_assignment" "test" {
 `, id, roleName)
 }
 
-func (RoleAssignmentMarketplaceResource) requiresImportConfig(id string, roleName string) string {
+func (MarketplaceRoleAssignmentResource) requiresImportConfig(id string, roleName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -275,10 +275,10 @@ resource "azurerm_marketplace_role_assignment" "import" {
     ]
   }
 }
-`, RoleAssignmentMarketplaceResource{}.roleNameConfig(id, roleName))
+`, MarketplaceRoleAssignmentResource{}.roleNameConfig(id, roleName))
 }
 
-func (RoleAssignmentMarketplaceResource) builtinConfig(id string, roleName string) string {
+func (MarketplaceRoleAssignmentResource) builtinConfig(id string, roleName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -305,7 +305,7 @@ resource "azurerm_marketplace_role_assignment" "test" {
 `, roleName, id)
 }
 
-func (RoleAssignmentMarketplaceResource) servicePrincipal(rInt int, roleAssignmentID string, roleName string) string {
+func (MarketplaceRoleAssignmentResource) servicePrincipal(rInt int, roleAssignmentID string, roleName string) string {
 	return fmt.Sprintf(`
 provider "azuread" {}
 
@@ -335,7 +335,7 @@ resource "azurerm_marketplace_role_assignment" "test" {
 `, rInt, roleAssignmentID, roleName)
 }
 
-func (RoleAssignmentMarketplaceResource) servicePrincipalWithType(rInt int, roleAssignmentID string, roleName string) string {
+func (MarketplaceRoleAssignmentResource) servicePrincipalWithType(rInt int, roleAssignmentID string, roleName string) string {
 	return fmt.Sprintf(`
 provider "azuread" {}
 
@@ -366,7 +366,7 @@ resource "azurerm_marketplace_role_assignment" "test" {
 `, rInt, roleAssignmentID, roleName)
 }
 
-func (RoleAssignmentMarketplaceResource) group(rInt int, roleAssignmentID string, roleName string) string {
+func (MarketplaceRoleAssignmentResource) group(rInt int, roleAssignmentID string, roleName string) string {
 	return fmt.Sprintf(`
 provider "azuread" {}
 
@@ -393,7 +393,7 @@ resource "azurerm_marketplace_role_assignment" "test" {
 `, rInt, roleAssignmentID, roleName)
 }
 
-func (r RoleAssignmentMarketplaceResource) deleteAssignedRole(t *testing.T, roleName string) func() {
+func (r MarketplaceRoleAssignmentResource) deleteAssignedRole(t *testing.T, roleName string) func() {
 	return func() {
 		clientManager, err := testclient.Build()
 		if err != nil {

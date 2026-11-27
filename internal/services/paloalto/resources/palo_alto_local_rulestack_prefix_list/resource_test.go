@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRuleStackPrefixList struct{}
+type PaloAltoLocalRulestackPrefixListResource struct{}
 
 func TestAccLocalRulestackPrefixList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
-	r := LocalRuleStackPrefixList{}
+	r := PaloAltoLocalRulestackPrefixListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccLocalRulestackPrefixList_basic(t *testing.T) {
 func TestAccLocalRulestackPrefixList_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
-	r := LocalRuleStackPrefixList{}
+	r := PaloAltoLocalRulestackPrefixListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccLocalRulestackPrefixList_requiresImport(t *testing.T) {
 func TestAccLocalRulestackPrefixList_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
-	r := LocalRuleStackPrefixList{}
+	r := PaloAltoLocalRulestackPrefixListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccLocalRulestackPrefixList_complete(t *testing.T) {
 func TestAccLocalRulestackPrefixList_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
-	r := LocalRuleStackPrefixList{}
+	r := PaloAltoLocalRulestackPrefixListResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccLocalRulestackPrefixList_update(t *testing.T) {
 	})
 }
 
-func (r LocalRuleStackPrefixList) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoLocalRulestackPrefixListResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := prefixlistresources.ParseLocalRulestackPrefixListID(state.ID)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (r LocalRuleStackPrefixList) Exists(ctx context.Context, client *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRuleStackPrefixList) basic(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackPrefixListResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,7 +131,7 @@ resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackPrefixList) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackPrefixListResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -146,7 +146,7 @@ resource "azurerm_palo_alto_local_rulestack_prefix_list" "import" {
 `, r.basic(data))
 }
 
-func (r LocalRuleStackPrefixList) complete(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackPrefixListResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,7 +167,7 @@ resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackPrefixList) template(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackPrefixListResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {

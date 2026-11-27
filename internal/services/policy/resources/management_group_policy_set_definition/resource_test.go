@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagementGroupPolicySetDefinitionResourceTest struct{}
+type ManagementGroupPolicySetDefinitionResource struct{}
 
 func TestAccManagementGroupPolicySetDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
-	r := ManagementGroupPolicySetDefinitionResourceTest{}
+	r := ManagementGroupPolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccManagementGroupPolicySetDefinition_basic(t *testing.T) {
 
 func TestAccManagementGroupPolicySetDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
-	r := ManagementGroupPolicySetDefinitionResourceTest{}
+	r := ManagementGroupPolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccManagementGroupPolicySetDefinition_requiresImport(t *testing.T) {
 
 func TestAccManagementGroupPolicySetDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
-	r := ManagementGroupPolicySetDefinitionResourceTest{}
+	r := ManagementGroupPolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccManagementGroupPolicySetDefinition_complete(t *testing.T) {
 
 func TestAccManagementGroupPolicySetDefinition_policyDefinitionVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
-	r := ManagementGroupPolicySetDefinitionResourceTest{}
+	r := ManagementGroupPolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccManagementGroupPolicySetDefinition_policyDefinitionVersion(t *testin
 
 func TestAccManagementGroupPolicySetDefinition_removeParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
-	r := ManagementGroupPolicySetDefinitionResourceTest{}
+	r := ManagementGroupPolicySetDefinitionResource{}
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
@@ -144,7 +144,7 @@ func TestAccManagementGroupPolicySetDefinition_removeParameter(t *testing.T) {
 
 func TestAccManagementGroupPolicySetDefinition_updateMultiplePolicyDefinitionReferences(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
-	r := ManagementGroupPolicySetDefinitionResourceTest{}
+	r := ManagementGroupPolicySetDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -171,7 +171,7 @@ func TestAccManagementGroupPolicySetDefinition_updateMultiplePolicyDefinitionRef
 	})
 }
 
-func (ManagementGroupPolicySetDefinitionResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ManagementGroupPolicySetDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := policysetdefinitions.ParseProviders2PolicySetDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (ManagementGroupPolicySetDefinitionResourceTest) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) basic(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -220,7 +220,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) additionalParameter(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) additionalParameter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -273,7 +273,7 @@ VALUES
 }`, r.template(data), data.RandomInteger)
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) requiresImport(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -292,7 +292,7 @@ resource "azurerm_management_group_policy_set_definition" "import" {
 }`, r.basic(data))
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) complete(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -342,7 +342,7 @@ VALUES
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) policyDefinitionVersion(data acceptance.TestData, version string) string {
+func (r ManagementGroupPolicySetDefinitionResource) policyDefinitionVersion(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -366,7 +366,7 @@ VALUES
 `, r.template(data), data.RandomInteger, version)
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) multipleReferences(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) multipleReferences(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -391,7 +391,7 @@ resource "azurerm_management_group_policy_set_definition" "test" {
 `, r.templateMultiplePolicies(data), data.RandomInteger)
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) multipleReferencesUpdate(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) multipleReferencesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -412,7 +412,7 @@ resource "azurerm_management_group_policy_set_definition" "test" {
 `, r.templateMultiplePolicies(data), data.RandomInteger)
 }
 
-func (r ManagementGroupPolicySetDefinitionResourceTest) template(data acceptance.TestData) string {
+func (r ManagementGroupPolicySetDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -459,7 +459,7 @@ PARAMETERS
 `, data.RandomInteger)
 }
 
-func (ManagementGroupPolicySetDefinitionResourceTest) templateMultiplePolicies(data acceptance.TestData) string {
+func (ManagementGroupPolicySetDefinitionResource) templateMultiplePolicies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

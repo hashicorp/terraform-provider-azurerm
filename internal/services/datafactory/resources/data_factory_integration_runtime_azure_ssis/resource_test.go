@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type IntegrationRuntimeManagedSsisResource struct{}
+type DataFactoryIntegrationRuntimeAzureSsisResource struct{}
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_regressionTest(t *testing.T
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_complete(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_SSISDBpricingtier_GP_S_Gen5_1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_SSISDBpricingtier_GP_S_Gen5
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_SSISDBpricingtier_S0(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_SSISDBpricingtier_S0(t *tes
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_vnetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -130,7 +130,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_vnetIntegration(t *testing.
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_keyVaultSecretReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -148,7 +148,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_keyVaultSecretReference(t *
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_aadAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -163,7 +163,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_aadAuth(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_userAssignedManagedCredentials(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -178,7 +178,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_userAssignedManagedCredenti
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_expressVnetInjection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -193,7 +193,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_expressVnetInjection(t *tes
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_withElasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -208,7 +208,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_withElasticPool(t *testing.
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -223,7 +223,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScale(t *testing.T) 
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
-	r := IntegrationRuntimeManagedSsisResource{}
+	r := DataFactoryIntegrationRuntimeAzureSsisResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -250,7 +250,7 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScaleUpdate(t *testi
 	})
 }
 
-func (IntegrationRuntimeManagedSsisResource) basic(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -276,7 +276,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedSsisResource) complete(data acceptance.TestData, pricingTier string) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) complete(data acceptance.TestData, pricingTier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -472,7 +472,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, pricingTier)
 }
 
-func (IntegrationRuntimeManagedSsisResource) vnetIntegration(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) vnetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -518,7 +518,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (IntegrationRuntimeManagedSsisResource) keyVaultSecretReference(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) keyVaultSecretReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -758,7 +758,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (IntegrationRuntimeManagedSsisResource) aadAuth(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) aadAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -811,7 +811,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedSsisResource) expressVnetInjection(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) expressVnetInjection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -854,7 +854,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (IntegrationRuntimeManagedSsisResource) withElasticPool(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) withElasticPool(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -916,7 +916,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) userAssignedManagedCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -983,7 +983,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (IntegrationRuntimeManagedSsisResource) computeScale(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureSsisResource) computeScale(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1020,7 +1020,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryIntegrationRuntimeAzureSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err

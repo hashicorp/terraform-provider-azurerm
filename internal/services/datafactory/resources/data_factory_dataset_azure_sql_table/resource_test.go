@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetAzureSQLTableResource struct{}
+type DataFactoryDatasetAzureSqlTableResource struct{}
 
 func TestAccDataFactoryDatasetAzureSQLTable_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
-	r := DatasetAzureSQLTableResource{}
+	r := DataFactoryDatasetAzureSqlTableResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetAzureSQLTable_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureSQLTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
-	r := DatasetAzureSQLTableResource{}
+	r := DataFactoryDatasetAzureSqlTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetAzureSQLTable_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
-	r := DatasetAzureSQLTableResource{}
+	r := DataFactoryDatasetAzureSqlTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureSQLTable_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
-	r := DatasetAzureSQLTableResource{}
+	r := DataFactoryDatasetAzureSqlTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +96,7 @@ func TestAccDataFactoryDatasetAzureSQLTable_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DatasetAzureSQLTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetAzureSqlTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (t DatasetAzureSQLTableResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetAzureSQLTableResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureSqlTableResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -142,7 +142,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetAzureSQLTableResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureSqlTableResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -196,7 +196,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetAzureSQLTableResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureSqlTableResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,7 +252,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r DatasetAzureSQLTableResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryDatasetAzureSqlTableResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

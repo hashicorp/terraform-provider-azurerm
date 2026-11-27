@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetSnowflakeResource struct{}
+type DataFactoryDatasetSnowflakeResource struct{}
 
 func TestAccDataFactoryDatasetSnowflake_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_snowflake", "test")
-	r := DatasetSnowflakeResource{}
+	r := DataFactoryDatasetSnowflakeResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetSnowflake_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_snowflake", "test")
-	r := DatasetSnowflakeResource{}
+	r := DataFactoryDatasetSnowflakeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetSnowflake_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetSnowflake_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_snowflake", "test")
-	r := DatasetSnowflakeResource{}
+	r := DataFactoryDatasetSnowflakeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDataFactoryDatasetSnowflake_update(t *testing.T) {
 	})
 }
 
-func (t DatasetSnowflakeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetSnowflakeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (t DatasetSnowflakeResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetSnowflakeResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetSnowflakeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -142,7 +142,7 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetSnowflakeResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetSnowflakeResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -213,7 +213,7 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetSnowflakeResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetSnowflakeResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

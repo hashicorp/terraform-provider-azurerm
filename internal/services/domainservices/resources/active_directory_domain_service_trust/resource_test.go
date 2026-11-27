@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DomainServiceTrustResource struct {
+type ActiveDirectoryDomainServiceTrustResource struct {
 	// The name of the resource group contains the AADDS
 	AADDSResourceGroupName string
 	// The name the AADDS
@@ -35,7 +35,7 @@ type DomainServiceTrustResource struct {
 	TrustPassword string
 }
 
-func NewDomainServiceTrustResource() (*DomainServiceTrustResource, error) {
+func NewDomainServiceTrustResource() (*ActiveDirectoryDomainServiceTrustResource, error) {
 	aaddsRgName := os.Getenv("ARM_TEST_AADDS_RESOURCE_GROUP_NAME")
 	if aaddsRgName == "" {
 		return nil, errors.New("`ARM_TEST_AADDS_RESOURCE_GROUP_NAME` is not set")
@@ -66,7 +66,7 @@ func NewDomainServiceTrustResource() (*DomainServiceTrustResource, error) {
 		return nil, errors.New("`ARM_TEST_PASSWORD` is not set")
 	}
 
-	return &DomainServiceTrustResource{
+	return &ActiveDirectoryDomainServiceTrustResource{
 		AADDSResourceGroupName: aaddsRgName,
 		AADDSName:              aaddsName,
 		ADDSFqdn:               addsFqdn,
@@ -112,7 +112,7 @@ func TestAccDomainServiceTrust_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ActiveDirectoryDomainServiceTrustResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.DomainServices.DomainServicesClient
 
 	id, err := parse.DomainServiceTrustID(state.ID)
@@ -152,7 +152,7 @@ func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(false), nil
 }
 
-func (r DomainServiceTrustResource) basic(data acceptance.TestData) string {
+func (r ActiveDirectoryDomainServiceTrustResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -167,7 +167,7 @@ resource "azurerm_active_directory_domain_service_trust" "test" {
 `, template, data.RandomString, r.ADDSFqdn, r.ADDSIp1, r.ADDSIp2, r.TrustPassword)
 }
 
-func (r DomainServiceTrustResource) requiresImport(data acceptance.TestData) string {
+func (r ActiveDirectoryDomainServiceTrustResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -182,7 +182,7 @@ resource "azurerm_active_directory_domain_service_trust" "import" {
 `, template)
 }
 
-func (r DomainServiceTrustResource) template(_ acceptance.TestData) string {
+func (r ActiveDirectoryDomainServiceTrustResource) template(_ acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

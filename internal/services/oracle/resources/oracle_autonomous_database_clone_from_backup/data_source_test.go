@@ -38,5 +38,5 @@ data "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   name                = azurerm_oracle_autonomous_database_clone_from_backup.test.name
   resource_group_name = azurerm_oracle_autonomous_database_clone_from_backup.test.resource_group_name
 }
-`, AutonomousDatabaseCloneFromBackupResource{}.basic(data))
+`, OracleAutonomousDatabaseCloneFromBackupResource{}.basic(data))
 }

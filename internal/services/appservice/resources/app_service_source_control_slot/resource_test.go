@@ -20,11 +20,11 @@ import (
 
 // (@jackofallops) Note: Some tests require a valid GitHub token for ARM_GITHUB_ACCESS_TOKEN. This token needs the `repo` and `workflow` permissions to be applicable on the referenced repositories.
 
-type SourceControlSlotResource struct{}
+type AppServiceSourceControlSlotResource struct{}
 
 func TestAccSourceControlSlotResource_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windowsExternalGit(data),
@@ -34,7 +34,7 @@ func TestAccSourceControlSlotResource_regressionTest(t *testing.T) {
 
 func TestAccSourceControlSlotResource_windowsExternalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccSourceControlSlotResource_windowsExternalGit(t *testing.T) {
 
 func TestAccSourceControlSlotResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccSourceControlSlotResource_requiresImport(t *testing.T) {
 
 func TestAccSourceControlSlotResource_windowsLocalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccSourceControlSlotResource_windowsGitHubAction(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccSourceControlSlotResource_windowsGitHub(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccSourceControlSlotResource_windowsGitHub(t *testing.T) {
 
 func TestAccSourceControlSlotResource_linuxExternalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,7 +134,7 @@ func TestAccSourceControlSlotResource_linuxExternalGit(t *testing.T) {
 
 func TestAccSourceControlSlotResource_linuxLocalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -155,7 +155,7 @@ func TestAccSourceControlSlotResource_linuxGitHubAction(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -175,7 +175,7 @@ func TestAccSourceControlSlotResource_linuxGitHub(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_slot", "test")
-	r := SourceControlSlotResource{}
+	r := AppServiceSourceControlSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -188,7 +188,7 @@ func TestAccSourceControlSlotResource_linuxGitHub(t *testing.T) {
 	})
 }
 
-func (r SourceControlSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AppServiceSourceControlSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapps.ParseSlotID(state.ID)
 	if err != nil {
 		return nil, err
@@ -208,7 +208,7 @@ func (r SourceControlSlotResource) Exists(ctx context.Context, client *clients.C
 	return pointer.To(true), nil
 }
 
-func (r SourceControlSlotResource) windowsExternalGit(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) windowsExternalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -225,7 +225,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseWindowsAppTemplate(data))
 }
 
-func (r SourceControlSlotResource) requiresImport(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -238,7 +238,7 @@ resource "azurerm_app_service_source_control_slot" "import" {
 `, r.windowsExternalGit(data))
 }
 
-func (r SourceControlSlotResource) linuxExternalGit(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) linuxExternalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -255,7 +255,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseLinuxAppTemplate(data))
 }
 
-func (r SourceControlSlotResource) windowsLocalGit(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) windowsLocalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -270,7 +270,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseWindowsAppTemplate(data))
 }
 
-func (r SourceControlSlotResource) linuxLocalGit(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) linuxLocalGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -285,7 +285,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseLinuxAppTemplate(data))
 }
 
-func (r SourceControlSlotResource) windowsGitHubAction(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) windowsGitHubAction(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -316,7 +316,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseWindowsAppTemplate(data), token)
 }
 
-func (r SourceControlSlotResource) windowsGitHub(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) windowsGitHub(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -342,7 +342,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseWindowsAppTemplate(data), token)
 }
 
-func (r SourceControlSlotResource) linuxGitHubAction(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) linuxGitHubAction(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -373,7 +373,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseLinuxAppTemplate(data), token)
 }
 
-func (r SourceControlSlotResource) linuxGitHub(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) linuxGitHub(data acceptance.TestData) string {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -400,7 +400,7 @@ resource "azurerm_app_service_source_control_slot" "test" {
 `, r.baseLinuxAppTemplate(data), token)
 }
 
-func (r SourceControlSlotResource) baseWindowsAppTemplate(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) baseWindowsAppTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -434,7 +434,7 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, SkuStandardPlan)
 }
 
-func (r SourceControlSlotResource) baseLinuxAppTemplate(data acceptance.TestData) string {
+func (r AppServiceSourceControlSlotResource) baseLinuxAppTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
