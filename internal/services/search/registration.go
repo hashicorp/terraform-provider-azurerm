@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/resources/search_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/resources/search_service_datasource_blob"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/resources/search_shared_private_link_service"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -38,6 +39,7 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		search_service_datasource_blob.Resource{},
 		search_shared_private_link_service.Resource{},
 	}
 }
