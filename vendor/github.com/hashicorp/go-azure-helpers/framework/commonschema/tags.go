@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/convert"
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	rmtags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -48,11 +49,16 @@ func ExpandTags(ctx context.Context, input typehelpers.MapValueOf[types.String],
 
 	convert.Expand(ctx, input, &result, diags)
 
-	return &result
+	// exclude any provider-level ignored tag keys from the desired set
+	return rmtags.Ignore().ApplyPtrMap(&result)
 }
 
 func FlattenTags(ctx context.Context, tags *map[string]string, diags *diag.Diagnostics) typehelpers.MapValueOf[types.String] {
+	// scrub any provider-level ignored tag keys before they reach state
+	tags = rmtags.Ignore().ApplyPtrMap(tags)
+
 	result := typehelpers.NewMapValueOfNull[types.String](ctx)
+
 	if tags == nil {
 		return result
 	}

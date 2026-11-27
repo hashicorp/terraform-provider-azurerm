@@ -13,5 +13,6 @@ func Expand(input map[string]interface{}) *map[string]string {
 		output[tagKey] = tagValue
 	}
 
-	return &output
+	// exclude any provider-level ignored tag keys from the desired set
+	return Ignore().ApplyPtrMap(&output)
 }

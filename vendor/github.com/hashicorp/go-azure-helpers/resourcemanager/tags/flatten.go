@@ -12,6 +12,9 @@ import (
 // Flatten transforms the Tags specified via `input` into a map[string]interface{}
 // for compatibility with the Schema.
 func Flatten(input *map[string]string) map[string]interface{} {
+	// scrub any provider-level ignored tag keys before they reach state
+	input = Ignore().ApplyPtrMap(input)
+
 	output := make(map[string]interface{})
 	if input == nil {
 		return output
