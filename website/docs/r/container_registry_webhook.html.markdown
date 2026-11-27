@@ -34,7 +34,7 @@ resource "azurerm_container_registry_webhook" "webhook" {
   location            = azurerm_resource_group.example.location
 
   service_uri = "https://mywebhookreceiver.example/mytag"
-  status      = "enabled"
+  enabled     = true
   scope       = "mytag:*"
   actions     = ["push"]
   custom_headers = {
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `actions` - (Required) A list of actions that trigger the Webhook to post notifications. At least one action needs to be specified. Valid values are: `push`, `delete`, `quarantine`, `chart_push`, `chart_delete`
 
-* `status` - (Optional) Specifies if this Webhook triggers notifications or not. Valid values: `enabled` and `disabled`. Default is `enabled`.
+* `enabled` - (Optional) Specifies if this Webhook triggers notifications or not. Defaults to `true`.
 
 * `scope` - (Optional) Specifies the scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for 'foo:bar' only. `foo` is equivalent to `foo:latest`. Empty means all events. Defaults to `""`.
 

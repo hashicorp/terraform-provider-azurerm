@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -48,8 +49,8 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	props := model.Properties
 
-	if d.HasChange("state") {
-		props.State = serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string))
+	if d.HasChange("enabled") || (!features.SixPointOh() && d.HasChange("state")) {
+		props.State = expandMssqlServerSecurityAlertPolicyState(d)
 	}
 
 	if d.HasChange("disabled_alerts") {

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/webhooks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -56,7 +57,10 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta any) e
 			if v := props.Status; v != nil {
 				status = string(*v)
 			}
-			d.Set("status", status)
+			d.Set("enabled", status == string(webhooks.WebhookStatusEnabled))
+			if !features.SixPointOh() {
+				d.Set("status", status)
+			}
 
 			d.Set("scope", pointer.From(props.Scope))
 

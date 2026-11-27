@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceArmTrafficManagerProfileRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -34,8 +35,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"profile_status": {
-				Type:     pluginsdk.TypeString,
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -142,6 +143,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["profile_status"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`profile_status` has been deprecated in favour of `enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta any) error {
@@ -168,7 +179,11 @@ func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta any)
 			if profile.ProfileStatus != nil {
 				profileStatus = string(*profile.ProfileStatus)
 			}
-			d.Set("profile_status", profileStatus)
+			d.Set("enabled", profileStatus == string(profiles.ProfileStatusEnabled))
+			if !features.SixPointOh() {
+				d.Set("profile_status", profileStatus)
+			}
+
 			trafficRoutingMethod := ""
 			if profile.TrafficRoutingMethod != nil {
 				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)

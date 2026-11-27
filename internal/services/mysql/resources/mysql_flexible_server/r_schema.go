@@ -217,7 +217,7 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// NOTE: O+C because Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
 			Computed:     true,
-			ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
+			ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"replication_role": {

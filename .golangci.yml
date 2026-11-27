@@ -123,7 +123,6 @@ linters:
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
             - AZS018 # descriptions with a note in them - the fix drops what the note says, to decide later
             - AZS010 # resources, properties and blocks with no description - most have none until the docs are generated from the schema
-            - AZS022 # TODO 6.0 - enable and fix the schema: strings that only take Enabled/Disabled, On/Off or true/false should be booleans
             - AZS023 # TODO 6.0 - enable and fix the schema: property names should not start with is_
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin

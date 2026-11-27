@@ -80,6 +80,18 @@ Please follow the format in the example below for listing breaking changes in re
 
 ---
 
+### `azurerm_application_gateway`
+
+* The deprecated `backend_http_settings.cookie_based_affinity` property has been removed in favour of the `backend_http_settings.cookie_based_affinity_enabled` property.
+
+### `azurerm_batch_pool`
+
+* The deprecated `inter_node_communication` property has been removed in favour of the `inter_node_communication_enabled` property.
+
+### `azurerm_container_registry_webhook`
+
+* The deprecated `status` property has been removed in favour of the `enabled` property.
+
 ### `azurerm_data_protection_backup_vault`
 
 * The `alerts_for_all_job_failures_enabled` property now defaults to `true`.
@@ -94,6 +106,15 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_dev_test_schedule`
+
+* The deprecated `status` property has been removed in favour of the `enabled` property.
+* The deprecated `notification_settings.status` property has been removed in favour of the `notification_settings.enabled` property.
+
+### `azurerm_mssql_database`
+
+* The deprecated `threat_detection_policy.state` property has been removed in favour of the `threat_detection_policy.enabled` property.
+
 ### `azurerm_mssql_job_credential`
 
 * The `password_wo_version` property must now be at least `1`.
@@ -101,6 +122,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_mssql_server`
 
 * The `administrator_login_password_wo_version` property must now be at least `1`.
+
+### `azurerm_mssql_server_security_alert_policy`
+
+* The deprecated `state` property has been removed in favour of the `enabled` property.
 
 ### `azurerm_mysql_flexible_server`
 
@@ -120,6 +145,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The `account_kind` property no longer accepts the `BlobStorage` and `Storage` values.
 * The deprecated `public_network_access_enabled` property has been removed.
 
+### `azurerm_traffic_manager_profile`
+
+* The deprecated `profile_status` property has been removed in favour of the `enabled` property.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
@@ -132,3 +161,15 @@ Please follow the format in the example below for listing breaking changes in da
 ```
 
 ---
+
+### `azurerm_application_gateway`
+
+* The deprecated `backend_http_settings.cookie_based_affinity` property has been removed in favour of the `backend_http_settings.cookie_based_affinity_enabled` property.
+
+### `azurerm_batch_pool`
+
+* The deprecated `inter_node_communication` property has been removed in favour of the `inter_node_communication_enabled` property.
+
+### `azurerm_traffic_manager_profile`
+
+* The deprecated `profile_status` property has been removed in favour of the `enabled` property.

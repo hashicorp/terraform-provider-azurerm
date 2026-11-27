@@ -630,11 +630,11 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Config: r.threatDetectionPolicy(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins_enabled").HasValue("true"),
@@ -642,11 +642,11 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
 		{
-			Config: r.threatDetectionPolicy(data, "Disabled"),
+			Config: r.threatDetectionPolicy(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
@@ -669,7 +669,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicyNoStorage(t *testing.T) {
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
 		{
-			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Config: r.threatDetectionPolicy(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
@@ -2140,7 +2140,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MssqlDatabaseResource) threatDetectionPolicy(data acceptance.TestData, state string) string {
+func (r MssqlDatabaseResource) threatDetectionPolicy(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2163,7 +2163,7 @@ resource "azurerm_mssql_database" "test" {
 
   threat_detection_policy {
     retention_days               = 15
-    state                        = "%[3]s"
+    enabled                      = %[3]t
     disabled_alerts              = ["Sql_Injection"]
     email_account_admins_enabled = true
     storage_account_access_key   = azurerm_storage_account.test.primary_access_key
@@ -2174,7 +2174,7 @@ resource "azurerm_mssql_database" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, state)
+`, r.template(data), data.RandomInteger, enabled)
 }
 
 func (r MssqlDatabaseResource) threatDetectionPolicyNoStorage(data acceptance.TestData) string {
@@ -2192,7 +2192,7 @@ resource "azurerm_mssql_database" "test" {
 
   threat_detection_policy {
     retention_days               = 15
-    state                        = "Enabled"
+    enabled                      = true
     disabled_alerts              = ["Sql_Injection"]
     email_account_admins_enabled = true
   }

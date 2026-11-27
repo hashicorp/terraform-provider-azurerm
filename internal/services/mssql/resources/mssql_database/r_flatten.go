@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -219,8 +220,12 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy dat
 	}
 
 	securityAlertPolicy := map[string]any{
-		"state":                        string(properties.State),
+		"enabled":                      properties.State == databasesecurityalertpolicies.SecurityAlertsPolicyStateEnabled,
 		"email_account_admins_enabled": pointer.From(properties.EmailAccountAdmins),
+	}
+
+	if !features.SixPointOh() {
+		securityAlertPolicy["state"] = string(properties.State)
 	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {

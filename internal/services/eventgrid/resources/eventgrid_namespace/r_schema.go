@@ -70,7 +70,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Default:     string(namespaces.PublicNetworkAccessEnabled),
-			ValidateFunc: validation.StringInSlice([]string{
+			ValidateFunc: validation.StringInSlice([]string{ // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 				string(namespaces.PublicNetworkAccessEnabled),
 				string(namespaces.PublicNetworkAccessDisabled),
 			}, false),

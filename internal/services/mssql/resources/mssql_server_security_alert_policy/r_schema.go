@@ -6,13 +6,14 @@ package mssql_server_security_alert_policy
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"server_name": {
@@ -65,12 +66,10 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
-		"state": {
-			Description: "The state of the policy.",
-			Type:        pluginsdk.TypeString,
+		"enabled": {
+			Description: "Whether the policy is enabled.",
+			Type:        pluginsdk.TypeBool,
 			Required:    true,
-			ValidateFunc: validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(),
-				false),
 		},
 
 		"storage_account_access_key": {
@@ -90,4 +89,26 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"storage_account_access_key"},
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["state"] = &pluginsdk.Schema{
+			Description:  "The state of the policy.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(), false),
+			ExactlyOneOf: []string{"enabled", "state"},
+			Deprecated:   "`state` has been deprecated in favour of `enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["enabled"] = &pluginsdk.Schema{
+			Description:  "Whether the policy is enabled.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"enabled", "state"},
+		}
+	}
+
+	return s
 }

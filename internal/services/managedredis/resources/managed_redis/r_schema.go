@@ -210,7 +210,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      redisenterprise.PublicNetworkAccessEnabled,
-			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForPublicNetworkAccess(), false),
+			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForPublicNetworkAccess(), false), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"tags": commonschema.Tags(),

@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -534,7 +535,20 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 	if tdl := td.([]any); len(tdl) > 0 {
 		securityAlert := tdl[0].(map[string]any)
 
-		properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
+		if securityAlert["enabled"].(bool) {
+			properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyStateEnabled
+		}
+
+		// in 5.x `state` wins when it is set, and leaving both out means disabled
+		if !features.SixPointOh() {
+			switch {
+			case !pluginsdk.IsExplicitlyNullInConfigAt(d, "threat_detection_policy.0.state"):
+				properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
+			case pluginsdk.IsExplicitlyNullInConfigAt(d, "threat_detection_policy.0.enabled"):
+				properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyStateDisabled
+			}
+		}
+
 		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins_enabled"].(bool))
 
 		if v, ok := securityAlert["disabled_alerts"]; ok {

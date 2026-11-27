@@ -29,7 +29,7 @@ resource "azurerm_dev_test_schedule" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   lab_name            = azurerm_dev_test_lab.example.name
-  status              = "Enabled"
+  enabled             = true
 
   weekly_recurrence {
     time      = "1100"
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `lab_name` - (Required) The name of the dev test lab. Changing this forces a new resource to be created.
 
-* `status` - (Optional) The status of this schedule. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`.
+* `enabled` - (Optional) Is this schedule enabled? Defaults to `false`.
 
 * `task_type` - (Required) The task type of the schedule. Possible values include `LabVmsShutdownTask` and `LabVmAutoStart`.
 
@@ -100,7 +100,7 @@ A `hourly_recurrence` block supports the following:
 
 A `notification_settings` block supports the following:
 
-* `status` - (Optional) The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
+* `enabled` - (Optional) Is the notification enabled? Defaults to `false`.
 
 * `time_in_minutes` - (Optional) Time in minutes before event at which notification will be sent.
 

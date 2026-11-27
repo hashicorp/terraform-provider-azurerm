@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -17,7 +18,7 @@ import (
 )
 
 func batchPoolSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Batch pool.",
 			Type:         pluginsdk.TypeString,
@@ -686,12 +687,11 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 				pool.PossibleValuesForDiffDiskPlacement(), false,
 			),
 		},
-		"inter_node_communication": {
-			Description:  "Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. Values allowed are `Disabled` and `Enabled`.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(pool.InterNodeCommunicationStateEnabled),
-			ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInterNodeCommunicationState(), false),
+		"inter_node_communication_enabled": {
+			Description: "Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"security_profile": {
@@ -837,6 +837,28 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["inter_node_communication"] = &pluginsdk.Schema{
+			Description:   "Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. Values allowed are `Disabled` and `Enabled`.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.StringInSlice(pool.PossibleValuesForInterNodeCommunicationState(), false),
+			ConflictsWith: []string{"inter_node_communication_enabled"},
+			Deprecated:    "`inter_node_communication` has been deprecated in favour of `inter_node_communication_enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["inter_node_communication_enabled"] = &pluginsdk.Schema{
+			Description:   "Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"inter_node_communication"},
+		}
+	}
+
+	return s
 }
 
 func startTaskSchema() map[string]*pluginsdk.Schema {

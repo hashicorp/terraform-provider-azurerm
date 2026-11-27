@@ -77,7 +77,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      nil,
-			ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
+			ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"purge_protection_enabled": {

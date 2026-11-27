@@ -2188,11 +2188,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = "backend-http-1"
-    port                  = 8010
-    protocol              = "Http"
-    cookie_based_affinity = "Enabled"
-    request_timeout       = 30
+    name                          = "backend-http-1"
+    port                          = 8010
+    protocol                      = "Http"
+    cookie_based_affinity_enabled = true
+    request_timeout               = 30
 
     probe_name = "probe-1"
   }

@@ -198,7 +198,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      workspaces.PublicNetworkAccessEnabled,
-			ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccess(), false),
+			ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccess(), false), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"description": {

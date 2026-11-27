@@ -219,7 +219,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(mongoclusters.PublicNetworkAccessEnabled),
-			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPublicNetworkAccess(), false),
+			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPublicNetworkAccess(), false), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"storage_size_in_gb": {

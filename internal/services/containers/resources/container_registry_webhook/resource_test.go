@@ -94,14 +94,14 @@ func TestAccContainerRegistryWebhook_status(t *testing.T) {
 			Config: r.status(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("enabled"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: r.statusUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("disabled"),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
 		},
 	})
@@ -377,7 +377,7 @@ resource "azurerm_container_registry_webhook" "test" {
 
   service_uri = "https://mywebhookreceiver.example/mytag"
 
-  status = "enabled"
+  enabled = true
 
   actions = [
     "push"
@@ -412,7 +412,7 @@ resource "azurerm_container_registry_webhook" "test" {
 
   service_uri = "https://mywebhookreceiver.example/mytag"
 
-  status = "disabled"
+  enabled = false
 
   actions = [
     "push"
@@ -480,7 +480,7 @@ resource "azurerm_container_registry_webhook" "test" {
 
   service_uri = "https://my.webhookreceiver.example/mytag/2"
 
-  status = "disabled"
+  enabled = false
 
   actions = [
     "push"

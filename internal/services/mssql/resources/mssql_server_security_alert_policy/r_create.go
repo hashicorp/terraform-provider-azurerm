@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,10 +25,9 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-	state := d.Get("state").(string)
 
 	props := &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
-		State: serversecurityalertpolicies.SecurityAlertsPolicyState(state),
+		State: expandMssqlServerSecurityAlertPolicyState(d),
 	}
 
 	var disabledAlerts *[]string
@@ -98,4 +98,17 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	d.SetId(id.ID())
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
+}
+
+// expandMssqlServerSecurityAlertPolicyState is the state to send, from `enabled`, or in 5.x from `state` when that is set.
+func expandMssqlServerSecurityAlertPolicyState(d *pluginsdk.ResourceData) serversecurityalertpolicies.SecurityAlertsPolicyState {
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "state") {
+		return serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string))
+	}
+
+	if d.Get("enabled").(bool) {
+		return serversecurityalertpolicies.SecurityAlertsPolicyStateEnabled
+	}
+
+	return serversecurityalertpolicies.SecurityAlertsPolicyStateDisabled
 }

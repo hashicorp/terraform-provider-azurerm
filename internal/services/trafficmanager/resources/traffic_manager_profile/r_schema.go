@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func trafficManagerProfileSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -125,11 +126,10 @@ func trafficManagerProfileSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"profile_status": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(profiles.ProfileStatusEnabled),
-			ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"max_return": { // azignore:AZP003 - named `maximum_return` in the data source to follow new naming conventions
@@ -150,4 +150,24 @@ func trafficManagerProfileSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["profile_status"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
+			ConflictsWith: []string{"enabled"},
+			Deprecated:    "`profile_status` has been deprecated in favour of `enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"profile_status"},
+		}
+	}
+
+	return s
 }

@@ -122,7 +122,7 @@ The following arguments are supported:
 
 * `extensions` - (Optional) An `extensions` block as defined below.
 
-* `inter_node_communication` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. Values allowed are `Disabled` and `Enabled`. Defaults to `Enabled`.
+* `inter_node_communication_enabled` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

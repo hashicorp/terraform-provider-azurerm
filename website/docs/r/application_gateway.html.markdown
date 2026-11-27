@@ -86,12 +86,12 @@ resource "azurerm_application_gateway" "network" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    path                  = "/path1/"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 60
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    path                          = "/path1/"
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 60
   }
 
   http_listener {
@@ -252,7 +252,7 @@ A `backend` block supports the following:
 
 A `backend_http_settings` block supports the following:
 
-* `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
+* `cookie_based_affinity_enabled` - (Required) Is Cookie-Based Affinity enabled?
 
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
 

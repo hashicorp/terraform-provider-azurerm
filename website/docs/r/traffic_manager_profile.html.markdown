@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile. Changing this forces a new resource to be created.
 
-* `profile_status` - (Optional) The status of the profile, can be set to either `Enabled` or `Disabled`. Defaults to `Enabled`.
+* `enabled` - (Optional) Is the profile enabled? Defaults to `true`.
 
 * `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic. Possible values are `Geographic`, `Weighted`, `Performance`, `Priority`, `Subnet` and `MultiValue`.
   * `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.

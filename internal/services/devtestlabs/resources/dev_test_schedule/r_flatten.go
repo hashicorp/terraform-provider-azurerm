@@ -5,6 +5,7 @@ package dev_test_schedule
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func flattenAzureRmDevTestLabScheduleRecurrenceDaily(dailyRecurrence *schedules.DayDetails) []any {
@@ -71,7 +72,10 @@ func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *
 	}
 
 	if notificationSettings.Status != nil {
-		result["status"] = *notificationSettings.Status
+		result["enabled"] = *notificationSettings.Status == schedules.EnableStatusEnabled
+		if !features.SixPointOh() {
+			result["status"] = *notificationSettings.Status
+		}
 	}
 
 	return []any{result}

@@ -153,7 +153,7 @@ func (r MsSqlServerSecurityAlertPolicyResource) basic(data acceptance.TestData) 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_mssql_server.test.name
-  state               = "Enabled"
+  enabled             = true
 }
 `, r.server(data))
 }
@@ -165,7 +165,7 @@ func (r MsSqlServerSecurityAlertPolicyResource) disableAlertsEmail(data acceptan
 resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_mssql_server.test.name
-  state               = "Enabled"
+  enabled             = true
 
   disabled_alerts = [
     "Sql_Injection",
@@ -189,7 +189,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
   server_name                = azurerm_mssql_server.test.name
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  state                      = "Enabled"
+  enabled                    = true
 
   disabled_alerts = [
     "Sql_Injection",
@@ -213,7 +213,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
   server_name                = azurerm_mssql_server.test.name
   storage_endpoint           = azurerm_storage_account.test2.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test2.primary_access_key
-  state                      = "Enabled"
+  enabled                    = true
 
   disabled_alerts = [
     "Sql_Injection",
@@ -237,7 +237,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
   server_name                = azurerm_mssql_server.test.name
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  state                      = "Enabled"
+  enabled                    = true
 }
 `, r.server(data))
 }
@@ -249,7 +249,7 @@ func (r MsSqlServerSecurityAlertPolicyResource) disabled(data acceptance.TestDat
 resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_mssql_server.test.name
-  state               = "Disabled"
+  enabled             = false
 }
 `, r.server(data))
 }
@@ -303,7 +303,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_mssql_server.test.name
   storage_endpoint    = azurerm_storage_account.test.primary_blob_endpoint
-  state               = "Enabled"
+  enabled             = true
 }
 `, r.server(data))
 }

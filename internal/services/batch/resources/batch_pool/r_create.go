@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -43,7 +44,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 		Properties: &pool.PoolProperties{
 			VMSize:                 new(d.Get("vm_size").(string)),
 			DisplayName:            new(d.Get("display_name").(string)),
-			InterNodeCommunication: pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string)),
+			InterNodeCommunication: expandBatchPoolInterNodeCommunication(d),
 			TaskSlotsPerNode:       new(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
@@ -193,4 +194,25 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	}
 
 	return scaleSettings, nil
+}
+
+// expandBatchPoolInterNodeCommunication is whether nodes may talk to each other, from `inter_node_communication_enabled`, or in 5.x from
+// `inter_node_communication` when that is set. Leaving both out means enabled.
+func expandBatchPoolInterNodeCommunication(d *pluginsdk.ResourceData) *pool.InterNodeCommunicationState {
+	enabled := d.Get("inter_node_communication_enabled").(bool)
+	if !features.SixPointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "inter_node_communication") {
+			return pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string))
+		}
+
+		if pluginsdk.IsExplicitlyNullInConfig(d, "inter_node_communication_enabled") {
+			enabled = true
+		}
+	}
+
+	if enabled {
+		return pointer.To(pool.InterNodeCommunicationStateEnabled)
+	}
+
+	return pointer.To(pool.InterNodeCommunicationStateDisabled)
 }

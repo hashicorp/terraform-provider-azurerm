@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	devTestValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,7 +17,7 @@ import (
 )
 
 func devTestScheduleSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Dev Test Lab schedule. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`.",
 			Type:         pluginsdk.TypeString,
@@ -39,12 +40,11 @@ func devTestScheduleSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: devTestValidate.DevTestLabName(),
 		},
 
-		"status": {
-			Description:  "The status of this schedule.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      schedules.EnableStatusDisabled,
-			ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
+		"enabled": {
+			Description: "Whether this schedule is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"task_type": {
@@ -142,12 +142,11 @@ func devTestScheduleSchema() map[string]*pluginsdk.Schema {
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"status": {
-						Description:  "The status of the notification.",
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Default:      schedules.EnableStatusDisabled,
-						ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
+					"enabled": {
+						Description: "Whether the notification is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 					"time_in_minutes": {
 						Description:  "Time in minutes before event at which notification will be sent.",
@@ -166,4 +165,46 @@ func devTestScheduleSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["status"] = &pluginsdk.Schema{
+			Description:   "The status of this schedule.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
+			ConflictsWith: []string{"enabled"},
+			Deprecated:    "`status` has been deprecated in favour of `enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["enabled"] = &pluginsdk.Schema{
+			Description:   "Whether this schedule is enabled.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"status"},
+		}
+
+		notification := s["notification_settings"].Elem.(*pluginsdk.Resource).Schema
+
+		notification["status"] = &pluginsdk.Schema{
+			Description:   "The status of the notification.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
+			ConflictsWith: []string{"notification_settings.0.enabled"},
+			Deprecated:    "`notification_settings.status` has been deprecated in favour of `notification_settings.enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		notification["enabled"] = &pluginsdk.Schema{
+			Description:   "Whether the notification is enabled.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"notification_settings.0.status"},
+		}
+	}
+
+	return s
 }

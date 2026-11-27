@@ -717,7 +717,7 @@ func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.
 			Config: r.interNodeCommunicationWithTaskSchedulingPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("inter_node_communication_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("task_scheduling_policy.0.node_fill_type").HasValue("Pack"),
 			),
 		},
@@ -2502,12 +2502,12 @@ resource "azurerm_batch_account" "test" {
   public_network_access_enabled = false
 }
 resource "azurerm_batch_pool" "test" {
-  name                     = "testaccpool%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  account_name             = azurerm_batch_account.test.name
-  node_agent_sku_id        = "batch.node.ubuntu 22.04"
-  vm_size                  = "STANDARD_A1_V2"
-  inter_node_communication = "Disabled"
+  name                             = "testaccpool%s"
+  resource_group_name              = azurerm_resource_group.test.name
+  account_name                     = azurerm_batch_account.test.name
+  node_agent_sku_id                = "batch.node.ubuntu 22.04"
+  vm_size                          = "STANDARD_A1_V2"
+  inter_node_communication_enabled = false
   task_scheduling_policy {
     node_fill_type = "Pack"
   }

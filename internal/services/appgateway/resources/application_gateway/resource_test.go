@@ -1492,11 +1492,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -1593,11 +1593,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -1672,11 +1672,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -1751,11 +1751,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -1842,11 +1842,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   global {
@@ -1926,11 +1926,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   global {
@@ -2022,11 +2022,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2103,11 +2103,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2186,11 +2186,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2268,11 +2268,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2339,12 +2339,12 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    path                  = "/path1/"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    path                          = "/path1/"
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2412,11 +2412,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2473,11 +2473,11 @@ resource "azurerm_application_gateway" "import" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -2636,11 +2636,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = "${local.http_setting_name}"
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
   }
 
   trusted_root_certificate {
@@ -2830,11 +2830,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
   }
 
   trusted_root_certificate {
@@ -2907,11 +2907,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -3006,11 +3006,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
 
     pick_host_name_from_backend_address = true
     trusted_root_certificate_names      = [local.auth_cert_name]
@@ -3116,11 +3116,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
 
     pick_host_name_from_backend_address = true
   }
@@ -3235,11 +3235,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
 
     pick_host_name_from_backend_address = true
   }
@@ -3357,11 +3357,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
 
     pick_host_name_from_backend_address = true
   }
@@ -3473,11 +3473,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
+    request_timeout               = 1
 
     pick_host_name_from_backend_address = true
     trusted_root_certificate_names      = [local.auth_cert_name]
@@ -3572,7 +3572,7 @@ resource "azurerm_application_gateway" "test" {
 
   backend_http_settings {
     name                                 = local.http_setting_name
-    cookie_based_affinity                = "Disabled"
+    cookie_based_affinity_enabled        = false
     port                                 = 443
     protocol                             = "Https"
     request_timeout                      = 1
@@ -3672,7 +3672,7 @@ resource "azurerm_application_gateway" "test" {
 
   backend_http_settings {
     name                                 = local.http_setting_name
-    cookie_based_affinity                = "Disabled"
+    cookie_based_affinity_enabled        = false
     port                                 = 443
     protocol                             = "Https"
     request_timeout                      = 1
@@ -3771,7 +3771,7 @@ resource "azurerm_application_gateway" "test" {
 
   backend_http_settings {
     name                                 = local.http_setting_name
-    cookie_based_affinity                = "Disabled"
+    cookie_based_affinity_enabled        = false
     port                                 = 443
     protocol                             = "Https"
     request_timeout                      = 1
@@ -3853,11 +3853,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -3942,11 +3942,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -4045,11 +4045,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -4142,11 +4142,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -4241,11 +4241,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -4359,21 +4359,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    probe_name            = local.probe1_name
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    probe_name                    = local.probe1_name
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}-2"
-    cookie_based_affinity = "Disabled"
-    port                  = 8080
-    probe_name            = local.probe2_name
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = "${local.http_setting_name}-2"
+    cookie_based_affinity_enabled = false
+    port                          = 8080
+    probe_name                    = local.probe2_name
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   probe {
@@ -4463,21 +4463,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    probe_name            = local.probe1_name
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    probe_name                    = local.probe1_name
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}-2"
-    cookie_based_affinity = "Disabled"
-    port                  = 8080
-    probe_name            = local.probe2_name
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = "${local.http_setting_name}-2"
+    cookie_based_affinity_enabled = false
+    port                          = 8080
+    probe_name                    = local.probe2_name
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   probe {
@@ -4570,7 +4570,7 @@ resource "azurerm_application_gateway" "test" {
 
   backend_http_settings {
     name                                = local.http_setting_name
-    cookie_based_affinity               = "Disabled"
+    cookie_based_affinity_enabled       = false
     pick_host_name_from_backend_address = true
     port                                = 80
     probe_name                          = local.probe_name
@@ -4661,12 +4661,12 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    probe_name            = local.probe1_name
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    probe_name                    = local.probe1_name
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   probe {
@@ -4745,7 +4745,7 @@ resource "azurerm_application_gateway" "test" {
 
   backend_http_settings {
     name                                 = local.http_setting_name
-    cookie_based_affinity                = "Disabled"
+    cookie_based_affinity_enabled        = false
     dedicated_backend_connection_enabled = true
     host_name                            = "%s"
     port                                 = 80
@@ -4827,11 +4827,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -4900,7 +4900,7 @@ resource "azurerm_application_gateway" "test" {
 
   backend_http_settings {
     name                                = local.http_setting_name
-    cookie_based_affinity               = "Disabled"
+    cookie_based_affinity_enabled       = false
     pick_host_name_from_backend_address = true
     port                                = 80
     protocol                            = "Http"
@@ -5064,11 +5064,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5234,11 +5234,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5312,11 +5312,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5391,11 +5391,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5470,11 +5470,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5600,11 +5600,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5684,11 +5684,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5786,11 +5786,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -5858,11 +5858,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
 
     connection_draining {
       enabled           = true
@@ -5946,11 +5946,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6030,11 +6030,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6113,11 +6113,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6195,11 +6195,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6362,11 +6362,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6525,11 +6525,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6634,11 +6634,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6757,11 +6757,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -6921,11 +6921,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7066,12 +7066,12 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Enabled"
-    affinity_cookie_name  = "testCookieName"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = true
+    affinity_cookie_name          = "testCookieName"
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7138,11 +7138,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Enabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = true
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7216,11 +7216,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7295,11 +7295,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7379,11 +7379,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7497,11 +7497,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -7571,10 +7571,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
   }
 
   probe {
@@ -7662,10 +7662,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 443
+    protocol                      = "Https"
   }
 
   ssl_certificate {
@@ -7884,10 +7884,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
   }
 
   backend {
@@ -8034,10 +8034,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
   }
 
   http_listener {
@@ -8128,10 +8128,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
   }
 
   ssl_certificate {
@@ -8249,11 +8249,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8349,11 +8349,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8450,11 +8450,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8562,11 +8562,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8670,11 +8670,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8781,11 +8781,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8896,11 +8896,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -8968,11 +8968,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -9047,11 +9047,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -9118,10 +9118,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
   }
 
   http_listener {
@@ -9188,11 +9188,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {
@@ -9259,11 +9259,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = local.http_setting_name
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -97,7 +98,18 @@ func expandApplicationGatewayBackendHTTPSettings(input []any, gatewayID string) 
 		path := v["path"].(string)
 		port := int64(v["port"].(int))
 		protocol := v["protocol"].(string)
-		cookieBasedAffinity := v["cookie_based_affinity"].(string)
+
+		cookieBasedAffinity := applicationgateways.ApplicationGatewayCookieBasedAffinityDisabled
+		if v["cookie_based_affinity_enabled"].(bool) {
+			cookieBasedAffinity = applicationgateways.ApplicationGatewayCookieBasedAffinityEnabled
+		}
+
+		if !features.SixPointOh() {
+			if old := v["cookie_based_affinity"].(string); old != "" {
+				cookieBasedAffinity = applicationgateways.ApplicationGatewayCookieBasedAffinity(old)
+			}
+		}
+
 		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
 		requestTimeout := int64(v["request_timeout"].(int))
 
@@ -105,7 +117,7 @@ func expandApplicationGatewayBackendHTTPSettings(input []any, gatewayID string) 
 			Name: pointer.To(v["name"].(string)),
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
-				CookieBasedAffinity:            pointer.ToEnum[applicationgateways.ApplicationGatewayCookieBasedAffinity](cookieBasedAffinity),
+				CookieBasedAffinity:            pointer.To(cookieBasedAffinity),
 				DedicatedBackendConnection:     pointer.To(v["dedicated_backend_connection_enabled"].(bool)),
 				Path:                           pointer.To(path),
 				PickHostNameFromBackendAddress: pointer.To(pickHostNameFromBackendAddress),

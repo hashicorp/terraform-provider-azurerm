@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +60,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
-			d.Set("inter_node_communication", pointer.FromEnum(props.InterNodeCommunication))
+			d.Set("inter_node_communication_enabled", pointer.From(props.InterNodeCommunication) == pool.InterNodeCommunicationStateEnabled)
+			if !features.SixPointOh() {
+				d.Set("inter_node_communication", pointer.FromEnum(props.InterNodeCommunication))
+			}
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {

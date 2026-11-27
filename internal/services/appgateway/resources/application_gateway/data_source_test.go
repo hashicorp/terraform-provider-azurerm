@@ -70,7 +70,7 @@ func TestAccApplicationGatewayDataSource_sslProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("frontend_port.0.port").Exists(),
 				check.That(data.ResourceName).Key("frontend_ip_configuration.0.public_ip_address_id").Exists(),
 				check.That(data.ResourceName).Key("backend_address_pool.0.name").Exists(),
-				check.That(data.ResourceName).Key("backend_http_settings.0.cookie_based_affinity").Exists(),
+				check.That(data.ResourceName).Key("backend_http_settings.0.cookie_based_affinity_enabled").Exists(),
 				check.That(data.ResourceName).Key("http_listener.0.frontend_port_name").Exists(),
 				check.That(data.ResourceName).Key("http_listener.0.protocol").Exists(),
 				check.That(data.ResourceName).Key("request_routing_rule.0.priority").Exists(),

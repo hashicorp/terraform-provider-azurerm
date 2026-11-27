@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -48,7 +49,10 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta any) error 
 		props := model.Properties
 		d.Set("time_zone_id", props.TimeZoneId)
 		d.Set("task_type", props.TaskType)
-		d.Set("status", pointer.FromEnum(props.Status))
+		d.Set("enabled", pointer.From(props.Status) == schedules.EnableStatusEnabled)
+		if !features.SixPointOh() {
+			d.Set("status", pointer.FromEnum(props.Status))
+		}
 
 		if err := d.Set("weekly_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceWeekly(props.WeeklyRecurrence)); err != nil {
 			return fmt.Errorf("setting `weeklyRecurrence`: %#v", err)

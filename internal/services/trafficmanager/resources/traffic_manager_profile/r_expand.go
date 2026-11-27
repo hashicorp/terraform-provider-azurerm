@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -79,4 +80,24 @@ func expandArmTrafficManagerTrafficView(s bool) *profiles.TrafficViewEnrollmentS
 		enabled = profiles.TrafficViewEnrollmentStatusEnabled
 	}
 	return &enabled
+}
+
+// expandTrafficManagerProfileStatus is the status to send, from `enabled`, or in 5.x from `profile_status` when that is set. Leaving both out means enabled.
+func expandTrafficManagerProfileStatus(d *pluginsdk.ResourceData) *profiles.ProfileStatus {
+	enabled := d.Get("enabled").(bool)
+	if !features.SixPointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "profile_status") {
+			return pointer.ToEnum[profiles.ProfileStatus](d.Get("profile_status").(string))
+		}
+
+		if pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
+			enabled = true
+		}
+	}
+
+	if enabled {
+		return pointer.To(profiles.ProfileStatusEnabled)
+	}
+
+	return pointer.To(profiles.ProfileStatusDisabled)
 }

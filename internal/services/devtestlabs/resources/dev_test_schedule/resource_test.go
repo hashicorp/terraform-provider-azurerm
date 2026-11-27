@@ -27,9 +27,9 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 			Config: r.autoShutdownBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("notification_settings.0.status").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("daily_recurrence.#").HasValue("1"),
 				check.That(data.ResourceName).Key("daily_recurrence.0.time").HasValue("0100"),
 			),
@@ -39,9 +39,9 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 			Config: r.autoShutdownBasicUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("notification_settings.0.status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("30"),
 				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue("https://www.bing.com/2/4"),
 				check.That(data.ResourceName).Key("daily_recurrence.#").HasValue("1"),
@@ -60,7 +60,7 @@ func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 			Config: r.autoStartupBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("weekly_recurrence.#").HasValue("1"),
 				check.That(data.ResourceName).Key("weekly_recurrence.0.time").HasValue("1100"),
 				check.That(data.ResourceName).Key("weekly_recurrence.0.week_days.#").HasValue("2"),
@@ -72,7 +72,7 @@ func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 			Config: r.autoStartupBasicUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("weekly_recurrence.#").HasValue("1"),
 				check.That(data.ResourceName).Key("weekly_recurrence.0.time").HasValue("1000"),
 				check.That(data.ResourceName).Key("weekly_recurrence.0.week_days.#").HasValue("3"),
@@ -168,7 +168,7 @@ resource "azurerm_dev_test_lab" "test" {
 
 resource "azurerm_dev_test_schedule" "test" {
   name                = "LabVmsShutdown"
-  status              = "Enabled"
+  enabled             = true
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   lab_name            = azurerm_dev_test_lab.test.name
@@ -180,7 +180,7 @@ resource "azurerm_dev_test_schedule" "test" {
   notification_settings {
     time_in_minutes = 30
     webhook_url     = "https://www.bing.com/2/4"
-    status          = "Enabled"
+    enabled         = true
   }
   tags = {
     environment = "Production"
@@ -262,7 +262,7 @@ resource "azurerm_dev_test_schedule" "test" {
   notification_settings {
   }
 
-  status = "Enabled"
+  enabled = true
 
   tags = {
     environment = "Production"

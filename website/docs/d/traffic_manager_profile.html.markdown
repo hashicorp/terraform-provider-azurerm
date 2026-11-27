@@ -44,7 +44,7 @@ output "traffic_routing_method" {
 
 * `monitor_config` - This block specifies the Endpoint monitoring configuration for the Profile.
 
-* `profile_status` - The status of the profile.
+* `enabled` - Is the profile enabled?
 
 * `traffic_routing_method` - Specifies the algorithm used to route traffic.
 

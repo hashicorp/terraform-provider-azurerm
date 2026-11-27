@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,7 +18,7 @@ import (
 )
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the MS SQL Database.",
 			Type:         pluginsdk.TypeString,
@@ -305,18 +306,11 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
-					// NOTE: I believe that this was originally implemented incorrect, where it exposed the
-					// 'serveradvancedthreatprotectionsettings.PossibleValuesForAdvancedThreatProtectionState'
-					// which contains the values of 'Enabled', 'Disabled', and 'New'
-					// where 'serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState'
-					// only contains 'Enabled' and 'Disabled'
-					"state": {
-						Description: "The State of the Policy.",
-						Type:        pluginsdk.TypeString,
+					"enabled": {
+						Description: "Whether the policy is enabled.",
+						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     string(serversecurityalertpolicies.SecurityAlertsPolicyStateDisabled),
-						ValidateFunc: validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(),
-							false),
+						Default:     false,
 					},
 
 					"storage_account_access_key": {
@@ -397,4 +391,28 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		threatDetection := s["threat_detection_policy"].Elem.(*pluginsdk.Resource).Schema
+
+		threatDetection["state"] = &pluginsdk.Schema{
+			Description:   "The State of the Policy.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(), false),
+			ConflictsWith: []string{"threat_detection_policy.0.enabled"},
+			Deprecated:    "`threat_detection_policy.state` has been deprecated in favour of `threat_detection_policy.enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		threatDetection["enabled"] = &pluginsdk.Schema{
+			Description:   "Whether the policy is enabled.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"threat_detection_policy.0.state"},
+		}
+	}
+
+	return s
 }

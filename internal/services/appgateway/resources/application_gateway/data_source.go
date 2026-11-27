@@ -16,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceApplicationGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -100,8 +101,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 							},
 						},
 
-						"cookie_based_affinity": {
-							Type:     pluginsdk.TypeString,
+						"cookie_based_affinity_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
@@ -1493,6 +1494,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["backend_http_settings"].Elem.(*pluginsdk.Resource).Schema["cookie_based_affinity"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`backend_http_settings.cookie_based_affinity` has been deprecated in favour of `backend_http_settings.cookie_based_affinity_enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta any) error {

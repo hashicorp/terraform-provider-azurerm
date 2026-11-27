@@ -6,6 +6,7 @@ package dev_test_schedule
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,9 +47,43 @@ func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *sched
 	notificationSettingsConfigs := d.Get("notification_settings").([]any)
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]any)
 
+	enabled := notificationSettingsConfig["enabled"].(bool)
+	if !features.SixPointOh() {
+		switch {
+		case !pluginsdk.IsExplicitlyNullInConfigAt(d, "notification_settings.0.status"):
+			enabled = notificationSettingsConfig["status"].(string) == string(schedules.EnableStatusEnabled)
+		case pluginsdk.IsExplicitlyNullInConfigAt(d, "notification_settings.0.enabled"):
+			enabled = false
+		}
+	}
+
 	return &schedules.NotificationSettings{
 		WebhookURL:    pointer.To(notificationSettingsConfig["webhook_url"].(string)),
 		TimeInMinutes: pointer.To(int64(notificationSettingsConfig["time_in_minutes"].(int))),
-		Status:        pointer.ToEnum[schedules.EnableStatus](notificationSettingsConfig["status"].(string)),
+		Status:        expandDevTestScheduleEnableStatus(enabled),
 	}
+}
+
+// expandDevTestScheduleStatus is whether the schedule is enabled, from `enabled`, or in 5.x from `status` when that is set. Leaving both out means
+// disabled.
+func expandDevTestScheduleStatus(d *pluginsdk.ResourceData) *schedules.EnableStatus {
+	enabled := d.Get("enabled").(bool)
+	if !features.SixPointOh() {
+		switch {
+		case !pluginsdk.IsExplicitlyNullInConfig(d, "status"):
+			enabled = d.Get("status").(string) == string(schedules.EnableStatusEnabled)
+		case pluginsdk.IsExplicitlyNullInConfig(d, "enabled"):
+			enabled = false
+		}
+	}
+
+	return expandDevTestScheduleEnableStatus(enabled)
+}
+
+func expandDevTestScheduleEnableStatus(enabled bool) *schedules.EnableStatus {
+	if enabled {
+		return pointer.To(schedules.EnableStatusEnabled)
+	}
+
+	return pointer.To(schedules.EnableStatusDisabled)
 }

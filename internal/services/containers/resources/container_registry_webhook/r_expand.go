@@ -6,6 +6,7 @@ package container_registry_webhook
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/webhooks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,7 +21,7 @@ func expandWebhookPropertiesCreateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       expandWebhookActions(d),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
+		Status:        expandWebhookStatus(d),
 	}
 
 	return &webhookProperties
@@ -37,7 +38,7 @@ func expandWebhookPropertiesUpdateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       pointer.To(expandWebhookActions(d)),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
+		Status:        expandWebhookStatus(d),
 	}
 
 	return &webhookProperties
@@ -50,4 +51,24 @@ func expandWebhookActions(d *pluginsdk.ResourceData) []webhooks.WebhookAction {
 	}
 
 	return actions
+}
+
+// expandWebhookStatus is the status to send, from `enabled`, or in 5.x from `status` when that is set. Leaving both out means enabled.
+func expandWebhookStatus(d *pluginsdk.ResourceData) *webhooks.WebhookStatus {
+	enabled := d.Get("enabled").(bool)
+	if !features.SixPointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "status") {
+			return pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string))
+		}
+
+		if pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
+			enabled = true
+		}
+	}
+
+	if enabled {
+		return pointer.To(webhooks.WebhookStatusEnabled)
+	}
+
+	return pointer.To(webhooks.WebhookStatusDisabled)
 }

@@ -289,7 +289,12 @@ func applicationGatewayBackendSettingsHash(v any) int {
 		buf.WriteString(m["name"].(string))
 		fmt.Fprintf(&buf, "%d", m["port"].(int))
 		buf.WriteString(m["protocol"].(string))
-		buf.WriteString(m["cookie_based_affinity"].(string))
+		if v, ok := m["cookie_based_affinity_enabled"].(bool); ok {
+			fmt.Fprintf(&buf, "%t", v)
+		}
+		if v, ok := m["cookie_based_affinity"].(string); ok {
+			buf.WriteString(v)
+		}
 		fmt.Fprintf(&buf, "%t", m["dedicated_backend_connection_enabled"].(bool))
 
 		if v, ok := m["path"]; ok {

@@ -56,9 +56,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta any)
 		profile.Properties.MaxReturn = pointer.To(int64(maxReturn.(int)))
 	}
 
-	if status, ok := d.GetOk("profile_status"); ok {
-		profile.Properties.ProfileStatus = pointer.ToEnum[profiles.ProfileStatus](status.(string))
-	}
+	profile.Properties.ProfileStatus = expandTrafficManagerProfileStatus(d)
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
 	if *trafficRoutingMethodPtr == profiles.TrafficRoutingMethodMultiValue &&

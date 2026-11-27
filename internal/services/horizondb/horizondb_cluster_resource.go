@@ -282,7 +282,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(clusters.PublicNetworkAccessStateDisabled),
-			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPublicNetworkAccessState(), false),
+			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPublicNetworkAccessState(), false), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"tags": commonschema.Tags(),

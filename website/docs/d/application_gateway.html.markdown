@@ -161,7 +161,7 @@ A `backend_http_settings` block exports the following:
 
 * `connection_draining` - A `connection_draining` block as defined below.
 
-* `cookie_based_affinity` - Whether Cookie-Based Affinity is enabled.
+* `cookie_based_affinity_enabled` - Whether Cookie-Based Affinity is enabled.
 
 * `dedicated_backend_connection_enabled` - Whether a dedicated backend connection is used.
 

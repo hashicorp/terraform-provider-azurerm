@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func applicationGatewaySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -82,10 +83,9 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 
-					"cookie_based_affinity": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCookieBasedAffinity(), false),
+					"cookie_based_affinity_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
 					},
 
 					"port": {
@@ -1599,6 +1599,25 @@ func applicationGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		// these sit in a set, so neither can be Computed: read keeps each setting under the name it already uses
+		backendHTTPSettings := s["backend_http_settings"].Elem.(*pluginsdk.Resource).Schema
+
+		backendHTTPSettings["cookie_based_affinity"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCookieBasedAffinity(), false),
+			Deprecated:   "`backend_http_settings.cookie_based_affinity` has been deprecated in favour of `backend_http_settings.cookie_based_affinity_enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		backendHTTPSettings["cookie_based_affinity_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
+	}
+
+	return s
 }
 
 func sslProfileSchema(computed bool) *pluginsdk.Schema {

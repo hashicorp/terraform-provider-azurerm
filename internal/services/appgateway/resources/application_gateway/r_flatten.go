@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -48,6 +49,11 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 			if err != nil {
 				return fmt.Errorf("flattening `backend_http_settings`: %+v", err)
 			}
+
+			if !features.SixPointOh() {
+				backendHttpSettings = backendHTTPSettingsUnderUsedNames(d, backendHttpSettings)
+			}
+
 			if setErr := d.Set("backend_http_settings", backendHttpSettings); setErr != nil {
 				return fmt.Errorf("setting `backend_http_settings`: %+v", setErr)
 			}
@@ -306,7 +312,11 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 		}
 
 		if props := v.Properties; props != nil {
-			output["cookie_based_affinity"] = props.CookieBasedAffinity
+			output["cookie_based_affinity_enabled"] = pointer.From(props.CookieBasedAffinity) == applicationgateways.ApplicationGatewayCookieBasedAffinityEnabled
+			if !features.SixPointOh() {
+				output["cookie_based_affinity"] = string(pointer.From(props.CookieBasedAffinity))
+			}
+
 			output["dedicated_backend_connection_enabled"] = pointer.From(props.DedicatedBackendConnection)
 
 			if affinityCookieName := props.AffinityCookieName; affinityCookieName != nil {
@@ -1647,4 +1657,28 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgate
 	}
 
 	return results
+}
+
+// backendHTTPSettingsUnderUsedNames keeps each backend HTTP setting under the cookie affinity name it already uses in state, as neither name can be
+// Computed inside a set. Settings not in state yet use the new name. Only needed until 6.0 removes `cookie_based_affinity`.
+func backendHTTPSettingsUnderUsedNames(d *pluginsdk.ResourceData, settings []any) []any {
+	usesOldName := make(map[string]bool)
+	if existing, ok := d.Get("backend_http_settings").(*pluginsdk.Set); ok {
+		for _, raw := range existing.List() {
+			if m, ok := raw.(map[string]any); ok && m["cookie_based_affinity"] != "" {
+				usesOldName[m["name"].(string)] = true
+			}
+		}
+	}
+
+	for _, raw := range settings {
+		m := raw.(map[string]any)
+		if usesOldName[m["name"].(string)] {
+			m["cookie_based_affinity_enabled"] = false
+		} else {
+			m["cookie_based_affinity"] = ""
+		}
+	}
+
+	return settings
 }

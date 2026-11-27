@@ -881,11 +881,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = "backendhttpsettings"
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 60
+    name                          = "backendhttpsettings"
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 60
   }
 
   http_listener {

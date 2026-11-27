@@ -97,11 +97,11 @@ resource "azurerm_application_gateway" "example" {
   }
 
   backend_http_settings {
-    name                  = "settings"
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                          = "settings"
+    cookie_based_affinity_enabled = false
+    port                          = 80
+    protocol                      = "Http"
+    request_timeout               = 1
   }
 
   http_listener {

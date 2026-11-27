@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -21,7 +22,11 @@ func resourceArmTrafficManagerProfileFlatten(d *pluginsdk.ResourceData, id *prof
 			if profile.ProfileStatus != nil {
 				profileStatus = string(*profile.ProfileStatus)
 			}
-			d.Set("profile_status", profileStatus)
+			d.Set("enabled", profileStatus == string(profiles.ProfileStatusEnabled))
+			if !features.SixPointOh() {
+				d.Set("profile_status", profileStatus)
+			}
+
 			trafficRoutingMethod := ""
 			if profile.TrafficRoutingMethod != nil {
 				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)

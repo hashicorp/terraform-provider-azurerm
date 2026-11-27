@@ -49,7 +49,7 @@ The following attributes are exported:
 
 * `extensions` - An `extensions` block describes the extension settings
 
-* `inter_node_communication` - Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.
+* `inter_node_communication_enabled` - Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.
 
 * `license_type` - The type of on-premises license to be used when deploying the operating system.
 

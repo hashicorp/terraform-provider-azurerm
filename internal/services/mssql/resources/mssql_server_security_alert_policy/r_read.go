@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +53,10 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("server_name", id.ServerName)
-	d.Set("state", string(props.State))
+	d.Set("enabled", props.State == serversecurityalertpolicies.SecurityAlertsPolicyStateEnabled)
+	if !features.SixPointOh() {
+		d.Set("state", string(props.State))
+	}
 
 	disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 	if props.DisabledAlerts != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -31,9 +32,8 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta any)
 		update.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
-	if d.HasChange("profile_status") {
-		status := profiles.ProfileStatus(d.Get("profile_status").(string))
-		update.Properties.ProfileStatus = &status
+	if d.HasChange("enabled") || (!features.SixPointOh() && d.HasChange("profile_status")) {
+		update.Properties.ProfileStatus = expandTrafficManagerProfileStatus(d)
 	}
 
 	if d.HasChange("traffic_routing_method") {

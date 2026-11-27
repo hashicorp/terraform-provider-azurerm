@@ -47,11 +47,7 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta any
 		Tags:       helpers.ExpandTags(d.Get("tags").(map[string]any)),
 	}
 
-	status := schedules.EnableStatusDisabled
-	if d.Get("status").(string) == string(schedules.EnableStatusEnabled) {
-		status = schedules.EnableStatusEnabled
-	}
-	schedule.Properties.Status = &status
+	schedule.Properties.Status = expandDevTestScheduleStatus(d)
 
 	if taskType := d.Get("task_type").(string); taskType != "" {
 		schedule.Properties.TaskType = &taskType

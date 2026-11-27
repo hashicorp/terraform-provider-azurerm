@@ -99,7 +99,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// Note: O+C because Azure sets a different value depending on whether the CAE is provisioned with its own virtual network.
 			Computed:     true,
-			ValidateFunc: validation.StringInSlice(managedenvironments.PossibleValuesForPublicNetworkAccess(), false),
+			ValidateFunc: validation.StringInSlice(managedenvironments.PossibleValuesForPublicNetworkAccess(), false), // azignore:AZS022 - Azure is adding a third value, SecuredByPerimeter, so this stays a string until it can become a three-way setting
 		},
 
 		"workload_profile": WorkloadProfileSchema(),
