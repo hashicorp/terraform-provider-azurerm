@@ -4,7 +4,7 @@
 package suppress
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"strings"
 
@@ -36,7 +36,7 @@ func SSHKey(_, old, new string, _ *pluginsdk.ResourceData) bool {
 // when querying the Azure APIs
 func NormalizeSSHKey(input string) (*string, error) {
 	if input == "" {
-		return nil, fmt.Errorf("empty string supplied")
+		return nil, errors.New("empty string supplied")
 	}
 
 	output := input

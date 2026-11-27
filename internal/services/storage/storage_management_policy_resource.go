@@ -70,6 +70,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
+										Set:      pluginsdk.HashString,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -77,13 +78,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"appendBlob",
 											}, false),
 										},
-										Set: pluginsdk.HashString,
 									},
 									"prefix_match": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 									"match_blob_index_tag": {
 										Type:     pluginsdk.TypeSet,
@@ -99,10 +99,10 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"operation": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
+													Default:  "==",
 													ValidateFunc: validation.StringInSlice([]string{
 														"==",
 													}, false),
-													Default: "==",
 												},
 
 												"value": {
@@ -314,7 +314,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
+	// The name of the Storage Account Management Policy. It should always be 'default' (from https://learn.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {
@@ -424,7 +424,7 @@ func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) ([]management
 			_, snapshotExist := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot", k))
 			_, versionExist := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version", k))
 			if blobIndexExist && (snapshotExist || versionExist) {
-				return nil, fmt.Errorf("`match_blob_index_tag` is not supported as a filter for versions and snapshots")
+				return nil, errors.New("`match_blob_index_tag` is not supported as a filter for versions and snapshots")
 			}
 			result = append(result, *rule)
 		}
@@ -486,7 +486,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 
 			autoTierToHotOK := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.auto_tier_to_hot_from_cool_enabled", ruleIndex)).(bool)
 			if autoTierToHotOK && !sinceAccessOK {
-				return nil, fmt.Errorf("`auto_tier_to_hot_from_cool_enabled` must be used together with `tier_to_cool_after_days_since_last_access_time_greater_than`")
+				return nil, errors.New("`auto_tier_to_hot_from_cool_enabled` must be used together with `tier_to_cool_after_days_since_last_access_time_greater_than`")
 			}
 
 			var cnt int

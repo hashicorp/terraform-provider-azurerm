@@ -22,6 +22,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_lb_backend_address_pool_address"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Backend Address within a Backend Address Pool."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.BackendAddressPoolAddressID
 }

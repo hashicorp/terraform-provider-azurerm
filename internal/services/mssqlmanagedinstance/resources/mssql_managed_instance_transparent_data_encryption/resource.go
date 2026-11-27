@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate,
-		Read:   resourceMsSqlManagedInstanceTransparentDataEncryptionRead,
-		Update: resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate,
-		Delete: resourceMsSqlManagedInstanceTransparentDataEncryptionDelete,
+		Description: "Manages the transparent data encryption configuration for an MSSQL Managed Instance.",
+		Create:      resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate,
+		Read:        resourceMsSqlManagedInstanceTransparentDataEncryptionRead,
+		Update:      resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate,
+		Delete:      resourceMsSqlManagedInstanceTransparentDataEncryptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedInstanceEncryptionProtectorID(id)

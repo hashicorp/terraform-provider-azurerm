@@ -12,20 +12,23 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Elastic Job.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"job_agent_id": {
+			Description:  "The ID of the Elastic Job Agent.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: jobs.ValidateJobAgentID,
 			ForceNew:     true,
+			ValidateFunc: jobs.ValidateJobAgentID,
 		},
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The description of the Elastic Job.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

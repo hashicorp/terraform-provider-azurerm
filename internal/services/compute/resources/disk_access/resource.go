@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDiskAccessCreateUpdate,
-		Read:   resourceDiskAccessRead,
-		Update: resourceDiskAccessCreateUpdate,
-		Delete: resourceDiskAccessDelete,
+		Description: "Manages a Disk Access.",
+		Create:      resourceDiskAccessCreateUpdate,
+		Read:        resourceDiskAccessRead,
+		Update:      resourceDiskAccessCreateUpdate,
+		Delete:      resourceDiskAccessDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := diskaccesses.ParseDiskAccessID(id)

@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_monitor_data_collection_rule_association"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Data Collection Rule Association."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return datacollectionruleassociations.ValidateScopedDataCollectionRuleAssociationID
 }

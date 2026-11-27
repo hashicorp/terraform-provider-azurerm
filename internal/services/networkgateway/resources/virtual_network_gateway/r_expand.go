@@ -4,7 +4,7 @@
 package virtual_network_gateway
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
@@ -56,7 +56,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 			// existIpConfigName is empty means there are more than one `ip_configuration` blocks, in which case users have to specify the
 			// `ip_configuration_name` used in current `peering_addresses` setting.
 			if existIpConfigName == "" {
-				return nil, fmt.Errorf("`ip_configuration_name` has to be set in current `peering_addresses` block in case there are multiple `ip_configuration` blocks")
+				return nil, errors.New("`ip_configuration_name` has to be set in current `peering_addresses` block in case there are multiple `ip_configuration` blocks")
 			}
 
 			ipConfigName = existIpConfigName
@@ -66,7 +66,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 		// `peering_addresses` block, they should be the same name.
 		if existIpConfigName != "" && ipConfigName != "" {
 			if ipConfigName != existIpConfigName {
-				return nil, fmt.Errorf("`ip_configuration.0.name` is not the same as `bgp_settings.0.peering_addresses.*.ip_configuration_name`")
+				return nil, errors.New("`ip_configuration.0.name` is not the same as `bgp_settings.0.peering_addresses.*.ip_configuration_name`")
 			}
 		}
 

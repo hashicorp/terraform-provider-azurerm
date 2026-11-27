@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoClusterCustomerManagedKeyCreateUpdate,
-		Read:   resourceKustoClusterCustomerManagedKeyRead,
-		Update: resourceKustoClusterCustomerManagedKeyCreateUpdate,
-		Delete: resourceKustoClusterCustomerManagedKeyDelete,
+		Description: "Manages a Customer Managed Key for a Kusto Cluster.",
+		Create:      resourceKustoClusterCustomerManagedKeyCreateUpdate,
+		Read:        resourceKustoClusterCustomerManagedKeyRead,
+		Update:      resourceKustoClusterCustomerManagedKeyCreateUpdate,
+		Delete:      resourceKustoClusterCustomerManagedKeyDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

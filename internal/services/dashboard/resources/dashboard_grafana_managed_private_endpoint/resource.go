@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_dashboard_grafana_managed_private_endpoint"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Dashboard Grafana Managed Private Endpoint."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return managedprivateendpointmodels.ValidateManagedPrivateEndpointID
 }

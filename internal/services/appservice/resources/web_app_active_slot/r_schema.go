@@ -11,18 +11,18 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"slot_id": {
+			Description:  "The ID of the Slot to swap with `Production`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Description:  "The ID of the Slot to swap with `Production`.",
 			ValidateFunc: webapps.ValidateSlotID,
 		},
 
 		"overwrite_network_config": {
+			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
-			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot. Defaults to `true`.",
 			ForceNew:    true,
+			Default:     true,
 		},
 	}
 }
@@ -30,9 +30,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"last_successful_swap": {
+			Description: "The timestamp of the last successful swap with `Production`.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The timestamp of the last successful swap with `Production`",
 		},
 	}
 }

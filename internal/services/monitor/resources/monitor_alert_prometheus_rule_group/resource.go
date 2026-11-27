@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_monitor_alert_prometheus_rule_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Alert Management Prometheus Rule Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return prometheusrulegroupresources.ValidatePrometheusRuleGroupID
 }

@@ -11,6 +11,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"container_registry_task_id": {
+			Description:  "The ID of the Container Registry Task that is to be scheduled.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

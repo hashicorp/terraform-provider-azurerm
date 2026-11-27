@@ -5,6 +5,7 @@ package monitor_scheduled_query_rules_alert_v2
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -82,7 +83,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			if model.MuteActionsDuration != "" {
 				if model.AutoMitigate {
-					return fmt.Errorf("auto mitigation must be disabled when mute action duration is set")
+					return errors.New("auto mitigation must be disabled when mute action duration is set")
 				}
 				properties.Properties.MuteActionsDuration = &model.MuteActionsDuration
 			}

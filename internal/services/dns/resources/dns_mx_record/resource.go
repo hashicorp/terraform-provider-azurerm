@@ -4,7 +4,7 @@
 package dns_mx_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsMxRecordCreateUpdate,
-		Read:   resourceDnsMxRecordRead,
-		Update: resourceDnsMxRecordCreateUpdate,
-		Delete: resourceDnsMxRecordDelete,
+		Description: "Enables you to manage DNS MX Records within Azure DNS.",
+		Create:      resourceDnsMxRecordCreateUpdate,
+		Read:        resourceDnsMxRecordRead,
+		Update:      resourceDnsMxRecordCreateUpdate,
+		Delete:      resourceDnsMxRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeMX {
-				return fmt.Errorf("this resource only supports 'MX' records")
+				return errors.New("this resource only supports 'MX' records")
 			}
 			return nil
 		}),

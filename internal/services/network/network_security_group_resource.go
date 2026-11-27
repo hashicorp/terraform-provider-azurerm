@@ -5,6 +5,7 @@ package network
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -66,9 +67,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 			"security_rule": {
 				Type:       pluginsdk.TypeSet,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true, // azignore:AZS007 - pre-existing violation
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        hashNetworkSecurityRule,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -97,8 +98,8 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_port_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_port_range": {
@@ -109,8 +110,8 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_port_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"source_address_prefix": {
@@ -121,8 +122,8 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_address_prefixes": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_address_prefix": {
@@ -133,28 +134,28 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"destination_address_prefixes": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							Set:      pluginsdk.HashStringInsensitively,
 							Elem: &pluginsdk.Schema{
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
-							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							Set:      pluginsdk.HashStringInsensitively,
 							Elem: &pluginsdk.Schema{
 								Type:             pluginsdk.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 							},
-							Set: pluginsdk.HashStringInsensitively,
 						},
 
 						"access": {
@@ -529,24 +530,16 @@ func validateSecurityRule(sgRule map[string]any) error {
 	destinationAddressPrefixes := sgRule["destination_address_prefixes"].(*pluginsdk.Set)
 
 	if sourcePortRange != "" && sourcePortRanges.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"source_port_range\" and \"source_port_ranges\" can be used per security rule"))
 	}
 	if destinationPortRange != "" && destinationPortRanges.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"destination_port_range\" and \"destination_port_ranges\" can be used per security rule"))
 	}
 	if sourceAddressPrefix != "" && sourceAddressPrefixes.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"source_address_prefix\" and \"source_address_prefixes\" can be used per security rule"))
 	}
 	if destinationAddressPrefix != "" && destinationAddressPrefixes.Len() > 0 {
-		err = multierror.Append(err, fmt.Errorf(
-			"only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule",
-		))
+		err = multierror.Append(err, errors.New("only one of \"destination_address_prefix\" and \"destination_address_prefixes\" can be used per security rule"))
 	}
 
 	return err.ErrorOrNil()

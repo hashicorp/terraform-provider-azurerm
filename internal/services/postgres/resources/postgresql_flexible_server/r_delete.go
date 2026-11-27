@@ -6,7 +6,7 @@ package postgresql_flexible_server
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"

@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerBlobEventCreateUpdate,
-		Read:   resourceDataFactoryTriggerBlobEventRead,
-		Update: resourceDataFactoryTriggerBlobEventCreateUpdate,
-		Delete: resourceDataFactoryTriggerBlobEventDelete,
+		Description: "Manages a Blob Event Trigger inside an Azure Data Factory.",
+		Create:      resourceDataFactoryTriggerBlobEventCreateUpdate,
+		Read:        resourceDataFactoryTriggerBlobEventRead,
+		Update:      resourceDataFactoryTriggerBlobEventCreateUpdate,
+		Delete:      resourceDataFactoryTriggerBlobEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)

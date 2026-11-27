@@ -5,6 +5,7 @@ package validate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 
 func ValidateStrataCloudManagerTenantNameExists(ctx context.Context, client *clients.Client, subscriptionId string, tenantName string) error {
 	if strings.TrimSpace(tenantName) == "" {
-		return fmt.Errorf("strata cloud manager tenant name cannot be empty")
+		return errors.New("strata cloud manager tenant name cannot be empty")
 	}
 
 	subscriptionIdParsed := commonids.NewSubscriptionID(subscriptionId)
@@ -25,7 +26,7 @@ func ValidateStrataCloudManagerTenantNameExists(ctx context.Context, client *cli
 	}
 
 	if resp.Model == nil || resp.Model.Value == nil {
-		return fmt.Errorf("unable to retrieve list of available Strata Cloud Manager tenants")
+		return errors.New("unable to retrieve list of available Strata Cloud Manager tenants")
 	}
 
 	availableTenants := resp.Model.Value

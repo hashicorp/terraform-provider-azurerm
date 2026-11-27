@@ -4,7 +4,7 @@
 package dns_aaaa_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsAaaaRecordCreateUpdate,
-		Read:   resourceDnsAaaaRecordRead,
-		Update: resourceDnsAaaaRecordCreateUpdate,
-		Delete: resourceDnsAaaaRecordDelete,
+		Description: "Enables you to manage DNS AAAA Records within Azure DNS.",
+		Create:      resourceDnsAaaaRecordCreateUpdate,
+		Read:        resourceDnsAaaaRecordRead,
+		Update:      resourceDnsAaaaRecordCreateUpdate,
+		Delete:      resourceDnsAaaaRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeAAAA {
-				return fmt.Errorf("this resource only supports 'AAAA' records")
+				return errors.New("this resource only supports 'AAAA' records")
 			}
 			return nil
 		}),

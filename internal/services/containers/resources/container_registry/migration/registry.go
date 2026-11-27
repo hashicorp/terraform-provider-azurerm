@@ -5,6 +5,7 @@ package migration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -60,7 +61,7 @@ func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		}
 
 		if storageAccountId == "" {
-			return rawState, fmt.Errorf("unable to determine storage account ID")
+			return rawState, errors.New("unable to determine storage account ID")
 		}
 
 		return rawState, nil

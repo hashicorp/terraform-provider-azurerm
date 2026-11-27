@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorSecretCreate,
-		Read:   resourceCdnFrontDoorSecretRead,
-		Delete: resourceCdnFrontDoorSecretDelete,
+		Description: "Manages a Front Door (standard/premium) Secret.",
+		Create:      resourceCdnFrontDoorSecretCreate,
+		Read:        resourceCdnFrontDoorSecretRead,
+		Delete:      resourceCdnFrontDoorSecretDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

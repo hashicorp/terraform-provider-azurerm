@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorScheduledQueryRulesLogCreateUpdate,
-		Read:   resourceMonitorScheduledQueryRulesLogRead,
-		Update: resourceMonitorScheduledQueryRulesLogCreateUpdate,
-		Delete: resourceMonitorScheduledQueryRulesLogDelete,
+		Description: "Manages a LogToMetricAction Scheduled Query Rules resource within Azure Monitor.",
+		Create:      resourceMonitorScheduledQueryRulesLogCreateUpdate,
+		Read:        resourceMonitorScheduledQueryRulesLogRead,
+		Update:      resourceMonitorScheduledQueryRulesLogCreateUpdate,
+		Delete:      resourceMonitorScheduledQueryRulesLogDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := scheduledqueryrules.ParseScheduledQueryRuleID(id)

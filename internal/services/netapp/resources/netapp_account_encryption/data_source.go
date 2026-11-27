@@ -37,9 +37,9 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"netapp_account_id": {
+			Description:  "The ID of the NetApp Account where encryption will be set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Description:  "The ID of the NetApp Account where encryption will be set.",
 			ValidateFunc: validate.ValidateNetAppAccountID,
 		},
 	}

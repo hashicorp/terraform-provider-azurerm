@@ -4,7 +4,7 @@
 package redis_cache
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -67,12 +67,12 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 		if strings.EqualFold(skuName, string(redisresources.SkuNamePremium)) {
 			if rdbBackupEnabled {
 				if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
-					return nil, fmt.Errorf("the rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+					return nil, errors.New("the rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 				}
 			}
 			output.RdbBackupEnabled = pointer.To(strconv.FormatBool(rdbBackupEnabled))
 		} else if rdbBackupEnabled && !strings.EqualFold(skuName, string(redisresources.SkuNamePremium)) {
-			return nil, fmt.Errorf("the `rdb_backup_enabled` property requires a `Premium` sku to be set")
+			return nil, errors.New("the `rdb_backup_enabled` property requires a `Premium` sku to be set")
 		}
 	}
 
@@ -115,7 +115,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	// Redis authentication can only be disabled if it is launched inside a VNET.
 	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
 		if !authEnabled {
-			return nil, fmt.Errorf("cannot set `authentication_enabled` or `enable_authentication` to `false` when `subnet_id` is not set")
+			return nil, errors.New("cannot set `authentication_enabled` or `enable_authentication` to `false` when `subnet_id` is not set")
 		}
 	} else {
 		value := isAuthNotRequiredAsString(authEnabled)

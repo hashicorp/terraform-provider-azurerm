@@ -38,14 +38,14 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"token": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"token_secret": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }

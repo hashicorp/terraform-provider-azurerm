@@ -4,20 +4,20 @@
 package validate
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 )
 
-func WorkbookTags(i any, k string) (warnings []string, errors []error) {
-	warnings, errors = tags.Validate(i, k)
-	if len(errors) > 0 {
+func WorkbookTags(i any, k string) (warnings []string, errs []error) {
+	warnings, errs = tags.Validate(i, k)
+	if len(errs) > 0 {
 		return
 	}
 
 	tagsMap := i.(map[string]any)
 	if _, ok := tagsMap["hidden-title"]; ok {
-		errors = append(errors, fmt.Errorf("a tag with the key `hidden-title` should not be used to set the display name. Please Use `display_name` instead"))
+		errs = append(errs, errors.New("a tag with the key `hidden-title` should not be used to set the display name. Please Use `display_name` instead"))
 	}
 
 	return

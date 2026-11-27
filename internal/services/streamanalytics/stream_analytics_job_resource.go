@@ -5,6 +5,7 @@ package streamanalytics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -95,38 +96,38 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				// portal allows for up to 20d 23h 59m 59s
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(-1, 1814399),
 				Default:      5,
+				ValidateFunc: validation.IntBetween(-1, 1814399),
 			},
 
 			"events_out_of_order_max_delay_in_seconds": {
 				// portal allows for up to 9m 59s
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 599),
 				Default:      0,
+				ValidateFunc: validation.IntBetween(0, 599),
 			},
 
 			"events_out_of_order_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
 				Default:      string(streamingjobs.EventsOutOfOrderPolicyAdjust),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
 			},
 
 			"type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
 				Default:      string(streamingjobs.JobTypeCloud),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
 			},
 
 			"output_error_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
 				Default:      string(streamingjobs.OutputErrorPolicyDrop),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
 			},
 
 			"streaming_units": {
@@ -202,7 +203,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			if d.Get("job_storage_account.0.authentication_mode") == string(streamingjobs.AuthenticationModeMsi) && d.Get("job_storage_account.0.account_key") != "" {
-				return fmt.Errorf("`job_storage_account.0.account_key` cannot be set when `job_storage_account.0.authentication_mode` is `Msi`")
+				return errors.New("`job_storage_account.0.account_key` cannot be set when `job_storage_account.0.authentication_mode` is `Msi`")
 			}
 			return nil
 		},
@@ -246,13 +247,13 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta any) error
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
 		if _, ok := d.GetOk("streaming_units"); ok {
-			return fmt.Errorf("the job type `Edge` doesn't support `streaming_units`")
+			return errors.New("the job type `Edge` doesn't support `streaming_units`")
 		}
 	} else {
 		if v, ok := d.GetOk("streaming_units"); ok {
 			transformation.Properties.StreamingUnits = pointer.To(int64(v.(int)))
 		} else {
-			return fmt.Errorf("`streaming_units` must be set when `type` is `Cloud`")
+			return errors.New("`streaming_units` must be set when `type` is `Cloud`")
 		}
 	}
 
@@ -301,7 +302,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta any) error
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
 		if _, ok := d.GetOk("stream_analytics_cluster_id"); ok {
-			return fmt.Errorf("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
+			return errors.New("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
 		}
 	} else {
 		if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {
@@ -440,7 +441,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error
 		clusterId := d.Get("stream_analytics_cluster_id").(string)
 		if d.Get("type").(string) == string(streamingjobs.JobTypeEdge) {
 			if clusterId != "" {
-				return fmt.Errorf("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
+				return errors.New("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
 			}
 		}
 		payload.Properties.Cluster = &streamingjobs.ClusterInfo{
@@ -480,7 +481,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error
 		storageAccount := d.Get("job_storage_account").([]any)
 		if d.Get("content_storage_policy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 			if len(storageAccount) == 0 {
-				return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
+				return errors.New("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
 			}
 		}
 		payload.Properties.JobStorageAccount = expandJobStorageAccount(storageAccount)
@@ -523,7 +524,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error
 		streamingUnits := d.Get("streaming_units").(int)
 		if d.Get("type").(string) == string(streamingjobs.JobTypeEdge) {
 			if streamingUnits != 0 {
-				return fmt.Errorf("the job type `Edge` doesn't support `streaming_units`")
+				return errors.New("the job type `Edge` doesn't support `streaming_units`")
 			}
 		}
 		transformation.Properties.StreamingUnits = pointer.To(int64(streamingUnits))

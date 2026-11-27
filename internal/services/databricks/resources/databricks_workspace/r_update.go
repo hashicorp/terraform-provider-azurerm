@@ -4,6 +4,7 @@
 package databricks_workspace
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -144,16 +145,16 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) erro
 			}
 
 			if config["virtual_network_id"].(string) == "" && (pubSub != "" || priSub != "") {
-				return fmt.Errorf("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
+				return errors.New("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
 			}
 			if config["virtual_network_id"].(string) != "" && (pubSub == "" || priSub == "") {
-				return fmt.Errorf("`public_subnet_name` and `private_subnet_name` must both have values if `virtual_network_id` is set")
+				return errors.New("`public_subnet_name` and `private_subnet_name` must both have values if `virtual_network_id` is set")
 			}
 			if pubSub != "" && pubSubnetAssoc == nil {
-				return fmt.Errorf("you must define a value for `public_subnet_network_security_group_association_id` if `public_subnet_name` is set")
+				return errors.New("you must define a value for `public_subnet_network_security_group_association_id` if `public_subnet_name` is set")
 			}
 			if priSub != "" && priSubnetAssoc == nil {
-				return fmt.Errorf("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
+				return errors.New("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
 			}
 
 			if v, ok := config["nat_gateway_name"].(string); ok && v != "" {

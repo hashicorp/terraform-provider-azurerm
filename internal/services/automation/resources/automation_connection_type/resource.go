@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_automation_connection_type"
 }
 
+func (m Resource) Description() string {
+	return "Manages anAutomation Connection Type."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return connectiontype.ValidateConnectionTypeID
 }

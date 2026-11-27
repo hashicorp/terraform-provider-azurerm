@@ -4,7 +4,7 @@
 package dns_ptr_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsPtrRecordCreateUpdate,
-		Read:   resourceDnsPtrRecordRead,
-		Update: resourceDnsPtrRecordCreateUpdate,
-		Delete: resourceDnsPtrRecordDelete,
+		Description: "Enables you to manage DNS PTR Records within Azure DNS.",
+		Create:      resourceDnsPtrRecordCreateUpdate,
+		Read:        resourceDnsPtrRecordRead,
+		Update:      resourceDnsPtrRecordCreateUpdate,
+		Delete:      resourceDnsPtrRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypePTR {
-				return fmt.Errorf("this resource only supports 'PTR' records")
+				return errors.New("this resource only supports 'PTR' records")
 			}
 			return nil
 		}),

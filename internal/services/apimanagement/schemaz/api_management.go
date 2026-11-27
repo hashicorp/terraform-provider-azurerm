@@ -5,6 +5,7 @@ package schemaz
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -36,8 +37,9 @@ func SchemaApiManagementDataSourceName() *pluginsdk.Schema {
 
 // SchemaApiManagementChildName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildName() *pluginsdk.Schema {
+func SchemaApiManagementChildName(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -45,10 +47,11 @@ func SchemaApiManagementChildName() *pluginsdk.Schema {
 	}
 }
 
-// SchemaApiManagementChildName returns the Schema for the identifier
+// SchemaApiManagementApiName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementApiName() *pluginsdk.Schema {
+func SchemaApiManagementApiName(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -58,8 +61,9 @@ func SchemaApiManagementApiName() *pluginsdk.Schema {
 
 // SchemaApiManagementChildDataSourceName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildDataSourceName() *pluginsdk.Schema {
+func SchemaApiManagementChildDataSourceName(description string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  description,
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementChildName,
@@ -68,6 +72,7 @@ func SchemaApiManagementChildDataSourceName() *pluginsdk.Schema {
 
 func SchemaApiManagementUserName() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  "The Identifier for this User, which must be unique within the API Management Service.",
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
@@ -77,6 +82,7 @@ func SchemaApiManagementUserName() *pluginsdk.Schema {
 
 func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		Description:  "The Identifier for the User.",
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementUserName,
@@ -90,8 +96,9 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"content_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The Content Type of this representation, such as `application/json`.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"form_parameter": SchemaApiManagementOperationParameterContract(),
@@ -99,13 +106,15 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 				"example": SchemaApiManagementOperationParameterExampleContract(),
 
 				"schema_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The ID of an API Management Schema which represents this Response.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"type_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The Type Name defined by the Schema.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 			},
 		},
@@ -145,7 +154,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if contentTypeIsFormData {
 			output.FormParameters = formParameters
 		} else if len(*formParameters) > 0 {
-			return nil, fmt.Errorf("`form_parameter` can only be specified for form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, errors.New("`form_parameter` can only be specified for form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		}
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
@@ -155,9 +164,9 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 			output.SchemaId = pointer.To(schemaId)
 			output.TypeName = pointer.To(typeName)
 		} else if schemaId != "" {
-			return nil, fmt.Errorf("`schema_id` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, errors.New("`schema_id` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		} else if typeName != "" {
-			return nil, fmt.Errorf("`type_name` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, errors.New("`type_name` cannot be specified for non-form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		}
 
 		outputs = append(outputs, output)
@@ -236,22 +245,24 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 				"values": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
+					Set:      pluginsdk.HashString,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Set: pluginsdk.HashString,
 				},
 
 				"example": SchemaApiManagementOperationParameterExampleContract(),
 
 				"schema_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The name of the Schema.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"type_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The type name defined by the Schema.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 			},
 		},
@@ -345,27 +356,32 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The name of this example.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 
 				"summary": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "A short description for this example.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"description": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "A long description for this example.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"value": {
+					Description:      "The example of the representation.",
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				},
 
 				"external_value": {
+					Description:  "A URL that points to the literal example.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,

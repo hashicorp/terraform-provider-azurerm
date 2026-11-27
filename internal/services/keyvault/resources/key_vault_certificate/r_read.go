@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -312,7 +313,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *kv.Base
 			return nil, "", fmt.Errorf("failed to read CertificateOperation in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
 		}
 		if operation.Status == nil {
-			return nil, "", fmt.Errorf("missing status in certificate operation")
+			return nil, "", errors.New("missing status in certificate operation")
 		}
 
 		if strings.EqualFold(*operation.Status, "inProgress") {

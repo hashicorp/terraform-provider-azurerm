@@ -5,6 +5,7 @@ package new_relic_tag_rule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -83,7 +84,7 @@ func (r Resource) getEmail(ctx context.Context, monitorClient *monitors.Monitors
 	}
 
 	if monitor.Model == nil || monitor.Model.Properties.UserInfo == nil || monitor.Model.Properties.UserInfo.EmailAddress == nil || *monitor.Model.Properties.UserInfo.EmailAddress == "" {
-		return "", fmt.Errorf("failed to get user email address from monitor")
+		return "", errors.New("failed to get user email address from monitor")
 	}
 
 	return *monitor.Model.Properties.UserInfo.EmailAddress, nil

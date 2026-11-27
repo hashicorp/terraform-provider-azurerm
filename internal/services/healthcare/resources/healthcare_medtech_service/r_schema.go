@@ -15,6 +15,7 @@ import (
 func healthcareMedtechServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Healthcare Med Tech Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func healthcareMedtechServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workspace_id": {
+			Description:  "The ID of the Healthcare Workspace where the Healthcare Med Tech Service should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,24 +35,28 @@ func healthcareMedtechServiceSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"eventhub_namespace_name": {
+			Description:  "The namespace name of the Event Hub to connect to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: eventhubValidate.ValidateEventHubNamespaceName(),
 		},
 
 		"eventhub_name": {
+			Description:  "The name of the Event Hub to connect to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: eventhubValidate.ValidateEventHubName(),
 		},
 
 		"eventhub_consumer_group_name": {
+			Description:  "The Consumer Group of the Event Hub to connect to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
 		},
 
 		"device_mapping_json": {
+			Description:      "The Device Mappings of the Med Tech Service.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			StateFunc:        pluginsdk.NormalizeJson,

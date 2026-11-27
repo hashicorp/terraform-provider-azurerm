@@ -19,10 +19,11 @@ const azureCdnFrontDoorOriginGroupResourceName = "azurerm_cdn_frontdoor_origin_g
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorOriginGroupCreate,
-		Read:   resourceCdnFrontDoorOriginGroupRead,
-		Update: resourceCdnFrontDoorOriginGroupUpdate,
-		Delete: resourceCdnFrontDoorOriginGroupDelete,
+		Description: "Manages a Front Door (standard/premium) Origin Group.",
+		Create:      resourceCdnFrontDoorOriginGroupCreate,
+		Read:        resourceCdnFrontDoorOriginGroupRead,
+		Update:      resourceCdnFrontDoorOriginGroupUpdate,
+		Delete:      resourceCdnFrontDoorOriginGroupDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(4 * time.Hour),

@@ -4,6 +4,7 @@
 package recovery_services_vault
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -40,16 +41,16 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta any) er
 		prop := model.Properties
 		if prop.Encryption != nil {
 			if encryption == nil {
-				return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
+				return errors.New("once encryption with your own key has been enabled it's not possible to disable it")
 			}
 			if *encryption.InfrastructureEncryption != *prop.Encryption.InfrastructureEncryption {
-				return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
+				return errors.New("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
 			}
 			if d.HasChange("sku") {
 				// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
-				// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
+				// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
 				// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
-				return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
+				return errors.New("`sku` cannot be changed when encryption with your own key has been enabled")
 			}
 		}
 	}
@@ -60,7 +61,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	if model.Identity != nil && !validateIdentityUpdate(*existing.Model.Identity, *expandedIdentity) {
-		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behaviour. Details could be found on https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
+		return errors.New("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behaviour. Details could be found on https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
 	}
 
 	storageMode := d.Get("storage_mode_type").(string)

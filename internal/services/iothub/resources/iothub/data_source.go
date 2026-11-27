@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceIotHubRead,
+		Description: "Use this data source to access information about an existing IoTHub.",
+		Read:        dataSourceIotHubRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this IoTHub.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.IoTHubName,
@@ -36,8 +38,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Hostname of the IoTHub.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),

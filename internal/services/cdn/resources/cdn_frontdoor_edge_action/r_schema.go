@@ -14,9 +14,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Edge Action.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9]{1,50}$`),
 				"`name` must be between 1 and 50 characters in length and may only contain letters and numbers",

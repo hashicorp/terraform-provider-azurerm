@@ -5,6 +5,7 @@ package sentinel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -56,7 +57,7 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 
 func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
 	if rule == nil {
-		return fmt.Errorf("model was nil")
+		return errors.New("model was nil")
 	}
 
 	var kind alertrules.AlertRuleKind

@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_mssql_job"
 }
 
+func (Resource) Description() string {
+	return "Manages an Elastic Job."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return jobs.ValidateJobID
 }

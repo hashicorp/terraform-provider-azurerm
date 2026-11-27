@@ -6,6 +6,7 @@ package managedhsm
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -61,14 +62,14 @@ func (r KeyVaultMHSMKeyResource) ResourceType() string {
 func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
 		},
 
@@ -96,9 +97,6 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
-			},
 			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 				out := []string{
 					string(keyvault.JSONWebKeyCurveNameP256),
@@ -108,6 +106,9 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 				}
 				return validation.StringInSlice(out, false)
 			}(),
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
+			},
 			ExactlyOneOf: []string{"key_size"},
 		},
 
@@ -149,8 +150,8 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 func (r KeyVaultMHSMKeyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"versioned_id": {
-			Computed: true,
 			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -241,14 +242,14 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 
 			if config.Curve != "" {
 				if config.KeyType != string(keyvault.JSONWebKeyTypeECHSM) {
-					return fmt.Errorf("`key_type` must be `EC-HSM` when `curve` is set")
+					return errors.New("`key_type` must be `EC-HSM` when `curve` is set")
 				}
 				parameters.Curve = keyvault.JSONWebKeyCurveName(config.Curve)
 			}
 
 			if config.KeySize > 0 {
 				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) && config.KeyType != string(keyvault.JSONWebKeyTypeOctHSM) {
-					return fmt.Errorf("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
+					return errors.New("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
 				}
 				parameters.KeySize = pointer.To(int32(config.KeySize))
 			}

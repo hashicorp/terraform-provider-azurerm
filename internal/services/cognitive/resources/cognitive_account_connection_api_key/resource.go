@@ -33,6 +33,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_api_key"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services (Microsoft Foundry) Account Connection with API Key authentication."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return accountconnectionresource.ValidateConnectionID
 }

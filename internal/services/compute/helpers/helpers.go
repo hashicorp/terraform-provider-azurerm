@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -153,7 +154,7 @@ func ResourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clien
 					dataDisks = append(dataDisks, dataDisk)
 				} else {
 					if dataDisk.Caching != nil && *dataDisk.Caching != virtualmachines.CachingTypesNone {
-						return fmt.Errorf("`disk_size_gb` can't be increased above 4095GB when `caching` is set to anything other than `None`")
+						return errors.New("`disk_size_gb` can't be increased above 4095GB when `caching` is set to anything other than `None`")
 					}
 					expandedDisk = dataDisk
 				}

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDevTestLabCreateUpdate,
-		Read:   resourceDevTestLabRead,
-		Update: resourceDevTestLabCreateUpdate,
-		Delete: resourceDevTestLabDelete,
+		Description: "Manages a Dev Test Lab.",
+		Create:      resourceDevTestLabCreateUpdate,
+		Read:        resourceDevTestLabRead,
+		Update:      resourceDevTestLabCreateUpdate,
+		Delete:      resourceDevTestLabDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := labs.ParseLabID(id)
 			return err

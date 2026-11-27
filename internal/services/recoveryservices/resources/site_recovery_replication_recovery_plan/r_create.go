@@ -5,6 +5,7 @@ package site_recovery_replication_recovery_plan
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -158,7 +159,7 @@ func expandAction(input []ActionModel) ([]replicationrecoveryplans.RecoveryPlanA
 		}
 
 		if action.ActionDetailType == "ManualActionDetails" && action.FabricLocation != "" {
-			return nil, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type")
+			return nil, errors.New("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type")
 		}
 
 		output = append(output, replicationrecoveryplans.RecoveryPlanAction{
