@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -77,7 +77,7 @@ func (br AssignmentBaseResource) CreateFunc(resourceName, scopeFieldName string)
 			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), config.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id)
+				existing, err := client.Get(ctx, id, policyassignments.DefaultGetOperationOptions())
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -209,7 +209,7 @@ func (br AssignmentBaseResource) ReadFunc(scopeFieldName string) sdk.ResourceFun
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -280,7 +280,7 @@ func (br AssignmentBaseResource) UpdateFunc() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			getResp, err := client.Get(ctx, *id)
+			getResp, err := client.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -369,7 +369,6 @@ func (br AssignmentBaseResource) UpdateFunc() sdk.ResourceFunc {
 				update.Properties.ResourceSelectors = br.ExpandResourceSelectors(config.ResourceSelectors)
 			}
 
-			// NOTE: there isn't an Update endpoint
 			if _, err := client.Create(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
