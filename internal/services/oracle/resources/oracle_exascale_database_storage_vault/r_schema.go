@@ -20,7 +20,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseStorageVaultName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 
@@ -47,7 +47,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseStorageVaultName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 

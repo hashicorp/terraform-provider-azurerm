@@ -51,7 +51,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseStorageVaultName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 	}

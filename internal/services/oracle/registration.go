@@ -56,6 +56,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		oracle_exascale_database_storage_vault.DataSource{},
 		oracle_gi_versions.DataSource{},
 		oracle_resource_anchor.DataSource{},
+		ExascaleDatabaseVirtualMachineClusterDataSource{},
 	}
 }
 
@@ -70,6 +71,7 @@ func (r Registration) Resources() []sdk.Resource {
 		oracle_exadata_infrastructure.Resource{},
 		oracle_exascale_database_storage_vault.Resource{},
 		oracle_resource_anchor.Resource{},
+		ExascaleDatabaseVirtualMachineClusterResource{},
 	}
 }
 
@@ -102,5 +104,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		ExascaleDatabaseVirtualMachineClusterListResource{},
+	}
 }
