@@ -6,12 +6,13 @@ package mssql_managed_instance_start_stop_schedule
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/startstopmanagedinstanceschedules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"managed_instance_id": {
 			Description:  "The ID of the Managed Instance.",
 			Type:         pluginsdk.TypeString,
@@ -27,7 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"schedule": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -71,6 +72,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
+
+	if !features.SixPointOh() {
+		arguments["schedule"].Type = pluginsdk.TypeList
+	}
+
+	return arguments
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
