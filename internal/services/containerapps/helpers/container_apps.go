@@ -1647,11 +1647,17 @@ func FlattenContainerAppContainers(input *[]containerapps.Container) []Container
 	return result
 }
 
+type SecretVolumeItem struct {
+	SecretName string `tfschema:"secret_name"`
+	Path       string `tfschema:"path"`
+}
+
 type ContainerVolume struct {
-	Name         string `tfschema:"name"`
-	StorageName  string `tfschema:"storage_name"`
-	StorageType  string `tfschema:"storage_type"`
-	MountOptions string `tfschema:"mount_options"`
+	Name         string             `tfschema:"name"`
+	StorageName  string             `tfschema:"storage_name"`
+	StorageType  string             `tfschema:"storage_type"`
+	MountOptions string             `tfschema:"mount_options"`
+	Secrets      []SecretVolumeItem `tfschema:"secrets"`
 }
 
 func ContainerVolumeSchema() *pluginsdk.Schema {
@@ -1692,6 +1698,29 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+
+				"secrets": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"secret_name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The name of the secret to include in the volume. This must match the name of a secret defined at the app level.",
+							},
+
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The path at which to mount the secret within the volume.",
+							},
+						},
+					},
+					Description: "A list of secrets to expose in the volume. If not specified when `storage_type` is `Secret`, all secrets will be mounted. Each `secrets` block must contain `secret_name` and `path`.",
+				},
 			},
 		},
 	}
@@ -1726,6 +1755,24 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 				},
+
+				"secrets": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"secret_name": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -1751,6 +1798,7 @@ func ExpandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
 		}
+		volume.Secrets = expandContainerAppSecretVolumeItems(v.Secrets)
 		volumes = append(volumes, volume)
 	}
 
@@ -1774,11 +1822,44 @@ func FlattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 		if v.MountOptions != nil {
 			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
+		containerVolume.Secrets = flattenContainerAppSecretVolumeItems(v.Secrets)
 
 		result = append(result, containerVolume)
 	}
 
 	return result
+}
+
+func expandContainerAppSecretVolumeItems(input []SecretVolumeItem) *[]containerapps.SecretVolumeItem {
+	if len(input) == 0 {
+		return nil
+	}
+
+	items := make([]containerapps.SecretVolumeItem, 0)
+	for _, v := range input {
+		items = append(items, containerapps.SecretVolumeItem{
+			SecretRef: pointer.To(v.SecretName),
+			Path:      pointer.To(v.Path),
+		})
+	}
+
+	return &items
+}
+
+func flattenContainerAppSecretVolumeItems(input *[]containerapps.SecretVolumeItem) []SecretVolumeItem {
+	if input == nil || len(*input) == 0 {
+		return []SecretVolumeItem{}
+	}
+
+	items := make([]SecretVolumeItem, 0)
+	for _, v := range *input {
+		items = append(items, SecretVolumeItem{
+			SecretName: pointer.From(v.SecretRef),
+			Path:       pointer.From(v.Path),
+		})
+	}
+
+	return items
 }
 
 type ContainerVolumeMount struct {
