@@ -73,6 +73,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Description:  "An integer value used to trigger an update for `administrator_password_wo`. This property should be incremented when updating `administrator_password_wo`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 			RequiredWith: []string{"administrator_password_wo"},
 		},
 
