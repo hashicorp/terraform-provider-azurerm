@@ -4,7 +4,6 @@
 package lb_probe
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -48,16 +47,4 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta any) error
 	}
 
 	return resourceArmLoadBalancerProbeFlatten(d, id, config)
-}
-
-func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ any) ([]*pluginsdk.ResourceData, error) {
-	id, err := loadbalancers.ParseProbeID(d.Id())
-	if err != nil {
-		return nil, err
-	}
-
-	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-	d.Set("loadbalancer_id", lbId.ID())
-
-	return []*pluginsdk.ResourceData{d}, nil
 }
