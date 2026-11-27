@@ -183,19 +183,6 @@ func TestAccMsSqlManagedInstance_GeneralPurposeV2EnabledOnBCSKU(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlManagedInstance_zoneRedundantNotAllowedOnGPv2(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
-	r := MsSqlManagedInstanceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.zoneRedundantGPv2(data),
-			PlanOnly:    true,
-			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")),
-		},
-	})
-}
-
 func TestAccMsSqlManagedInstance_storageIOps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
@@ -789,54 +776,6 @@ resource "azurerm_mssql_managed_instance" "test" {
   }
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger, sku, generalPurposeV2Enabled)
-}
-
-func (r MsSqlManagedInstanceResource) zoneRedundantGPv2(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-provider "azurerm" {
-  features {
-    resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_mssql_managed_instance" "test" {
-  name                = "acctestsqlserver%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  license_type       = "BasePrice"
-  sku_name           = "GP_Gen5"
-  storage_size_in_gb = 32
-  subnet_id          = azurerm_subnet.test.id
-  vcores             = 4
-
-  administrator_login          = "missadministrator"
-  administrator_login_password = "NCC-1701-D"
-
-  general_purpose_v2_enabled = true
-  zone_redundant_enabled     = true
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.test,
-    azurerm_subnet_route_table_association.test,
-    time_sleep.wait_for_sql_mi_subnet_settle,
-  ]
-
-  tags = {
-    environment = "staging"
-    database    = "test"
-  }
-}
-`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) storageIOps(data acceptance.TestData, sku string, generalPurposeV2Enabled bool, storageIOps int) string {

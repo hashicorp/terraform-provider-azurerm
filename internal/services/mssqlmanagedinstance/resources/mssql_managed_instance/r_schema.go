@@ -368,12 +368,6 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs, got SKU `%s`", sku)
 			}
 
-			// Zone redundancy is not available for Next-gen General Purpose instances.
-			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
-			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
-				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
-			}
-
 			return nil
 		},
 	}
