@@ -327,7 +327,6 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether the Virtual Machines in this Scale Set should be strictly evenly distributed across Availability Zones.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			ForceNew:    true,
 			Default:     false,
 		},
 

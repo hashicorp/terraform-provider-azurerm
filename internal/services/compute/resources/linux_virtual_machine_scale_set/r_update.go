@@ -72,6 +72,19 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 		}
 	}
 
+	if d.HasChange("zone_balance") {
+		// `zoneBalance` is unavailable in the PATCH model, so update it using PUT.
+		// Changing zone balance does not update existing instances.
+		existing.Model.Properties.ZoneBalance = pointer.To(d.Get("zone_balance").(bool))
+		// the PUT sends the whole model, so `zones` has to be updated here as well when it changes in the same apply
+		if d.HasChange("zones") {
+			existing.Model.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
+		}
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating `zone_balance` for Linux %s: %+v", id, err)
+		}
+	}
+
 	if d.HasChange("zones") {
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}

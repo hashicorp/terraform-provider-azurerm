@@ -139,6 +139,37 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherZoneBalanceUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `zone_balance` is not set, so this also covers the nil value on creation
+			Config: r.otherZoneBalance(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherZoneBalance(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			// back to the default, to test the round trip
+			Config: r.otherZoneBalance(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_otherEdgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -3309,4 +3340,52 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.templateWithOutProvider(data), data.RandomInteger, sku)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherZoneBalance(data acceptance.TestData, enabled bool) string {
+	zoneBalance := ""
+	if enabled {
+		zoneBalance = "\n  zone_balance = true\n"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  zones = ["1", "2", "3"]
+%s
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, zoneBalance)
 }

@@ -172,6 +172,28 @@ func RegisterResource() *pluginsdk.Resource {
 				return nil
 			}),
 
+			// `zone_balance` can only be enabled when availability zones are specified
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+				// `zone_balance` and `zones` can be unknown during plan (e.g. a reference to another resource), in which
+				// case `Get` looks empty, so the raw config is used here
+				rawConfig := diff.GetRawConfig()
+				if rawConfig.IsNull() || !rawConfig.IsKnown() {
+					return nil
+				}
+
+				rawValues := rawConfig.AsValueMap()
+				zoneBalance, rawZones := rawValues["zone_balance"], rawValues["zones"]
+				if zoneBalance.IsNull() || !zoneBalance.IsKnown() || !rawZones.IsKnown() {
+					return nil
+				}
+
+				if zoneBalance.True() && (rawZones.IsNull() || rawZones.LengthInt() == 0) {
+					return fmt.Errorf("`zone_balance` can only be set to `true` when availability zones are specified")
+				}
+
+				return nil
+			}),
+
 			pluginsdk.CustomizeDiffShim(helpers.OrchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
