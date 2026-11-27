@@ -96,7 +96,7 @@ func (a *Action) Invoke(ctx context.Context, request action.InvokeRequest, respo
 
 	id, err := buckets.ParseBucketID(model.BucketID.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(response, fmt.Sprintf("parsing bucket id %s", model.BucketID.ValueString()), err)
+		sdk.SetResponseErrorDiagnostic(response, "parsing bucket id "+model.BucketID.ValueString(), err)
 		return
 	}
 

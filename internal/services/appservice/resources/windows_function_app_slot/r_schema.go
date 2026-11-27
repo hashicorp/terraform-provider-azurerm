@@ -32,7 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"function_app_id": {
-			Description:  "The ID of the Windows Function App this Slot is a member of.",
+			Description:  "The name of the Windows Function App this Slot is a member of.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -40,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"service_plan_id": {
+			Description:  "The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Windows Function App will be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
@@ -80,7 +81,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_key_vault_secret_id": {
-			Description:  "The Key Vault Secret ID, including version, that contains the Connection String to connect to the Storage Account for this Function App.",
+			Description:  "The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the Storage Account for this Function App Slot.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
@@ -172,15 +173,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"end_to_end_tls_encryption_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable end-to-end TLS encryption.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
-			Description:  "The User Assigned Identity to use for Key Vault access.",
+			Description:  "The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://learn.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -188,21 +190,24 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether public network access should be enabled for the Function App.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the default FTP Basic Authentication publishing profile should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"site_config": SiteConfigSchemaWindowsFunctionAppSlot(),
@@ -212,12 +217,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"virtual_network_subnet_id": {
+			Description:  "The subnet ID which will be used by this Function App Slot for [regional Virtual Network integration](https://learn.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -248,8 +255,9 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by Function App Slot.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kind": {

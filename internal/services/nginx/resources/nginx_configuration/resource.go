@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_nginx_configuration"
 }
 
+func (m Resource) Description() string {
+	return "Manages the configuration for an Nginx Deployment."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxconfiguration.ValidateConfigurationID
 }

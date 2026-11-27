@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNotificationHubRead,
+		Description: "Use this data source to access information about an existing Notification Hub within a Notification Hub Namespace.",
+		Read:        dataSourceNotificationHubRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,13 +28,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Name of the Notification Hub.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"namespace_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Name of the Notification Hub Namespace which contains the Notification Hub.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -46,26 +49,31 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"application_mode": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Application Mode which defines which server the APNS Messages should be sent to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"bundle_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Bundle ID of the iOS/macOS application to send push notifications for, such as `com.hashicorp.example`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"key_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Apple Push Notifications Service (APNS) Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						// Team ID (within Apple & the Portal) == "AppID" (within the API)
 						"team_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the team the Token belongs to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"token": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Push Token associated with the Apple Developer Account.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
@@ -77,9 +85,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"api_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The API Key associated with the Google Cloud Messaging service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},

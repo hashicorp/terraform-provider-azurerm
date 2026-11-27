@@ -6,7 +6,6 @@ package provider
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -33,7 +32,7 @@ func TestProvider(t *testing.T) {
 func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
 	provider := TestAzureProvider()
 	for dataSourceName, dataSource := range provider.DataSourcesMap {
-		t.Run(fmt.Sprintf("DataSource/%s", dataSourceName), func(t *testing.T) {
+		t.Run("DataSource/"+dataSourceName, func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Data Source %q..", dataSourceName)
 
 			if dataSource.Timeouts == nil {
@@ -69,7 +68,7 @@ func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
 func TestResourcesSupportCustomTimeouts(t *testing.T) {
 	provider := TestAzureProvider()
 	for resourceName, resource := range provider.ResourcesMap {
-		t.Run(fmt.Sprintf("Resource/%s", resourceName), func(t *testing.T) {
+		t.Run("Resource/"+resourceName, func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Resource %q..", resourceName)
 
 			if resource.Timeouts == nil {

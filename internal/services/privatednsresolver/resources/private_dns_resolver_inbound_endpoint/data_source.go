@@ -33,6 +33,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_inbound_endpoint"
 }
 
+func (r DataSource) Description() string {
+	return "Gets information about an existing Private DNS Resolver Inbound Endpoint."
+}
+
 func (r DataSource) ModelObject() any {
 	return &PrivateDNSResolverInboundEndpointDataSourceModel{}
 }
@@ -44,12 +48,14 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Name of the Private DNS Resolver Inbound Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"private_dns_resolver_id": {
+			Description:  "ID of the Private DNS Resolver.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: dnsresolvers.ValidateDnsResolverID,
@@ -65,18 +71,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The subnet ID of the IP configuration.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"private_ip_address": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The private IP address of the IP configuration.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"private_ip_allocation_method": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The private IP address allocation method.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},

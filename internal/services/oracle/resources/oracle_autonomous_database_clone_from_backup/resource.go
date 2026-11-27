@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database_clone_from_backup"
 }
 
+func (Resource) Description() string {
+	return "Manage an autonomous database clone from backup."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
 }

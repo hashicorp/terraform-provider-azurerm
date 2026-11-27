@@ -120,7 +120,7 @@ func (m *Action) Invoke(ctx context.Context, request action.InvokeRequest, respo
 	}
 
 	response.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("flushing completed for %s", id.ID()),
+		Message: "flushing completed for " + id.ID(),
 	})
 }
 

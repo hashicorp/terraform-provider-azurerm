@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourcePolicyVirtualMachineConfigurationAssignmentRead,
+		Description: "Use this data source to access information about an existing Guest Configuration Policy.",
+		Read:        dataSourcePolicyVirtualMachineConfigurationAssignmentRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,45 +28,53 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Guest Configuration Assignment.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"virtual_machine_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "Only retrieve Policy Set Definitions from this Management Group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"content_hash": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The content hash for the Guest Configuration package.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"content_uri": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The content URI where the Guest Configuration package is stored.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"assignment_hash": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Combined hash of the configuration package and parameters.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"compliance_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "A value indicating compliance status of the machine for the assigned guest configuration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"latest_report_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the latest report for the guest configuration assignment.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"last_compliance_status_checked": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Date and time, in RFC3339 format, when the machine's compliance status was last checked.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

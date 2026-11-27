@@ -239,7 +239,7 @@ In order to create this Kubernetes Cluster, please remove either the 'identity' 
 var ErrClusterControlPlaneMustBeUpgraded = func(resourceGroup, clusterName, nodePoolName string, clusterVersion *string, desiredNodePoolVersion string, availableVersions []string) error {
 	versions := make([]string, 0)
 	for _, version := range availableVersions {
-		versions = append(versions, fmt.Sprintf(" * %s", version))
+		versions = append(versions, " * "+version)
 	}
 	versionsList := strings.Join(versions, "\n")
 	clusterVersionDetails := "We were unable to determine the version of Kubernetes available on the Kubernetes Cluster."

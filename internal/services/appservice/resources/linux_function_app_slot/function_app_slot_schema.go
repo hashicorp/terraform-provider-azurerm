@@ -125,6 +125,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"app_service_logs": helpers.FunctionAppAppServiceLogsSchema(),
 
 				"auto_swap_slot_name": {
+					Description:  "The name of the slot to automatically swap with when this slot is successfully deployed.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -162,7 +163,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Whether the http2 protocol should be enabled.",
+					Description: "Whether the HTTP2 protocol should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -314,7 +315,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"minimum_tls_cipher_suite": {
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Description:  "The configures the minimum cipher suite of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
@@ -435,13 +436,13 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 					Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 					Value: pointer.To("dotnet-isolated"),
 				})
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To("DOTNET-ISOLATED|" + linuxAppStack.DotNetVersion)
 			} else {
 				appSettings = append(appSettings, webapps.NameValuePair{
 					Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 					Value: pointer.To("dotnet"),
 				})
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To("DOTNET|" + linuxAppStack.DotNetVersion)
 			}
 		}
 
@@ -454,7 +455,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("WEBSITE_NODE_DEFAULT_VERSION"),
 				Value: pointer.To(linuxAppStack.NodeVersion),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			expanded.LinuxFxVersion = pointer.To("NODE|" + linuxAppStack.NodeVersion)
 		}
 
 		if linuxAppStack.PythonVersion != "" {
@@ -462,7 +463,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 				Value: pointer.To("python"),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = pointer.To("Python|" + linuxAppStack.PythonVersion)
 		}
 
 		if linuxAppStack.JavaVersion != "" {
@@ -470,7 +471,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 				Value: pointer.To("java"),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+			expanded.LinuxFxVersion = pointer.To("Java|" + linuxAppStack.JavaVersion)
 		}
 
 		if linuxAppStack.PowerShellCoreVersion != "" {
@@ -478,7 +479,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
 				Value: pointer.To("powershell"),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+			expanded.LinuxFxVersion = pointer.To("PowerShell|" + linuxAppStack.PowerShellCoreVersion)
 		}
 
 		if linuxAppStack.CustomHandler {

@@ -42,7 +42,7 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 
 	result := TerraformNodeData{
 		Name:         name,
-		ShortName:    strings.TrimPrefix(name, fmt.Sprintf("%s_", providerName)),
+		ShortName:    strings.TrimPrefix(name, providerName+"_"),
 		ProviderName: providerName,
 		Service:      service,
 		Type:         resourceType,

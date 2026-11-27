@@ -6,7 +6,6 @@ package redhat_openshift_cluster
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -126,7 +125,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: validate.ClusterResourceGroupName,
 						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
-							defaultResourceGroupName := fmt.Sprintf("aro-%s", d.Get("cluster_profile.0.domain").(string))
+							defaultResourceGroupName := "aro-" + d.Get("cluster_profile.0.domain").(string)
 							if old == defaultResourceGroupName && new == "" {
 								return true
 							}

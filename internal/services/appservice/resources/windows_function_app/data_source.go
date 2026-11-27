@@ -83,9 +83,14 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_windows_function_app"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Windows Function App."
+}
+
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Windows Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.WebAppName,
@@ -100,23 +105,27 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Plan.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"storage_account_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The backend Storage Account name which is used by this Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"storage_account_access_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The access key which is used to access the backend Storage Account for the Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"storage_uses_managed_identity": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Function App uses a Managed Identity to access the Storage Account.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"storage_key_vault_secret_id": {
@@ -126,8 +135,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "A map of key-value pairs for App Settings and custom values.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -140,18 +150,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"builtin_logging_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the built-in logging is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the use of Client Certificates is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The mode of the Function App's client certificates requirement for incoming requests.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -163,34 +176,40 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"daily_memory_time_quota": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The amount of memory in gigabyte-seconds that your application is allowed to consume per day.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Function App is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"content_share_force_disabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Content Share Settings are disabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"functions_extension_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The runtime version associated with the Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"https_only": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Function App is only accessible via HTTPS.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"custom_domain_verification_id": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The identifier used by App Service to perform domain ownership verification via DNS TXT record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_hostname": {
@@ -199,56 +218,65 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Kind value for this Windows Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"possible_outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Public Network Access is enabled for the Windows Function App.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
@@ -260,13 +288,15 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"virtual_network_backup_restore_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"virtual_network_subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The subnet ID which the Windows Function App is VNet Integrated with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

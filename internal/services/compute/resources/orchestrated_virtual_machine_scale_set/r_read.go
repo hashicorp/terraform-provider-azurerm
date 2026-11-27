@@ -273,7 +273,7 @@ func flattenOrchestratedVirtualMachineScaleSetSku(input *virtualmachinescalesets
 		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") || *input.Name == SkuNameMix {
 			skuName = *input.Name
 		} else {
-			skuName = fmt.Sprintf("Standard_%s", *input.Name)
+			skuName = "Standard_" + *input.Name
 		}
 
 		return &skuName, nil

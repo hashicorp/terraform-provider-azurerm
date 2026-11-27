@@ -10,8 +10,9 @@ import (
 func portalTenantConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"private_markdown_storage_enforced": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether the private tile markdown storage which is used to display custom dynamic and static content is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 	}
 }

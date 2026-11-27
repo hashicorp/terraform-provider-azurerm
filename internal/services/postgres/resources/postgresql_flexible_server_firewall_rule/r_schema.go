@@ -13,6 +13,7 @@ import (
 func postgresqlFlexibleServerFirewallRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this PostgreSQL Flexible Server Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func postgresqlFlexibleServerFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"server_id": {
+			Description:  "The ID of the PostgreSQL Flexible Server from which to create this PostgreSQL Flexible Server Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,12 +29,14 @@ func postgresqlFlexibleServerFirewallRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"end_ip_address": {
+			Description:  "The IPv4 Address defining the end of the range of addresses associated with this PostgreSQL Flexible Server Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
 
 		"start_ip_address": {
+			Description:  "The IPv4 Address defining the start of the range of addresses associated with this PostgreSQL Flexible Server Firewall Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,

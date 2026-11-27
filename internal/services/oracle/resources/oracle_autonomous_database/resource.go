@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database"
 }
 
+func (Resource) Description() string {
+	return "Manages an Autonomous Database."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
 }

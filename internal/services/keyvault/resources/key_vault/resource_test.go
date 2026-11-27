@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -893,13 +894,14 @@ resource "azurerm_key_vault" "test" {
 }
 
 func (KeyVaultResource) accessPolicyUpperLimit(data acceptance.TestData) string {
-	var storageAccountConfigs string
-	var accessPoliciesConfigs string
-
+	var storageAccountConfigsBuilder strings.Builder
+	var accessPoliciesConfigsBuilder strings.Builder
 	for i := 1; i <= 20; i++ {
-		storageAccountConfigs += testAccKeyVault_generateStorageAccountConfigs(i, data.RandomString)
-		accessPoliciesConfigs += testAccKeyVault_generateAccessPolicyConfigs(i)
+		storageAccountConfigsBuilder.WriteString(testAccKeyVault_generateStorageAccountConfigs(i, data.RandomString))
+		accessPoliciesConfigsBuilder.WriteString(testAccKeyVault_generateAccessPolicyConfigs(i))
 	}
+	storageAccountConfigs := storageAccountConfigsBuilder.String()
+	accessPoliciesConfigs := accessPoliciesConfigsBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -14,6 +14,7 @@ import (
 func netappPoolSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NetApp Pool.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func netappPoolSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"account_name": {
+			Description:  "The name of the NetApp account in which the NetApp Pool should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,9 +34,10 @@ func netappPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_level": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The service level of the file system.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(capacitypools.ServiceLevelPremium),
 				string(capacitypools.ServiceLevelStandard),
@@ -44,12 +47,14 @@ func netappPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"size_in_tb": {
+			Description:  "Provisioned size of the pool in TB.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 2048),
 		},
 
 		"qos_type": {
+			Description:  "QoS Type of the pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(capacitypools.QosTypeAuto),
@@ -57,6 +62,7 @@ func netappPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"encryption_type": {
+			Description:  "The encryption type of the pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -65,12 +71,14 @@ func netappPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cool_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the NetApp Pool can hold cool access enabled volumes.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"custom_throughput_mibps": {
+			Description:  "The custom throughput for the pool in MiB/s. Minimum value is `128`. This field can only be set when `service_level` is set to `Flexible` and `qos_type` is set to `Manual`.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(128),

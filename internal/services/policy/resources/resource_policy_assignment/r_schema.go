@@ -14,9 +14,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Policy Assignment.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
 				validation.StringDoesNotContainAny("#<>%&:\\?/"),
@@ -25,6 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 		"resource_id": {
+			Description: "The ID of the Resource (or Resource Scope) where this should be applied.",
 			// TODO: tests for this
 			Type:         pluginsdk.TypeString,
 			Required:     true,

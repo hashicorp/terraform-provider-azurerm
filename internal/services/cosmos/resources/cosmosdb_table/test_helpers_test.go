@@ -5,6 +5,7 @@ package cosmosdb_table_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
@@ -12,10 +13,11 @@ import (
 type CosmosDBAccountResource struct{}
 
 func (CosmosDBAccountResource) capabilities(data acceptance.TestData, capabilities []string) string {
-	capeTf := ""
+	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
-		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)
 	}
+	capeTf := capeTfBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

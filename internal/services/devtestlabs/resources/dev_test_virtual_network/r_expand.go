@@ -4,8 +4,6 @@
 package dev_test_virtual_network
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks"
@@ -14,7 +12,7 @@ import (
 func expandDevTestVirtualNetworkSubnets(input []any, subscriptionId, resourceGroupName, virtualNetworkName string) *[]virtualnetworks.SubnetOverride {
 	results := make([]virtualnetworks.SubnetOverride, 0)
 	// default found from the Portal
-	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
+	name := virtualNetworkName + "Subnet"
 	subnetId := commonids.NewSubnetID(subscriptionId, resourceGroupName, virtualNetworkName, name)
 	allow := virtualnetworks.UsagePermissionTypeAllow
 

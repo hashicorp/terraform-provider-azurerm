@@ -42,8 +42,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"character_set": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A valid Oracle national character set.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -57,6 +58,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_adbs_national_character_sets"
+}
+
+func (d DataSource) Description() string {
+	return "Gets a list of supported national character sets."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

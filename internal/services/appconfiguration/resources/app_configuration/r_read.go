@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -181,7 +182,7 @@ func (p *purgeDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, err
 
 	status := "dropped connection"
 	if resp.HttpResponse != nil {
-		status = fmt.Sprintf("%d", resp.HttpResponse.StatusCode)
+		status = strconv.Itoa(resp.HttpResponse.StatusCode)
 	}
 
 	if response.WasNotFound(resp.HttpResponse) {

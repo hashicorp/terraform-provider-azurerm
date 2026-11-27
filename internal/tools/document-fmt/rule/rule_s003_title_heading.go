@@ -116,7 +116,7 @@ func (r S003) Run(d *data.TerraformNodeData, fix bool) []error {
 
 func (r S003) headingText(d *data.TerraformNodeData) string {
 	if d.Type == data.ResourceTypeData {
-		return fmt.Sprintf("Data Source: %s", d.Name)
+		return "Data Source: " + d.Name
 	}
 
 	return d.Name

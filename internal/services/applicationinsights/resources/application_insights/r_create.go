@@ -144,7 +144,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta any) erro
 		// TODO: replace this with a StateWait func
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)
-			ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
+			ruleName := "Failure Anomalies - " + id.ComponentName
 			ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
 			result, err := ruleClient.Get(ctx, ruleId, smartdetectoralertrules.DefaultGetOperationOptions())
 			if err != nil {

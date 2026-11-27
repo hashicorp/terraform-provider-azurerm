@@ -71,22 +71,22 @@ func expectedResourceCodePath(fs afero.Fs, pattern string, name string, service 
 	}
 
 	candidates := []string{
-		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, shortNameWithoutService, suffix+".go"),
 		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
-		filepath.Join(service.Path, "resources", shortNameWithoutService, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, "resources", shortNameWithoutService, suffix+".go"),
 		filepath.Join(service.Path, "resources", shortNameWithoutService, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
-		filepath.Join(service.Path, name, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, name, suffix+".go"),
 		filepath.Join(service.Path, name, fmt.Sprintf("%s_%s.go", name, suffix)),
-		filepath.Join(service.Path, "resources", name, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, "resources", name, suffix+".go"),
 		filepath.Join(service.Path, "resources", name, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
 	}
 
 	if idx := strings.LastIndex(name, "_"); idx != -1 {
 		lastPart := name[idx+1:]
 		candidates = append(candidates,
-			filepath.Join(service.Path, lastPart, fmt.Sprintf("%s.go", suffix)),
+			filepath.Join(service.Path, lastPart, suffix+".go"),
 			filepath.Join(service.Path, lastPart, fmt.Sprintf("%s_%s.go", lastPart, suffix)),
-			filepath.Join(service.Path, "resources", lastPart, fmt.Sprintf("%s.go", suffix)),
+			filepath.Join(service.Path, "resources", lastPart, suffix+".go"),
 			filepath.Join(service.Path, "resources", lastPart, fmt.Sprintf("%s_%s.go", lastPart, suffix)),
 		)
 	}

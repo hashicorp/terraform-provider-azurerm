@@ -411,7 +411,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 		if metadataHost != "" {
 			logEntry("[DEBUG] Configuring cloud environment from Metadata Service at %q", metadataHost)
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
+			if env, err = environments.FromEndpoint(ctx, "https://"+metadataHost); err != nil {
 				return nil, diag.FromErr(err)
 			}
 		} else {

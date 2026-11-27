@@ -309,15 +309,15 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 }
 
 func SchemaNodePoolSecurity(path string) *pluginsdk.Schema {
-	secureBootPath := fmt.Sprintf("%s.0.secure_boot_enabled", path)
-	vtpmPath := fmt.Sprintf("%s.0.vtpm_enabled", path)
+	secureBootPath := path + ".0.secure_boot_enabled"
+	vtpmPath := path + ".0.vtpm_enabled"
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-			if k != fmt.Sprintf("%s.#", path) {
+			if k != path+".#" {
 				return false
 			}
 

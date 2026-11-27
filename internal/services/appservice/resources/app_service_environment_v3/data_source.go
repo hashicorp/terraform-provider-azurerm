@@ -47,6 +47,7 @@ type AppServiceEnvironmentV3DataSourceModel struct {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this v3 App Service Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AppServiceEnvironmentName,
@@ -59,8 +60,9 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"allow_new_private_endpoint_connections": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether new Private Endpoint Connections are allowed.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"cluster_setting": {
@@ -69,31 +71,36 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the Cluster Setting.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The value for the Cluster Setting.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"dedicated_host_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of Dedicated Hosts used by this ASEv3.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"dns_suffix": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The DNS suffix for this App Service Environment V3.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"external_inbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The external inbound IP addresses of the App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -105,21 +112,24 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A short description of the purpose of the network traffic.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of IP addresses that network traffic will originate from in CIDR notation.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"ports": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The ports that network traffic will arrive to the App Service Environment V3 on.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -129,39 +139,45 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"internal_inbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The internal inbound IP addresses of the App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"internal_load_balancing_mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Internal Load Balancing Mode of this ASEv3.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"linux_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of Outbound IP Addresses of Linux based Apps in this App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The location where the App Service Environment exists.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"pricing_tier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Pricing tier for the front end instances.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ip_ssl_address_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of IP SSL addresses reserved for the App Service Environment V3.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"remote_debugging_enabled": {
@@ -170,13 +186,15 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the v3 App Service Environment Subnet.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"windows_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "Outbound addresses of Windows based Apps in this App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -197,6 +215,10 @@ func (r DataSource) ModelObject() any {
 
 func (r DataSource) ResourceType() string {
 	return "azurerm_app_service_environment_v3"
+}
+
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing 3rd Generation (v3) App Service Environment."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

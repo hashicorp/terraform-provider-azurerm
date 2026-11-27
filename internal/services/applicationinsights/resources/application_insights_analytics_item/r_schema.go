@@ -13,6 +13,7 @@ import (
 func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Application Insights Analytics Item.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"application_insights_id": {
+			Description:  "The ID of the Application Insights component on which the Analytics Item exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,16 +29,19 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A string indicating the version of the query format.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"content": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The content for the Analytics Item, for example the query text if `type` is `query`.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"scope": {
+			Description:  "The scope for the Analytics Item.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -44,9 +49,10 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The type of Analytics Item to create.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(analyticsitemsapis.ItemTypeQuery),
 				string(analyticsitemsapis.ItemTypeFunction),
@@ -56,18 +62,21 @@ func applicationInsightsAnalyticsItemSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"function_alias": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The alias to use for the function.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"time_created": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A string containing the time the Analytics Item was created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_modified": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A string containing the time the Analytics Item was last modified.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

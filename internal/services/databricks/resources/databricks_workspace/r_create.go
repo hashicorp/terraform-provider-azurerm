@@ -79,7 +79,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	if managedResourceGroupName == "" {
 		log.Printf("[DEBUG] no managed resource group name was provided, using the default pattern")
-		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
+		managedResourceGroupName = "databricks-rg-" + id.ResourceGroupName
 	}
 
 	publicNetworkAccess := workspaces.PublicNetworkAccessDisabled

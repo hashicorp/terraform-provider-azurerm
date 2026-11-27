@@ -12,6 +12,7 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Oracle Resource Anchor.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,8 +30,9 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"linked_compartment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Oracle Cloud Infrastructure compartment [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) which was created or linked by customer with Resource Anchor.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

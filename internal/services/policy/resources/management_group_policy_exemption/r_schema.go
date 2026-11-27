@@ -16,6 +16,7 @@ import (
 func managementGroupPolicyExemptionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Policy Exemption.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func managementGroupPolicyExemptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"management_group_id": {
+			Description:  "The Management Group ID where the Policy Exemption should be applied.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,32 +32,37 @@ func managementGroupPolicyExemptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"exemption_category": {
+			Description:  "The category of this policy exemption.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInEnumSlice(policy.PossibleExemptionCategoryValues(), false),
 		},
 
 		"policy_assignment_id": {
+			Description:  "The ID of the Policy Assignment to be exempted at the specified Scope.",
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validate.PolicyAssignmentID,
 		},
 
 		"display_name": {
+			Description:  "A friendly display name to use for this Policy Exemption.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 128),
 		},
 
 		"description": {
+			Description:  "A description to use for this Policy Exemption.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 512),
 		},
 
 		"policy_definition_reference_ids": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Description: "The policy definition reference ID list when the associated policy assignment is an assignment of a Policy Set Definition.",
+			Type:        schema.TypeList,
+			Optional:    true,
 			Elem: &schema.Schema{
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -63,6 +70,7 @@ func managementGroupPolicyExemptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"expires_on": {
+			Description:  "The expiration date and time in UTC ISO 8601 format of this policy exemption.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.ISO8601DateTime,

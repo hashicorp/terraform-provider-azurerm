@@ -25,9 +25,10 @@ func DNSSettingsSchema() *pluginsdk.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dns_servers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 2,
+					Description: "A list of DNS servers to use.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					MaxItems:    2,
 					ConflictsWith: []string{
 						"dns_settings.0.use_azure_dns",
 					},
@@ -38,17 +39,19 @@ func DNSSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"use_azure_dns": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether to use Azure DNS servers.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 					ConflictsWith: []string{
 						"dns_settings.0.dns_servers",
 					},
 				},
 
 				"azure_dns_servers": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of Azure DNS servers.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},

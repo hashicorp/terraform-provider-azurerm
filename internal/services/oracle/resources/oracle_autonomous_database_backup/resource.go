@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database_backup"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Oracle Autonomous Database Backup in Azure."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabasebackups.ValidateAutonomousDatabaseBackupID
 }

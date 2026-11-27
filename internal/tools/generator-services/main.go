@@ -82,7 +82,7 @@ state-migration:
 type githubLabelsGenerator struct{}
 
 func (githubLabelsGenerator) outputPath(rootDirectory string) string {
-	return fmt.Sprintf("%s/.github/labeler-pull-request-triage.yml", rootDirectory)
+	return rootDirectory + "/.github/labeler-pull-request-triage.yml"
 }
 
 func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) error {
@@ -140,7 +140,7 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 		sort.Strings(pkgs)
 
 		out := []string{
-			fmt.Sprintf("%[1]s:", labelName),
+			labelName + ":",
 			"- changed-files:",
 			"  - any-glob-to-any-file:",
 		}
@@ -159,7 +159,7 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 type teamCityServicesListGenerator struct{}
 
 func (teamCityServicesListGenerator) outputPath(rootDirectory string) string {
-	return fmt.Sprintf("%s/.teamcity/components/generated/services.kt", rootDirectory)
+	return rootDirectory + "/.teamcity/components/generated/services.kt"
 }
 
 func (teamCityServicesListGenerator) run(outputFileName string, packagesToSkip map[string]struct{}) error {
@@ -222,7 +222,7 @@ var services = mapOf(
 type websiteCategoriesGenerator struct{}
 
 func (websiteCategoriesGenerator) outputPath(rootDirectory string) string {
-	return fmt.Sprintf("%s/website/allowed-subcategories", rootDirectory)
+	return rootDirectory + "/website/allowed-subcategories"
 }
 
 func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct{}) error {
@@ -265,7 +265,7 @@ const azurerm = "azurerm_"
 type githubIssueLabelsGenerator struct{}
 
 func (g githubIssueLabelsGenerator) outputPath(rootDirectory string) string {
-	return fmt.Sprintf("%s/.github/labeler-issue-triage-generated.yml", rootDirectory)
+	return rootDirectory + "/.github/labeler-issue-triage-generated.yml"
 }
 
 type Prefix struct {
@@ -363,7 +363,7 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		}
 
 		out := []string{
-			fmt.Sprintf("%[1]s:", labelName),
+			labelName + ":",
 		}
 		prefixes := make([]string, 0)
 

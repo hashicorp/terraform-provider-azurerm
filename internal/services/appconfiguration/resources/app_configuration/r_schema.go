@@ -15,6 +15,7 @@ import (
 func appConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the App Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"data_plane_proxy_authentication_mode": {
+			Description:  "The data plane proxy authentication mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(configurationstores.AuthenticationModeLocal),
@@ -33,9 +35,10 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_plane_proxy_private_link_delegation_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether data plane proxy Private Link delegation is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"encryption": {
@@ -45,11 +48,13 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity_client_id": {
+						Description:  "The client ID of the identity which will be used to access Key Vault.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
 					},
 					"key_vault_key_identifier": {
+						Description:  "The URI of the Key Vault Key used to encrypt data.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -61,12 +66,14 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether local authentication methods is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"public_network_access": {
+			Description:  "The Public Network Access setting of the App Configuration.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      nil,
@@ -74,9 +81,10 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"purge_protection_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Purge Protection is enabled. This field only works for `standard` SKU.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"replica": {
@@ -87,18 +95,21 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the replica.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ConfigurationStoreReplicaName,
 					},
 					"location": commonschema.LocationWithoutForceNew(),
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the App Configuration Replica.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"endpoint": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URL of the App Configuration Replica.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -106,9 +117,10 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 
 		// `sku` is not enum, https://github.com/Azure/azure-rest-api-specs/issues/23902
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "free",
+			Description: "The SKU name of the App Configuration.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "free",
 			ValidateFunc: validation.StringInSlice([]string{
 				"free",
 				"developer",
@@ -118,6 +130,7 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"soft_delete_retention_days": {
+			Description:  "The number of days that items should be retained for once soft-deleted. This field only works for `standard` SKU.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -131,8 +144,9 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the App Configuration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_read_key": {
@@ -141,19 +155,22 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The ID of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"connection_string": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"secret": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Secret of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
@@ -165,19 +182,22 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The ID of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"connection_string": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"secret": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Secret of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
@@ -189,19 +209,22 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The ID of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"connection_string": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"secret": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Secret of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
@@ -213,19 +236,22 @@ func appConfigurationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The ID of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"connection_string": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 					"secret": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The Secret of the Access Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},

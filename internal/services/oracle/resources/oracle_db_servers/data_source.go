@@ -54,6 +54,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"cloud_exadata_infrastructure_name": {
+			Description:  "The name of the Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -69,107 +70,126 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"autonomous_vm_cluster_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The list of [OCIDs](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Autonomous VM Clusters associated with the DB Server.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"autonomous_virtual_machine_ds": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The list of [OCIDs](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Autonomous Virtual Machines associated with the DB Server.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"compartment_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the compartment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"compute_model": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The compute model of the Exadata Infrastructure.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"cpu_core_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The number of CPU cores enabled on the DB Server.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"db_node_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Db nodes associated with the DB Server.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"db_node_storage_size_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The allocated local node storage in GBs on the DB Server.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"display_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The user-friendly name for the DB Server. The name does not need to be unique.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"exadata_infrastructure_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Exadata infrastructure.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"lifecycle_details": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Additional information about the current lifecycle state.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"lifecycle_state": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The current state of the DB Server.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"max_cpu_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The total number of CPU cores available.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"max_db_node_storage_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The total local node storage available in GBs.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"max_memory_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The total memory available in GBs.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"memory_size_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The allocated memory in GBs on the DB Server.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"ocid": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DB Server.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"shape": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The shape of the DB Server. The shape determines the amount of CPU, storage, and memory resources available.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"time_created": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The date and time that the DB Server was created.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"vm_cluster_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the VM Clusters associated with the DB Server.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -186,6 +206,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_db_servers"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about existing DB Servers."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

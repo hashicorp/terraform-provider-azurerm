@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Palo Alto Next Generation Firewall Virtual Network Panorama."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewallresources.ValidateFirewallID
 }

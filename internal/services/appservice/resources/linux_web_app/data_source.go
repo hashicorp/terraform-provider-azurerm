@@ -77,9 +77,14 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_linux_web_app"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Linux Web App."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Linux Web App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.WebAppName,
@@ -110,8 +115,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"availability": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current availability state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
@@ -121,18 +127,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Client Affinity is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Client Certificates are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Client Certificate mode.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -144,9 +153,10 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"custom_domain_verification_id": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The identifier used by App Service to perform domain ownership verification via DNS TXT record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_hostname": {
@@ -155,18 +165,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by App Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Linux Web App is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"https_only": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Linux Web App requires HTTPS connections.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -177,15 +190,17 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Kind value for this Linux Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"logs": helpers.LogsConfigSchemaComputed(),
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_address_list": {
@@ -197,8 +212,9 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"possible_outbound_ip_address_list": {
@@ -210,30 +226,35 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"usage": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current usage state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Public Network Access is enabled for this Linux Web App.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Service Plan that this Linux Web App exists in.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"site_config": SiteConfigSchemaLinuxComputed(),
@@ -245,18 +266,21 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"virtual_network_backup_restore_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether backup and restore operations over the linked Virtual Network are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"virtual_network_subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The subnet ID which the Linux Web App is VNet Integrated with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"virtual_network_image_pull_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether image pull traffic is routed through the Virtual Network integration.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

@@ -15,6 +15,7 @@ import (
 func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Virtual Network Gateway NAT Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"virtual_network_gateway_id": {
+			Description:  "The ID of the Virtual Network Gateway that this Virtual Network Gateway NAT Rule belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,12 +38,14 @@ func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"address_space": {
+						Description:  "The string CIDR representing the address space for the Virtual Network Gateway NAT Rule external mapping.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsCIDR,
 					},
 
 					"port_range": {
+						Description:  "The single port range for the Virtual Network Gateway NAT Rule external mapping.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -56,12 +60,14 @@ func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"address_space": {
+						Description:  "The string CIDR representing the address space for the Virtual Network Gateway NAT Rule internal mapping.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsCIDR,
 					},
 
 					"port_range": {
+						Description:  "The single port range for the Virtual Network Gateway NAT Rule internal mapping.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -71,6 +77,7 @@ func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
+			Description:  "The source NAT direction of the Virtual Network Gateway NAT.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -79,6 +86,7 @@ func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"type": {
+			Description:  "The type of the Virtual Network Gateway NAT Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -87,6 +95,7 @@ func virtualNetworkGatewayNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_configuration_id": {
+			Description:  "The ID of the IP Configuration this Virtual Network Gateway NAT Rule applies to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.VirtualNetworkGatewayIpConfigurationID,

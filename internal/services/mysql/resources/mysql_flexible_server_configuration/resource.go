@@ -19,10 +19,11 @@ var mysqlFlexibleServerConfigurationResourceName = "azurerm_mysql_flexible_serve
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMySQLFlexibleServerConfigurationCreate,
-		Read:   resourceMySQLFlexibleServerConfigurationRead,
-		Update: resourceMySQLFlexibleServerConfigurationUpdate,
-		Delete: resourceMySQLFlexibleServerConfigurationDelete,
+		Description: "Sets a MySQL Flexible Server Configuration value on a MySQL Flexible Server.",
+		Create:      resourceMySQLFlexibleServerConfigurationCreate,
+		Read:        resourceMySQLFlexibleServerConfigurationRead,
+		Update:      resourceMySQLFlexibleServerConfigurationUpdate,
+		Delete:      resourceMySQLFlexibleServerConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&configurations.ConfigurationId{}),
 

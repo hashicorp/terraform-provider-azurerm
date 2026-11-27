@@ -5,6 +5,7 @@ package kubernetes_cluster
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -326,11 +327,11 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]any, env
 		}
 
 		if useAADAuth, ok := value["msi_auth_for_monitoring_enabled"].(bool); ok {
-			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
+			config["useAADAuth"] = strconv.FormatBool(useAADAuth)
 		}
 
 		if retinaFlowLogsEnabled, ok := value["retina_flow_logs_enabled"].(bool); ok {
-			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", retinaFlowLogsEnabled)
+			config["enableRetinaNetworkFlags"] = strconv.FormatBool(retinaFlowLogsEnabled)
 		}
 
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
@@ -407,7 +408,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]any, env
 		value := azureKeyVaultSecretsProvider[0].(map[string]any)
 		config := make(map[string]string)
 
-		config["enableSecretRotation"] = fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
+		config["enableSecretRotation"] = strconv.FormatBool(value["secret_rotation_enabled"].(bool))
 		config["rotationPollInterval"] = value["secret_rotation_interval"].(string)
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{

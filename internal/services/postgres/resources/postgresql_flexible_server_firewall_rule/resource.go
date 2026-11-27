@@ -19,10 +19,11 @@ const azurePostgresqlFlexibleServerFirewallRuleResourceName = "azurerm_postgresq
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate,
-		Read:   resourcePostgresqlFlexibleServerFirewallRuleRead,
-		Update: resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate,
-		Delete: resourcePostgresqlFlexibleServerFirewallRuleDelete,
+		Description: "Manages a PostgreSQL Flexible Server Firewall Rule.",
+		Create:      resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate,
+		Read:        resourcePostgresqlFlexibleServerFirewallRuleRead,
+		Update:      resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate,
+		Delete:      resourcePostgresqlFlexibleServerFirewallRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

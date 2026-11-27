@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNotificationHubCreateUpdate,
-		Read:   resourceNotificationHubRead,
-		Update: resourceNotificationHubCreateUpdate,
-		Delete: resourceNotificationHubDelete,
+		Description: "Manages a Notification Hub within a Notification Hub Namespace.",
+		Create:      resourceNotificationHubCreateUpdate,
+		Read:        resourceNotificationHubRead,
+		Update:      resourceNotificationHubCreateUpdate,
+		Delete:      resourceNotificationHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := hubs.ParseNotificationHubID(id)

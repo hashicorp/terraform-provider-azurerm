@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -93,7 +94,7 @@ func netAppVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequ
 
 		statusCode := "dropped connection"
 		if res.HttpResponse != nil {
-			statusCode = fmt.Sprintf("%d", res.HttpResponse.StatusCode)
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
 		}
 		return res, statusCode, nil
 	}

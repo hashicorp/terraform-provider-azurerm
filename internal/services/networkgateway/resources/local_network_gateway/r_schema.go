@@ -12,9 +12,10 @@ import (
 func localNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Local Network Gateway.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -22,20 +23,23 @@ func localNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"gateway_address": {
+			Description:  "The gateway IP address to connect with.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
 		},
 
 		"gateway_fqdn": {
+			Description:  "The gateway FQDN to connect with.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
 		},
 
 		"address_space": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "The list of string CIDRs representing the address spaces the gateway exposes.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -49,18 +53,21 @@ func localNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"asn": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The BGP speaker's ASN.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 					},
 
 					"bgp_peering_address": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The BGP peering address and BGP identifier of this BGP speaker.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 
 					"peer_weight": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "The weight added to routes learned from this BGP speaker.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 					},
 				},
 			},

@@ -15,11 +15,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceLocalNetworkGatewayCreate,
-		Read:     resourceLocalNetworkGatewayRead,
-		Update:   resourceLocalNetworkGatewayUpdate,
-		Delete:   resourceLocalNetworkGatewayDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&localnetworkgateways.LocalNetworkGatewayId{}),
+		Description: "Manages a Local Network Gateway connection over which specific connections can be configured.",
+		Create:      resourceLocalNetworkGatewayCreate,
+		Read:        resourceLocalNetworkGatewayRead,
+		Update:      resourceLocalNetworkGatewayUpdate,
+		Delete:      resourceLocalNetworkGatewayDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&localnetworkgateways.LocalNetworkGatewayId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&localnetworkgateways.LocalNetworkGatewayId{}),

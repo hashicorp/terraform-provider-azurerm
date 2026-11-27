@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_private_dns_resolver_dns_forwarding_ruleset"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Private DNS Resolver DNS Forwarding Ruleset."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dnsforwardingrulesets.ValidateDnsForwardingRulesetID
 }

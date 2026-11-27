@@ -30,6 +30,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_service_plan"
 }
 
+func (r Resource) Description() string {
+	return "Manages an App Service: Service Plan."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateAppServicePlanID
 }

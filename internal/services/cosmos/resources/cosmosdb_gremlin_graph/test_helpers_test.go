@@ -5,6 +5,7 @@ package cosmosdb_gremlin_graph_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
@@ -36,10 +37,11 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 }
 
 func (r CosmosGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
-	capeTf := ""
+	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
-		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)
 	}
+	capeTf := capeTfBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

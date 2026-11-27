@@ -13,14 +13,16 @@ import (
 func postgresqlFlexibleServerActiveDirectoryAdministratorSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"server_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the PostgreSQL Flexible Server on which to set the administrator.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"object_id": {
+			Description:  "The object ID of a user, Service Principal or security group in the Azure Active Directory tenant set as the Flexible Server Admin.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func postgresqlFlexibleServerActiveDirectoryAdministratorSchema() map[string]*pl
 		},
 
 		"principal_name": {
+			Description:  "The name of Azure Active Directory principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,9 +38,10 @@ func postgresqlFlexibleServerActiveDirectoryAdministratorSchema() map[string]*pl
 		},
 
 		"principal_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The type of Azure Active Directory principal.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(administratormicrosoftentras.PrincipalTypeGroup),
 				string(administratormicrosoftentras.PrincipalTypeServicePrincipal),
@@ -46,6 +50,7 @@ func postgresqlFlexibleServerActiveDirectoryAdministratorSchema() map[string]*pl
 		},
 
 		"tenant_id": {
+			Description:  "The Azure Tenant ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

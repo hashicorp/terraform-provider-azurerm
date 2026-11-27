@@ -36,6 +36,7 @@ var _ sdk.DataSource = DataSource{}
 func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"nginx_deployment_id": {
+			Description:  "The ID of the Nginx Deployment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
@@ -51,13 +52,15 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The base-64 encoded contents of this configuration file.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"virtual_path": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The path of this configuration file.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -69,26 +72,30 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content_hash": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The hash of the contents of this configuration file prefixed by the algorithm used.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"virtual_path": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The path of this configuration file.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"package_data": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The package data for this configuration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"root_file": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The root file path of this Nginx Configuration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -99,6 +106,10 @@ func (m DataSource) ModelObject() any {
 
 func (m DataSource) ResourceType() string {
 	return "azurerm_nginx_configuration"
+}
+
+func (m DataSource) Description() string {
+	return "Use this data source to access information about an existing Nginx Configuration."
 }
 
 func (m DataSource) Read() sdk.ResourceFunc {

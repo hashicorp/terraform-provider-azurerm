@@ -96,6 +96,7 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
+			Description:  "The name of this Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -109,33 +110,39 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		// CloudExadataInfrastructureProperties
 		"activated_storage_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The requested number of additional storage servers activated for the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"additional_storage_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The requested number of additional storage servers for the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"available_storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The available storage can be allocated to the Cloud Exadata Infrastructure resource, in gigabytes (GB).",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"compute_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of compute servers for the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"compute_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The compute model of the Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"cpu_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The total number of CPU cores allocated.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"customer_contacts": {
@@ -147,28 +154,33 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"database_server_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The database server model type of the cloud Exadata infrastructure resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"data_storage_size_in_tbs": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The data storage size in terabytes of the DATA disk group.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"db_node_storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The local node storage allocated in GBs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"db_server_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The software version of the database servers (dom0) in the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"estimated_patching_time": {
@@ -177,41 +189,48 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"estimated_db_server_patching_time": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The estimated time required in minutes for database server patching.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"estimated_network_switches_patching_time": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The estimated time required in minutes for network switch patching.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"estimated_storage_server_patching_time": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The estimated time required in minutes for storage server patching.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"total_estimated_patching_time": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The estimated total time required in minutes for all patching operations.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"last_maintenance_run_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the last maintenance run.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_details": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Additional information about the current lifecycle state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Cloud Exadata Infrastructure lifecycle state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"maintenance_window": {
@@ -225,16 +244,18 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "Days during the week when maintenance should be performed.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"hours_of_day": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The window of hours during the day when maintenance should be performed.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeInt,
 						},
@@ -251,8 +272,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"lead_time_in_weeks": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "Lead time window allows user to set a lead time to prepare for a down time.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"months": {
@@ -264,18 +286,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"patching_mode": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Cloud Exadata Infrastructure node patching method.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"preference": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The maintenance window scheduling preference.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"weeks_of_month": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "Weeks during the month when maintenance should be performed.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeInt,
 						},
@@ -285,83 +310,99 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"max_cpu_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The total number of CPU cores available.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_data_storage_in_tbs": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The total available DATA disk group size.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"max_db_node_storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The total local node storage available in GBs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"max_memory_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The total memory available in GBs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"memory_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The memory allocated in GBs.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"monthly_db_server_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The monthly software version of the database servers (dom0) in the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"monthly_storage_server_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The monthly software version of the storage servers (cells) in the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"next_maintenance_run_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the next maintenance run.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"oci_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the resource in the OCI console.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"shape": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The model name of the Cloud Exadata Infrastructure resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"storage_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of storage servers for the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"storage_server_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The storage server model type of the cloud Exadata infrastructure resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"storage_server_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The software version of the storage servers (cells) in the Cloud Exadata Infrastructure.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_created": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date and time the Cloud Exadata Infrastructure resource was created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"total_storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The total storage allocated to the Cloud Exadata Infrastructure resource, in gigabytes (GB).",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -374,20 +415,24 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"backup_partition_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the backup partition is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"resizable_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the resizable is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"minimum_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum size of the file system in GB.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"mount_point": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Mount path for the file system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -401,6 +446,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_exadata_infrastructure"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Cloud Exadata Infrastructure."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

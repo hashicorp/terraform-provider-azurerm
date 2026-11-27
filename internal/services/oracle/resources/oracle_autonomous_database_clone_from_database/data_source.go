@@ -99,6 +99,7 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this autonomous database clone from database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
@@ -116,166 +117,196 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		// Clone-specific properties
 		"source_autonomous_database_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the source Autonomous Database from which this clone was created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"reconnect_clone_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether reconnect clone is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"refreshable_clone": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the clone is a refreshable clone.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"refreshable_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current refreshable status of the clone.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_until_reconnect_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The time until reconnect clone is enabled.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		// Base properties
 		"actual_used_data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The current amount of storage in use for user and system data, in terabytes (TB).",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"allocated_storage_size_in_tb": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `data_storage_size_in_tb` value. You can compare this value to the `actual_used_data_storage_size_in_tb` value to determine if a manual shrink operation is appropriate for your allocated storage.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"allowed_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of IP addresses on the access control list.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"auto_scaling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether auto scaling is enabled for the Autonomous Database CPU core count.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"auto_scaling_for_storage_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether auto scaling is enabled for the Autonomous Database storage.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"available_upgrade_versions": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Oracle Database versions available for a database upgrade. If there are no version upgrades available, this list is empty.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"backup_retention_period_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The backup retention period in days.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"character_set": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The character set for the autonomous database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"compute_count": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
+			Description: "The compute amount (CPUs) available to the database.",
+			Type:        pluginsdk.TypeFloat,
+			Computed:    true,
 		},
 
 		"compute_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The compute model of the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"connection_strings": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The connection string used to connect to the Autonomous Database.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"cpu_core_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Customer's contact email addresses.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"data_storage_size_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The quantity of data in the database, in gigabytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum storage that can be allocated for the database, in terabytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"database_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Oracle Database version for Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"database_workload": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Autonomous Database workload type.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The display name for the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"failed_data_recovery_in_seconds": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of seconds of data loss for a Data Guard failover.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"in_memory_area_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The area assigned to In-Memory tables in Autonomous Database.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Oracle license model that applied to the Oracle Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_details": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Information about the current lifecycle state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current state of the backup.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"local_adg_auto_failover_max_data_loss_limit_in_seconds": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"local_data_guard_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"long_term_backup_schedule": {
@@ -284,38 +315,45 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"repeat_cadence": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The frequency for automated long-term backups.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"time_of_backup_in_utc": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The timestamp in which the backup would be made.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"retention_period_in_days": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The retention period in days for Autonomous database backup.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "A boolean value that indicates if long-term backup is enabled/disabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"memory_per_oracle_compute_unit_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The amount of memory in gigabytes per ECPU or OCPU.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"mtls_connection_required": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Autonomous Database requires mTLS connections.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"national_character_set": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The national character set for the autonomous database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"next_long_term_backup_timestamp": {
@@ -324,152 +362,180 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"oci_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the resource in the OCI console.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"peer_database_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. For Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"preview": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Autonomous Database version is a preview version.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"preview_version_with_service_terms_accepted": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Autonomous Database version is a preview version with service terms accepted.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"private_endpoint_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Private Endpoint for the resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"private_endpoint_ip": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Private Endpoint IP address for the resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"private_endpoint_label": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Private Endpoint label for the resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"provisionable_cpus": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "An array of CPU values that an Autonomous Database can be scaled to.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeInt,
 			},
 		},
 
 		"remote_data_guard_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"service_console_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the Service Console for the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"sql_web_developer_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the SQL web developer portal.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID to an Azure Resource Manager subnet the resource is associated with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"supported_regions_to_clone_to": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of regions that support the creation of an Autonomous Database clone or an Autonomous Data Guard standby database.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"time_created_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp the Autonomous Database was created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_data_guard_role_changed_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the \"primary\" role in the primary Data Guard region, or database located in the remote Data Guard standby region.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_deletion_of_free_autonomous_database_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_local_data_guard_enabled_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_maintenance_begin_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp when maintenance will begin.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_maintenance_end_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp when maintenance will end.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_of_last_failover_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp of the last failover operation.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_of_last_refresh_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp when the last refresh happened.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_of_last_refresh_point_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The refresh point timestamp (UTC). The refresh point is the time to which the database was most recently refreshed. Data created after the refresh point is not included in the refresh.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_of_last_switchover_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp of the last switchover operation for the Autonomous Database.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_reclamation_of_free_autonomous_database_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"used_data_storage_size_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The storage space consumed by Autonomous Database in gigabytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"used_data_storage_size_in_tb": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The amount of storage that has been used, in terabytes.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"virtual_network_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID to an Azure Resource Manager Virtual Network resource.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -480,6 +546,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database_clone_from_database"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing autonomous database clone from database."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

@@ -12,6 +12,7 @@ import (
 func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"nginx_deployment_id": {
+			Description:  "The ID of the Nginx Deployment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,12 +26,14 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
+						Description:  "The base-64 encoded contents of this config file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsBase64,
 					},
 
 					"virtual_path": {
+						Description:  "The path of this config file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -40,12 +43,14 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protected_file": {
+			Description:  "If specified `config_file` must also be specified.",
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
 			RequiredWith: []string{"config_file"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
+						Description:  "The base-64 encoded contents of this config file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
@@ -53,20 +58,23 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"virtual_path": {
+						Description:  "The path of this config file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"content_hash": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The hash of the contents of this configuration file prefixed by the algorithm used.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"package_data": {
+			Description:   "The package data for this configuration.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -75,6 +83,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"root_file": {
+			Description:  "The root file path of this Nginx Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_management_group_policy_set_definition"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Policy Set Definition for a Management Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return policysetdefinitions.ValidateProviders2PolicySetDefinitionID
 }

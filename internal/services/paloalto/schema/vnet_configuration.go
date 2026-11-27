@@ -23,26 +23,30 @@ func VnetConfigurationSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_network_id": {
+					Description:  "The ID of the Virtual Network.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: commonids.ValidateVirtualNetworkID,
 				},
 
 				"trusted_subnet_id": {
+					Description:  "The ID of the Trust subnet.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"untrusted_subnet_id": {
+					Description:  "The ID of the UnTrust subnet.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"ip_of_trust_for_user_defined_routes": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The IP of trusted subnet for UDR.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNotificationHubNamespaceCreate,
-		Read:   resourceNotificationHubNamespaceRead,
-		Update: resourceNotificationHubNamespaceUpdate,
-		Delete: resourceNotificationHubNamespaceDelete,
+		Description: "Manages a Notification Hub Namespace.",
+		Create:      resourceNotificationHubNamespaceCreate,
+		Read:        resourceNotificationHubNamespaceRead,
+		Update:      resourceNotificationHubNamespaceUpdate,
+		Delete:      resourceNotificationHubNamespaceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)
 			return err

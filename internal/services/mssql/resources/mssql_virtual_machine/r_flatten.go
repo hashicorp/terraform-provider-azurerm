@@ -421,7 +421,7 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 
 				// check each property in the auto_backup block for drift
 				for prop, val := range autoBackupSettings[0].(map[string]any) {
-					v := d.Get(fmt.Sprintf("auto_backup.0.%s", prop))
+					v := d.Get("auto_backup.0." + prop)
 					switch prop {
 					case "manual_schedule":
 						if m := val.([]any); len(m) > 0 {
@@ -431,7 +431,7 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 							}
 							// check each property in the manual_schedule block for drift
 							for prop2, val2 := range m[0].(map[string]any) {
-								v2 := d.Get(fmt.Sprintf("auto_backup.0.manual_schedule.0.%s", prop2))
+								v2 := d.Get("auto_backup.0.manual_schedule.0." + prop2)
 								switch prop2 {
 								case "full_backup_frequency":
 									if !strings.EqualFold(v2.(string), val2.(string)) {
@@ -512,7 +512,7 @@ func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Cont
 				}
 
 				for prop, val := range autoPatchingSettings[0].(map[string]any) {
-					v := d.Get(fmt.Sprintf("auto_patching.0.%s", prop))
+					v := d.Get("auto_patching.0." + prop)
 					if v != val {
 						return resp, "Pending", nil
 					}

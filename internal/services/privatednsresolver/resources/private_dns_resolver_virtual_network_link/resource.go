@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_private_dns_resolver_virtual_network_link"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Private DNS Resolver Virtual Network Link."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return virtualnetworklinks.ValidateVirtualNetworkLinkID
 }

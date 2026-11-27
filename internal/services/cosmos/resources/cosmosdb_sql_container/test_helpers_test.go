@@ -5,6 +5,7 @@ package cosmosdb_sql_container_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -75,10 +76,11 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) capabilities(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, capabilities []string) string {
-	capeTf := ""
+	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
-		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)
 	}
+	capeTf := capeTfBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

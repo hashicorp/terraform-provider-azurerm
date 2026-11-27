@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_resource_group_policy_assignment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Resource Group Policy Assignment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ResourceGroupAssignmentID
 }

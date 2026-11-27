@@ -1,0 +1,194 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package private_endpoint_connection
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Description: "Use this data source to access the connection status information about an existing Private Endpoint Connection.",
+		Read:        dataSourcePrivateEndpointConnectionRead,
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Description:  "The Name of the Private Endpoint.",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.PrivateLinkName,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"location": commonschema.LocationComputed(),
+
+			"network_interface": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Description: "The ID of the network interface associated with the Private Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"name": {
+							Description: "The name of the network interface associated with the Private Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+					},
+				},
+			},
+
+			"private_service_connection": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Description: "The name of the Private Endpoint.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"request_response": {
+							Description: "`Deleted state` | The resource owner has `Rejected` the Private Endpoint connection request and has removed your Private Endpoint request from the remote resource. `request/response message` | If you submitted a manual Private Endpoint connection request, while in the `Pending` status the `request_response` will display the same text from your `request_message` in the `private_service_connection` block above. If the Private Endpoint connection request was `Rejected` by the owner of the remote resource, the text for the rejection will be displayed as the `request_response` text, if the Private Endpoint connection request was `Approved` by the owner of the remote resource, the text for the approval will be displayed as the `request_response` text.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"status": {
+							Description: "The current status of the Private Endpoint request.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+						"private_ip_address": {
+							Description: "The private IP address associated with the Private Endpoint, you will have a private IP address assigned to the Private Endpoint even if the connection request was `Rejected`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.PrivateEndpoints
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	nicsClient := meta.(*clients.Client).Network.NetworkInterfaces
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := privateendpoints.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id, privateendpoints.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	d.Set("name", id.PrivateEndpointName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			networkInterfaceId := ""
+			privateIpAddress := ""
+
+			if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
+				nic := (*nics)[0]
+				if nic.Id != nil && *nic.Id != "" {
+					networkInterfaceId = *nic.Id
+					privateIpAddress = helpers.GetPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
+				}
+			}
+
+			if err := d.Set("network_interface", helpers.FlattenNetworkInterface(networkInterfaceId)); err != nil {
+				return fmt.Errorf("setting `network_interface`: %+v", err)
+			}
+
+			if err := d.Set("private_service_connection", dataSourceFlattenPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+				return fmt.Errorf("setting `private_service_connection`: %+v", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []any {
+	results := make([]any, 0)
+	if serviceConnections == nil && manualServiceConnections == nil {
+		return results
+	}
+
+	if serviceConnections != nil {
+		for _, item := range *serviceConnections {
+			result := make(map[string]any)
+			result["private_ip_address"] = privateIpAddress
+
+			if v := item.Name; v != nil {
+				result["name"] = *v
+			}
+			if props := item.Properties; props != nil {
+				if v := props.PrivateLinkServiceConnectionState; v != nil {
+					if s := v.Status; s != nil {
+						result["status"] = *s
+					}
+					if d := v.Description; d != nil {
+						result["request_response"] = *d
+					}
+				}
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	if manualServiceConnections != nil {
+		for _, item := range *manualServiceConnections {
+			result := make(map[string]any)
+			result["private_ip_address"] = privateIpAddress
+
+			if v := item.Name; v != nil {
+				result["name"] = *v
+			}
+			if props := item.Properties; props != nil {
+				if v := props.PrivateLinkServiceConnectionState; v != nil {
+					if s := v.Status; s != nil {
+						result["status"] = *s
+					}
+					if d := v.Description; d != nil {
+						result["request_response"] = *d
+					}
+				}
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	return results
+}

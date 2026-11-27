@@ -32,6 +32,7 @@ func FlattenJSON(stringMap any) string {
 func PolicyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"display_name": {
+			Description:  "The display name of the Policy Definition.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -40,6 +41,7 @@ func PolicyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description:  "The name of the Policy Definition.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -48,51 +50,60 @@ func PolicyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"management_group_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Only retrieve Policy Definitions from this Management Group.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Type of Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Description of the Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"policy_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Type of the Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"policy_rule": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Rule as defined (in JSON) in the Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"parameters": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Any Parameters defined in the Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Any Metadata defined in the Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"role_definition_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Role Definition ID extracted from `policy_rule` required for remediation.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Mode of the Policy.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

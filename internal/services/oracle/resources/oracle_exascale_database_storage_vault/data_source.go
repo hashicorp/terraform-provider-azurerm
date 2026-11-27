@@ -47,8 +47,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Exadata Database Storage Vault.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
 				validate.ExascaleDatabaseStorageVaultName,
@@ -62,18 +63,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"additional_flash_cache_percentage": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The size of additional Flash Cache in percentage of High Capacity database storage.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Exadata Database Storage Vault description.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The user-friendly name for the Exadata Database Storage Vault.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"high_capacity_database_storage": {
@@ -82,45 +86,53 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"available_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "Available capacity in gigabytes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 					"total_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "Total capacity in gigabytes.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"time_zone": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The time zone of the Exadata Database Storage Vault.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Exadata Database Storage Vault lifecycle state enum.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_details": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Additional information about the current lifecycle state.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"virtual_machine_cluster_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of Exadata Virtual Machine clusters used the Exadata Database Storage Vault.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Exadata Database Storage Vault.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"oci_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the resource in the OCI console.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"zones": commonschema.ZonesMultipleComputed(),
@@ -133,6 +145,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_exascale_database_storage_vault"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Exadata Database Storage Vault."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

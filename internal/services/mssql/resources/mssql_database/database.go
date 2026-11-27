@@ -72,7 +72,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			return nil, fmt.Errorf("parsing Replication Link SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
 		}
 
-		fmtString := fmt.Sprintf("/subscriptions/%s", linkDatabase.SubscriptionId)
+		fmtString := "/subscriptions/" + linkDatabase.SubscriptionId
 		linkSubscription, err := commonids.ParseSubscriptionID(fmtString)
 		if err != nil {
 			return nil, fmt.Errorf("parsing Replication Link SQL Database Subscription %q: %+v", fmtString, err)

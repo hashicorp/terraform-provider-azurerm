@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Palo Alto Next Generation Firewall Deployed in a Virtual Network and configured via a Local Rulestack."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewallresources.ValidateFirewallID
 }

@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Volume Quota Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"volume_id": {
+			Description:  "The NetApp volume ID where the Volume Quota Rule is assigned to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"quota_type": {
+			Description:  "Quota type. `IndividualGroupQuota` and `DefaultGroupQuota` are not applicable to SMB and dual-protocol volumes.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,12 +40,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"quota_size_in_kib": {
+			Description:  "Quota size in kibibytes.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(4),
 		},
 
 		"quota_target": {
+			Description:  "Quota Target. This can be Unix UID/GID for NFSv3/NFSv4.1 volumes and Windows User SID for CIFS based volumes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

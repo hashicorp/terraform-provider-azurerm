@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_nginx_api_key"
 }
 
+func (m Resource) Description() string {
+	return "Manages the Dataplane API Key for an Nginx Deployment."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxapikey.ValidateApiKeyID
 }

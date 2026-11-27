@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Private DNS Resolver Forwarding Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_forwarding_ruleset_id": {
+			Description:  "The ID of the Private DNS Resolver Forwarding Ruleset.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain_name": {
+			Description:  "The domain name for the Private DNS Resolver Forwarding Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,33 +37,38 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_dns_servers": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "Can be specified multiple times to define multiple target DNS servers.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
+						Description:  "DNS server IP address.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"port": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Description: "DNS server port.",
+						Type:        pluginsdk.TypeInt,
+						Optional:    true,
 					},
 				},
 			},
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "The state of the Private DNS Resolver Forwarding Rule.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "Metadata attached to the Private DNS Resolver Forwarding Rule.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

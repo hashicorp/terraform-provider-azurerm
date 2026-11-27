@@ -25,6 +25,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_postgresql_flexible_server_virtual_endpoint"
 }
 
+func (r Resource) Description() string {
+	return "Allows you to create a Virtual Endpoint associated with a Postgres Flexible Replica."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)

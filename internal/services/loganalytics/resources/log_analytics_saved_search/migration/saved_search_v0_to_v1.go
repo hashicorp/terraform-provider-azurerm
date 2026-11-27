@@ -5,7 +5,6 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
@@ -83,7 +82,7 @@ func (SavedSearchV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 
-		id, err := savedsearches.ParseSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/")))
+		id, err := savedsearches.ParseSavedSearchID("/" + strings.TrimPrefix(oldId, "/"))
 		if err != nil {
 			return rawState, err
 		}

@@ -68,7 +68,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 			// logic to save resource scope
 			result := strings.Split(input, "/providers/")
 			if len(result) == 3 {
-				roleAssignmentId.ResourceScope = strings.TrimPrefix(result[1], fmt.Sprintf("%s/", id.Provider))
+				roleAssignmentId.ResourceScope = strings.TrimPrefix(result[1], id.Provider+"/")
 			}
 		}
 

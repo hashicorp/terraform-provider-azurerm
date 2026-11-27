@@ -26,6 +26,10 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_netapp_backup_policy"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing NetApp Backup Vault."
+}
+
 func (r DataSource) ModelObject() any {
 	return &models.NetAppBackupVaultModel{}
 }
@@ -37,15 +41,17 @@ func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the NetApp Backup Policy.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"account_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of the NetApp Account in which the NetApp Policy exists.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 	}
 }
@@ -57,23 +63,27 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"daily_backups_to_keep": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of daily backups to keep.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"weekly_backups_to_keep": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of weekly backups to keep.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"monthly_backups_to_keep": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of monthly backups to keep.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Backup Policy is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

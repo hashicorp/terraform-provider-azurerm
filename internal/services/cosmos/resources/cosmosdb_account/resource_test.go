@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -2336,10 +2337,11 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) capabilities(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, capabilities []string) string {
-	capeTf := ""
+	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
-		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)
 	}
+	capeTf := capeTfBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4062,17 +4064,19 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, additionalCapabilities ...string) string {
-	capabilityConfig := ""
 	if kind == cosmosdb.DatabaseAccountKindMongoDB {
 		additionalCapabilities = append([]string{"EnableMongo"}, additionalCapabilities...)
 	}
+
+	var capabilityConfigBuilder strings.Builder
 	for _, capability := range additionalCapabilities {
-		capabilityConfig += fmt.Sprintf(`
+		fmt.Fprintf(&capabilityConfigBuilder, `
   capabilities {
     name = "%s"
   }
 `, capability)
 	}
+	capabilityConfig := capabilityConfigBuilder.String()
 
 	return fmt.Sprintf(`
 provider "azurerm" {

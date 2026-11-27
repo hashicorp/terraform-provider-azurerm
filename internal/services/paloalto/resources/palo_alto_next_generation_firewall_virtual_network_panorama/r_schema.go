@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Palo Alto Next Generation Firewall Virtual Network Panorama.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"panorama_base64_config": {
+			Description:  "The base64 encoded configuration registration string as defined by your Panorama Server for your Cloud Device Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsBase64,
@@ -38,6 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"destination_nat": schema.DestinationNATSchema(),
 
 		"marketplace_offer_id": {
+			Description:  "The marketplace offer ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -46,6 +49,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"plan_id": {
+			Description:  "The billing plan ID as published by Liftr.PAN.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "panw-cngfw-payg",

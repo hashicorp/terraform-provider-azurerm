@@ -22,3 +22,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_static_web_app"
 }
+
+func (r Resource) Description() string {
+	return "Manages an App Service Static Web App."
+}

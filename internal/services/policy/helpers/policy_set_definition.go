@@ -41,12 +41,14 @@ func PolicyDefinitionReferenceSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"policy_definition_id": {
+					Description:  "The ID of the Policy Definition to include in this Policy Set Definition.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.PolicyDefinitionID,
 				},
 
 				"parameter_values": {
+					Description:      "Parameter values for the references Policy Definition in JSON format.",
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					ValidateFunc:     validation.StringIsJSON,
@@ -54,14 +56,16 @@ func PolicyDefinitionReferenceSchema() *pluginsdk.Schema {
 				},
 
 				"reference_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "A unique ID within this Policy Set Definition for this Policy Definition Reference.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 				},
 
 				"policy_group_names": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
+					Description: "A list of Policy Definition Groups names that this Policy Definition Reference belongs to.",
+					Type:        pluginsdk.TypeSet,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -69,8 +73,9 @@ func PolicyDefinitionReferenceSchema() *pluginsdk.Schema {
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The version of the Policy Definition to use.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					// Note: O+C because Azure returns a version if not sent in the request.
 					Computed: true,
 					ValidateFunc: validation.StringMatch(
@@ -91,30 +96,35 @@ func PolicyDefinitionGroupSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name which should be used for this Policy Definition Group.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"display_name": {
+					Description:  "The display name of this Policy Definition Group.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"category": {
+					Description:  "The category of this Policy Definition Group.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"description": {
+					Description:  "The description of this Policy Definition Group.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"additional_metadata_resource_id": {
+					Description:  "The ID of a resource that contains additional metadata for this Policy Definition Group.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,

@@ -14,9 +14,10 @@ import (
 func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name to use for this Notification Hub Namespace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -24,19 +25,22 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
+			Description:  "The name of the SKU to use for this Notification Hub Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  true,
+			Description: "Whether this Notification Hub Namespace is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     true,
 		},
 
 		"namespace_type": {
+			Description:  "The Type of Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -44,13 +48,15 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_redundancy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether Zone Redundancy is Enabled for the Notification Hub Namespace.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"replication_region": {
+			Description:      "The allowed Replication Region for the Notification Hub Namespace.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
@@ -62,8 +68,9 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"servicebus_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ServiceBus Endpoint for this Notification Hub Namespace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -19,6 +19,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
+			Description:  "The name of the NetApp Volume.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +31,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 		"account_name": {
+			Description:  "The name of the NetApp account in which the NetApp Pool should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,12 +39,14 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"pool_name": {
+			Description:  "The name of the NetApp pool in which the NetApp Volume should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.PoolName,
 		},
 
 		"volume_path": {
+			Description:  "A unique file path for the volume. Used when creating mount targets.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -50,8 +54,9 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_level": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The target performance of the file system.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(volumes.ServiceLevelPremium),
 				string(volumes.ServiceLevelStandard),
@@ -61,6 +66,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet_id": {
+			Description:  "The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -68,6 +74,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"create_from_snapshot_resource_id": {
+			Description:  "Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name` and `account_name`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -83,8 +90,9 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_features": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Which network feature to use. This is a feature in public preview and for more information about it and how to register, refer to [Configure network features for an Azure NetApp Files volume](https://learn.microsoft.com/azure/azure-netapp-files/configure-network-features).",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -94,10 +102,11 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"protocols": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			MaxItems: 2,
+			Description: "The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Dual protocol scenario is supported for CIFS and NFSv3, for more information, refer to [Create a dual-protocol volume for Azure NetApp Files](https://learn.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			MaxItems:    2,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -131,6 +140,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"security_style": {
+			Description:  "Volume security style. In a dual-protocol volume, if not provided, its value will be `ntfs`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -139,14 +149,16 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_quota_in_gb": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Description: "The maximum Storage Quota allowed for a file system in Gigabytes.",
+			Type:        pluginsdk.TypeInt,
+			Required:    true,
 			// The upper bound covers the largest size any volume flavour supports (2,400 TiB, only reachable
 			// with `breakthrough_mode_enabled`), the per-flavour limits are enforced in CustomizeDiff.
 			ValidateFunc: validation.IntBetween(50, 2457600),
 		},
 
 		"throughput_in_mibps": {
+			Description:  "Throughput of this volume in Mibps.",
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -160,14 +172,16 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"rule_index": {
+						Description:  "The index number of the rule.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 5),
 					},
 
 					"allowed_clients": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
+						Description: "A list of allowed clients IPv4 addresses.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsCIDRIPv4,
@@ -175,10 +189,11 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"protocol": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MinItems: 1,
-						MaxItems: 1,
+						Description: "A list of allowed protocols. Only a single element is supported at this time.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MinItems:    1,
+						MaxItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -190,43 +205,52 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"unix_read_only": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the unix filesystem is read-only.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"unix_read_write": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the unix filesystem is read-write.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"root_access_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether root access is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"kerberos_5_read_only_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Kerberos 5 read-only access is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"kerberos_5_read_write_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Kerberos 5 read/write is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"kerberos_5i_read_only_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Kerberos 5i read-only is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"kerberos_5i_read_write_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Kerberos 5i read/write is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"kerberos_5p_read_only_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Kerberos 5p read-only is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 					"kerberos_5p_read_write_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether Kerberos 5p read/write is permitted to this volume.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 				},
 			},
@@ -240,22 +264,25 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The IP address of the mount target.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"smb_server_fqdn": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"snapshot_directory_visible": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"data_protection_replication": {
@@ -266,9 +293,10 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"endpoint_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "dst",
+						Description: "The endpoint type, default value is `dst` for destination.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						Default:     "dst",
 						ValidateFunc: validation.StringInSlice([]string{
 							"dst",
 						}, false),
@@ -277,14 +305,16 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 					"remote_volume_location": commonschema.Location(),
 
 					"remote_volume_resource_id": {
+						Description:  "Resource ID of the primary volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 
 					"replication_frequency": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Replication frequency.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"10minutes",
 							"daily",
@@ -302,6 +332,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"snapshot_policy_id": {
+						Description:  "Resource ID of the snapshot policy to apply to the volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: azure.ValidateResourceID,
@@ -356,13 +387,15 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"azure_vmware_data_store_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether the NetApp Volume is enabled for Azure VMware Solution (AVS) datastore purpose.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"encryption_key_source": {
+			Description:  "The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -371,6 +404,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_private_endpoint_id": {
+			Description:  "The Private Endpoint ID for Key Vault, which is required when using customer-managed keys.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -415,18 +449,21 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"retrieval_policy": {
+						Description:  "The cool access retrieval policy for the volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessRetrievalPolicy(), false),
 					},
 
 					"tiering_policy": {
+						Description:  "The cool access tiering policy for the volume.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessTieringPolicy(), false),
 					},
 
 					"coolness_period_in_days": {
+						Description:  "The coolness period in days for the volume. Possible vales are between `2` and `183`.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(2, 183),
@@ -436,8 +473,9 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"unix_permissions": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The unix permissions for an NFS volume are accepted in a four-digit octal format. The first digit selects the set user ID (4), set group ID (2), and sticky bit (1) attributes. The second digit selects the permissions for the owner of the file: read (4), write (2), and execute (1). The third digit selects the permissions for users in the same group. The fourth digit selects the permissions for users not in the group.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because Azure returns a default of `0770` for some volume types, while others reject this default value with a 400 when sent to the API
 			// unexpected status 400 (400 Bad Request) with error: InvalidInputUnixPermissionForNtfsSecurityStyleVolume: Unix permissions are not allowed for specified volume configuration, Create SMB or dual protocol volume with NTFS security style, without unix permissions.
 			Computed:     true,

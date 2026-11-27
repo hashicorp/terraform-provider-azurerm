@@ -17,10 +17,11 @@ const azurePrivateDnsCNameRecordResourceName = "azurerm_private_dns_cname_record
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateDnsCNameRecordCreateUpdate,
-		Read:   resourcePrivateDnsCNameRecordRead,
-		Update: resourcePrivateDnsCNameRecordCreateUpdate,
-		Delete: resourcePrivateDnsCNameRecordDelete,
+		Description: "Enables you to manage DNS CNAME Records within Azure Private DNS.",
+		Create:      resourcePrivateDnsCNameRecordCreateUpdate,
+		Read:        resourcePrivateDnsCNameRecordRead,
+		Update:      resourcePrivateDnsCNameRecordCreateUpdate,
+		Delete:      resourcePrivateDnsCNameRecordDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentityThen(&privatedns.RecordTypeId{}, resourcePrivateDnsCNameRecordImporter),
 

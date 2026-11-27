@@ -226,7 +226,7 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 	}
 
 	servicePackage := servicePackages[0]
-	rootPkgPath := fmt.Sprintf("github.com/hashicorp/terraform-provider-azurerm/internal/services/%s", s.Name)
+	rootPkgPath := "github.com/hashicorp/terraform-provider-azurerm/internal/services/" + s.Name
 	for _, p := range servicePackages {
 		if p.pkg.PkgPath == rootPkgPath {
 			servicePackage = p

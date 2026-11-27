@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_exascale_database_storage_vault"
 }
 
+func (Resource) Description() string {
+	return "Manages an Exadata Database Storage Vault."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return exascaledbstoragevaults.ValidateExascaleDbStorageVaultID
 }

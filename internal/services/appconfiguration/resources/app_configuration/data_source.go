@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAppConfigurationRead,
+		Description: "Use this data source to access information about an existing App Configuration.",
+		Read:        dataSourceAppConfigurationRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,6 +33,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The Name of this App Configuration.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ConfigurationStoreName,
@@ -42,13 +44,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"data_plane_proxy_authentication_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The data plane proxy authentication mode.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"data_plane_proxy_private_link_delegation_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether data plane proxy Private Link delegation is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"encryption": {
@@ -69,15 +73,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Endpoint used to access this App Configuration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"local_auth_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether local authentication methods are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"primary_read_key": {
@@ -86,19 +92,22 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The ID of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Secret of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"connection_string": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
@@ -110,27 +119,31 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The ID of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Secret of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"connection_string": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
 			},
 
 			"public_network_access": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Public Network Access setting of this App Configuration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
@@ -139,8 +152,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"purge_protection_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Purge Protection is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"replica": {
@@ -149,17 +163,20 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the App Configuration Replica.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the App Configuration Replica.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"location": commonschema.LocationComputed(),
 						"endpoint": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The URL of the App Configuration Replica.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -171,19 +188,22 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The ID of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Secret of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"connection_string": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
@@ -195,32 +215,37 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The ID of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Secret of the Access Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 						"connection_string": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the SKU used for this App Configuration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"soft_delete_retention_days": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of days that items should be retained for once soft-deleted.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

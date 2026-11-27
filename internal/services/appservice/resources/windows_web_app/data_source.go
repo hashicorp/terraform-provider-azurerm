@@ -72,9 +72,14 @@ func (d DataSource) ResourceType() string {
 	return "azurerm_windows_web_app"
 }
 
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing Windows Web App."
+}
+
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Windows Web App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.WebAppName,
@@ -89,13 +94,15 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Service Plan in which this Windows Web App resides.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "A map of key-value pairs of App Settings.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -108,18 +115,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Client Affinity is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Client Certificates are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Client Certificate mode.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -131,9 +141,10 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"custom_domain_verification_id": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The identifier used by App Service to perform domain ownership verification via DNS TXT record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_hostname": {
@@ -142,50 +153,58 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by App Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Windows Web App is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"https_only": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Windows Web App requires HTTPS connections.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The string representation of the Windows Web App Kind.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"logs": helpers.LogsConfigSchemaComputed(),
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A string representation of the list of Outbound IP Addresses for this Windows Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of Outbound IP Addresses for this Windows Web App.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The string representation of the list of Possible Outbound IP Addresses that could be used by this Windows Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"possible_outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The list of Possible Outbound IP Addresses that could be used by this Windows Web App.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -194,18 +213,21 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Public Network Access is enabled for the Windows Web App.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"site_config": SiteConfigSchemaWindowsComputed(),
@@ -220,8 +242,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The subnet ID which the Windows Web App is VNet Integrated with.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

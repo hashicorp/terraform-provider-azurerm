@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_network_function_collector_policy"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Network Function Collector Policy."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return collectorpolicies.ValidateCollectorPolicyID
 }

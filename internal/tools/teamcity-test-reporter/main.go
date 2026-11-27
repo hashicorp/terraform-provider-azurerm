@@ -156,9 +156,9 @@ func (r *reporter) handlePackage(e event) {
 
 		switch {
 		case e.FailedBuild != "":
-			r.buildProblem(fmt.Sprintf("%s failed to build", e.Package))
+			r.buildProblem(e.Package + " failed to build")
 		case r.failedTests[e.Package] == 0:
-			r.buildProblem(fmt.Sprintf("%s failed without a failing test", e.Package))
+			r.buildProblem(e.Package + " failed without a failing test")
 		}
 	}
 }

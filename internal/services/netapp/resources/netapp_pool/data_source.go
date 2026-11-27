@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetAppPoolRead,
+		Description: "Use this data source to access information about an existing NetApp Pool.",
+		Read:        dataSourceNetAppPoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the NetApp Pool.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.PoolName,
@@ -38,34 +40,40 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"account_name": {
+				Description:  "The name of the NetApp account where the NetApp pool exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"service_level": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The service level of the file system.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"size_in_tb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Provisioned size of the pool in TB.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"encryption_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The encryption type of the pool.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"cool_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the NetApp Pool can hold cool access enabled volumes.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"custom_throughput_mibps": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The custom throughput for the pool in MiB/s.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 		},
 	}
