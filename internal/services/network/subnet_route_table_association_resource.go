@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id subnet_id
+
+const subnetRouteTableAssociation = "azurerm_subnet_route_table_association"
 
 func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -34,10 +39,11 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSubnetID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SubnetId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"subnet_id": {
@@ -146,10 +152,13 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta a
 	}
 
 	// TODO: migrate this to a Composite ID
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *subnet.Model, sdk.SetIDCallback(meta, id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *subnet.Model, sdk.SetIDAndIdentityCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("updating Route Table Association for %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
 
 	timeout, _ := ctx.Deadline()
 
@@ -198,7 +207,10 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta any
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	model := resp.Model
+	return resourceSubnetRouteTableAssociationFlatten(d, id, resp.Model)
+}
+
+func resourceSubnetRouteTableAssociationFlatten(d *pluginsdk.ResourceData, id *commonids.SubnetId, model *subnets.Subnet) error {
 	if model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
@@ -218,7 +230,7 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta any
 	d.Set("subnet_id", model.Id)
 	d.Set("route_table_id", routeTable.Id)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
