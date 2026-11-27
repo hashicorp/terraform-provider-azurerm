@@ -17,6 +17,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageUsesMSI                     bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID            string                                     `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
 	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
 	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans

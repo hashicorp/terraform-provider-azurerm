@@ -49,6 +49,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, functionAppId)
+			if err != nil || stickySettings.Model == nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
@@ -110,6 +115,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					PublishingFTPBasicAuthEnabled:    basicAuthFTP,
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
+					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),

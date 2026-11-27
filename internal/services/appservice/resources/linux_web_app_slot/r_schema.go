@@ -145,6 +145,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"site_config": SiteConfigSchemaLinuxWebAppSlot(),
 
+		"sticky_settings": helpers.StickySettingsSchema(),
+
 		"storage_account": helpers.StorageAccountSchema(),
 
 		"zip_deploy_file": {

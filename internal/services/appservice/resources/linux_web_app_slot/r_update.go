@@ -200,6 +200,30 @@ func (r Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: &webapps.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.Properties.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.Properties.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				if _, err := client.UpdateSlotConfigurationNames(ctx, appId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if authUpdate.Properties == nil {

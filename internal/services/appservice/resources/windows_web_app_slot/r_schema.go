@@ -129,6 +129,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"site_config": SiteConfigSchemaWindowsWebAppSlot(),
 
+		"sticky_settings": helpers.StickySettingsSchema(),
+
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"zip_deploy_file": {

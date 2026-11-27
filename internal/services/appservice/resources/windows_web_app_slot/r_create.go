@@ -220,6 +220,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			stickySettings := helpers.ExpandStickySettings(webAppSlot.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := webapps.SlotConfigNamesResource{
+					Properties: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, *appId, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			if webAppSlot.ZipDeployFile != "" {
 				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id, webAppSlot.ZipDeployFile); err != nil {
 					return err
