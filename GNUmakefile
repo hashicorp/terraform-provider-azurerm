@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
+TEST?=$$(./scripts/list-unit-test-pkgs.sh)
 TESTTIMEOUT=180m
 TF_SCHEMA_PANIC_ON_ERROR=1
 
