@@ -15,11 +15,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -43,19 +44,33 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
 	location := location.Normalize(managedAppId.LocationName)
-	model := connections.ApiConnectionDefinition{
+	model := azuresdkhacks.ApiConnectionDefinition{
 		Location: pointer.To(location),
-		Properties: &connections.ApiConnectionDefinitionProperties{
+		Properties: &azuresdkhacks.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
 				Id: pointer.To(managedAppId.ID()),
 			},
-			DisplayName:     pointer.To(d.Get("display_name").(string)),
-			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]any)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if v := d.Get("display_name").(string); v != "" {
 		model.Properties.DisplayName = pointer.To(v)
+	}
+
+	if v := d.Get("kind").(string); v != "" {
+		model.Kind = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("parameter_values"); ok {
+		model.Properties.ParameterValues = pointer.To(v.(map[string]any))
+	}
+
+	if v := d.Get("parameter_value_type").(string); v != "" {
+		model.Properties.ParameterValueType = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("parameter_value_set"); ok {
+		model.Properties.ParameterValueSet = expandParameterValueSet(v.([]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
