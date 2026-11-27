@@ -67,6 +67,9 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	features := client.Features
+	if features.KubernetesCluster.NodePoolNameMaxLength != 12 {
+		t.Error("expected kubernetes_cluster.node_pool_name_max_length to be 12")
+	}
 
 	if features.PersistIDOnCreateBeforePollingForCompletion {
 		t.Error("expected `persist_id_on_create_before_polling_for_completion` to be false")
@@ -258,6 +261,11 @@ func defaultFeaturesList() types.List {
 	})
 	cognitiveAccountList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(CognitiveAccountAttributes), []attr.Value{cognitiveAccount})
 
+	kubernetesCluster := types.ObjectValueMust(KubernetesClusterAttributes, map[string]attr.Value{
+		"node_pool_name_max_length": types.Int64Null(),
+	})
+	kubernetesClusterList := types.ListValueMust(types.ObjectType{AttrTypes: KubernetesClusterAttributes}, []attr.Value{kubernetesCluster})
+
 	keyVault, _ := basetypes.NewObjectValueFrom(context.Background(), KeyVaultAttributes, map[string]attr.Value{
 		"purge_soft_delete_on_destroy":                            basetypes.NewBoolNull(),
 		"purge_soft_deleted_certificates_on_destroy":              basetypes.NewBoolNull(),
@@ -373,6 +381,7 @@ func defaultFeaturesList() types.List {
 		"application_insights":       applicationInsightsList,
 		"cognitive_account":          cognitiveAccountList,
 		"key_vault":                  keyVaultList,
+		"kubernetes_cluster":         kubernetesClusterList,
 		"log_analytics_workspace":    logAnalyticsWorkspaceList,
 		"template_deployment":        templateDeploymentList,
 		"virtual_machine":            virtualMachineList,

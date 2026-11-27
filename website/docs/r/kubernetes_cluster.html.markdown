@@ -377,6 +377,8 @@ A `default_node_pool` block supports the following:
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
+~> **Note:** Names must begin with a lowercase letter and contain only lowercase letters and numbers. Linux node pool names have a default maximum length of 12 characters. Longer names require prior private AKS enablement for the subscription. Configure `node_pool_name_max_length` in the provider's [`features.kubernetes_cluster` block](../guides/features-block.html.markdown) to extend resource validation. The provider accepts a maximum of 39 characters; AKS enforces the subscription's supported maximum, which may be lower.
+
 * `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
