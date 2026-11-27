@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
@@ -44,6 +45,14 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta any) erro
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
 		props := model.Properties
 
@@ -166,6 +175,27 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 		if expressRouteGatewaySkuIsAvailabilityZone(oldSku.(string)) != expressRouteGatewaySkuIsAvailabilityZone(newSku.(string)) {
 			if err := d.ForceNew("sku"); err != nil {
 				return err
+			}
+		}
+	}
+
+	if rawIdentityType, ok := d.GetOk("identity.0.type"); ok {
+		if gatewayType != string(virtualnetworkgateways.VirtualNetworkGatewayTypeVpn) {
+			return fmt.Errorf("`identity` property is only supported for `type` property of `%s`", virtualnetworkgateways.VirtualNetworkGatewayTypeVpn)
+		}
+
+		if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameBasic) {
+			return fmt.Errorf("`identity` property is not supported for `sku` property of `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameBasic)
+		}
+
+		identityType := identity.Type(rawIdentityType.(string))
+		switch identityType {
+		case identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned:
+			return fmt.Errorf("`identity.0.type` property of `%s` and `%s` are not supported", identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned)
+		case identity.TypeUserAssigned:
+			identityIds := d.GetRawConfig().AsValueMap()["identity"].AsValueSlice()[0].AsValueMap()["identity_ids"]
+			if identityIds.IsNull() || identityIds.LengthInt() == 0 {
+				return fmt.Errorf("`identity.0.identity_ids` property must be specified when `identity.0.type` property is set to `%s`", identity.TypeUserAssigned)
 			}
 		}
 	}

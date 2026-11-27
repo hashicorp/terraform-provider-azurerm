@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
@@ -50,6 +51,13 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta any) er
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:             tags.Expand(d.Get("tags").(map[string]any)),
 		Properties:       *properties,
+	}
+
+	if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any)); err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	} else if expandedIdentity.Type != identity.TypeNone {
+		// Do not assign default `TypeNone` identity when `identity` block is not specified in Terraform configuration to avoid error as identity is supported when `type` is set to `Vpn`
+		gateway.Identity = expandedIdentity
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDCallback(meta, &id, d)); err != nil {

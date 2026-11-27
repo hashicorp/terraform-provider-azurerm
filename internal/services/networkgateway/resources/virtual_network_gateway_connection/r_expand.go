@@ -151,6 +151,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	connectionMode := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionMode(d.Get("connection_mode").(string))
 
 	props := &virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionPropertiesFormat{
+		CertificateAuthentication:      expandVirtualNetworkGatewayConnectionCertificateAuthentication(d),
 		ConnectionType:                 connectionType,
 		ConnectionMode:                 pointer.To(connectionMode),
 		EnableBgp:                      pointer.To(d.Get("bgp_enabled").(bool)),
@@ -233,6 +234,12 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		props.SharedKey = pointer.To(v.(string))
 	}
 
+	if props.CertificateAuthentication != nil {
+		props.AuthenticationType = pointer.To(virtualnetworkgatewayconnections.ConnectionAuthenticationTypeCertificate)
+	} else if props.SharedKey != nil {
+		props.AuthenticationType = pointer.To(virtualnetworkgatewayconnections.ConnectionAuthenticationTypePSK)
+	}
+
 	if v, ok := d.GetOk("connection_protocol"); ok {
 		connectionProtocol := v.(string)
 		props.ConnectionProtocol = pointer.ToEnum[virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionProtocol](connectionProtocol)
@@ -291,4 +298,23 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	return props, nil
+}
+
+func expandVirtualNetworkGatewayConnectionCertificateAuthentication(d *pluginsdk.ResourceData) *virtualnetworkgatewayconnections.CertificateAuthentication {
+	rawKeyVaultCertificate, ok := d.GetOk("key_vault_certificate")
+	if !ok {
+		return nil
+	}
+
+	keyVaultCertificate := rawKeyVaultCertificate.([]any)[0].(map[string]any)
+	inboundCertificateChains := make([]string, 0)
+	for _, inboundCertificateChain := range keyVaultCertificate["inbound_certificate_chains"].([]any) {
+		inboundCertificateChains = append(inboundCertificateChains, inboundCertificateChain.(string))
+	}
+
+	return &virtualnetworkgatewayconnections.CertificateAuthentication{
+		InboundAuthCertificateChain:       pointer.To(inboundCertificateChains),
+		InboundAuthCertificateSubjectName: pointer.To(keyVaultCertificate["inbound_certificate_subject_name"].(string)),
+		OutboundAuthCertificate:           pointer.To(keyVaultCertificate["outbound_certificate_path"].(string)),
+	}
 }

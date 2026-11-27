@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -105,6 +106,16 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta any) er
 	// autoscale changes while the gateway stays on the ErGwScale SKU.
 	if d.HasChanges("minimum_scale_unit", "maximum_scale_unit") {
 		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
+	}
+
+	if d.HasChange("identity") {
+		payload.Identity = nil
+		if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any)); err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		} else if expandedIdentity.Type != identity.TypeNone {
+			// Do not assign default `TypeNone` identity when `identity` block is not specified in Terraform configuration to avoid error as identity is supported when `type` is set to `Vpn`
+			payload.Identity = expandedIdentity
+		}
 	}
 
 	if d.HasChange("tags") {

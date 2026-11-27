@@ -39,21 +39,24 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	respKey, err := client.GetSharedKey(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
-	}
-
-	if model := respKey.Model; model != nil {
-		if model.Value != "" {
-			d.Set("shared_key", model.Value)
-		}
-	}
-
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
+		if pointer.From(props.AuthenticationType) == virtualnetworkgatewayconnections.ConnectionAuthenticationTypePSK {
+			respKey, err := client.GetSharedKey(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
+			}
+
+			if model := respKey.Model; model != nil {
+				if model.Value != "" {
+					d.Set("shared_key", model.Value)
+				}
+			}
+		} else {
+			d.Set("shared_key", "")
+		}
 
 		if string(props.ConnectionType) != "" {
 			d.Set("type", string(props.ConnectionType))
@@ -126,6 +129,10 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 
 		if err := d.Set("ingress_nat_rule_ids", flattenVirtualNetworkGatewayConnectionNatRuleIds(props.IngressNatRules)); err != nil {
 			return fmt.Errorf("setting `ingress_nat_rule_ids`: %+v", err)
+		}
+
+		if err := d.Set("key_vault_certificate", flattenVirtualNetworkGatewayConnectionCertificateAuthentication(props.CertificateAuthentication)); err != nil {
+			return fmt.Errorf("setting `key_vault_certificate`: %+v", err)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

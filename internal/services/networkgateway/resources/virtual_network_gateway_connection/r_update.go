@@ -128,6 +128,21 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		payload.Properties.IPsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(d.Get("ipsec_policy").([]any))
 	}
 
+	if d.HasChange("key_vault_certificate") {
+		payload.Properties.CertificateAuthentication = expandVirtualNetworkGatewayConnectionCertificateAuthentication(d)
+		payload.Properties.AuthenticationType = nil
+		if payload.Properties.CertificateAuthentication != nil {
+			payload.Properties.AuthenticationType = pointer.To(virtualnetworkgatewayconnections.ConnectionAuthenticationTypeCertificate)
+		}
+	}
+
+	if d.HasChange("shared_key") {
+		payload.Properties.AuthenticationType = nil
+		if _, ok := d.GetOk("shared_key"); ok {
+			payload.Properties.AuthenticationType = pointer.To(virtualnetworkgatewayconnections.ConnectionAuthenticationTypePSK)
+		}
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}

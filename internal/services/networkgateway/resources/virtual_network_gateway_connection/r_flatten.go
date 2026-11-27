@@ -78,3 +78,24 @@ func flattenVirtualNetworkGatewayConnectionNatRuleIds(input *[]virtualnetworkgat
 
 	return results
 }
+
+func flattenVirtualNetworkGatewayConnectionCertificateAuthentication(certificateAuthentication *virtualnetworkgatewayconnections.CertificateAuthentication) []any {
+	if certificateAuthentication == nil {
+		return make([]any, 0)
+	}
+
+	keyVaultCertificate := make(map[string]any)
+	if inboundAuthCertificateChain := certificateAuthentication.InboundAuthCertificateChain; inboundAuthCertificateChain != nil {
+		keyVaultCertificate["inbound_certificate_chains"] = pointer.From(inboundAuthCertificateChain)
+	}
+
+	if inboundAuthCertificateSubjectName := certificateAuthentication.InboundAuthCertificateSubjectName; inboundAuthCertificateSubjectName != nil {
+		keyVaultCertificate["inbound_certificate_subject_name"] = pointer.From(inboundAuthCertificateSubjectName)
+	}
+
+	if outboundAuthCertificate := certificateAuthentication.OutboundAuthCertificate; outboundAuthCertificate != nil {
+		keyVaultCertificate["outbound_certificate_path"] = pointer.From(outboundAuthCertificate)
+	}
+
+	return []any{keyVaultCertificate}
+}

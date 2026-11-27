@@ -51,8 +51,9 @@ func virtualNetworkGatewayConnectionSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// NOTE: O+C the API generates a key for the user if not supplied
-			Computed:  true,
-			Sensitive: true,
+			Computed:      true,
+			Sensitive:     true,
+			ConflictsWith: []string{"key_vault_certificate"},
 		},
 
 		"authorization_key": {
@@ -256,6 +257,39 @@ func virtualNetworkGatewayConnectionSchema() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntAtLeast(300),
+					},
+				},
+			},
+		},
+
+		// Naming based on portal
+		"key_vault_certificate": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"shared_key"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"inbound_certificate_chains": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"inbound_certificate_subject_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"outbound_certificate_path": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsURLWithHTTPS,
 					},
 				},
 			},

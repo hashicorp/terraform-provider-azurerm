@@ -561,6 +561,8 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 	}
 }
