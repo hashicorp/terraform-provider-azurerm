@@ -4,6 +4,7 @@
 package iothub_endpoint_servicebus_topic
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -69,14 +70,14 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 		if v, ok := d.GetOk("connection_string"); ok {
 			topicEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
-			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+			return errors.New("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
 			topicEndpoint.EndpointURI = pointer.To(v.(string))
 			topicEndpoint.EntityPath = pointer.To(d.Get("entity_path").(string))
 		} else {
-			return fmt.Errorf("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
+			return errors.New("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {

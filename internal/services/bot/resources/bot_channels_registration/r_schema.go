@@ -38,8 +38,8 @@ func botChannelsRegistrationSchema() map[string]*pluginsdk.Schema {
 		"microsoft_app_id": {
 			Description:  "The Microsoft Application ID for the Bot Channels Registration.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 

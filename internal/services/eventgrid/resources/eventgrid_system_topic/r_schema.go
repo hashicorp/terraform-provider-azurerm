@@ -37,15 +37,15 @@ func eventgridSystemTopicSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"source_resource_id": {
-			Description:      "The ID of the Event Grid System Topic ARM Source.",
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Description: "The ID of the Event Grid System Topic ARM Source.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				azure.ValidateResourceID,
 				validate.TenantScopedManagementGroupID,
 			),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"topic_type": {

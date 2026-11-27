@@ -59,8 +59,8 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// NOTE: O+C We set this to now + 7 minutes if omitted so this should remain Computed
 			Computed:         true,
-			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 		},
 
 		"expiry_time": {
@@ -69,8 +69,8 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// NOTE: O+C when frequency is OneTime this has ridiculous value when recurring: "9999-12-31T15:59:00-08:00" which can remain as it can be updated without issue
 			Computed:         true,
-			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 		},
 
 		"description": {
@@ -88,21 +88,23 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"week_days": {
-			Description: "List of days of the week that the job should execute on. Only valid when frequency is `Week`.",
-			Type:        pluginsdk.TypeSet,
-			Optional:    true,
+			Description:   "List of days of the week that the job should execute on. Only valid when frequency is `Week`.",
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Set:           set.HashStringIgnoreCase,
+			ConflictsWith: []string{"month_days", "monthly_occurrence"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 			},
-			Set:           set.HashStringIgnoreCase,
-			ConflictsWith: []string{"month_days", "monthly_occurrence"},
 		},
 
 		"month_days": {
-			Description: "List of days of the month that the job should execute on. `-1` for last day of the month. Only valid when frequency is `Month`.",
-			Type:        pluginsdk.TypeSet,
-			Optional:    true,
+			Description:   "List of days of the month that the job should execute on. `-1` for last day of the month. Only valid when frequency is `Month`.",
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Set:           set.HashInt,
+			ConflictsWith: []string{"week_days", "monthly_occurrence"},
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeInt,
 				ValidateFunc: validation.All(
@@ -110,15 +112,14 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 					validation.IntNotInSlice([]int{0}),
 				),
 			},
-			Set:           set.HashInt,
-			ConflictsWith: []string{"week_days", "monthly_occurrence"},
 		},
 
 		"monthly_occurrence": {
-			Description: "Only valid when frequency is `Month`.",
-			Type:        pluginsdk.TypeList,
-			Optional:    true,
-			MaxItems:    1,
+			Description:   "Only valid when frequency is `Month`.",
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"week_days", "month_days"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"day": {
@@ -138,7 +139,6 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ConflictsWith: []string{"week_days", "month_days"},
 		},
 	}
 }

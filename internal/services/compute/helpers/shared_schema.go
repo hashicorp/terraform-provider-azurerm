@@ -895,6 +895,9 @@ func WinRmListenerSchemaVM() *pluginsdk.Schema {
 		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
 		//   Target="windowsConfiguration.winRM.listeners"
 		ForceNew: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
@@ -913,9 +916,6 @@ func WinRmListenerSchemaVM() *pluginsdk.Schema {
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 			},
-		},
-		ConflictsWith: []string{
-			"os_managed_disk_id",
 		},
 	}
 }
@@ -1042,6 +1042,9 @@ func WindowsSecretSchemaVM() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
@@ -1068,9 +1071,6 @@ func WindowsSecretSchemaVM() *pluginsdk.Schema {
 					},
 				},
 			},
-		},
-		ConflictsWith: []string{
-			"os_managed_disk_id",
 		},
 	}
 }

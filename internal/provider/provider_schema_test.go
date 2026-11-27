@@ -4,6 +4,7 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -535,7 +536,7 @@ func schemaContainsLocalAuthenticationDisabled(input map[string]*schema.Schema) 
 		field := input[fieldName]
 
 		if key == "local_authentication_disabled" {
-			return fmt.Errorf("a field named `local_authentication_disabled` exists - this should be `local_authentication_enabled`")
+			return errors.New("a field named `local_authentication_disabled` exists - this should be `local_authentication_enabled`")
 		}
 
 		if field.Type == pluginsdk.TypeList && field.Elem != nil {

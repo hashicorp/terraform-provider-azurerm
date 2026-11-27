@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -85,7 +86,7 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	if storageShareId == nil {
-		return fmt.Errorf("determining storage share ID")
+		return errors.New("determining storage share ID")
 	}
 
 	account, err := storageClient.FindAccount(ctx, subscriptionId, storageShareId.AccountId.AccountName)

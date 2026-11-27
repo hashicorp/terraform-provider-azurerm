@@ -213,11 +213,11 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"health_check_eviction_time_in_min": {
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
 				},
 
 				"worker_count": {
@@ -242,19 +242,19 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"minimum_tls_cipher_suite": {
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
 				},
 
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
+					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Whether all outbound traffic should have Virtual Network Security Groups and User Defined Routes applied.",
 				},
 
 				"detailed_error_logging_enabled": {

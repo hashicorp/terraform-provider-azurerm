@@ -18,8 +18,8 @@ func virtualMachineDataDiskAttachmentSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     commonids.ValidateManagedDiskID,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"virtual_machine_id": {

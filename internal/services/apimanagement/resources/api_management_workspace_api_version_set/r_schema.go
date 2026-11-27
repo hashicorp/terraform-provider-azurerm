@@ -57,16 +57,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:   "The name of the header to read from inbound requests to determine the API version.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"version_query_name"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"version_query_name"},
 		},
 
 		"version_query_name": {
 			Description:   "The name of the query string parameter to read from inbound requests to determine the API version.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"version_header_name"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"version_header_name"},
 		},
 	}
 }

@@ -25,8 +25,8 @@ func apiManagementCertificateSchema() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Sensitive:     true,
 			ValidateFunc:  validation.StringIsBase64,
-			AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 			ConflictsWith: []string{"key_vault_secret_id", "key_vault_identity_client_id"},
+			AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 		},
 
 		"password": {
@@ -42,8 +42,8 @@ func apiManagementCertificateSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
-			AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 			ConflictsWith: []string{"data", "password"},
+			AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 		},
 
 		"key_vault_identity_client_id": {

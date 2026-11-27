@@ -6,6 +6,7 @@ package cosmos
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -177,7 +178,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				}
 
 				if isMongo && (mongo34found && !enableMongo) {
-					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+					return errors.New("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
 				}
 				return nil
 			}),
@@ -317,8 +318,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Description: "Enable the Free Tier pricing option for this Cosmos DB account.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
-				Default:     false,
 				ForceNew:    true,
+				Default:     false,
 			},
 
 			"analytical_storage_enabled": {
@@ -369,8 +370,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeInt,
 							Optional:         true,
 							Default:          5,
-							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 							ValidateFunc:     validation.IntBetween(5, 86400), // single region values
+							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 						},
 
 						// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
@@ -379,8 +380,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeInt,
 							Optional:         true,
 							Default:          100,
-							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 							ValidateFunc:     validation.IntBetween(10, math.MaxInt32), // single region values
+							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 						},
 					},
 				},
@@ -390,6 +391,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Description: "A `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location.",
 				Type:        pluginsdk.TypeSet,
 				Required:    true,
+				Set:         resourceAzureRMCosmosDBAccountGeoLocationHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -414,7 +416,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBAccountGeoLocationHash,
 			},
 
 			"capabilities": {
@@ -422,6 +423,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:        pluginsdk.TypeSet,
 				Optional:    true,
 				Computed:    true, // azignore:AZS007 - pre-existing violation
+				Set:         resourceAzureRMCosmosDBAccountCapabilitiesHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -452,7 +454,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 			},
 
 			"is_virtual_network_filter_enabled": {
@@ -961,7 +962,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 		account.Properties.BackupPolicy = policy
 	} else if createMode != "" {
-		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+		return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
 	var key *keyvault.NestedItemID
@@ -1074,7 +1075,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 				backup = newBackup
 			} else if pointer.FromEnum(existing.Model.Properties.CreateMode) != "" {
-				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+				return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 			}
 		}
 	}
@@ -1584,7 +1585,7 @@ func resourceCosmosDbAccountApiUpdate(client *cosmosdb.CosmosDBClient, ctx conte
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf.Timeout = time.Until(deadline)
 
@@ -1647,7 +1648,7 @@ func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, c
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf.Timeout = time.Until(deadline)
 
@@ -1727,7 +1728,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 
 	// and one of them must have a priority of 0...
 	if _, ok := byPriorities[0]; !ok {
-		return nil, fmt.Errorf("there needs to be a `geo_location` with a `failover_priority` of `0`")
+		return nil, errors.New("there needs to be a `geo_location` with a `failover_priority` of `0`")
 	}
 
 	return locations, nil
@@ -1967,7 +1968,7 @@ func expandCosmosdbAccountBackup(input []any, backupHasChange bool, createMode s
 		}
 
 		if v := attr["tier"].(string); v != "" && !backupHasChange {
-			return nil, fmt.Errorf("`tier` can not be set when `type` in `backup` is `Periodic`")
+			return nil, errors.New("`tier` can not be set when `type` in `backup` is `Periodic`")
 		}
 
 		periodicModeBackupPolicy := cosmosdb.PeriodicModeBackupPolicy{

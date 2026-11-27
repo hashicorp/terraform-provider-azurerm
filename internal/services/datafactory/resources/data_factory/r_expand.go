@@ -4,7 +4,7 @@
 package data_factory
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -23,7 +23,7 @@ func expandDataFactoryGlobalParameters(input []any) (*map[string]factories.Globa
 
 		name := v["name"].(string)
 		if _, ok := v[name]; ok {
-			return nil, fmt.Errorf("duplicate parameter name")
+			return nil, errors.New("duplicate parameter name")
 		}
 
 		result[name] = factories.GlobalParameterSpecification{

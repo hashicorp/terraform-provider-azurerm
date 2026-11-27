@@ -31,27 +31,27 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
 			MinItems:    1,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"target_resource_type": {
+			Description: "The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
-			Description: "The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource.",
 		},
 
 		"target_resource_location": {
+			Description:      "The location of the target resource.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Computed:         true, // azignore:AZS007 - pre-existing violation
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			Description:      "The location of the target resource.",
 		},
 
 		// static criteria
@@ -224,16 +224,16 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 						Description:  "The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(1),
 						Default:      4,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"evaluation_failure_count": {
 						Description:  "The number of violations to trigger an alert.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(1),
 						Default:      4,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"ignore_data_before": {
@@ -284,6 +284,7 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		"action": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Set:      resourceMonitorMetricAlertActionHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"action_group_id": {
@@ -302,7 +303,6 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceMonitorMetricAlertActionHash,
 		},
 
 		"auto_mitigate": {

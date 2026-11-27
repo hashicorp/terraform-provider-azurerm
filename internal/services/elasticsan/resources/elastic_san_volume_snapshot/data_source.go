@@ -70,14 +70,14 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"source_volume_size_in_gib": {
 			Description: "The size of source volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_name": {
 			Description: "The source volume name of the Snapshot.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

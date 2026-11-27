@@ -4,6 +4,7 @@
 package role_assignment
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -114,7 +115,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 		props.Condition = pointer.To(condition)
 		props.ConditionVersion = pointer.To("2.0")
 	case conditionVersion != "":
-		return fmt.Errorf("`condition_version` should not be set without `condition`")
+		return errors.New("`condition_version` should not be set without `condition`")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)

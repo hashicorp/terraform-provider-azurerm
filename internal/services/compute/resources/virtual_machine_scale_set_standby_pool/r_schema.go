@@ -5,6 +5,7 @@ package virtual_machine_scale_set_standby_pool
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -89,7 +90,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if len(config.ElasticityProfile) > 0 && config.ElasticityProfile[0].MaxReadyCapacity < config.ElasticityProfile[0].MinReadyCapacity {
-				return fmt.Errorf("`min_ready_capacity` cannot exceed `max_ready_capacity`")
+				return errors.New("`min_ready_capacity` cannot exceed `max_ready_capacity`")
 			}
 
 			return nil

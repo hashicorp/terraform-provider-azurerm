@@ -38,12 +38,12 @@ func virtualDesktopApplicationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"friendly_name": {
-			Description:  "Option to set a friendly name for the Virtual Desktop Application.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(1, 64),
+			Description: "Option to set a friendly name for the Virtual Desktop Application.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C The API will use the value in `name` as the default
-			Computed: true,
+			Computed:     true,
+			ValidateFunc: validation.StringLenBetween(1, 64),
 		},
 
 		"description": {

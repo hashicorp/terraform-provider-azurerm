@@ -81,8 +81,8 @@ func virtualDesktopHostPoolSchema() map[string]*pluginsdk.Schema {
 			Description:  "Whether public network access is allowed for the Virtual Desktop Host Pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
 			Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
 		},
 
 		"maximum_sessions_allowed": {
@@ -101,11 +101,11 @@ func virtualDesktopHostPoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"preferred_app_group_type": {
+			Description:  "Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Description:  "Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.",
-			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPreferredAppGroupType(), false),
 			Default:      string(hostpool.PreferredAppGroupTypeDesktop),
+			ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPreferredAppGroupType(), false),
 		},
 
 		"scheduled_agent_updates": {

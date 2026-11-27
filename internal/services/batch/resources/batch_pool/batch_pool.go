@@ -5,6 +5,7 @@ package batch_pool
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -437,7 +438,7 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAc
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []any) (*pool.ImageReference, error) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("storage image reference should be defined")
+		return nil, errors.New("storage image reference should be defined")
 	}
 
 	storageImageRef := list[0].(map[string]any)
@@ -504,7 +505,7 @@ func expandBatchPoolContainerRegistries(list []any) (*[]pool.ContainerRegistry, 
 
 func expandBatchPoolContainerRegistry(ref map[string]any) (*pool.ContainerRegistry, error) {
 	if len(ref) == 0 {
-		return nil, fmt.Errorf("container registry reference should be defined")
+		return nil, errors.New("container registry reference should be defined")
 	}
 
 	containerRegistry := pool.ContainerRegistry{}
@@ -530,7 +531,7 @@ func expandBatchPoolContainerRegistry(ref map[string]any) (*pool.ContainerRegist
 // ExpandBatchPoolStartTask expands Batch pool start task
 func ExpandBatchPoolStartTask(list []any) (*pool.StartTask, error) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("batch pool start task should be defined")
+		return nil, errors.New("batch pool start task should be defined")
 	}
 
 	startTaskValue := list[0].(map[string]any)
@@ -543,7 +544,7 @@ func ExpandBatchPoolStartTask(list []any) (*pool.StartTask, error) {
 
 	userIdentityList := startTaskValue["user_identity"].([]any)
 	if len(userIdentityList) == 0 {
-		return nil, fmt.Errorf("batch pool start task user identity should be defined")
+		return nil, errors.New("batch pool start task user identity should be defined")
 	}
 
 	userIdentityValue := userIdentityList[0].(map[string]any)
@@ -668,21 +669,21 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 		if imageReference != nil {
 			// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
 			if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-				return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
+				return nil, errors.New("properties version, offer, publish cannot be defined when using a custom image id")
 			} else if imageReference.Id == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-				return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
+				return nil, errors.New("properties version, offer, publish and sku are mandatory when not using a custom image")
 			}
 			result.ImageReference = *imageReference
 		}
 	} else {
-		return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
+		return nil, errors.New("storage_image_reference either is empty or contains parsing errors")
 	}
 
 	if v, ok := d.GetOk("container_configuration"); ok {
 		if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]any)); err == nil {
 			result.ContainerConfiguration = containerConfiguration
 		} else {
-			return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
+			return nil, errors.New("container_configuration either is empty or contains parsing errors")
 		}
 	}
 
@@ -860,7 +861,7 @@ func expandBatchPoolDiskEncryptionConfiguration(list []any) (*pool.DiskEncryptio
 		if dataDiskEncryptionTarget, ok := item["disk_encryption_target"]; ok {
 			targetList = append(targetList, pool.DiskEncryptionTarget(dataDiskEncryptionTarget.(string)))
 		} else {
-			return nil, fmt.Errorf("disk_encryption_target either is empty or contains parsing errors")
+			return nil, errors.New("disk_encryption_target either is empty or contains parsing errors")
 		}
 	}
 
@@ -949,7 +950,7 @@ func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]pool.Moun
 		return &result, nil
 	}
 
-	return nil, fmt.Errorf("mount either is empty or contains parsing errors")
+	return nil, errors.New("mount either is empty or contains parsing errors")
 }
 
 func expandBatchPoolMountConfiguration(ref map[string]any) pool.MountConfiguration {
@@ -975,7 +976,7 @@ func expandBatchPoolMountConfiguration(ref map[string]any) pool.MountConfigurati
 
 func expandBatchPoolAzureBlobFileSystemConfiguration(list []any) (*pool.AzureBlobFileSystemConfiguration, any) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("azure_blob_file_system is empty")
+		return nil, errors.New("azure_blob_file_system is empty")
 	}
 
 	configMap := list[0].(map[string]any)
@@ -1001,7 +1002,7 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []any) (*pool.AzureBlo
 
 func expandBatchPoolAzureFileShareConfiguration(list []any) (*pool.AzureFileShareConfiguration, any) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("azure_file_share is empty")
+		return nil, errors.New("azure_file_share is empty")
 	}
 
 	configMap := list[0].(map[string]any)
@@ -1021,7 +1022,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []any) (*pool.AzureFileShar
 
 func expandBatchPoolCIFSMountConfiguration(list []any) (*pool.CIFSMountConfiguration, any) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("cifs_mount is empty")
+		return nil, errors.New("cifs_mount is empty")
 	}
 
 	configMap := list[0].(map[string]any)
@@ -1041,7 +1042,7 @@ func expandBatchPoolCIFSMountConfiguration(list []any) (*pool.CIFSMountConfigura
 
 func expandBatchPoolNFSMountConfiguration(list []any) (*pool.NFSMountConfiguration, any) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("nfs_mount is empty")
+		return nil, errors.New("nfs_mount is empty")
 	}
 
 	configMap := list[0].(map[string]any)
@@ -1062,7 +1063,7 @@ func expandBatchPoolIdentityReference(ref map[string]any) (*pool.ComputeNodeIden
 		result.ResourceId = new(iid.(string))
 		return &result, nil
 	}
-	return nil, fmt.Errorf("identity_id is empty")
+	return nil, errors.New("identity_id is empty")
 }
 
 // ExpandBatchPoolNetworkConfiguration expands Batch pool network configuration
@@ -1129,7 +1130,7 @@ func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*pool.TaskS
 		}
 		return &result, nil
 	}
-	return nil, fmt.Errorf("task_scheduling_policy either is empty or contains parsing errors")
+	return nil, errors.New("task_scheduling_policy either is empty or contains parsing errors")
 }
 
 func expandPoolEndpointConfiguration(list []any) (*pool.PoolEndpointConfiguration, error) {
@@ -1297,7 +1298,7 @@ func ExpandBatchPoolUserAccounts(d *pluginsdk.ResourceData) (*[]pool.UserAccount
 		}
 	}
 
-	return nil, fmt.Errorf("user_accounts either is empty or contains parsing errors")
+	return nil, errors.New("user_accounts either is empty or contains parsing errors")
 }
 
 func expandBatchPoolUserAccount(ref map[string]any) pool.UserAccount {

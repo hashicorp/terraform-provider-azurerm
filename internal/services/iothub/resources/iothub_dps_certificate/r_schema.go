@@ -34,8 +34,8 @@ func iothubDpsCertificateSchema() map[string]*pluginsdk.Schema {
 			Description:  "The Base-64 representation of the X509 leaf certificate .cer file or just a .pem file content.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"is_verified": {

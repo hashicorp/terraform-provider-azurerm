@@ -30,15 +30,15 @@ func dnsAaaaRecordSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"records": {
-			Description: "List of IPv6 Addresses.",
-			Type:        pluginsdk.TypeSet,
-			Optional:    true,
+			Description:   "List of IPv6 Addresses.",
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Set:           set.HashIPv6Address,
+			ConflictsWith: []string{"target_resource_id"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv6Address,
 			},
-			Set:           set.HashIPv6Address,
-			ConflictsWith: []string{"target_resource_id"},
 		},
 
 		"ttl": {

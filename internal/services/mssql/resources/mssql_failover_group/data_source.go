@@ -103,10 +103,10 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Description: "A set of database names in the Failover Group.",
 			Type:        pluginsdk.TypeSet,
 			Computed:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"readonly_endpoint_failover_policy_enabled": {

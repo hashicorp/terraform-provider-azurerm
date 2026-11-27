@@ -5,6 +5,7 @@ package managed_redis
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -150,26 +151,25 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"persistence_append_only_file_backup_frequency": {
-						Description: "The frequency of Append Only File (AOF) backups. Providing this value implies AOF persistence method is enabled. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
+						Description:  "The frequency of Append Only File (AOF) backups. Providing this value implies AOF persistence method is enabled. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForAofFrequency(), false),
 						ConflictsWith: []string{
 							"default_database.0.geo_replication_group_name",
 							"default_database.0.persistence_redis_database_backup_frequency",
 						},
-
-						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForAofFrequency(), false),
 					},
 
 					"persistence_redis_database_backup_frequency": {
-						Description: "The frequency of Redis Database (RDB) backups. Providing this value implies RDB persistence method is enabled. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
+						Description:  "The frequency of Redis Database (RDB) backups. Providing this value implies RDB persistence method is enabled. Refer to [the persistence documentation](https://learn.microsoft.com/azure/redis/how-to-persistence) to learn more.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForRdbFrequency(), false),
 						ConflictsWith: []string{
 							"default_database.0.geo_replication_group_name",
 							"default_database.0.persistence_append_only_file_backup_frequency",
 						},
-						ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForRdbFrequency(), false),
 					},
 
 					"port": {
@@ -262,7 +262,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
-				return fmt.Errorf("`default_database` must be provided when creating a new resource")
+				return errors.New("`default_database` must be provided when creating a new resource")
 			}
 
 			if len(model.DefaultDatabase) > 0 {

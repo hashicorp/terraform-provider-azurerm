@@ -4,6 +4,7 @@
 package log_analytics_workspace
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -68,7 +69,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	if !isLACluster && strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumLACluster)) {
-		return fmt.Errorf("`sku` cannot be set to `LACluster` during creation unless the workspace is in a soft-deleted state while linked to a Log Analytics Cluster")
+		return errors.New("`sku` cannot be set to `LACluster` during creation unless the workspace is in a soft-deleted state while linked to a Log Analytics Cluster")
 	}
 
 	if isLACluster {

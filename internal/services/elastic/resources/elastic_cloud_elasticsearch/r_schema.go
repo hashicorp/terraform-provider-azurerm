@@ -44,8 +44,8 @@ func elasticCloudElasticsearchSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether the Elasticsearch should have monitoring configured.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		"logs": {

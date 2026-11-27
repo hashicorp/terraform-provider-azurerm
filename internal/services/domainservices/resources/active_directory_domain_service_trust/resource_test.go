@@ -5,6 +5,7 @@ package active_directory_domain_service_trust_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -37,32 +38,32 @@ type DomainServiceTrustResource struct {
 func NewDomainServiceTrustResource() (*DomainServiceTrustResource, error) {
 	aaddsRgName := os.Getenv("ARM_TEST_AADDS_RESOURCE_GROUP_NAME")
 	if aaddsRgName == "" {
-		return nil, fmt.Errorf("`ARM_TEST_AADDS_RESOURCE_GROUP_NAME` is not set")
+		return nil, errors.New("`ARM_TEST_AADDS_RESOURCE_GROUP_NAME` is not set")
 	}
 
 	aaddsName := os.Getenv("ARM_TEST_AADDS_NAME")
 	if aaddsName == "" {
-		return nil, fmt.Errorf("`ARM_TEST_AADDS_NAME` is not set")
+		return nil, errors.New("`ARM_TEST_AADDS_NAME` is not set")
 	}
 
 	addsFqdn := os.Getenv("ARM_TEST_ADDS_FQDN")
 	if addsFqdn == "" {
-		return nil, fmt.Errorf("`ARM_TEST_ADDS_FQDN` is not set")
+		return nil, errors.New("`ARM_TEST_ADDS_FQDN` is not set")
 	}
 
 	addsIp1 := os.Getenv("ARM_TEST_ADDS_IP1")
 	if addsIp1 == "" {
-		return nil, fmt.Errorf("`ARM_TEST_ADDS_IP1` is not set")
+		return nil, errors.New("`ARM_TEST_ADDS_IP1` is not set")
 	}
 
 	addsIp2 := os.Getenv("ARM_TEST_ADDS_IP2")
 	if addsIp2 == "" {
-		return nil, fmt.Errorf("`ARM_TEST_ADDS_IP2` is not set")
+		return nil, errors.New("`ARM_TEST_ADDS_IP2` is not set")
 	}
 
 	password := os.Getenv("ARM_TEST_PASSWORD")
 	if password == "" {
-		return nil, fmt.Errorf("`ARM_TEST_PASSWORD` is not set")
+		return nil, errors.New("`ARM_TEST_PASSWORD` is not set")
 	}
 
 	return &DomainServiceTrustResource{

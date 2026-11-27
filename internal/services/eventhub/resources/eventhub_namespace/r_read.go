@@ -6,6 +6,7 @@ package eventhub_namespace
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -199,7 +200,7 @@ func resourceVnetRuleHash(v any) int {
 func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
-		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+		err = errors.New("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
 	return
 }

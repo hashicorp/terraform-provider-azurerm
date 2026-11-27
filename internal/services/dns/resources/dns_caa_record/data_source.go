@@ -44,6 +44,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Description: "A list of values that make up the CAA record.",
 				Type:        pluginsdk.TypeSet,
 				Computed:    true,
+				Set:         resourceDnsCaaRecordHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"flags": {
@@ -65,7 +66,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceDnsCaaRecordHash,
 			},
 
 			"ttl": {

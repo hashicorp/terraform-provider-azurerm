@@ -17,30 +17,30 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The name of the Virtual Endpoint.",
-			ForceNew:     true,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"source_server_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The Resource ID of the *Source* Postgres Flexible Server this should be associated with.",
-			ForceNew:     true,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: servers.ValidateFlexibleServerID,
 		},
 		"replica_server_id": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The Resource ID of the *Replica* Postgres Flexible Server this should be associated with.",
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: servers.ValidateFlexibleServerID,
 		},
 		"type": {
-			Type:         pluginsdk.TypeString,
 			Description:  "The type of Virtual Endpoint.",
-			ForceNew:     true,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(virtualendpoints.PossibleValuesForVirtualEndpointType(), true),
 		},
 	}

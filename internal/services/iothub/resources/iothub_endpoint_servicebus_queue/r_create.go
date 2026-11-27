@@ -4,6 +4,7 @@
 package iothub_endpoint_servicebus_queue
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -69,14 +70,14 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 		if v, ok := d.GetOk("connection_string"); ok {
 			queueEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
-			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+			return errors.New("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
 			queueEndpoint.EndpointURI = pointer.To(v.(string))
 			queueEndpoint.EntityPath = pointer.To(d.Get("entity_path").(string))
 		} else {
-			return fmt.Errorf("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
+			return errors.New("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {

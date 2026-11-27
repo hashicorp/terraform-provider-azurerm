@@ -45,9 +45,9 @@ func (a *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 		MarkdownDescription: "Generates an S3 access key / secret key pair for an Azure NetApp Files Volume Bucket and stores it in the Azure Key Vault configured on the parent bucket.",
 		Attributes: map[string]schema.Attribute{
 			"bucket_id": schema.StringAttribute{
-				Required:            true,
 				Description:         "The ARM ID of the NetApp Volume Bucket the credentials apply to.",
 				MarkdownDescription: "The ARM ID of the NetApp Volume Bucket the credentials apply to.",
+				Required:            true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
 						Func: buckets.ValidateBucketID,
@@ -56,16 +56,16 @@ func (a *Action) Schema(_ context.Context, _ action.SchemaRequest, response *act
 			},
 
 			"key_pair_expiry_days": schema.Int64Attribute{
-				Required:            true,
 				Description:         "Number of days the generated key pair is valid for.",
 				MarkdownDescription: "Number of days the generated key pair is valid for.",
+				Required:            true,
 				Validators:          []validator.Int64{int64validator.AtLeast(1)},
 			},
 
 			"timeout": schema.StringAttribute{
-				Optional:            true,
 				Description:         "Timeout duration for the bucket credentials generation to complete. Defaults to `1h`.", // azignore:AZS014 - an action cannot set a Default in its schema
 				MarkdownDescription: "Timeout duration for the bucket credentials generation to complete. Defaults to `1h`.", // azignore:AZS014 - an action cannot set a Default in its schema
+				Optional:            true,
 			},
 		},
 	}

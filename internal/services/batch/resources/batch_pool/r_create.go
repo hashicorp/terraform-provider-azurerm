@@ -4,6 +4,7 @@
 package batch_pool
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -152,17 +153,17 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
 
 	if !autoScaleOk && !fixedScaleOk {
-		return nil, fmt.Errorf("auto_scale block or fixed_scale block need to be specified")
+		return nil, errors.New("auto_scale block or fixed_scale block need to be specified")
 	}
 
 	if autoScaleOk && fixedScaleOk {
-		return nil, fmt.Errorf("auto_scale and fixed_scale blocks cannot be specified at the same time")
+		return nil, errors.New("auto_scale and fixed_scale blocks cannot be specified at the same time")
 	}
 
 	if autoScaleOk {
 		autoScale := autoScaleValue.([]any)
 		if len(autoScale) == 0 {
-			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
+			return nil, errors.New("when scale mode is Auto, auto_scale block is required")
 		}
 
 		autoScaleSettings := autoScale[0].(map[string]any)
@@ -176,7 +177,7 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	} else if fixedScaleOk {
 		fixedScale := fixedScaleValue.([]any)
 		if len(fixedScale) == 0 {
-			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
+			return nil, errors.New("when scale mode is Fixed, fixed_scale block is required")
 		}
 
 		fixedScaleSettings := fixedScale[0].(map[string]any)

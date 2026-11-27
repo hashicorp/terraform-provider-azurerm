@@ -90,8 +90,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The backup retention period in days. This is how many days Point-in-Time Restore will be supported.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 35),
 			Default:      7,
+			ValidateFunc: validation.IntBetween(1, 35),
 		},
 
 		"point_in_time_restore": {
@@ -107,8 +107,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ForceNew:         true,
-						DiffSuppressFunc: suppress.RFC3339Time,
 						ValidateFunc:     validation.IsRFC3339Time,
+						DiffSuppressFunc: suppress.RFC3339Time,
 					},
 					"source_database_id": {
 						Description:  "The source database ID that will be used to restore from.",

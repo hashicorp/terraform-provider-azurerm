@@ -39,8 +39,8 @@ func sharedImageSchema() map[string]*pluginsdk.Schema {
 			Description:  "CPU architecture supported by an OS.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(galleryimages.ArchitectureXSixFour),
 			ForceNew:     true,
+			Default:      string(galleryimages.ArchitectureXSixFour),
 			ValidateFunc: validation.StringInSlice(galleryimages.PossibleValuesForArchitecture(), false),
 		},
 
@@ -69,16 +69,16 @@ func sharedImageSchema() map[string]*pluginsdk.Schema {
 			Description:      "The end of life date in RFC3339 format of the Image.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"hyper_v_generation": {
 			Description:  "The generation of HyperV that the Virtual Machine used to create the Shared Image is based on.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(galleryimages.HyperVGenerationVOne),
 			ForceNew:     true,
+			Default:      string(galleryimages.HyperVGenerationVOne),
 			ValidateFunc: validation.StringInSlice(galleryimages.PossibleValuesForHyperVGeneration(), false),
 		},
 
@@ -91,22 +91,22 @@ func sharedImageSchema() map[string]*pluginsdk.Schema {
 					"publisher": {
 						Description:  "The Publisher Name for this Gallery Image.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.SharedImageIdentifierAttribute(128),
 					},
 					"offer": {
 						Description:  "The Offer Name for this Shared Image.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.SharedImageIdentifierAttribute(64),
 					},
 					"sku": {
 						Description:  "The Name of the SKU for this Gallery Image.",
 						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.SharedImageIdentifierAttribute(64),
 					},
 				},
@@ -160,8 +160,8 @@ func sharedImageSchema() map[string]*pluginsdk.Schema {
 		"privacy_statement_uri": {
 			Description: "The URI containing the Privacy Statement associated with this Shared Image.",
 			Type:        pluginsdk.TypeString,
-			ForceNew:    true,
 			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"max_recommended_vcpu_count": {

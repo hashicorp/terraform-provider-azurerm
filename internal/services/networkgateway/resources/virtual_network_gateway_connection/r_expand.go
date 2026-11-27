@@ -4,6 +4,7 @@
 package virtual_network_gateway_connection
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -92,7 +93,7 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 	var secondaryIpConfiguration string
 
 	if bgpPeeringAddresses == nil {
-		return &customBgpIpAddresses, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway`, addresses returned nil")
+		return &customBgpIpAddresses, errors.New("retrieving BGP peering address from `virtual_network_gateway`, addresses returned nil")
 	}
 
 	for _, address := range *bgpPeeringAddresses {
@@ -115,7 +116,7 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 	}
 
 	if len(primaryIpConfiguration) == 0 || (secondaryAddress != "" && len(secondaryIpConfiguration) == 0) {
-		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
+		return &customBgpIpAddresses, errors.New("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
 	customBgpIpAddresses = append(customBgpIpAddresses, virtualnetworkgatewayconnections.GatewayCustomBgpIPAddressIPConfiguration{
@@ -262,31 +263,31 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 
 	if props.ConnectionType == virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeExpressRoute {
 		if props.Peer == nil || props.Peer.Id == nil {
-			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute`")
+			return nil, errors.New("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute`")
 		}
 		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass").(bool) {
-			return nil, fmt.Errorf("`express_route_gateway_bypass` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+			return nil, errors.New("`express_route_gateway_bypass` must be enabled when `private_link_fast_path_enabled` is set to `true`")
 		}
 	}
 
 	if props.ConnectionType == virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec {
 		if props.LocalNetworkGateway2 == nil || props.LocalNetworkGateway2.Id == nil {
-			return nil, fmt.Errorf("`local_network_gateway_id` must be specified when `type` is set to `IPsec`")
+			return nil, errors.New("`local_network_gateway_id` must be specified when `type` is set to `IPsec`")
 		}
 	}
 
 	if props.ConnectionType == virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet {
 		if props.VirtualNetworkGateway2 == nil || props.VirtualNetworkGateway2.Id == nil {
-			return nil, fmt.Errorf("`peer_virtual_network_gateway_id` must be specified when `type` is set to `Vnet2Vnet`")
+			return nil, errors.New("`peer_virtual_network_gateway_id` must be specified when `type` is set to `Vnet2Vnet`")
 		}
 	}
 
 	if props.GatewayCustomBgpIPAddresses != nil && props.ConnectionType != virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec {
-		return nil, fmt.Errorf("`custom_bgp_addresses` can only be used when `type` is set to `IPsec`")
+		return nil, errors.New("`custom_bgp_addresses` can only be used when `type` is set to `IPsec`")
 	}
 
 	if props.GatewayCustomBgpIPAddresses != nil && virtualNetworkGateway.Properties.ActiveActive == pointer.To(false) {
-		return nil, fmt.Errorf("`custom_bgp_addresses` can only be used when `azurerm_virtual_network_gateway` `active_active` is set enabled`")
+		return nil, errors.New("`custom_bgp_addresses` can only be used when `azurerm_virtual_network_gateway` `active_active` is set enabled`")
 	}
 
 	return props, nil

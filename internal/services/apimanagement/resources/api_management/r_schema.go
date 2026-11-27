@@ -146,10 +146,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_addresses": {
 						Description: "Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.",
 						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Computed: true,
 					},
 
 					"public_ip_address_id": {
@@ -162,10 +162,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"private_ip_addresses": {
 						Description: "The Private IP addresses of the API Management Service. Available only when the API Manager instance is using Virtual Network mode.",
 						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Computed: true,
 					},
 				},
 			},
@@ -361,44 +361,44 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"management": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"portal": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"developer_portal": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"proxy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameProxySchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 					"scm": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						Elem: &pluginsdk.Resource{
 							Schema: helpers.ApiManagementResourceHostnameSchema(),
 						},
-						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 					},
 				},
 			},
@@ -449,8 +449,8 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Description:  "A base64-encoded validation key to validate, that a request is coming from Azure API Management.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsBase64,
 					},
 				},
 			},

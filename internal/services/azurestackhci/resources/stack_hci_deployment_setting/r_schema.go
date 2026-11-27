@@ -510,104 +510,104 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Whether the telemetry data will be sent to Microsoft.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"eu_location_enabled": {
 						Description: "Whether to store data sent to Microsoft in EU. The log and diagnostic data is sent to the appropriate diagnostics servers depending upon where your cluster resides. Setting this to `false` results in all data sent to Microsoft to be stored outside of the EU.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     false,
 						ForceNew:    true,
+						Default:     false,
 					},
 
 					"episodic_data_upload_enabled": {
 						Description: "Whether to collect log data to facilitate quicker issue resolution.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"bitlocker_boot_volume_enabled": {
 						Description: "Whether to enable BitLocker for boot volume. When set to `true`, BitLocker XTS_AES 256-bit encryption is enabled for all data-at-rest on the OS volume of your Azure Stack HCI cluster. This setting is TPM-hardware dependent.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"bitlocker_data_volume_enabled": {
 						Description: "Whether to enable BitLocker for data volume. When set to `true`, BitLocker XTS-AES 256-bit encryption is enabled for all data-at-rest on your Azure Stack HCI cluster shared volumes.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"credential_guard_enabled": {
 						Description: "Whether to enable credential guard.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     false,
 						ForceNew:    true,
+						Default:     false,
 					},
 
 					"drift_control_enabled": {
 						Description: "Whether to enable drift control. When set to `true`, the security baseline is re-applied regularly.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"drtm_protection_enabled": {
 						Description: "Whether to enable DRTM protection. When set to `true`, Secure Boot is enabled on your Azure HCI cluster. This setting is hardware dependent.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"hvci_protection_enabled": {
 						Description: "Whether to enable HVCI protection. When set to `true`, Hypervisor-protected Code Integrity is enabled on your Azure HCI cluster.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"side_channel_mitigation_enabled": {
 						Description: "Whether to enable side channel mitigation. When set to `true`, all side channel mitigations are enabled on your Azure HCI cluster.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"smb_signing_enabled": {
 						Description: "Whether to enable SMB signing. When set to `true`, the SMB default instance requires sign in for the client and server services.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 
 					"smb_cluster_encryption_enabled": {
 						Description: "Whether to enable SMB cluster encryption. When set to `true`, cluster east-west traffic is encrypted.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     false,
 						ForceNew:    true,
+						Default:     false,
 					},
 
 					"wdac_enabled": {
 						Description: "Whether to enable WDAC. When set to `true`, applications and the code that you can run on your Azure Stack HCI cluster are limited.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Default:     true,
 						ForceNew:    true,
+						Default:     true,
 					},
 				},
 			},

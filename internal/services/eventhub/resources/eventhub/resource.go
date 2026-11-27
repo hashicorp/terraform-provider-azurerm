@@ -5,6 +5,7 @@ package eventhub
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -50,7 +51,7 @@ func RegisterResource() *pluginsdk.Resource {
 					destinationMap := destination.AsValueSlice()[0].AsValueMap()
 					authType := destinationMap["storage_authentication_type"]
 					if authType.IsKnown() && !authType.IsNull() && authType.AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destinationMap["storage_authentication_id"].IsNull() {
-						return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+						return errors.New("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
 					}
 				}
 			}

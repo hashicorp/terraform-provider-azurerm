@@ -73,14 +73,14 @@ func (BlobV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"parallelism": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Default:  8,
 			ForceNew: true,
+			Default:  8,
 		},
 		"attempts": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Default:  1,
 			ForceNew: true,
+			Default:  1,
 		},
 	}
 }

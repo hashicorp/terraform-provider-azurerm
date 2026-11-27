@@ -5,6 +5,7 @@ package active_directory_domain_service_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -192,16 +193,16 @@ func (ActiveDirectoryDomainServiceReplicaSetResource) Exists(ctx context.Context
 
 	model := resp.Model
 	if model == nil {
-		return nil, fmt.Errorf("DomainService response returned with nil model")
+		return nil, errors.New("DomainService response returned with nil model")
 	}
 
 	props := model.Properties
 	if props == nil {
-		return nil, fmt.Errorf("DomainService response returned with nil properties")
+		return nil, errors.New("DomainService response returned with nil properties")
 	}
 
 	if props.ReplicaSets == nil || len(*props.ReplicaSets) == 0 {
-		return nil, fmt.Errorf("DomainService response returned with nil or empty replicaSets")
+		return nil, errors.New("DomainService response returned with nil or empty replicaSets")
 	}
 
 	for _, replica := range *props.ReplicaSets {

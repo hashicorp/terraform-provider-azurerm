@@ -66,20 +66,20 @@ func (s KustoDatabaseDataConnectionIotHub0ToV1) Schema() map[string]*pluginsdk.S
 
 		"table_name": {
 			Type:     pluginsdk.TypeString,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 		},
 
 		"mapping_rule_name": {
 			Type:     pluginsdk.TypeString,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 		},
 
 		"data_format": {
 			Type:     pluginsdk.TypeString,
-			ForceNew: true,
 			Optional: true,
+			ForceNew: true,
 		},
 
 		"database_routing_type": {

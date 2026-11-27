@@ -30,6 +30,7 @@ func dnsSrvRecordSchema() map[string]*pluginsdk.Schema {
 			Description: "A list of values that make up the SRV record.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
+			Set:         resourceDnsSrvRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"priority": {
@@ -57,7 +58,6 @@ func dnsSrvRecordSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceDnsSrvRecordHash,
 		},
 
 		"ttl": {

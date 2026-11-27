@@ -4,6 +4,7 @@
 package sentinel
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -117,19 +118,19 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Optional: true,
 				// NOTE: O+C The API creates an incident if omitted but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
-				MaxItems: 1,
 				MinItems: 1,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"create_incident_enabled": {
-							Required: true,
 							Type:     pluginsdk.TypeBool,
+							Required: true,
 						},
 						"grouping": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							MaxItems: 1,
 							MinItems: 1,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -140,8 +141,8 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 									"lookback_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.ISO8601Duration,
 										Default:      "PT5M",
+										ValidateFunc: validation.ISO8601Duration,
 									},
 									"reopen_closed_incidents": {
 										Type:     pluginsdk.TypeBool,
@@ -309,8 +310,8 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 						},
 						"field_mapping": {
 							Type:     pluginsdk.TypeList,
-							MaxItems: 3,
 							Required: true,
+							MaxItems: 3,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"identifier": {
@@ -446,7 +447,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 
 	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 10
 	if entityMappingCount+sentinelEntityMappingCount > 10 {
-		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 10")
+		return errors.New("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 10")
 	}
 
 	if !d.IsNewResource() {

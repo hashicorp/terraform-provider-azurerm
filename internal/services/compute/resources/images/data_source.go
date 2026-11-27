@@ -4,6 +4,7 @@
 package images
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -166,7 +167,7 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta any) error {
 		virtualMachineImages = filterToImagesMatchingTags(virtualMachineImages, *filterTags)
 	}
 	if len(virtualMachineImages) == 0 {
-		return fmt.Errorf("no images were found that match the specified tags")
+		return errors.New("no images were found that match the specified tags")
 	}
 	if err := d.Set("images", flattenImages(virtualMachineImages)); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)

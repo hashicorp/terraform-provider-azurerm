@@ -4,7 +4,7 @@
 package mssql_virtual_machine
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -52,7 +52,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []any) (*sqlvirtualmachines
 			daysOfWeek := manualSchedule["days_of_week"].(*pluginsdk.Set).List()
 			if len(daysOfWeek) > 0 {
 				if !strings.EqualFold(string(fullBackupFrequency), string(sqlvirtualmachines.FullBackupFrequencyTypeWeekly)) {
-					return nil, fmt.Errorf("`manual_schedule.0.days_of_week` can only be specified when `manual_schedule.0.full_backup_frequency` is set to `Weekly`")
+					return nil, errors.New("`manual_schedule.0.days_of_week` can only be specified when `manual_schedule.0.full_backup_frequency` is set to `Weekly`")
 				}
 				ret.DaysOfWeek = expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(daysOfWeek)
 			}
@@ -210,7 +210,7 @@ func expandSqlVirtualMachineSQLInstance(input []any) (*sqlvirtualmachines.SQLIns
 	minServerMemoryMB := settings["min_server_memory_mb"].(int)
 
 	if maxServerMemoryMB < minServerMemoryMB {
-		return nil, fmt.Errorf("`max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`")
+		return nil, errors.New("`max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`")
 	}
 
 	result := sqlvirtualmachines.SQLInstanceSettings{

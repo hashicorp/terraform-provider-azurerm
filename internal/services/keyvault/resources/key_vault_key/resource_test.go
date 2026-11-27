@@ -5,6 +5,7 @@ package key_vault_key_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -551,7 +552,7 @@ func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *cl
 	}
 
 	if ok == nil || !*ok {
-		return fmt.Errorf("deleting parent key vault failed")
+		return errors.New("deleting parent key vault failed")
 	}
 
 	return nil

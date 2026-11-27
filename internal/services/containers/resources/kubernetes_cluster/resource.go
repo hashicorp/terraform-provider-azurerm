@@ -5,6 +5,7 @@ package kubernetes_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"strings"
@@ -163,7 +164,7 @@ func RegisterResource() *pluginsdk.Resource {
 				artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
 
 				if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
-					return fmt.Errorf("when `network_profile.0.outbound_type` is set to `none`, `bootstrap_profile.0.artifact_source` must be set to `Cache`")
+					return errors.New("when `network_profile.0.outbound_type` is set to `none`, `bootstrap_profile.0.artifact_source` must be set to `Cache`")
 				}
 
 				return nil
