@@ -134,6 +134,12 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 		},
 
+		"federated_client_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
 		"license_type": {
 			Description: "The license type applied to this database.",
 			Type:        pluginsdk.TypeString,

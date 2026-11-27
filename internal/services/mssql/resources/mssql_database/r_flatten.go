@@ -55,6 +55,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 
 			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
 			d.Set("collation", pointer.From(props.Collation))
+			d.Set("federated_client_id", pointer.From(props.FederatedClientId))
 			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 			d.Set("storage_account_type", requestedBackupStorageRedundancy)
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))

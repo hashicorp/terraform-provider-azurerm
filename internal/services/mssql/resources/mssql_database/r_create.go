@@ -316,6 +316,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		input.Properties.LongTermRetentionBackupResourceId = pointer.To(v.(string))
 	}
 
+	if v, ok := d.GetOk("federated_client_id"); ok {
+		input.Properties.FederatedClientId = pointer.To(v.(string))
+	}
+
 	if v, ok := d.GetOk("identity"); ok {
 		expandedIdentity, err := identity.ExpandUserAssignedMap(v.([]any))
 		if err != nil {
