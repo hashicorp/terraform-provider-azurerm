@@ -10,8 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -39,18 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			input := datacollectionendpoints.DataCollectionEndpointResource{
-				Kind:     expandDataCollectionEndpointKind(state.Kind),
-				Location: location.Normalize(state.Location),
-				Name:     pointer.To(state.Name),
-				Properties: &datacollectionendpoints.DataCollectionEndpoint{
-					Description: pointer.To(state.Description),
-					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
-						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
-					},
-				},
-				Tags: tags.Expand(state.Tags),
-			}
+			input := expandCreateForDataCollectionEndpoint(state)
 
 			if _, err := client.Create(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)

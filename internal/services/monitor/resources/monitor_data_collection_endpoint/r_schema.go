@@ -4,8 +4,15 @@
 package monitor_data_collection_endpoint
 
 import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -74,6 +81,50 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Description: "The endpoint used for ingesting metrics, e.g., `https://mydce-abcd.eastus-1.metrics.ingest.monitor.azure.com`.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
+		},
+	}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations.
+				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					for _, key := range []string{"name", "resource_group_name", "location"} {
+						if !metadata.ResourceDiff.NewValueKnown(key) {
+							metadata.Logger.Infof("skipping preflight validation for `azurerm_monitor_data_collection_endpoint`: `%s` is not known until apply", key)
+							return nil
+						}
+					}
+
+					var model DataCollectionEndpoint
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req := expandCreateForDataCollectionEndpoint(model)
+
+					id := datacollectionendpoints.NewDataCollectionEndpointID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-03-11", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }
