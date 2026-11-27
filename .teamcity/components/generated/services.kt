@@ -113,6 +113,7 @@ var services = mapOf(
         "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",
         "relay" to "Relay",
+        "resourcegraph" to "Resource Graph",
         "resource" to "Resources",
         "search" to "Search",
         "securitycenter" to "Security Center",
