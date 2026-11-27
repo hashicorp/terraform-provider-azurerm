@@ -5,6 +5,7 @@ package virtual_machine_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -183,13 +184,13 @@ func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *str
 			return err
 		}
 		if virtualMachine.Model == nil {
-			return fmt.Errorf("`model` was nil")
+			return errors.New("`model` was nil")
 		}
 		if virtualMachine.Model.Properties == nil {
-			return fmt.Errorf("`properties` was nil")
+			return errors.New("`properties` was nil")
 		}
 		if virtualMachine.Model.Properties.StorageProfile == nil {
-			return fmt.Errorf("`properties.StorageProfile` was nil")
+			return errors.New("`properties.StorageProfile` was nil")
 		}
 
 		diskName := state.Attributes[field]

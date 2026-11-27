@@ -5,6 +5,7 @@ package cosmosdb_account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -89,7 +90,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 				backup = newBackup
 			} else if pointer.FromEnum(existing.Model.Properties.CreateMode) != "" {
-				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+				return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 			}
 		}
 	}
@@ -356,7 +357,7 @@ func resourceCosmosDbAccountApiUpdate(client *cosmosdb.CosmosDBClient, ctx conte
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf.Timeout = time.Until(deadline)
 
@@ -419,7 +420,7 @@ func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, c
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf.Timeout = time.Until(deadline)
 

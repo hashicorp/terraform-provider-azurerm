@@ -5,6 +5,7 @@ package chaos_studio_experiment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -144,7 +145,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 		switch action.ActionType {
 		case continuousActionType:
 			if action.Duration == "" || action.SelectorName == "" || action.Urn == "" {
-				return nil, fmt.Errorf("`duration`, `selector_name` and `urn` must be set for actions with `action_type` of `continuous`")
+				return nil, errors.New("`duration`, `selector_name` and `urn` must be set for actions with `action_type` of `continuous`")
 			}
 			output = append(output, experiments.ContinuousAction{
 				Duration:   action.Duration,
@@ -154,7 +155,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 			})
 		case delayActionType:
 			if action.Duration == "" {
-				return nil, fmt.Errorf("`duration` must be set for actions with `action_type` of `delay`")
+				return nil, errors.New("`duration` must be set for actions with `action_type` of `delay`")
 			}
 			output = append(output, experiments.DelayAction{
 				Duration: action.Duration,
@@ -162,7 +163,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 			})
 		case discreteActionType:
 			if action.SelectorName == "" || action.Urn == "" {
-				return nil, fmt.Errorf("`selector_name` and `urn` must be set for actions with `action_type` of `discrete`")
+				return nil, errors.New("`selector_name` and `urn` must be set for actions with `action_type` of `discrete`")
 			}
 			output = append(output, experiments.DiscreteAction{
 				Parameters: parameters,

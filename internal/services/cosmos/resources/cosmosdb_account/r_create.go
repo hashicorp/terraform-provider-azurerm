@@ -4,6 +4,7 @@
 package cosmosdb_account
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -127,7 +128,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 		account.Properties.BackupPolicy = policy
 	} else if createMode != "" {
-		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+		return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
 	var key *keyvault.NestedItemID

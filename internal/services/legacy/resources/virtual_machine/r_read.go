@@ -164,10 +164,10 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 
 func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, subscriptionId string, vhd *virtualmachines.VirtualHardDisk) error {
 	if vhd == nil {
-		return fmt.Errorf("`vhd` was nil`")
+		return errors.New("`vhd` was nil`")
 	}
 	if vhd.Uri == nil {
-		return fmt.Errorf("`vhd.Uri` was nil`")
+		return errors.New("`vhd.Uri` was nil`")
 	}
 
 	uri := *vhd.Uri
@@ -199,10 +199,10 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 
 func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *virtualmachines.ManagedDiskParameters, meta any) error {
 	if disk == nil {
-		return fmt.Errorf("`disk` was nil`")
+		return errors.New("`disk` was nil`")
 	}
 	if disk.Id == nil {
-		return fmt.Errorf("`disk.Id` was nil`")
+		return errors.New("`disk.Id` was nil`")
 	}
 	managedDiskID := *disk.Id
 
@@ -379,5 +379,5 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta any, props *virt
 		}
 	}
 
-	return "", fmt.Errorf("no Public or Private IP Address found on the Primary Network Interface")
+	return "", errors.New("no Public or Private IP Address found on the Primary Network Interface")
 }

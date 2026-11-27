@@ -4,6 +4,7 @@
 package cosmosdb_mongo_collection
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -43,7 +44,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta any) 
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
 	if !hasIdKey {
-		return fmt.Errorf("index with '_id' key is required")
+		return errors.New("index with '_id' key is required")
 	}
 
 	db := cosmosdb.MongoDBCollectionCreateUpdateParameters{

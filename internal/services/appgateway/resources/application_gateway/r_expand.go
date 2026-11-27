@@ -304,7 +304,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 		hosts := v["host_names"].(*pluginsdk.Set).List()
 
 		if host != "" && len(hosts) > 0 {
-			return nil, fmt.Errorf("`host_name` and `host_names` cannot be specified together")
+			return nil, errors.New("`host_name` and `host_names` cannot be specified together")
 		}
 
 		if host != "" {
@@ -1139,7 +1139,7 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
 
 		if defaultBackendAddressPoolName == "" && defaultBackendHTTPSettingsName == "" && defaultRedirectConfigurationName == "" {
-			return nil, fmt.Errorf("both the `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` must be specified")
+			return nil, errors.New("both the `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` must be specified")
 		}
 
 		if defaultBackendAddressPoolName != "" && defaultRedirectConfigurationName != "" {

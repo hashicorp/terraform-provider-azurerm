@@ -4,6 +4,7 @@
 package cosmosdb_account
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -82,7 +83,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 
 	// and one of them must have a priority of 0...
 	if _, ok := byPriorities[0]; !ok {
-		return nil, fmt.Errorf("there needs to be a `geo_location` with a `failover_priority` of `0`")
+		return nil, errors.New("there needs to be a `geo_location` with a `failover_priority` of `0`")
 	}
 
 	return locations, nil
@@ -151,7 +152,7 @@ func expandCosmosdbAccountBackup(input []any, backupHasChange bool, createMode s
 		}
 
 		if v := attr["tier"].(string); v != "" && !backupHasChange {
-			return nil, fmt.Errorf("`tier` can not be set when `type` in `backup` is `Periodic`")
+			return nil, errors.New("`tier` can not be set when `type` in `backup` is `Periodic`")
 		}
 
 		periodicModeBackupPolicy := cosmosdb.PeriodicModeBackupPolicy{

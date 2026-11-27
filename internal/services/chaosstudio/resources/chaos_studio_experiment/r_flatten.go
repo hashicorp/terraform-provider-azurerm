@@ -4,6 +4,7 @@
 package chaos_studio_experiment
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
@@ -20,7 +21,7 @@ func flattenSelector(input []experiments.Selector) (*[]SelectorSchema, error) {
 		targetIds := make([]string, 0)
 		ls, ok := selector.(experiments.ListSelector)
 		if !ok {
-			return nil, fmt.Errorf("selector is not of type ListSelector")
+			return nil, errors.New("selector is not of type ListSelector")
 		}
 		for _, t := range ls.Targets {
 			targetIds = append(targetIds, t.Id)
@@ -96,7 +97,7 @@ func flattenActions(input []experiments.Action) (*[]ActionSchema, error) {
 			actionOutput.Urn = a.Name
 			actionOutput.ActionType = discreteActionType
 		default:
-			return nil, fmt.Errorf("action is not of type `continuous`, `delay` or `discrete`")
+			return nil, errors.New("action is not of type `continuous`, `delay` or `discrete`")
 		}
 
 		output = append(output, actionOutput)

@@ -6,6 +6,7 @@ package application_gateway
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"slices"
@@ -59,7 +60,7 @@ func checkSslPolicy(sslPolicy []any) error {
 		disabledProtocols := v["disabled_protocols"].([]any)
 		policyType := v["policy_type"].(string)
 		if len(disabledProtocols) > 0 && policyType != "" {
-			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
+			return errors.New("setting disabled_protocols is not allowed when policy_type is defined")
 		}
 	}
 	return nil

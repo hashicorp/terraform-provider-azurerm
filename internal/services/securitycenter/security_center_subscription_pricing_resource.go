@@ -4,6 +4,7 @@
 package securitycenter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -173,7 +174,7 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings.PricingTierFree {
-		return fmt.Errorf("extensions cannot be enabled when using free tier")
+		return errors.New("extensions cannot be enabled when using free tier")
 	}
 
 	updateResponse, updateErr := client.Update(ctx, id, pricing)
@@ -235,7 +236,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(realCfgExtensions) > 0 && update.Properties.PricingTier == pricings.PricingTierFree {
-		return fmt.Errorf("extensions cannot be enabled when using free tier")
+		return errors.New("extensions cannot be enabled when using free tier")
 	}
 
 	extensionsStatusFromBackend := make([]pricings.Extension, 0)

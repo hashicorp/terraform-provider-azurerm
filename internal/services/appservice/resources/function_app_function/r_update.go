@@ -6,6 +6,7 @@ package function_app_function
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -60,7 +61,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			updateWait := &pluginsdk.StateChangeConf{

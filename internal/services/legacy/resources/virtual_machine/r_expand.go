@@ -4,7 +4,7 @@
 package virtual_machine
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -59,7 +59,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if profile.LinuxConfiguration == nil && profile.WindowsConfiguration == nil {
-		return nil, fmt.Errorf("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified")
+		return nil, errors.New("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified")
 	}
 
 	if _, ok := d.GetOk("os_profile_secrets"); ok {
@@ -261,13 +261,13 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if vhdURI != "" && managedDiskID != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+			return nil, errors.New("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 		}
 		if vhdURI != "" && managedDiskType != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+			return nil, errors.New("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
 		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(virtualmachines.DiskCreateOptionTypesAttach)) {
-			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
+			return nil, errors.New("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
 		if v := config["caching"].(string); v != "" {
@@ -328,7 +328,7 @@ func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*virt
 	imageReference := virtualmachines.ImageReference{}
 
 	if imageID != "" && publisher != "" {
-		return nil, fmt.Errorf("conflict between `id` and `publisher` (only one or the other can be used)")
+		return nil, errors.New("conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
 	if imageID != "" {
@@ -406,14 +406,14 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 
 	// BEGIN: code to be removed after GH-13016 is merged
 	if vhdURI != "" && managedDiskID != "" {
-		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+		return nil, errors.New("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 	}
 	if vhdURI != "" && managedDiskType != "" {
-		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+		return nil, errors.New("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
 	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(virtualmachines.DiskCreateOptionTypesAttach)) {
-		return nil, fmt.Errorf("must specify `vhd_uri` or `managed_disk_id` to attach")
+		return nil, errors.New("must specify `vhd_uri` or `managed_disk_id` to attach")
 	}
 
 	if v := config["image_uri"].(string); v != "" {

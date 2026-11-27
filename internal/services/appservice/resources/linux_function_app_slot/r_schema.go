@@ -5,6 +5,7 @@ package linux_function_app_slot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -306,7 +307,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
 					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
+						return errors.New("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}
 			}

@@ -5,6 +5,7 @@ package sentinel
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -445,14 +446,14 @@ func expandAutomationRuleActionIncident(input []any) ([]automationrules.Automati
 
 		// sanity check on classification
 		if status == automationrules.IncidentStatusClosed && classification == "" {
-			return nil, fmt.Errorf("`classification` is required when `status` is set to `Closed`")
+			return nil, errors.New("`classification` is required when `status` is set to `Closed`")
 		}
 		if status != automationrules.IncidentStatusClosed {
 			if classification != "" {
-				return nil, fmt.Errorf("`classification` can't be set when `status` is not set to `Closed`")
+				return nil, errors.New("`classification` can't be set when `status` is not set to `Closed`")
 			}
 			if classificationComment != "" {
-				return nil, fmt.Errorf("`classification_comment` can't be set when `status` is not set to `Closed`")
+				return nil, errors.New("`classification_comment` can't be set when `status` is not set to `Closed`")
 			}
 		}
 
@@ -478,7 +479,7 @@ func expandAutomationRuleActionIncident(input []any) ([]automationrules.Automati
 
 		// sanity check on the whole incident action
 		if severity == "" && ownerPtr == nil && labelsPtr == nil && status == "" {
-			return nil, fmt.Errorf("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
+			return nil, errors.New("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
 		}
 
 		out = append(out, automationrules.AutomationRuleModifyPropertiesAction{

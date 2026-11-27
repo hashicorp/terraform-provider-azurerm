@@ -5,6 +5,7 @@ package cosmosdb_postgresql_cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -91,11 +92,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 			case model.SourceResourceId != "":
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
 			case model.AdministratorLoginPassword == "":
-				return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+				return errors.New("`administrator_login_password` is required when `source_resource_id` isn't set")
 			case model.CoordinatorStorageQuotaInMb == 0:
-				return fmt.Errorf("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
+				return errors.New("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
 			case model.CoordinatorVCoreCount == 0:
-				return fmt.Errorf("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
+				return errors.New("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
 			}
 
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.

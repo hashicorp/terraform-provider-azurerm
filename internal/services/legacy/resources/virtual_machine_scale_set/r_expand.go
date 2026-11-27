@@ -6,6 +6,7 @@ package virtual_machine_scale_set
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -253,7 +254,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 	managedDiskType := osDiskConfig["managed_disk_type"].(string)
 
 	if managedDiskType == "" && name == "" {
-		return nil, fmt.Errorf("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
+		return nil, errors.New("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
 	}
 
 	osDisk := &virtualmachinescalesets.VirtualMachineScaleSetOSDisk{
@@ -282,7 +283,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	if managedDiskType != "" {
 		if name != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please remove name or set it to blank)")
+			return nil, errors.New("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please remove name or set it to blank)")
 		}
 
 		osDisk.Name = nil
@@ -292,11 +293,11 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	// BEGIN: code to be removed after GH-13016 is merged
 	if image != "" && managedDiskType != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `image` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
+		return nil, errors.New("[ERROR] Conflict between `image` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
 	}
 
 	if len(vhd_containers) > 0 && managedDiskType != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_containers` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
+		return nil, errors.New("[ERROR] Conflict between `vhd_containers` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
 
@@ -349,7 +350,7 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *pluginsd
 	imageReference := virtualmachinescalesets.ImageReference{}
 
 	if imageID != "" && publisher != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
+		return nil, errors.New("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
 	if imageID != "" {

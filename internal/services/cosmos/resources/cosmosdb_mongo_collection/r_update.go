@@ -4,6 +4,7 @@
 package cosmosdb_mongo_collection
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,7 +65,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta any) 
 
 		indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
 		if !hasIdKey {
-			return fmt.Errorf("index with '_id' key is required")
+			return errors.New("index with '_id' key is required")
 		}
 		db.Properties.Resource.Indexes = indexes
 	}

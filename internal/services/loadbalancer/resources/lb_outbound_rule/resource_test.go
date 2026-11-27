@@ -5,6 +5,7 @@ package lb_outbound_rule_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -203,13 +204,13 @@ func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.C
 		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 	if lb.Model == nil {
-		return nil, fmt.Errorf("`model` was nil")
+		return nil, errors.New("`model` was nil")
 	}
 	if lb.Model.Properties == nil {
-		return nil, fmt.Errorf("`properties` was nil")
+		return nil, errors.New("`properties` was nil")
 	}
 	if lb.Model.Properties.OutboundRules == nil {
-		return nil, fmt.Errorf("`properties.OutboundRules` was nil")
+		return nil, errors.New("`properties.OutboundRules` was nil")
 	}
 
 	outboundRules := make([]loadbalancers.OutboundRule, 0)

@@ -4,6 +4,7 @@
 package managed_disk
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -88,7 +89,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 
 		if v, ok := d.GetOk("disk_iops_read_only"); ok {
 			if maxShares == 0 {
-				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks and PremiumV2 disks with shared disk enabled")
+				return errors.New("[ERROR] disk_iops_read_only is only available for UltraSSD disks and PremiumV2 disks with shared disk enabled")
 			}
 
 			props.DiskIOPSReadOnly = pointer.To(int64(v.(int)))
@@ -96,7 +97,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 
 		if v, ok := d.GetOk("disk_mbps_read_only"); ok {
 			if maxShares == 0 {
-				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks and PremiumV2 disks with shared disk enabled")
+				return errors.New("[ERROR] disk_mbps_read_only is only available for UltraSSD disks and PremiumV2 disks with shared disk enabled")
 			}
 
 			props.DiskMBpsReadOnly = pointer.To(int64(v.(int)))
@@ -112,18 +113,18 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 		"disk_mbps_read_only",
 		"logical_sector_size",
 	) {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks and PremiumV2 disks")
+		return errors.New("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
 	if createOption == disks.DiskCreateOptionImport || createOption == disks.DiskCreateOptionImportSecure {
 		sourceUri := d.Get("source_uri").(string)
 		if sourceUri == "" {
-			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import` or `ImportSecure`")
+			return errors.New("`source_uri` must be specified when `create_option` is set to `Import` or `ImportSecure`")
 		}
 
 		storageAccountId := d.Get("storage_account_id").(string)
 		if storageAccountId == "" {
-			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import` or `ImportSecure`")
+			return errors.New("`storage_account_id` must be specified when `create_option` is set to `Import` or `ImportSecure`")
 		}
 
 		props.CreationData.StorageAccountId = pointer.To(storageAccountId)
@@ -132,7 +133,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 	if createOption == disks.DiskCreateOptionCopy || createOption == disks.DiskCreateOptionRestore {
 		sourceResourceId := d.Get("source_resource_id").(string)
 		if sourceResourceId == "" {
-			return fmt.Errorf("`source_resource_id` must be specified when `create_option` is set to `Copy` or `Restore`")
+			return errors.New("`source_resource_id` must be specified when `create_option` is set to `Copy` or `Restore`")
 		}
 
 		props.CreationData.SourceResourceId = pointer.To(sourceResourceId)
@@ -147,7 +148,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 				Id: pointer.To(galleryImageReferenceId),
 			}
 		} else {
-			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
+			return errors.New("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
 		}
 	}
 
@@ -155,7 +156,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 		if uploadSizeBytes := d.Get("upload_size_bytes").(int); uploadSizeBytes != 0 {
 			props.CreationData.UploadSizeBytes = pointer.To(int64(uploadSizeBytes))
 		} else {
-			return fmt.Errorf("`upload_size_bytes` must be specified when `create_option` is set to `Upload`")
+			return errors.New("`upload_size_bytes` must be specified when `create_option` is set to `Upload`")
 		}
 	}
 
@@ -182,7 +183,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 		case *props.NetworkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
 			props.DiskAccessId = pointer.To(diskAccessID)
 		case diskAccessID != "" && *props.NetworkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
-			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+			return errors.New("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			props.DiskAccessId = nil
 		}
@@ -196,7 +197,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if tier := d.Get("tier").(string); tier != "" {
 		if storageAccountType != string(disks.DiskStorageAccountTypesPremiumZRS) && storageAccountType != string(disks.DiskStorageAccountTypesPremiumLRS) {
-			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+			return errors.New("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		props.Tier = &tier
 	}
@@ -219,7 +220,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 	secureVMDiskEncryptionId := d.Get("secure_vm_disk_encryption_set_id")
 	if securityType != "" {
 		if d.Get("trusted_launch_enabled").(bool) {
-			return fmt.Errorf("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
+			return errors.New("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
 		}
 
 		switch createOption {
@@ -227,11 +228,11 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 		case disks.DiskCreateOptionImport:
 		case disks.DiskCreateOptionImportSecure:
 		default:
-			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage`, `Import` or `ImportSecure`")
+			return errors.New("`security_type` can only be specified when `create_option` is set to `FromImage`, `Import` or `ImportSecure`")
 		}
 
 		if disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == disks.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
-			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+			return errors.New("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
 
 		props.SecurityProfile = &disks.DiskSecurityProfile{
@@ -241,7 +242,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if secureVMDiskEncryptionId != "" {
 		if disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != disks.DiskSecurityTypes(securityType) {
-			return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+			return errors.New("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
 		props.SecurityProfile.SecureVMDiskEncryptionSetId = pointer.To(secureVMDiskEncryptionId.(string))
 	}
@@ -251,11 +252,11 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 		case string(disks.DiskStorageAccountTypesPremiumLRS):
 		case string(disks.DiskStorageAccountTypesPremiumZRS):
 		default:
-			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+			return errors.New("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 
 		if diskSizeGB != 0 && diskSizeGB <= 512 {
-			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
+			return errors.New("`on_demand_bursting_enabled` can only be set to true when `disk_size_gb` is larger than 512GB")
 		}
 
 		props.BurstingEnabled = pointer.To(true)

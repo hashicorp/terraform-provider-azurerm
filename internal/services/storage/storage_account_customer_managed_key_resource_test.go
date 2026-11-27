@@ -5,6 +5,7 @@ package storage_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -209,10 +210,10 @@ func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx 
 			if encryption := props.Encryption; encryption != nil {
 				if services := encryption.Services; services != nil {
 					if !*services.Blob.Enabled {
-						return fmt.Errorf("enable_blob_encryption not set to default")
+						return errors.New("enable_blob_encryption not set to default")
 					}
 					if !*services.File.Enabled {
-						return fmt.Errorf("enable_file_encryption not set to default")
+						return errors.New("enable_file_encryption not set to default")
 					}
 				}
 
@@ -220,7 +221,7 @@ func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx 
 					return fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointStorage))
 				}
 			} else {
-				return fmt.Errorf("storage account encryption properties not found")
+				return errors.New("storage account encryption properties not found")
 			}
 		}
 	}

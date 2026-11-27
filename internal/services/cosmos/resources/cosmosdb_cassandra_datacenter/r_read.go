@@ -5,6 +5,7 @@ package cosmosdb_cassandra_datacenter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -87,6 +88,6 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 				return res, string(*model.Properties.ProvisioningState), nil
 			}
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }

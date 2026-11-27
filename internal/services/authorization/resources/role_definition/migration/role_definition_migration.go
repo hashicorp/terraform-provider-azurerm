@@ -5,6 +5,7 @@ package migration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -97,11 +98,11 @@ func (RoleDefinitionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		oldID := rawState["id"].(string)
 		if oldID == "" {
-			return nil, fmt.Errorf("failed to migrate state: old ID empty")
+			return nil, errors.New("failed to migrate state: old ID empty")
 		}
 		scope := rawState["scope"].(string)
 		if scope == "" {
-			return nil, fmt.Errorf("failed to migrate state: scope missing")
+			return nil, errors.New("failed to migrate state: scope missing")
 		}
 
 		rawState["id"] = fmt.Sprintf("%s|%s", oldID, scope)

@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -43,11 +44,11 @@ func (v IpRestriction) Validate() error {
 	hasVnetSubnetId := v.VnetSubnetId != ""
 
 	if (hasIpAddress && hasServiceTag) || (hasIpAddress && hasVnetSubnetId) || (hasServiceTag && hasVnetSubnetId) {
-		return fmt.Errorf("only one of `ip_address`, `service_tag`, or `virtual_network_subnet_id` can be specified")
+		return errors.New("only one of `ip_address`, `service_tag`, or `virtual_network_subnet_id` can be specified")
 	}
 
 	if !hasIpAddress && !hasServiceTag && !hasVnetSubnetId {
-		return fmt.Errorf("one of `ip_address`, `service_tag`, or `virtual_network_subnet_id` must be specified")
+		return errors.New("one of `ip_address`, `service_tag`, or `virtual_network_subnet_id` must be specified")
 	}
 
 	return nil

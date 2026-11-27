@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -142,7 +143,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context has no deadline")
+				return errors.New("internal-error: context has no deadline")
 			}
 
 			var model CustomIpPrefixModel
@@ -253,7 +254,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				return err
 			}
 			if commissionedState == nil {
-				return fmt.Errorf("waiting for CommissionedState: final commissionedState was nil")
+				return errors.New("waiting for CommissionedState: final commissionedState was nil")
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
@@ -293,7 +294,7 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 				return err
 			}
 			if commissionedState == nil {
-				return fmt.Errorf("waiting for CommissionedState: final commissionedState was nil")
+				return errors.New("waiting for CommissionedState: final commissionedState was nil")
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
@@ -579,7 +580,7 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
 	timeout, ok := ctx.Deadline()
 	if !ok {
-		return nil, fmt.Errorf("internal-error: context has no deadline")
+		return nil, errors.New("internal-error: context has no deadline")
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{

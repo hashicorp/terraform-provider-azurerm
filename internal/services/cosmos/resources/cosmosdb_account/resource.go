@@ -5,7 +5,7 @@ package cosmosdb_account
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -61,7 +61,7 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 
 				if isMongo && (mongo34found && !enableMongo) {
-					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+					return errors.New("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
 				}
 				return nil
 			}),

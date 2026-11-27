@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -198,7 +199,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if acl != nil && !account.IsHnsEnabled {
-		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
+		return errors.New("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]any)
@@ -295,7 +296,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if acl != nil && !account.IsHnsEnabled {
-		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
+		return errors.New("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]any)
