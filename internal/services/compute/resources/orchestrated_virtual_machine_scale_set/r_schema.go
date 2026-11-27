@@ -150,6 +150,18 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 		},
 
+		"secure_boot_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"vtpm_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"eviction_policy": {
 			Description: "The Policy which should be used by Spot Virtual Machines that are Evicted from the Scale Set.",
 			// only applicable when `priority` is set to `Spot`
