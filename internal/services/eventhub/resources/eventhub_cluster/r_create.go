@@ -8,16 +8,16 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
 )
 
-func expandEventHubClusterSkuName(skuName string) eventhubsclusters.ClusterSku {
+func expandEventHubClusterSkuName(skuName string) clusters.ClusterSku {
 	// "sku_name" is validated to be in this format above, and is required
 	skuParts := strings.Split(skuName, "_")
 	name := skuParts[0]
 	capacity, _ := strconv.Atoi(skuParts[1])
-	return eventhubsclusters.ClusterSku{
-		Name:     eventhubsclusters.ClusterSkuName(name),
+	return clusters.ClusterSku{
+		Name:     clusters.ClusterSkuName(name),
 		Capacity: pointer.To(int64(capacity)),
 	}
 }
