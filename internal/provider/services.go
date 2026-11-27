@@ -53,6 +53,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletaskscheduler"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
@@ -181,6 +182,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		digitaltwins.Registration{},
 		dns.Registration{},
 		domainservices.Registration{},
+		durabletaskscheduler.Registration{},
 		dynatrace.Registration{},
 		elasticsan.Registration{},
 		eventgrid.Registration{},
@@ -422,6 +424,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		digitaltwins.Registration{},
 		dns.Registration{},
 		domainservices.Registration{},
+		durabletaskscheduler.Registration{},
 		dynatrace.Registration{},
 		elastic.Registration{},
 		elasticsan.Registration{},
