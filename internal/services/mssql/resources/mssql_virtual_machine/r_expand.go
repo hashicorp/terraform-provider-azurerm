@@ -169,6 +169,7 @@ func expandSqlVirtualMachineDataStorageSettings(input []any) *sqlvirtualmachines
 	return &sqlvirtualmachines.SQLStorageSettings{
 		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]any)),
 		DefaultFilePath: pointer.To(dataStorageSettings["default_file_path"].(string)),
+		UseStoragePool:  pointer.To(dataStorageSettings["use_storage_pool"].(bool)),
 	}
 }
 
@@ -197,6 +198,7 @@ func expandSqlVirtualMachineTempDbSettings(input []any) *sqlvirtualmachines.SQLT
 		DataGrowth:      pointer.To(int64(tempDbSettings["data_file_growth_in_mb"].(int))),
 		LogFileSize:     pointer.To(int64(tempDbSettings["log_file_size_mb"].(int))),
 		LogGrowth:       pointer.To(int64(tempDbSettings["log_file_growth_mb"].(int))),
+		UseStoragePool:  pointer.To(tempDbSettings["use_storage_pool"].(bool)),
 	}
 }
 

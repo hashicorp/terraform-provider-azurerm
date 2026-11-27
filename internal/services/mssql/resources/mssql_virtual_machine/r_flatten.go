@@ -324,6 +324,10 @@ func flattenSqlVirtualMachineStorageSettings(input *sqlvirtualmachines.SQLStorag
 		attrs["default_file_path"] = *input.DefaultFilePath
 	}
 
+	if input.UseStoragePool != nil {
+		attrs["use_storage_pool"] = *input.UseStoragePool
+	}
+
 	return []any{attrs}
 }
 
@@ -359,6 +363,10 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	if input.LogGrowth != nil {
 		attrs["log_file_growth_mb"] = *input.LogGrowth
+	}
+
+	if input.UseStoragePool != nil {
+		attrs["use_storage_pool"] = *input.UseStoragePool
 	}
 
 	return []any{attrs}
