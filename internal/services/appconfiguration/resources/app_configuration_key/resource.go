@@ -19,6 +19,10 @@ func (k Resource) ResourceType() string {
 	return "azurerm_app_configuration_key"
 }
 
+func (k Resource) Description() string {
+	return "Manages an Azure App Configuration Key."
+}
+
 func (k Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.NestedItemId
 }

@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmApplicationInsightsRead,
+		Description: "Use this data source to access information about an existing Application Insights component.",
+		Read:        dataSourceArmApplicationInsightsRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -31,50 +32,59 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"name": {
+				Description:  "The name of the Application Insights component.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"instrumentation_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The instrumentation key of the Application Insights component.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The connection string of the Application Insights component.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Azure location where the component exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"application_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the component.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"app_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The App ID associated with this Application Insights component.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"retention_in_days": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The retention period in days.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"workspace_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the associated Log Analytics Workspace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
+				Description: "Tags applied to the component.",
+				Type:        pluginsdk.TypeMap,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsAnalyticsItemCreate,
-		Read:   resourceApplicationInsightsAnalyticsItemRead,
-		Update: resourceApplicationInsightsAnalyticsItemUpdate,
-		Delete: resourceApplicationInsightsAnalyticsItemDelete,
+		Description: "Manages an Application Insights Analytics Item component.",
+		Create:      resourceApplicationInsightsAnalyticsItemCreate,
+		Read:        resourceApplicationInsightsAnalyticsItemRead,
+		Update:      resourceApplicationInsightsAnalyticsItemUpdate,
+		Delete:      resourceApplicationInsightsAnalyticsItemDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			if strings.Contains(id, userScopePath) || strings.Contains(id, sharedScopePath) {

@@ -24,6 +24,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Service Plan.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,8 +36,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The SKU for the plan.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice(
 				helpers.AllKnownServicePlanSkus(),
 				false,
@@ -45,9 +47,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The O/S type for the App Services to be hosted in this plan.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(OSTypeLinux),
 				string(OSTypeWindows),
@@ -56,18 +59,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"app_service_environment_id": {
+			Description:  "The ID of the App Service Environment to create this Service Plan in.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateAppServiceEnvironmentID,
 		},
 
 		"per_site_scaling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Per Site Scaling should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"worker_count": {
+			Description:  "The number of Workers (instances) to be allocated.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -75,12 +81,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"premium_plan_auto_scale_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether automatic scaling should be enabled for the Premium SKU Plan. Cannot be set unless using a Premium SKU.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"maximum_elastic_worker_count": {
+			Description:  "The maximum number of workers to use in an Elastic SKU Plan or Premium Plan that have `premium_plan_auto_scale_enabled` set to `true`. Cannot be set unless using an Elastic or Premium SKU.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -88,8 +96,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_balancing_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the Service Plan balances across Availability Zones in the region.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -99,13 +108,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A string representing the Kind of Service Plan.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"reserved": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether this is a reserved Service Plan Type. `true` if `os_type` is `Linux`, otherwise `false`.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 	}
 }

@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsWebTestsCreate,
-		Read:   resourceApplicationInsightsWebTestsRead,
-		Update: resourceApplicationInsightsWebTestsUpdate,
-		Delete: resourceApplicationInsightsWebTestsDelete,
+		Description: "Manages an Application Insights WebTest.",
+		Create:      resourceApplicationInsightsWebTestsCreate,
+		Read:        resourceApplicationInsightsWebTestsRead,
+		Update:      resourceApplicationInsightsWebTestsUpdate,
+		Delete:      resourceApplicationInsightsWebTestsDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&webtestsapis.WebTestId{}),
 		Identity: &schema.ResourceIdentity{

@@ -16,6 +16,7 @@ import (
 func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Application Insights WebTest.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"application_insights_id": {
+			Description:  "The ID of the Application Insights component on which the WebTest operates.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,9 +36,10 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The kind of web test that this web test watches. Choices are `ping` and `multistep`.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(webtestsapis.WebTestKindMultistep),
 				string(webtestsapis.WebTestKindPing),
@@ -44,9 +47,10 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"frequency": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  300,
+			Description: "Interval in seconds between test runs for this WebTest.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     300,
 			ValidateFunc: validation.IntInSlice([]int{
 				300,
 				600,
@@ -55,25 +59,29 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"timeout": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  30,
+			Description: "Seconds until this WebTest will timeout and fail.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     30,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether the test is actively monitored.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"retry_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Allow for retries should this WebTest fail.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"geo_locations": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Description: "A list of where to physically run the tests from to give global coverage for accessibility of your application.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type:             pluginsdk.TypeString,
 				ValidateFunc:     validation.StringIsNotEmpty,
@@ -83,11 +91,13 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Purpose/user defined descriptive test for this WebTest.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"configuration": {
+			Description:      "An XML configuration specification for a WebTest ([see here for more information](https://learn.microsoft.com/rest/api/application-insights/webtests/createorupdate/)).",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: suppress.XmlDiff,

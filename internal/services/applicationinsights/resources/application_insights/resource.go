@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsCreate,
-		Read:   resourceApplicationInsightsRead,
-		Update: resourceApplicationInsightsUpdate,
-		Delete: resourceApplicationInsightsDelete,
+		Description: "Manages an Application Insights component.",
+		Create:      resourceApplicationInsightsCreate,
+		Read:        resourceApplicationInsightsRead,
+		Update:      resourceApplicationInsightsUpdate,
+		Delete:      resourceApplicationInsightsDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&componentsapis.ComponentId{}),
 		Identity: &schema.ResourceIdentity{

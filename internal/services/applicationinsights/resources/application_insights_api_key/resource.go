@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsAPIKeyCreate,
-		Read:   resourceApplicationInsightsAPIKeyRead,
-		Delete: resourceApplicationInsightsAPIKeyDelete,
+		Description: "Manages an Application Insights API key.",
+		Create:      resourceApplicationInsightsAPIKeyCreate,
+		Read:        resourceApplicationInsightsAPIKeyRead,
+		Delete:      resourceApplicationInsightsAPIKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := componentapikeysapis.ParseApiKeyID(id)

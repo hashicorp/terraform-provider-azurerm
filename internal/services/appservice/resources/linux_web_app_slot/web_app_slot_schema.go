@@ -64,26 +64,30 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
+					Description: "If this Linux Web App is Always On enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     true,
 				},
 
 				"api_management_api_id": {
+					Description:  "The API Management API ID this Linux Web App Slot is associated with.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 				},
 
 				"api_definition_url": {
+					Description:  "The URL to the API Definition for this Linux Web App Slot.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"app_command_line": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The App command line to launch.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"application_stack": helpers.LinuxApplicationStackSchema(),
@@ -91,21 +95,24 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"auto_heal_setting": helpers.AutoHealSettingSchemaLinux(),
 
 				"container_registry_use_managed_identity": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"container_registry_managed_identity_client_id": {
+					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "A list of Default Documents for the Linux Web App.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -113,9 +120,10 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the HTTP2 should be enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -128,9 +136,10 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether the Linux Web App `ip_restriction` configuration should be used for the SCM also.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -143,12 +152,14 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"local_mysql_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Use Local MySQL.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"load_balancing_mode": {
+					Description:  "The Site load balancing.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "LeastRequests",
@@ -156,6 +167,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
+					Description:  "Managed pipeline mode.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
@@ -163,15 +175,17 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether Remote Debugging should be enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Remote Debugging Version.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -183,18 +197,21 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     true,
 				},
 
 				"websockets_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Whether Web Sockets should be enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"ftps_state": {
+					Description:  "The State of FTP / FTPS service.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
@@ -202,13 +219,14 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
+					Description:  "The path to the Health Check.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": {
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer.",
+					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
@@ -216,6 +234,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"worker_count": {
+					Description:  "The number of Workers for this Linux App Service Slot.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -223,6 +242,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
@@ -230,6 +250,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests to the SCM site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
@@ -237,7 +258,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"minimum_tls_cipher_suite": {
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Description:  "The configures the minimum cipher suite of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
@@ -246,6 +267,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"cors": helpers.CorsSettingsSchema(),
 
 				"auto_swap_slot_name": {
+					Description:  "The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,

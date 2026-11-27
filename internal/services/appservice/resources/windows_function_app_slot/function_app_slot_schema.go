@@ -122,6 +122,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"app_service_logs": helpers.FunctionAppAppServiceLogsSchema(),
 
 				"auto_swap_slot_name": {
+					Description:  "The name of the slot to automatically swap with when this slot is successfully deployed.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -145,7 +146,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Whether the http2 protocol should be enabled.",
+					Description: "Whether the HTTP2 protocol should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -297,7 +298,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"minimum_tls_cipher_suite": {
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Description:  "The configures the minimum cipher suite of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),

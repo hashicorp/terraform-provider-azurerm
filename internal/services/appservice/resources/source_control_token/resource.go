@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_source_control_token"
 }
 
+func (r Resource) Description() string {
+	return "Manages an App Service Source Control Token."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validation.StringInSlice([]string{"/providers/Microsoft.Web/sourceControls/GitHub"}, false)
 }

@@ -48,6 +48,7 @@ type StaticWebAppDataSourceModel struct {
 func (s DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Static Web App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -63,33 +64,39 @@ func (s DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"configuration_file_changes_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether changes to the configuration file are permitted.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"preview_environments_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Preview (Staging) environments are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether public network access is enabled for the Static Web App.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"sku_tier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SKU tier of the Static Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"sku_size": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SKU size of the Static Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
+			Description: "The map of key-value pairs of App Settings for the Static Web App.",
+			Type:        pluginsdk.TypeMap,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -100,9 +107,10 @@ func (s DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"api_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_host_name": {
@@ -111,13 +119,15 @@ func (s DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"repository_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Repository URL of the Static Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"repository_branch": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Repository branch of the Static Web App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -130,6 +140,10 @@ func (s DataSource) ModelObject() any {
 
 func (s DataSource) ResourceType() string {
 	return "azurerm_static_web_app"
+}
+
+func (s DataSource) Description() string {
+	return "Use this data source to access information about an existing Static Web App."
 }
 
 func (s DataSource) Read() sdk.ResourceFunc {
