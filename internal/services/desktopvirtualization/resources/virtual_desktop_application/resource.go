@@ -31,5 +31,7 @@ func RegisterResource() *pluginsdk.Resource {
 		}),
 
 		Schema: virtualDesktopApplicationSchema(),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(virtualDesktopApplicationCustomizeDiff),
 	}
 }
