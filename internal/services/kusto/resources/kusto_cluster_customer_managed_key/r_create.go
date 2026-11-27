@@ -44,7 +44,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	// since we're mutating the kusto cluster here, we can use that as the ID
 	resourceID := clusterIDRaw
 
-	if d.IsNewResource() {
+	if d.IsNewResource() && !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		// whilst this looks superflurious given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		{

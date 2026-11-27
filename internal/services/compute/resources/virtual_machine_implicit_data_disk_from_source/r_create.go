@@ -81,10 +81,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 					}
 
 					if existingIndex != -1 {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
-					}
+						if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
 
-					disks = append(disks, expandedDisk)
+						disks[existingIndex] = expandedDisk
+					} else {
+						disks = append(disks, expandedDisk)
+					}
 					model.Properties.StorageProfile.DataDisks = &disks
 					// fixes #24145
 					model.Properties.ApplicationProfile = nil

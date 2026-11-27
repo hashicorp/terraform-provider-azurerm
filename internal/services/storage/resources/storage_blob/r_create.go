@@ -59,14 +59,16 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := blobs.NewBlobID(accountId, containerName, name)
 	input := blobs.GetPropertiesInput{}
-	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
-	if err != nil {
-		if !response.WasNotFound(props.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+		if err != nil {
+			if !response.WasNotFound(props.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(props.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+		if !response.WasNotFound(props.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+		}
 	}
 
 	contentMD5Raw := d.Get("content_md5").(string)

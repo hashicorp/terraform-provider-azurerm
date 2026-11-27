@@ -37,14 +37,16 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			id := buckets.NewBucketID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			payload := buckets.Bucket{

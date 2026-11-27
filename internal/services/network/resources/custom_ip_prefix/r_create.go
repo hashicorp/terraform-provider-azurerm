@@ -59,21 +59,23 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing `cidr`: %+v", err)
 			}
 
-			results, err := r.client.ListAll(ctx, commonids.NewSubscriptionID(subscriptionId))
-			if err != nil {
-				return fmt.Errorf("listing existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				results, err := r.client.ListAll(ctx, commonids.NewSubscriptionID(subscriptionId))
+				if err != nil {
+					return fmt.Errorf("listing existing %s: %+v", id, err)
+				}
 
-			if prefixes := results.Model; prefixes != nil {
-				for _, prefix := range *prefixes {
-					if prefix.Properties != nil && prefix.Properties.Cidr != nil {
-						_, netw, err := net.ParseCIDR(*prefix.Properties.Cidr)
-						if err != nil {
-							// couldn't parse the existing custom prefix, so skip it
-							continue
-						}
-						if cidr == netw {
-							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if prefixes := results.Model; prefixes != nil {
+					for _, prefix := range *prefixes {
+						if prefix.Properties != nil && prefix.Properties.Cidr != nil {
+							_, netw, err := net.ParseCIDR(*prefix.Properties.Cidr)
+							if err != nil {
+								// couldn't parse the existing custom prefix, so skip it
+								continue
+							}
+							if cidr == netw {
+								return metadata.ResourceRequiresImport(r.ResourceType(), id)
+							}
 						}
 					}
 				}
