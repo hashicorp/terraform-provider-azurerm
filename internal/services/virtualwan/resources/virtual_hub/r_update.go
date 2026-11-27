@@ -4,6 +4,7 @@
 package virtual_hub
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -22,7 +23,7 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	defer cancel()
 
 	if _, ok := ctx.Deadline(); !ok {
-		return fmt.Errorf("deadline is not properly set for Virtual Hub")
+		return errors.New("deadline is not properly set for Virtual Hub")
 	}
 
 	id, err := virtualwans.ParseVirtualHubID(d.Id())

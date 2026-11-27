@@ -4,6 +4,7 @@
 package blueprint_assignment
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -92,7 +93,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta any
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{

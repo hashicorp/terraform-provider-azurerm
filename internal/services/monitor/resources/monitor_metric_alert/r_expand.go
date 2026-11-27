@@ -4,6 +4,7 @@
 package monitor_metric_alert
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -27,7 +28,7 @@ func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) 
 		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]any)), nil
 	default:
 		// Guaranteed by schema `AtLeastOne` constraint
-		return nil, fmt.Errorf("unknown criteria type")
+		return nil, errors.New("unknown criteria type")
 	}
 }
 

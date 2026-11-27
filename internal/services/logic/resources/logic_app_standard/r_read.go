@@ -5,6 +5,7 @@ package logic_app_standard
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -300,9 +301,7 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		extensionBundleVersion := d.BundleVersion
 
 		if extensionBundleVersion == "" {
-			return nil, fmt.Errorf(
-				"when `use_extension_bundle` is true, `bundle_version` must be specified",
-			)
+			return nil, errors.New("when `use_extension_bundle` is true, `bundle_version` must be specified")
 		}
 
 		bundleSettings := []webapps.NameValuePair{

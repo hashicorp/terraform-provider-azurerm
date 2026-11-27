@@ -4,6 +4,7 @@
 package management_group_subscription_association
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -36,7 +37,7 @@ func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceD
 	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", d.Id())
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{

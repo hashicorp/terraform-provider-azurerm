@@ -869,7 +869,7 @@ func ExpandVirtualMachineScaleSetIPConfiguration(raw map[string]any) (*virtualma
 	primary := raw["primary"].(bool)
 	version := virtualmachinescalesets.IPVersion(raw["version"].(string))
 	if primary && version == virtualmachinescalesets.IPVersionIPvSix {
-		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, errors.New("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration{
@@ -1007,7 +1007,7 @@ func ExpandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]any) (*vir
 	version := virtualmachinescalesets.IPVersion(raw["version"].(string))
 
 	if primary && version == virtualmachinescalesets.IPVersionIPvSix {
-		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, errors.New("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration{
@@ -1332,11 +1332,11 @@ func ExpandVirtualMachineScaleSetDataDisk(input []any, ultraSSDEnabled bool) (*[
 
 		if !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
 			if iops > 0 {
-				return nil, fmt.Errorf("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+				return nil, errors.New("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 			}
 
 			if mbps > 0 {
-				return nil, fmt.Errorf("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+				return nil, errors.New("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 			}
 		}
 
@@ -1542,7 +1542,7 @@ func ExpandVirtualMachineScaleSetOSDisk(input []any, osType virtualmachinescales
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
 		if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState != virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+			return nil, errors.New("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &virtualmachinescalesets.SubResource{
 			Id: pointer.To(secureVMDiskEncryptionId),
@@ -1562,7 +1562,7 @@ func ExpandVirtualMachineScaleSetOSDisk(input []any, osType virtualmachinescales
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 {
 		if caching != string(virtualmachinescalesets.CachingTypesReadOnly) {
 			// Restriction per https://learn.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
-			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+			return nil, errors.New("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]any)
@@ -1770,13 +1770,13 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []any, isZonal, over
 		// EnableCrossZoneUpgrade can only be set when for zonal scale set
 		rollingUpgradePolicy.EnableCrossZoneUpgrade = pointer.To(enableCrossZoneUpgrade)
 	} else if enableCrossZoneUpgrade {
-		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+		return nil, errors.New("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
 	}
 
 	maxSurge := raw["maximum_surge_instances_enabled"].(bool)
 	if overProvision && maxSurge {
 		// MaxSurge can only be set when overprovision is set to false
-		return nil, fmt.Errorf("`rolling_upgrade_policy.0.maximum_surge_instances_enabled` can only be set to `true` when `overprovision` is disabled (set to `false`)")
+		return nil, errors.New("`rolling_upgrade_policy.0.maximum_surge_instances_enabled` can only be set to `true` when `overprovision` is disabled (set to `false`)")
 	}
 
 	return rollingUpgradePolicy, nil
@@ -2140,7 +2140,7 @@ func ExpandVirtualMachineScaleSetExtensions(input []any) (extensionProfile *virt
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			if protectedSettingsFromKeyVault != nil {
-				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+				return nil, false, errors.New("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
 			}
 
 			var result any

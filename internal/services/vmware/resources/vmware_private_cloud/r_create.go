@@ -4,6 +4,7 @@
 package vmware_private_cloud
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -69,7 +70,7 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta any) error
 	// we have no capacity to test this resource at the moment so leaving it be for now.
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(privateclouds.PrivateCloudProvisioningStateBuilding)},

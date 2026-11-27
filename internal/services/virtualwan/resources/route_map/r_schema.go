@@ -5,6 +5,7 @@ package route_map
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -161,7 +162,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			for _, rule := range config.Rules {
 				for _, action := range rule.Actions {
 					if action.Type != virtualwans.RouteMapActionTypeDrop && len(action.Parameters) == 0 {
-						return fmt.Errorf("parameters are required when rule action is not `Drop`")
+						return errors.New("parameters are required when rule action is not `Drop`")
 					}
 				}
 			}

@@ -193,7 +193,7 @@ func (r Resource) registerFeature(ctx context.Context, metadata sdk.ResourceMeta
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{Registering},
@@ -239,7 +239,7 @@ func (r Resource) unregisterFeature(ctx context.Context, metadata sdk.ResourceMe
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{Unregistering},

@@ -5,7 +5,7 @@ package data_protection_backup_vault
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
@@ -58,7 +58,7 @@ func RegisterResource() *pluginsdk.Resource {
 				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
 				if !crossRegionRestore.IsNull() && redundancy != string(backupvaultresources.StorageSettingTypesGeoRedundant) {
 					// Cross region restore is only allowed on `GeoRedundant` vault.
-					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`")
+					return errors.New("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`")
 				}
 				return nil
 			}),

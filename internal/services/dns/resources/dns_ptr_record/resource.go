@@ -4,7 +4,7 @@
 package dns_ptr_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -33,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypePTR {
-				return fmt.Errorf("this resource only supports 'PTR' records")
+				return errors.New("this resource only supports 'PTR' records")
 			}
 			return nil
 		}),

@@ -5,6 +5,7 @@ package data_factory_pipeline
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -60,13 +61,13 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta any
 		}
 		rawActivities, ok := activitiesJson.(pipelines.RawActivityImpl)
 		if !ok {
-			return fmt.Errorf("expected `activities_json` to be of type `RawActivityImpl`")
+			return errors.New("expected `activities_json` to be of type `RawActivityImpl`")
 		}
 
 		activities := make([]pipelines.Activity, 0)
 		acts, ok := rawActivities.Values["activities"]
 		if !ok {
-			return fmt.Errorf("`activities` was not found in the unmarshaled `activities_json`")
+			return errors.New("`activities` was not found in the unmarshaled `activities_json`")
 		}
 
 		for _, activity := range acts.([]any) {

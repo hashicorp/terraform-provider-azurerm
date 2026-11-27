@@ -5,7 +5,7 @@ package logic_app_integration_account_batch_configuration
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -40,17 +40,17 @@ func RegisterResource() *pluginsdk.Resource {
 
 			_, hasWeekDays := diff.GetOk("release_criteria.0.recurrence.0.schedule.0.week_days")
 			if hasWeekDays && frequency != "week" {
-				return fmt.Errorf("`week_days` can only be set when frequency is `Week`")
+				return errors.New("`week_days` can only be set when frequency is `Week`")
 			}
 
 			_, hasMonthDays := diff.GetOk("release_criteria.0.recurrence.0.schedule.0.month_days")
 			if hasMonthDays && frequency != "month" {
-				return fmt.Errorf("`month_days` can only be set when frequency is `Month`")
+				return errors.New("`month_days` can only be set when frequency is `Month`")
 			}
 
 			_, hasMonthlyOccurrences := diff.GetOk("release_criteria.0.recurrence.0.schedule.0.monthly")
 			if hasMonthlyOccurrences && frequency != "month" {
-				return fmt.Errorf("`monthly` can only be set when frequency is `Month`")
+				return errors.New("`monthly` can only be set when frequency is `Month`")
 			}
 
 			return nil

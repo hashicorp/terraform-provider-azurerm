@@ -5,6 +5,7 @@ package site_recovery_vmware_replication_policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,7 +33,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			recoveryPoint := plan.RecoveryPointRetentionInMinutes
 			appConsistency := plan.ApplicationConsistentSnapshotFrequencyInMinutes
 			if appConsistency > recoveryPoint {
-				return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
+				return errors.New("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 			}
 
 			parameters := replicationpolicies.UpdatePolicyInput{

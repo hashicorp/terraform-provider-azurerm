@@ -4,6 +4,7 @@
 package signalr
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -156,21 +157,21 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 
 		if defaultAction == signalr.ACLActionAllow && len(*networkACL.PublicNetwork.Allow) != 0 {
-			return fmt.Errorf("when `default_action` is `Allow` for `public_network`, `allowed_request_types` cannot be specified")
+			return errors.New("when `default_action` is `Allow` for `public_network`, `allowed_request_types` cannot be specified")
 		} else if defaultAction == signalr.ACLActionDeny && len(*networkACL.PublicNetwork.Deny) != 0 {
-			return fmt.Errorf("when `default_action` is `Deny` for `public_network`, `denied_request_types` cannot be specified")
+			return errors.New("when `default_action` is `Deny` for `public_network`, `denied_request_types` cannot be specified")
 		}
 
 		if networkACL.PrivateEndpoints != nil {
 			for _, privateEndpoint := range *networkACL.PrivateEndpoints {
 				if len(*privateEndpoint.Allow) != 0 && len(*privateEndpoint.Deny) != 0 {
-					return fmt.Errorf("`allowed_request_types` and `denied_request_types` cannot be set together for `private_endpoint`")
+					return errors.New("`allowed_request_types` and `denied_request_types` cannot be set together for `private_endpoint`")
 				}
 
 				if defaultAction == signalr.ACLActionAllow && len(*privateEndpoint.Allow) != 0 {
-					return fmt.Errorf("when `default_action` is `Allow` for `private_endpoint`, `allowed_request_types` cannot be specified")
+					return errors.New("when `default_action` is `Allow` for `private_endpoint`, `allowed_request_types` cannot be specified")
 				} else if defaultAction == signalr.ACLActionDeny && len(*privateEndpoint.Deny) != 0 {
-					return fmt.Errorf("when `default_action` is `Deny` for `private_endpoint`, `denied_request_types` cannot be specified")
+					return errors.New("when `default_action` is `Deny` for `private_endpoint`, `denied_request_types` cannot be specified")
 				}
 			}
 		}

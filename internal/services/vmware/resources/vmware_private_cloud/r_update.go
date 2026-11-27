@@ -4,6 +4,7 @@
 package vmware_private_cloud
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,7 +30,7 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta any) error
 	}
 
 	if d.HasChange("management_cluster") && d.HasChange("internet_connection_enabled") {
-		return fmt.Errorf("`management_cluster.0.size` and `internet_connection_enabled` could not be changed together")
+		return errors.New("`management_cluster.0.size` and `internet_connection_enabled` could not be changed together")
 	}
 
 	if d.HasChange("management_cluster") {

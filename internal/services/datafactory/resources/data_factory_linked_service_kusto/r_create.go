@@ -4,6 +4,7 @@
 package data_factory_linked_service_kusto
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,7 +71,7 @@ func resourceDataFactoryLinkedServiceKustoCreateUpdate(d *pluginsdk.ResourceData
 			Tenant: pointer.To(d.Get("tenant").(string)),
 		}
 	} else {
-		return fmt.Errorf("one of Managed Identity and service principal authentication must be set")
+		return errors.New("one of Managed Identity and service principal authentication must be set")
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {

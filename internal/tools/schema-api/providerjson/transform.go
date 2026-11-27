@@ -4,14 +4,14 @@
 package providerjson
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceFromRaw(input *schema.Resource) (*ResourceJSON, error) {
 	if input == nil {
-		return nil, fmt.Errorf("resource not found")
+		return nil, errors.New("resource not found")
 	}
 
 	result := &ResourceJSON{}
@@ -156,7 +156,7 @@ func decodeElem(input any) any {
 
 func ProviderFromRaw(input *ProviderJSON) (*ProviderSchemaJSON, error) {
 	if input == nil {
-		return nil, fmt.Errorf("provider was nil converting from raw")
+		return nil, errors.New("provider was nil converting from raw")
 	}
 
 	result := &ProviderSchemaJSON{}

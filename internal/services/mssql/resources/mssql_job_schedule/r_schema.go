@@ -5,6 +5,7 @@ package mssql_job_schedule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -78,7 +79,7 @@ func (Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if config.Type == string(jobs.JobScheduleTypeRecurring) && config.Interval == "" {
-				return fmt.Errorf("`interval` must be set when `type` is `Recurring`")
+				return errors.New("`interval` must be set when `type` is `Recurring`")
 			}
 
 			return nil

@@ -5,6 +5,7 @@ package vmware_private_cloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -89,6 +90,6 @@ func privateCloudStateRefreshFunc(ctx context.Context, client *privateclouds.Pri
 				return res, string(*res.Model.Properties.ProvisioningState), nil
 			}
 		}
-		return nil, "", fmt.Errorf("unable to read the provisioning state")
+		return nil, "", errors.New("unable to read the provisioning state")
 	}
 }

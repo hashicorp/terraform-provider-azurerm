@@ -5,7 +5,7 @@ package application_insights_standard_web_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -28,10 +28,10 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			if ok {
 				if !strings.HasPrefix(strings.ToLower(url.(string)), "https://") {
 					if v, ok := rd.GetOkExists("validation_rules.0.ssl_check_enabled"); ok && v.(bool) {
-						return fmt.Errorf("cannot set ssl_check_enabled to true if request.0.url is not https")
+						return errors.New("cannot set ssl_check_enabled to true if request.0.url is not https")
 					}
 					if v, ok := rd.GetOkExists("validation_rules.0.ssl_cert_remaining_lifetime"); ok && v.(int) != 0 {
-						return fmt.Errorf("cannot set ssl_cert_remaining_lifetime if request.0.url is not https")
+						return errors.New("cannot set ssl_cert_remaining_lifetime if request.0.url is not https")
 					}
 				}
 			}

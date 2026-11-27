@@ -4,6 +4,7 @@
 package express_route_circuit_connection
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -75,7 +76,7 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 		}
 
 		if circuit.Model != nil && circuit.Model.Properties != nil && circuit.Model.Properties.ExpressRoutePort != nil {
-			return fmt.Errorf("`address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port")
+			return errors.New("`address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port")
 		} else {
 			expressRouteCircuitConnectionParameters.Properties.IPv6CircuitConnectionConfig = &expressroutecircuitconnections.IPv6CircuitConnectionConfig{
 				AddressPrefix: pointer.To(v.(string)),
