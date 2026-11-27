@@ -39,8 +39,8 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 		// Binary Dataset Specific Field
 		"http_server_location": {
 			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
 			Optional:      true,
+			MaxItems:      1,
 			ConflictsWith: []string{"azure_blob_storage_location", "sftp_server_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -57,7 +57,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -69,7 +69,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -80,8 +80,8 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 
 		"sftp_server_location": {
 			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
 			Optional:      true,
+			MaxItems:      1,
 			ConflictsWith: []string{"azure_blob_storage_location", "http_server_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -92,7 +92,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -103,7 +103,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						Required:    true,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -115,8 +115,8 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 		// Binary Dataset Specific Field
 		"azure_blob_storage_location": {
 			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
 			Optional:      true,
+			MaxItems:      1,
 			ConflictsWith: []string{"http_server_location", "sftp_server_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -127,7 +127,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_container_enabled": {
-						Description: "Is the `container` using dynamic expression, function or system variables?",
+						Description: "Whether the `container` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -139,7 +139,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -151,7 +151,7 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -203,8 +203,8 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 
 		"compression": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					// TarGZip, GZip, ZipDeflate

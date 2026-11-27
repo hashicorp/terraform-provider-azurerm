@@ -33,7 +33,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 				},
 
 				"disable_gateway_auth": {
-					Description: "The value indicates whether the gateway authentication is enabled or not.",
+					Description: "The value indicates whether the gateway authentication is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 				},

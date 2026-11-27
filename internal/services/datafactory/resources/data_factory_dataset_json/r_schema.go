@@ -38,8 +38,8 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 		// JSON Dataset Specific Field
 		"http_server_location": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 			ConflictsWith: []string{"azure_blob_storage_location"},
 			Elem: &pluginsdk.Resource{
@@ -57,7 +57,7 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -69,7 +69,7 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -81,8 +81,8 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 		// JSON Dataset Specific Field
 		"azure_blob_storage_location": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 			ConflictsWith: []string{"http_server_location"},
 			Elem: &pluginsdk.Resource{
@@ -94,7 +94,7 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_container_enabled": {
-						Description: "Is the `container` using dynamic expression, function or system variables?",
+						Description: "Whether the `container` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -105,7 +105,7 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 						Required:    true,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -116,7 +116,7 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 						Required:    true,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -186,7 +186,7 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Description: "Type of the column. Please note these values are case sensitive.",
+						Description: "Type of the column. These values are case sensitive.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{

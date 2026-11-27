@@ -176,7 +176,7 @@ func FlattenStoragePermission(input string) string {
 
 func SchemaCertificatePermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Description: "List of certificate permissions, must be one or more from the following: `Backup`, `Create`, `Delete`, `DeleteIssuers`, `Get`, `GetIssuers`, `Import`, `List`, `ListIssuers`, `ManageContacts`, `ManageIssuers`, `Purge`, `Recover`, `Restore`, `SetIssuers` and `Update`.",
+		Description: "List of certificate permissions.",
 		Type:        pluginsdk.TypeList,
 		Optional:    true,
 		Elem: &pluginsdk.Schema{
@@ -200,7 +200,7 @@ func SchemaKeyPermissions() *pluginsdk.Schema {
 
 func SchemaSecretPermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Description: "List of secret permissions, must be one or more from the following: `Backup`, `Delete`, `Get`, `List`, `Purge`, `Recover`, `Restore` and `Set`.",
+		Description: "List of secret permissions.",
 		Type:        pluginsdk.TypeList,
 		Optional:    true,
 		Elem: &pluginsdk.Schema{
@@ -212,7 +212,7 @@ func SchemaSecretPermissions() *pluginsdk.Schema {
 
 func SchemaStoragePermissions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Description: "List of storage permissions, must be one or more from the following: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSAS`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS` and `Update`.",
+		Description: "List of storage permissions.",
 		Type:        pluginsdk.TypeList,
 		Optional:    true,
 		Elem: &pluginsdk.Schema{

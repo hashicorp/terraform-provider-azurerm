@@ -705,8 +705,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 					"login": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Required: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"logout_endpoint": {
@@ -778,10 +778,10 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"require_https": {
+						Description: "Whether HTTPS should be required on connections.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
-						Description: "Should HTTPS be required on connections?",
 					},
 
 					"http_route_api_prefix": {
@@ -867,9 +867,9 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 								},
 
 								"last_execution_time": {
+									Description: "The time the backup was last attempted.",
 									Type:        pluginsdk.TypeString,
 									Computed:    true,
-									Description: "The time the backup was last attempted.",
 								},
 							},
 						},
@@ -1450,21 +1450,21 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 								"action": {
 									Type:     pluginsdk.TypeString,
-									Default:  "Allow",
 									Optional: true,
+									Default:  "Allow",
 								},
 
 								"headers": {
 									Type:       pluginsdk.TypeList,
-									MaxItems:   1,
 									Optional:   true,
+									MaxItems:   1,
 									ConfigMode: pluginsdk.SchemaConfigModeAttr,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"x_forwarded_host": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 8,
 												Optional: true,
+												MaxItems: 8,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -1472,8 +1472,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 											"x_forwarded_for": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 8,
 												Optional: true,
+												MaxItems: 8,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -1481,8 +1481,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 											"x_azure_fdid": { // Front Door ID (UUID)
 												Type:     pluginsdk.TypeList,
-												MaxItems: 8,
 												Optional: true,
+												MaxItems: 8,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -1543,21 +1543,21 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 								"action": {
 									Type:     pluginsdk.TypeString,
-									Default:  "Allow",
 									Optional: true,
+									Default:  "Allow",
 								},
 
 								"headers": {
 									Type:       pluginsdk.TypeList,
-									MaxItems:   1,
 									Optional:   true,
+									MaxItems:   1,
 									ConfigMode: pluginsdk.SchemaConfigModeAttr,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"x_forwarded_host": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 8,
 												Optional: true,
+												MaxItems: 8,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -1565,8 +1565,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 											"x_forwarded_for": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 8,
 												Optional: true,
+												MaxItems: 8,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -1574,8 +1574,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 											"x_azure_fdid": { // Front Door ID (UUID)
 												Type:     pluginsdk.TypeList,
-												MaxItems: 8,
 												Optional: true,
+												MaxItems: 8,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -1770,8 +1770,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"app_setting_names": {
 						Type:     pluginsdk.TypeList,
-						MinItems: 1,
 						Optional: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -1779,8 +1779,8 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 					"connection_string_names": {
 						Type:     pluginsdk.TypeList,
-						MinItems: 1,
 						Optional: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},

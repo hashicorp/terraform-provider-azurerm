@@ -41,8 +41,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"versions": {
 				Description: "The list of all supported versions.",
 				Type:        pluginsdk.TypeList,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Computed:    true,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"latest_version": {
@@ -58,7 +58,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"include_preview": {
-				Description: "Should Preview versions of Kubernetes in AKS be included?",
+				Description: "Whether Preview versions of Kubernetes in AKS should be included.",
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Default:     true,

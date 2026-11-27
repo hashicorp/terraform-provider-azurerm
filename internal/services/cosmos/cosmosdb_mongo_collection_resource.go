@@ -4,6 +4,7 @@
 package cosmos
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -125,7 +126,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 						},
 
 						"unique": {
-							Description: "Is the index unique or not?",
+							Description: "Whether the index is unique.",
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
@@ -183,7 +184,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta any) 
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
 	if !hasIdKey {
-		return fmt.Errorf("index with '_id' key is required")
+		return errors.New("index with '_id' key is required")
 	}
 
 	db := cosmosdb.MongoDBCollectionCreateUpdateParameters{
@@ -275,7 +276,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta any) 
 
 		indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
 		if !hasIdKey {
-			return fmt.Errorf("index with '_id' key is required")
+			return errors.New("index with '_id' key is required")
 		}
 		db.Properties.Resource.Indexes = indexes
 	}

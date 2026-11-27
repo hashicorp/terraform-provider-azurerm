@@ -117,8 +117,8 @@ func EventSubscriptionSchemaExpirationTimeUTC() *pluginsdk.Schema {
 func EventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
-		MaxItems:      1,
 		Optional:      true,
+		MaxItems:      1,
 		ConflictsWith: conflictsWith,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -149,8 +149,8 @@ func EventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		Computed:      true, // azignore:AZS007 - pre-existing violation
-		ConflictsWith: conflictsWith,
 		ValidateFunc:  eventhubs.ValidateEventhubID,
+		ConflictsWith: conflictsWith,
 	}
 }
 
@@ -160,8 +160,8 @@ func EventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		Computed:      true, // azignore:AZS007 - pre-existing violation
-		ConflictsWith: conflictsWith,
 		ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
+		ConflictsWith: conflictsWith,
 	}
 }
 
@@ -170,8 +170,8 @@ func EventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *p
 		Description:   "The ID where the Service Bus Queue is located.",
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
-		ConflictsWith: conflictsWith,
 		ValidateFunc:  queues.ValidateQueueID,
+		ConflictsWith: conflictsWith,
 	}
 }
 
@@ -180,16 +180,16 @@ func EventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *p
 		Description:   "The ID where the Service Bus Topic is located.",
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
-		ConflictsWith: conflictsWith,
 		ValidateFunc:  topics.ValidateTopicID,
+		ConflictsWith: conflictsWith,
 	}
 }
 
 func EventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
-		MaxItems:      1,
 		Optional:      true,
+		MaxItems:      1,
 		ConflictsWith: conflictsWith,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -218,8 +218,8 @@ func EventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 func EventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
-		MaxItems:      1,
 		Optional:      true,
+		MaxItems:      1,
 		ConflictsWith: conflictsWith,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -286,8 +286,8 @@ func EventSubscriptionSchemaEnableAdvancedFilteringOnArrays() *pluginsdk.Schema 
 func EventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"subject_begins_with": {
@@ -322,14 +322,15 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"bool_equals": {
-					Description: "Compares a value of an event using a single boolean value.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using a single boolean value.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -343,12 +344,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_greater_than": {
-					Description: "Compares a value of an event using a single floating point number.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using a single floating point number.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -362,12 +363,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_greater_than_or_equals": {
-					Description: "Compares a value of an event using a single floating point number.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using a single floating point number.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -381,12 +382,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_less_than": {
-					Description: "Compares a value of an event using a single floating point number.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using a single floating point number.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -400,12 +401,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_less_than_or_equals": {
-					Description: "Compares a value of an event using a single floating point number.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using a single floating point number.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -419,12 +420,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_in": {
-					Description: "Compares a value of an event using multiple floating point numbers.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple floating point numbers.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -442,12 +443,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_not_in": {
-					Description: "Compares a value of an event using multiple floating point numbers.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple floating point numbers.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -465,12 +466,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_begins_with": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -488,12 +489,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_not_begins_with": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -511,12 +512,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_ends_with": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -534,12 +535,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_not_ends_with": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -557,12 +558,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_contains": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -580,12 +581,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_not_contains": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -603,12 +604,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_in": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -626,12 +627,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_not_in": {
-					Description: "Compares a value of an event using multiple string values.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple string values.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -649,12 +650,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"is_not_null": {
-					Description: "Evaluates if a value of an event isn't NULL or undefined.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Evaluates if a value of an event isn't NULL or undefined.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -664,12 +665,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"is_null_or_undefined": {
-					Description: "Evaluates if a value of an event is NULL or undefined.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Evaluates if a value of an event is NULL or undefined.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -679,12 +680,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_in_range": {
-					Description: "Compares a value of an event using multiple floating point number ranges.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple floating point number ranges.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -707,12 +708,12 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_not_in_range": {
-					Description: "Compares a value of an event using multiple floating point number ranges.",
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
+					Description:  "Compares a value of an event using multiple floating point number ranges.",
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: atLeastOneOf,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"key": {
@@ -735,7 +736,6 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: atLeastOneOf,
 				},
 			},
 		},
@@ -745,8 +745,8 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 func EventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"storage_account_id": {
@@ -769,9 +769,9 @@ func EventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema
 func EventSubscriptionSchemaRetryPolicy() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
 		Computed: true, // azignore:AZS007 - pre-existing violation
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_delivery_attempts": {
@@ -781,7 +781,7 @@ func EventSubscriptionSchemaRetryPolicy() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 				},
 				"event_time_to_live": {
-					Description:  "The time to live (in minutes) for events. Supported range is `1` to `1440`. See [official documentation](https://learn.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.",
+					Description:  "The time to live (in minutes) for events. See [official documentation](https://learn.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 1440),

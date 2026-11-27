@@ -34,15 +34,15 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"admin_username": {
-			Description: "The username of the local administrator used for the Virtual Machine.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The username of the local administrator used for the Virtual Machine.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LinuxAdminUsername,
 			ExactlyOneOf: []string{
 				"admin_username",
 				"os_managed_disk_id",
 			},
-			ForceNew:     true,
-			ValidateFunc: validate.LinuxAdminUsername,
 		},
 
 		"network_interface_ids": {
@@ -91,8 +91,8 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			ForceNew:         true,
 			Sensitive:        true,
-			DiffSuppressFunc: helpers.AdminPasswordDiffSuppressFunc,
 			ValidateFunc:     validate.LinuxAdminPassword,
+			DiffSuppressFunc: helpers.AdminPasswordDiffSuppressFunc,
 			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
@@ -101,7 +101,7 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"admin_ssh_key": helpers.SSHKeysSchemaVM(),
 
 		"allow_extension_operations": {
-			Description: "Should Extension Operations be allowed on this Virtual Machine?",
+			Description: "Whether Extension Operations should be allowed on this Virtual Machine.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -136,13 +136,13 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"capacity_reservation_group_id": {
-			Description: "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"availability_set_id",
 				"proximity_placement_group_id",
@@ -202,12 +202,12 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disable_password_authentication": {
-			Description: "Should Password Authentication be disabled on this Virtual Machine?",
+			Description: "Whether Password Authentication should be disabled on this Virtual Machine.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			// Note: O+C OsProfile vs os_managed_disk_id
-			ForceNew: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"disk_controller_type": {
@@ -221,7 +221,7 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"encryption_at_host_enabled": {
-			Description: "Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?",
+			Description: "Whether all of the disks (including the temp disk) attached to this Virtual Machine should be encrypted by enabling Encryption at Host.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -289,7 +289,7 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"provision_vm_agent": {
-			Description: "Should the Azure VM Agent be provisioned on this Virtual Machine?",
+			Description: "Whether the Azure VM Agent should be provisioned on this Virtual Machine.",
 			// O+C due to incompatibility between specifying `os_managed_disk_id` and sending OsProfile in the create/update requests
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -301,7 +301,7 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"patch_mode": {
-			Description:  "The mode of in-guest patching to this Linux Virtual Machine. For more information on patch modes please see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
+			Description:  "The mode of in-guest patching to this Linux Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -383,13 +383,13 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"source_image_reference": helpers.SourceImageReferenceSchemaVM(),
 
 		"virtual_machine_scale_set_id": {
-			Description: "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
+			Description:  "The Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			ConflictsWith: []string{
 				"availability_set_id",
 			},
-			ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 		},
 
 		"vtpm_enabled": {
@@ -403,10 +403,10 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Description:  "The Platform Fault Domain in which this Linux Virtual Machine should be created.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      -1,
 			ForceNew:     true,
-			RequiredWith: []string{"virtual_machine_scale_set_id"},
+			Default:      -1,
 			ValidateFunc: validation.IntAtLeast(-1),
+			RequiredWith: []string{"virtual_machine_scale_set_id"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -457,7 +457,7 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Computed:    true,
 		},
 		"vm_agent_platform_updates_enabled": {
-			Description: "Are Virtual Machine Agent Platform Updates `enabled` on this Virtual Machine?",
+			Description: "Whether Virtual Machine Agent Platform Updates are `enabled` on this Virtual Machine.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

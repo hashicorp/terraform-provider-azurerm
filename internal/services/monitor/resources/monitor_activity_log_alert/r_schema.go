@@ -29,11 +29,11 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
 			MinItems:    1,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"criteria": {
@@ -82,9 +82,10 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.levels"},
 					},
 					"levels": {
-						Description: "A list of severity level of the event.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of severity level of the event.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.level"},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -95,7 +96,6 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 								"Critical",
 							}, false),
 						},
-						ConflictsWith: []string{"criteria.0.level"},
 					},
 					"resource_provider": {
 						Description:   "The name of the Resource Provider monitored by the activity log alert.",
@@ -105,14 +105,14 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.resource_providers"},
 					},
 					"resource_providers": {
-						Description: "A list of names of Resource Providers monitored by the activity log alert.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of names of Resource Providers monitored by the activity log alert.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.resource_provider"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						ConflictsWith: []string{"criteria.0.resource_provider"},
 					},
 					"resource_type": {
 						Description:   "The resource type monitored by the activity log alert.",
@@ -122,14 +122,14 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.resource_types"},
 					},
 					"resource_types": {
-						Description: "A list of resource types monitored by the activity log alert.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of resource types monitored by the activity log alert.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.resource_type"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						ConflictsWith: []string{"criteria.0.resource_type"},
 					},
 					"resource_group": {
 						Description:   "The name of Resource Group monitored by the activity log alert.",
@@ -139,14 +139,14 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.resource_groups"},
 					},
 					"resource_groups": {
-						Description: "A list of names of Resource Groups monitored by the activity log alert.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of names of Resource Groups monitored by the activity log alert.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.resource_group"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						ConflictsWith: []string{"criteria.0.resource_group"},
 					},
 					"resource_id": {
 						Description:   "The specific resource monitored by the activity log alert.",
@@ -156,14 +156,14 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.resource_ids"},
 					},
 					"resource_ids": {
-						Description: "A list of specific resources monitored by the activity log alert.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of specific resources monitored by the activity log alert.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.resource_id"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						ConflictsWith: []string{"criteria.0.resource_id"},
 					},
 					"status": {
 						Description:   "The status of the event. For example, `Started`, `Failed`, or `Succeeded`.",
@@ -173,14 +173,14 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.statuses"},
 					},
 					"statuses": {
-						Description: "A list of status of the event. For example, `Started`, `Failed`, or `Succeeded`.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of status of the event. For example, `Started`, `Failed`, or `Succeeded`.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.status"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						ConflictsWith: []string{"criteria.0.status"},
 					},
 					"sub_status": {
 						Description:   "The sub status of the event.",
@@ -190,14 +190,14 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 						ConflictsWith: []string{"criteria.0.sub_statuses"},
 					},
 					"sub_statuses": {
-						Description: "A list of sub status of the event.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:   "A list of sub status of the event.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ConflictsWith: []string{"criteria.0.sub_status"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						ConflictsWith: []string{"criteria.0.sub_status"},
 					},
 					"recommendation_category": {
 						Description: "The recommendation category of the event.",
@@ -239,17 +239,19 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 					},
 					// lintignore:XS003
 					"resource_health": {
-						Description: "A block to define fine grain resource health settings.",
-						Type:        pluginsdk.TypeList,
-						Computed:    true, // azignore:AZS007 - pre-existing violation
-						Optional:    true,
-						MaxItems:    1,
+						Description:   "A block to define fine grain resource health settings.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						Computed:      true, // azignore:AZS007 - pre-existing violation
+						MaxItems:      1,
+						ConflictsWith: []string{"criteria.0.caller", "criteria.0.service_health"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"current": {
 									Description: "The current resource health statuses that will log an alert.",
 									Type:        pluginsdk.TypeSet,
 									Optional:    true,
+									Set:         pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
@@ -262,12 +264,12 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 											false,
 										),
 									},
-									Set: pluginsdk.HashString,
 								},
 								"previous": {
 									Description: "The previous resource health statuses that will log an alert.",
 									Type:        pluginsdk.TypeSet,
 									Optional:    true,
+									Set:         pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
@@ -280,12 +282,12 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 											false,
 										),
 									},
-									Set: pluginsdk.HashString,
 								},
 								"reason": {
 									Description: "The reason that will log an alert.",
 									Type:        pluginsdk.TypeSet,
 									Optional:    true,
+									Set:         pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
@@ -297,25 +299,25 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 											false,
 										),
 									},
-									Set: pluginsdk.HashString,
 								},
 							},
 						},
-						ConflictsWith: []string{"criteria.0.caller", "criteria.0.service_health"},
 					},
 					// lintignore:XS003
 					"service_health": {
-						Description: "A block to define fine grain service health settings.",
-						Type:        pluginsdk.TypeList,
-						Computed:    true, // azignore:AZS007 - pre-existing violation
-						Optional:    true,
-						MaxItems:    1,
+						Description:   "A block to define fine grain service health settings.",
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						Computed:      true, // azignore:AZS007 - pre-existing violation
+						MaxItems:      1,
+						ConflictsWith: []string{"criteria.0.caller", "criteria.0.resource_health"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"events": {
 									Description: "Events this alert will monitor.",
 									Type:        pluginsdk.TypeSet,
 									Optional:    true,
+									Set:         pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(
@@ -329,31 +331,29 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 											false,
 										),
 									},
-									Set: pluginsdk.HashString,
 								},
 								"locations": {
 									Description: "Locations this alert will monitor. For example, `West Europe`.",
 									Type:        pluginsdk.TypeSet,
 									Optional:    true,
+									Set:         pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									Set: pluginsdk.HashString,
 								},
 								"services": {
 									Description: "Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`.",
 									Type:        pluginsdk.TypeSet,
 									Optional:    true,
+									Set:         pluginsdk.HashString,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									Set: pluginsdk.HashString,
 								},
 							},
 						},
-						ConflictsWith: []string{"criteria.0.caller", "criteria.0.resource_health"},
 					},
 				},
 			},
@@ -389,7 +389,7 @@ func monitorActivityLogAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should this Activity Log Alert be enabled?",
+			Description: "Whether this Activity Log Alert should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

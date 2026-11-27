@@ -4,6 +4,7 @@
 package shared_image_gallery
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -88,7 +89,7 @@ func expandSharedImageGallerySharing(input []any) (*galleries.SharingProfile, ga
 
 	if permission == galleries.GallerySharingPermissionTypesCommunity {
 		if len(communityGallery) == 0 || communityGallery[0] == nil {
-			return nil, permission, fmt.Errorf("`community_gallery` must be set when `permission` is set to `Community`")
+			return nil, permission, errors.New("`community_gallery` must be set when `permission` is set to `Community`")
 		}
 	}
 

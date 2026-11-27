@@ -7,6 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_availability_set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_cloud"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_inventory_items"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_virtual_machine_instance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_virtual_machine_instance_guest_agent"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_virtual_machine_template"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/resources/system_center_virtual_machine_manager_virtual_network"
 )
 
 type Registration struct{}
@@ -34,19 +42,19 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		SystemCenterVirtualMachineManagerInventoryItemsDataSource{},
+		system_center_virtual_machine_manager_inventory_items.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		SystemCenterVirtualMachineManagerAvailabilitySetResource{},
-		SystemCenterVirtualMachineManagerCloudResource{},
-		SystemCenterVirtualMachineManagerServerResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{},
-		SystemCenterVirtualMachineManagerVirtualNetworkResource{},
+		system_center_virtual_machine_manager_availability_set.Resource{},
+		system_center_virtual_machine_manager_cloud.Resource{},
+		system_center_virtual_machine_manager_server.Resource{},
+		system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.Resource{},
+		system_center_virtual_machine_manager_virtual_machine_instance.Resource{},
+		system_center_virtual_machine_manager_virtual_machine_template.Resource{},
+		system_center_virtual_machine_manager_virtual_network.Resource{},
 	}
 }
 
@@ -68,10 +76,10 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		SystemCenterVirtualMachineManagerAvailabilitySetListResource{},
-		SystemCenterVirtualMachineManagerCloudListResource{},
-		SystemCenterVirtualMachineManagerServerListResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineTemplateListResource{},
-		SystemCenterVirtualMachineManagerVirtualNetworkListResource{},
+		system_center_virtual_machine_manager_availability_set.ListResource{},
+		system_center_virtual_machine_manager_cloud.ListResource{},
+		system_center_virtual_machine_manager_server.ListResource{},
+		system_center_virtual_machine_manager_virtual_machine_template.ListResource{},
+		system_center_virtual_machine_manager_virtual_network.ListResource{},
 	}
 }

@@ -49,10 +49,10 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 
 		"access_policy": {
 			Type:       pluginsdk.TypeList,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
 			MaxItems:   1024,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
@@ -121,6 +121,7 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 						Description: "One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
+						Set:         set.HashIPv4AddressOrCIDR,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -128,14 +129,13 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 								validation.IsCIDRIPv4,
 							),
 						},
-						Set: set.HashIPv4AddressOrCIDR,
 					},
 					"virtual_network_subnet_ids": {
 						Description: "One or more Subnet IDs which should be able to access this Key Vault.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
-						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:         set.HashStringIgnoreCase,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 				},
 			},
@@ -149,7 +149,7 @@ func keyVaultSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"purge_protection_enabled": {
-			Description: "Is Purge Protection enabled for this Key Vault?",
+			Description: "Whether Purge Protection is enabled for this Key Vault.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

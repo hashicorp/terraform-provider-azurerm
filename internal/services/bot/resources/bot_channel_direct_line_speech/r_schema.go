@@ -28,7 +28,7 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_service_access_key": {
-			Description:  "The access key to access the Cognitive Service. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.",
+			Description:  "The access key to access the Cognitive Service.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -48,7 +48,7 @@ func botChannelDirectLineSpeechSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cognitive_account_id": {
-			Description:  "The ID of the Cognitive Account this Bot Channel should be associated with. Either `cognitive_account_id` or both `cognitive_service_access_key` and `cognitive_service_location` must be specified.",
+			Description:  "The ID of the Cognitive Account this Bot Channel should be associated with.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,

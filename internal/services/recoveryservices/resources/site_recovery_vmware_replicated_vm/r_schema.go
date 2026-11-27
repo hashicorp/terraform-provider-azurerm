@@ -87,8 +87,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The type of Storage Account that should be used for recovery disks when a failover is done.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
+			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 		},
 
 		"default_target_disk_encryption_set_id": {

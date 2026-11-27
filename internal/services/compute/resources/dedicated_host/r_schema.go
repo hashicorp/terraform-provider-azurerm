@@ -35,8 +35,8 @@ func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Description: "The SKU name of the Dedicated Host.",
 			Type:        pluginsdk.TypeString,
-			ForceNew:    true,
 			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"DADSv5-Type1",
 				"DASv4-Type1",
@@ -89,12 +89,12 @@ func dedicatedHostSchema() map[string]*pluginsdk.Schema {
 		"platform_fault_domain": {
 			Description: "The fault domain of the Dedicated Host Group in which to create the Dedicated Host.",
 			Type:        pluginsdk.TypeInt,
-			ForceNew:    true,
 			Required:    true,
+			ForceNew:    true,
 		},
 
 		"auto_replace_on_failure": {
-			Description: "Should the Dedicated Host automatically be replaced in case of a Hardware Failure?",
+			Description: "Whether the Dedicated Host should automatically be replaced in case of a Hardware Failure.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

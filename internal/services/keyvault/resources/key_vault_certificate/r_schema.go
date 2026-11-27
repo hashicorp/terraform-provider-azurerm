@@ -27,11 +27,11 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 		"certificate": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			AtLeastOneOf: []string{
 				"certificate_policy",
 				"certificate",
 			},
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"contents": {
@@ -55,11 +55,11 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+			MaxItems: 1,
 			AtLeastOneOf: []string{
 				"certificate_policy",
 				"certificate",
 			},
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"issuer_parameters": {
@@ -90,7 +90,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 								},
 								"exportable": {
-									Description: "Is this certificate exportable?",
+									Description: "Whether this certificate is exportable.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
@@ -121,7 +121,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 								"reuse_key": {
-									Description: "Is the key reusable?",
+									Description: "Whether the key is reusable.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
@@ -228,42 +228,42 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 												Description: "A list of email addresses identified by this Certificate.",
 												Type:        pluginsdk.TypeSet,
 												Optional:    true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-												Set: pluginsdk.HashString,
+												Set:         pluginsdk.HashString,
 												AtLeastOneOf: []string{
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+												},
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
 												},
 											},
 											"dns_names": {
 												Description: "A list of alternative DNS names (FQDNs) identified by the Certificate.",
 												Type:        pluginsdk.TypeSet,
 												Optional:    true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-												Set: pluginsdk.HashString,
+												Set:         pluginsdk.HashString,
 												AtLeastOneOf: []string{
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+												},
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
 												},
 											},
 											"upns": {
 												Description: "A list of User Principal Names identified by the Certificate.",
 												Type:        pluginsdk.TypeSet,
 												Optional:    true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-												},
-												Set: pluginsdk.HashString,
+												Set:         pluginsdk.HashString,
 												AtLeastOneOf: []string{
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
 													"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+												},
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
 												},
 											},
 										},
@@ -328,14 +328,14 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 
 		"resource_manager_id": {
 			Description: "The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"resource_manager_versionless_id": {
 			Description: "The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"version": {

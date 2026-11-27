@@ -50,14 +50,14 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		// `tiering_policy` is defined as the map type in Swagger and currently the key only supports `ArchivedRP`. Service team confirmed that they would support other keys in the future.
 		"tiering_policy": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"archived_restore_point": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Required: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"mode": {
@@ -105,8 +105,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"instant_restore_resource_group": {
 			Description: "The instant restore Resource Group name.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"prefix": {
@@ -128,8 +128,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"backup": {
 			Description: "Configures the Policy backup frequency, times & days.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Required:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
@@ -162,8 +162,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 
@@ -211,8 +211,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"retention_daily": {
 			Description: "Configures the policy daily retention.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -229,8 +229,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"retention_weekly": {
 			Description: "Configures the policy weekly retention.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -247,8 +247,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Set:         set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -258,8 +258,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"retention_monthly": {
 			Description: "Configures the policy monthly retention.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -274,6 +274,19 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Set:         set.HashStringIgnoreCase,
+						RequiredWith: []string{
+							"retention_monthly.0.weekdays",
+						},
+						ConflictsWith: []string{
+							"retention_monthly.0.days",
+							"retention_monthly.0.include_last_days",
+						},
+						AtLeastOneOf: []string{
+							"retention_monthly.0.weekdays",
+							"retention_monthly.0.weeks",
+							"retention_monthly.0.days",
+							"retention_monthly.0.include_last_days",
+						},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -284,19 +297,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 								string(protectionpolicies.WeekOfMonthLast),
 							}, false),
 						},
-						ConflictsWith: []string{
-							"retention_monthly.0.days",
-							"retention_monthly.0.include_last_days",
-						},
-						AtLeastOneOf: []string{
-							"retention_monthly.0.weekdays",
-							"retention_monthly.0.weeks",
-							"retention_monthly.0.days",
-							"retention_monthly.0.include_last_days",
-						},
-						RequiredWith: []string{
-							"retention_monthly.0.weekdays",
-						},
 					},
 
 					"weekdays": {
@@ -304,11 +304,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Set:         set.HashStringIgnoreCase,
-						Elem: &pluginsdk.Schema{
-							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.IsDayOfTheWeek(true),
-						},
 						RequiredWith: []string{
 							"retention_monthly.0.weeks",
 						},
@@ -322,16 +317,17 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 							"retention_monthly.0.days",
 							"retention_monthly.0.include_last_days",
 						},
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 
 					"days": {
 						Description: "The days of the month to retain backups of.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 31), // days in months
-						},
 						ConflictsWith: []string{
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.weekdays",
@@ -341,6 +337,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.days",
 							"retention_monthly.0.include_last_days",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 31), // days in months
 						},
 					},
 
@@ -367,8 +367,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"retention_yearly": {
 			Description: "Configures the policy yearly retention.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"count": {
@@ -385,8 +385,8 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Set:         set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsMonth(true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 
@@ -395,6 +395,19 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Set:         set.HashStringIgnoreCase,
+						RequiredWith: []string{
+							"retention_yearly.0.weekdays",
+						},
+						ConflictsWith: []string{
+							"retention_yearly.0.days",
+							"retention_yearly.0.include_last_days",
+						},
+						AtLeastOneOf: []string{
+							"retention_yearly.0.weeks",
+							"retention_yearly.0.weekdays",
+							"retention_yearly.0.days",
+							"retention_yearly.0.include_last_days",
+						},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -405,19 +418,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 								string(protectionpolicies.WeekOfMonthLast),
 							}, false),
 						},
-						RequiredWith: []string{
-							"retention_yearly.0.weekdays",
-						},
-						ConflictsWith: []string{
-							"retention_yearly.0.days",
-							"retention_yearly.0.include_last_days",
-						},
-						AtLeastOneOf: []string{
-							"retention_yearly.0.weeks",
-							"retention_yearly.0.weekdays",
-							"retention_yearly.0.days",
-							"retention_yearly.0.include_last_days",
-						},
 					},
 
 					"weekdays": {
@@ -425,11 +425,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Set:         set.HashStringIgnoreCase,
-						Elem: &pluginsdk.Schema{
-							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.IsDayOfTheWeek(true),
-						},
 						RequiredWith: []string{
 							"retention_yearly.0.weeks",
 						},
@@ -443,16 +438,17 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 							"retention_yearly.0.days",
 							"retention_yearly.0.include_last_days",
 						},
+						Elem: &pluginsdk.Schema{
+							Type:             pluginsdk.TypeString,
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 
 					"days": {
 						Description: "The days of the month to retain backups of.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 31), // days in months
-						},
 						ConflictsWith: []string{
 							"retention_yearly.0.weeks",
 							"retention_yearly.0.weekdays",
@@ -462,6 +458,10 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 							"retention_yearly.0.weekdays",
 							"retention_yearly.0.days",
 							"retention_yearly.0.include_last_days",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 31), // days in months
 						},
 					},
 

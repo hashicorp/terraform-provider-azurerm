@@ -125,7 +125,7 @@ func dataFactoryTriggerBlobEventSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ignore_empty_blobs": {
-			Description: "Are blobs with zero bytes ignored?",
+			Description: "Whether blobs with zero bytes are ignored.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

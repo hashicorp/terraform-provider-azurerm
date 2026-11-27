@@ -112,7 +112,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Description: "Whether or not public network access is allowed for this server.",
+				Description: "Whether public network access is allowed for this server.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

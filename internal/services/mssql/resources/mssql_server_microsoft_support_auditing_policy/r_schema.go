@@ -42,7 +42,7 @@ func mssqlServerMicrosoftSupportAuditingPolicySchema() map[string]*pluginsdk.Sch
 		},
 
 		"log_monitoring_enabled": {
-			Description: "Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.",
+			Description: "Whether to enable audit events to Azure Monitor. To enable server audit events to Azure Monitor, enable its main database audit events to Azure Monitor.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -64,14 +64,14 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"floating_ip_enabled": {
-			Description: "Are the Floating IPs enabled for this Load Balancer Rule? A \"floating\" IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group.",
+			Description: "Whether the Floating IPs are enabled for this Load Balancer Rule. A floating IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"tcp_reset_enabled": {
-			Description: "Is TCP Reset enabled for this Load Balancer Rule?",
+			Description: "Whether TCP Reset is enabled for this Load Balancer Rule.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -81,8 +81,8 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
-			ConflictsWith: []string{"frontend_port"},
 			RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
+			ConflictsWith: []string{"frontend_port"},
 		},
 
 		"frontend_port_start": {

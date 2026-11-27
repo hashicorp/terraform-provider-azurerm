@@ -88,7 +88,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"default_ttl": {
-				Description: "If the value is missing or set to \"-1\", items don't expire.",
+				Description: "If the value is missing or set to `-1`, items don't expire.",
 				Type:        pluginsdk.TypeInt,
 				Optional:    true,
 			},
@@ -112,7 +112,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			},
 
 			"partition_key_version": {
-				Description:  "Define a partition key version. This should be set to `2` in order to use large partition keys.",
+				Description:  "Define a partition key version. This should be set to `2` to use large partition keys.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -147,11 +147,11 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 							Type:        pluginsdk.TypeSet,
 							Optional:    true,
 							Computed:    true, // azignore:AZS007 - pre-existing violation
+							Set:         pluginsdk.HashString,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: pluginsdk.HashString,
 						},
 
 						"excluded_paths": {
@@ -159,11 +159,11 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 							Type:        pluginsdk.TypeSet,
 							Optional:    true,
 							Computed:    true, // azignore:AZS007 - pre-existing violation
+							Set:         pluginsdk.HashString,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: pluginsdk.HashString,
 						},
 
 						"composite_index": common.CosmosDbIndexingPolicyCompositeIndexSchema(),

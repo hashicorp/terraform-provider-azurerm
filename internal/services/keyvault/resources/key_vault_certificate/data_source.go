@@ -45,14 +45,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			"resource_manager_id": {
 				Description: "The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.",
-				Computed:    true,
 				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"resource_manager_versionless_id": {
 				Description: "The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.",
-				Computed:    true,
 				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"version": {
@@ -92,7 +92,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed: true,
 									},
 									"exportable": {
-										Description: "Is this Certificate Exportable?",
+										Description: "Whether this Certificate is exportable.",
 										Type:        pluginsdk.TypeBool,
 										Computed:    true,
 									},
@@ -107,7 +107,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 										Computed:    true,
 									},
 									"reuse_key": {
-										Description: "Is the key reusable?",
+										Description: "Whether the key is reusable.",
 										Type:        pluginsdk.TypeBool,
 										Computed:    true,
 									},

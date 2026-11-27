@@ -46,7 +46,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enable_health_check": {
-			Description: "Should the Gallery Application reports health?",
+			Description: "Whether the Gallery Application should report health.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -56,12 +56,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:      "The end of life date in RFC3339 format of the Gallery Application Version.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"exclude_from_latest": {
-			Description: "Should the Gallery Application Version be excluded from the `latest` filter? If set to `true` this Gallery Application Version won't be returned for the `latest` version.",
+			Description: "Whether the Gallery Application Version should be excluded from the `latest` filter. If set to `true` this Gallery Application Version won't be returned for the `latest` version.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -160,8 +160,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "The Storage Account type for the Gallery Application Version.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(galleryapplicationversions.PossibleValuesForStorageAccountType(), false),
 						Default:      string(galleryapplicationversions.StorageAccountTypeStandardLRS),
+						ValidateFunc: validation.StringInSlice(galleryapplicationversions.PossibleValuesForStorageAccountType(), false),
 					},
 				},
 			},

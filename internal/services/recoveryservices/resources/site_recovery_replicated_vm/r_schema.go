@@ -5,7 +5,7 @@ package site_recovery_replicated_vm
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -116,16 +116,16 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 		"target_network_id": {
 			Description:  "Network to use when a failover is done (recommended to set if any network_interface is configured for failover).",
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		"test_network_id": {
 			Description:  "Network to use when a test failover is done.",
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
@@ -135,8 +135,8 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			ForceNew:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"disk_uri": {
@@ -226,8 +226,8 @@ func siteRecoveryReplicatedVmSchema() map[string]*pluginsdk.Schema {
 					"target_disk_encryption": {
 						Type:       pluginsdk.TypeList,
 						Optional:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem:       diskEncryptionResource(),
 					},
 				},
@@ -310,7 +310,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 					return nil
 				}
 				if name.IsNull() || name.AsString() == "" {
-					return fmt.Errorf("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
+					return errors.New("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
 				}
 
 				primary := ipConfiguration.GetAttr("primary")
@@ -323,7 +323,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 			}
 
 			if primaryCount != 1 {
-				return fmt.Errorf("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+				return errors.New("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
 			}
 		}
 	}

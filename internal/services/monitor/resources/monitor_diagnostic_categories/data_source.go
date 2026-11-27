@@ -36,25 +36,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"log_category_types": {
 				Description: "A list of the supported log category types of this resource to send to the destination.",
 				Type:        pluginsdk.TypeSet,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:         pluginsdk.HashString,
 				Computed:    true,
+				Set:         pluginsdk.HashString,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"log_category_groups": {
 				Description: "A list of the supported log category groups of this resource to send to the destination.",
 				Type:        pluginsdk.TypeSet,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:         pluginsdk.HashString,
 				Computed:    true,
+				Set:         pluginsdk.HashString,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"metrics": {
 				Description: "A list of the Metric Categories supported for this Resource.",
 				Type:        pluginsdk.TypeSet,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:         pluginsdk.HashString,
 				Computed:    true,
+				Set:         pluginsdk.HashString,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 		},
 	}

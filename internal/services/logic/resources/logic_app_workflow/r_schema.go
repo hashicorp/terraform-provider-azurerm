@@ -195,7 +195,7 @@ func logicAppWorkflowSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Logic App Workflow enabled?",
+			Description: "Whether the Logic App Workflow is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -164,9 +164,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The list of resource IDs that this scheduled query rule is scoped to. Currently, the API supports exactly 1 resource ID in the scopes list.",
 			Type:        pluginsdk.TypeList,
 			Required:    true,
+			ForceNew:    true,
 			MinItems:    1,
 			MaxItems:    1,
-			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -237,7 +237,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_mitigation_enabled": {
-			Description: "The flag that indicates whether the alert should be automatically resolved or not.",
+			Description: "The flag that indicates whether the alert should be automatically resolved.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -314,7 +314,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"skip_query_validation": {
-			Description: "The flag which indicates whether the provided query should be validated or not.",
+			Description: "The flag which indicates whether the provided query should be validated.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

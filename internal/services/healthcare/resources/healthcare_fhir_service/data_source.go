@@ -137,7 +137,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"credentials_allowed": {
-							Description: "Are credentials allowed via CORS?",
+							Description: "Whether credentials are allowed via CORS.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

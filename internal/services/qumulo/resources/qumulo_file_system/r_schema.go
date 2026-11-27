@@ -15,9 +15,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of this Azure Native Qumulo Scalable File System resource.",
-			ForceNew:     true,
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.FileSystemName,
 		},
 

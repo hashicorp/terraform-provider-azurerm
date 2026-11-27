@@ -26,11 +26,11 @@ func imageSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"zone_resilient": {
-			Description:   "Is zone resiliency enabled?",
+			Description:   "Whether zone resiliency is enabled.",
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
-			Default:       false,
 			ForceNew:      true,
+			Default:       false,
 			ConflictsWith: []string{"source_virtual_machine_id"},
 		},
 
@@ -38,8 +38,8 @@ func imageSchema() map[string]*pluginsdk.Schema {
 			Description:  "The Hyper-V Generation Type of the Virtual Machine created from the image as `V1`, `V2`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(images.HyperVGenerationTypesVOne),
 			ForceNew:     true,
+			Default:      string(images.HyperVGenerationTypesVOne),
 			ValidateFunc: validation.StringInSlice(images.PossibleValuesForHyperVGenerationTypes(), false),
 		},
 
@@ -53,8 +53,8 @@ func imageSchema() map[string]*pluginsdk.Schema {
 		"os_disk": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
-			MaxItems:      1,
 			ForceNew:      true,
+			MaxItems:      1,
 			ConflictsWith: []string{"source_virtual_machine_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -75,10 +75,10 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					"managed_disk_id": {
 						Description:      "The ID of the Managed Disk resource that you want to use to create the image.",
 						Type:             pluginsdk.TypeString,
-						Computed:         true, // azignore:AZS007 - pre-existing violation
 						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
+						Computed:         true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc:     commonids.ValidateManagedDiskID,
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"blob_uri": {
@@ -101,8 +101,8 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					"size_gb": {
 						Description:  "The size of the image to be created.",
 						Type:         pluginsdk.TypeInt,
-						Computed:     true, // azignore:AZS007 - pre-existing violation
 						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
 						ValidateFunc: validation.NoZeroValues,
 					},
@@ -116,8 +116,8 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_type": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The type of Storage Disk to use.",
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
@@ -179,8 +179,8 @@ func imageSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_type": {
-						Type:         pluginsdk.TypeString,
 						Description:  "The type of Storage Disk to use.",
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),

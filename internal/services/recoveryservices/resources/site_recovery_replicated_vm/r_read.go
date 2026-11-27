@@ -6,6 +6,7 @@ package site_recovery_replicated_vm
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -58,8 +59,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"source_network_interface_id": {
 				Description:  "ID source network interface.",
 				Type:         pluginsdk.TypeString,
-				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -223,7 +224,7 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return nil, fmt.Errorf("context had no deadline")
+		return nil, errors.New("context had no deadline")
 	}
 	stateConf.Timeout = time.Until(deadline)
 
@@ -236,7 +237,7 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 	if ok {
 		return &protectedItem, nil
 	} else {
-		return nil, fmt.Errorf("waiting for site recovery return incompatible type")
+		return nil, errors.New("waiting for site recovery return incompatible type")
 	}
 }
 

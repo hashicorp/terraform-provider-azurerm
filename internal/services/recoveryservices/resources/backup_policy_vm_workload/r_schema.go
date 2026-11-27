@@ -101,8 +101,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Set:         set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
-										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc:     validation.IsDayOfTheWeek(true),
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 								},
 							},
@@ -145,8 +145,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Set:         set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
-										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc:     validation.IsDayOfTheWeek(true),
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 								},
 							},
@@ -210,8 +210,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Set:         set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
-										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc:     validation.IsDayOfTheWeek(true),
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 								},
 							},
@@ -248,8 +248,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Set:         set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
-										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc:     validation.IsMonth(true),
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 								},
 
@@ -287,8 +287,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 									Set:         set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
-										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc:     validation.IsDayOfTheWeek(true),
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 								},
 							},

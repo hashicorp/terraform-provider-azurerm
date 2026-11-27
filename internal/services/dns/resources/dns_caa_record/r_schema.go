@@ -31,6 +31,7 @@ func dnsCaaRecordSchema() map[string]*pluginsdk.Schema {
 			Description: "A list of values that make up the CAA record.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
+			Set:         resourceDnsCaaRecordHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"flags": {
@@ -58,7 +59,6 @@ func dnsCaaRecordSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceDnsCaaRecordHash,
 		},
 
 		"ttl": {

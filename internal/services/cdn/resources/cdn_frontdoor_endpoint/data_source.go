@@ -45,7 +45,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"enabled": {
-				Description: "Whether this Front Door Endpoint is enabled or not.",
+				Description: "Whether this Front Door Endpoint is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

@@ -5,6 +5,7 @@ package function_app_flex_consumption
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -112,13 +113,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
 				if functionAppFlexConsumption.StorageAccessKey == "" {
-					return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
+					return errors.New("the storage account access key must be specified when using the storage key based access")
 				}
 			} else {
 				storageConnStringForFCApp = ""
 				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
 					if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
-						return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
+						return errors.New("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 					}
 					storageAuth.UserAssignedIdentityResourceId = &functionAppFlexConsumption.StorageUserAssignedIdentityID
 				}

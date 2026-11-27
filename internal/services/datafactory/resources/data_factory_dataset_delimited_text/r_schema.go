@@ -38,8 +38,8 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		// Delimited Text Specific Field, one option for 'location'
 		"http_server_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -56,7 +56,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -68,7 +68,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -80,8 +80,8 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		// Delimited Text Specific Field, one option for 'location'
 		"azure_blob_storage_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -92,7 +92,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_container_enabled": {
-						Description: "Is the `container` using dynamic expression, function or system variables?",
+						Description: "Whether the `container` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -103,7 +103,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						Optional:    true,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -115,7 +115,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -126,8 +126,8 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 
 		"azure_blob_fs_location": {
 			Type:         pluginsdk.TypeList,
-			MaxItems:     1,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -138,7 +138,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_file_system_enabled": {
-						Description: "Is the `file_system` using dynamic expression, function or system variables?",
+						Description: "Whether the `file_system` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -150,7 +150,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_path_enabled": {
-						Description: "Is the `path` using dynamic expression, function or system variables?",
+						Description: "Whether the `path` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -162,7 +162,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"dynamic_filename_enabled": {
-						Description: "Is the `filename` using dynamic expression, function or system variables?",
+						Description: "Whether the `filename` is using dynamic expression, function or system variables.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -279,7 +279,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Description: "Type of the column. Please note these values are case sensitive.",
+						Description: "Type of the column. These values are case sensitive.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
@@ -311,7 +311,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"compression_codec": {
-			Description: "The compression codec used to read/write text files. Please note these values are case sensitive.",
+			Description: "The compression codec used to read/write text files. These values are case sensitive.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -328,7 +328,7 @@ func dataFactoryDatasetDelimitedTextSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"compression_level": {
-			Description: "The compression ratio for the Data Factory Dataset. Please note these values are case sensitive.",
+			Description: "The compression ratio for the Data Factory Dataset. These values are case sensitive.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{

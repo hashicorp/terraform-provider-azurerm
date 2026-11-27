@@ -69,10 +69,10 @@ func (HostPoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"preferred_app_group_type": {
+			Description: "Preferred App Group type to display.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "Preferred App Group type to display.",
 		},
 
 		"registration_info": {
@@ -93,8 +93,8 @@ func (HostPoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 					"token": {
 						Type:      pluginsdk.TypeString,
-						Sensitive: true,
 						Computed:  true,
+						Sensitive: true,
 					},
 				},
 			},

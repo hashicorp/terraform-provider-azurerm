@@ -95,7 +95,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access": {
-			Description: "Whether or not public network access is allowed for this server.",
+			Description: "Whether public network access is allowed for this server.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

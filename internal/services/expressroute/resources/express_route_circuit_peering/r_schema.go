@@ -14,7 +14,7 @@ import (
 func expressRouteCircuitPeeringSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"peering_type": {
-			Description:  "The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`.",
+			Description:  "The type of the ExpressRoute Circuit Peering.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(expressroutecircuitpeerings.PossibleValuesForExpressRoutePeeringType(), false),
@@ -125,8 +125,8 @@ func expressRouteCircuitPeeringSchema() map[string]*pluginsdk.Schema {
 							Schema: map[string]*pluginsdk.Schema{
 								"advertised_public_prefixes": {
 									Type:     pluginsdk.TypeList,
-									MinItems: 1,
 									Optional: true,
+									MinItems: 1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.IsCIDR,

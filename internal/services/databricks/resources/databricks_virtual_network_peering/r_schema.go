@@ -68,28 +68,28 @@ func databricksVirtualNetworkPeeringSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allow_virtual_network_access": {
-			Description: "Can the VMs in the local Virtual Network space access the VMs in the remote Virtual Network space?",
+			Description: "Whether the VMs in the local Virtual Network space can access the VMs in the remote Virtual Network space.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"allow_forwarded_traffic": {
-			Description: "Can the forwarded traffic from the VMs in the local Virtual Network be forwarded to the remote Virtual Network?",
+			Description: "Whether the forwarded traffic from the VMs in the local Virtual Network can be forwarded to the remote Virtual Network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"allow_gateway_transit": {
-			Description: "Can the gateway links be used in the remote Virtual Network to link to the Databricks Virtual Network?",
+			Description: "Whether the gateway links can be used in the remote Virtual Network to link to the Databricks Virtual Network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"use_remote_gateways": {
-			Description: "Can remote gateways be used on the Databricks Virtual Network?",
+			Description: "Whether remote gateways can be used on the Databricks Virtual Network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

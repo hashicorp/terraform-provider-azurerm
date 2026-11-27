@@ -43,7 +43,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Description: "Set of authorized IP ranges to allow access to API server, e.g. [\"198.51.100.0/24\"].",
+						Description: "Set of authorized IP ranges to allow access to API server, e.g. [`198.51.100.0/24`].",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{
@@ -259,7 +259,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"azure_rbac_enabled": {
-						Description: "Is Role Based Access Control based on Azure AD enabled?",
+						Description: "Whether Role Based Access Control based on Azure AD is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -268,13 +268,13 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Description: "A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsUUID,
-						},
 						AtLeastOneOf: []string{
 							"azure_active_directory_role_based_access_control.0.tenant_id",
 							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -282,7 +282,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cost_analysis_enabled": {
-			Description: "Should cost analysis be enabled for this Kubernetes Cluster? The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.",
+			Description: "Whether cost analysis should be enabled for this Kubernetes Cluster. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -313,8 +313,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			ValidateFunc: validate.KubernetesDNSPrefix,
+			ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 		},
 
 		"dns_prefix_private_cluster": {
@@ -548,49 +548,49 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 
 		"kubelet_identity": {
 			Type:     pluginsdk.TypeList,
-			Computed: true, // azignore:AZS007 - pre-existing violation
 			Optional: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
-						Description: "The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Computed:    true, // azignore:AZS007 - pre-existing violation
-						ForceNew:    true,
+						Description:  "The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 						RequiredWith: []string{
 							"kubelet_identity.0.object_id",
 							"kubelet_identity.0.user_assigned_identity_id",
 							"identity.0.identity_ids",
 						},
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"object_id": {
-						Description: "The Object ID of the user-defined Managed Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Computed:    true, // azignore:AZS007 - pre-existing violation
-						ForceNew:    true,
+						Description:  "The Object ID of the user-defined Managed Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 						RequiredWith: []string{
 							"kubelet_identity.0.client_id",
 							"kubelet_identity.0.user_assigned_identity_id",
 							"identity.0.identity_ids",
 						},
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"user_assigned_identity_id": {
-						Description: "The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Computed:    true, // azignore:AZS007 - pre-existing violation
-						ForceNew:    true,
+						Description:  "The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						RequiredWith: []string{
 							"kubelet_identity.0.client_id",
 							"kubelet_identity.0.object_id",
 							"identity.0.identity_ids",
 						},
-						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
 			},
@@ -652,8 +652,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Description:  "The artifact source. The source where the artifacts are downloaded from.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
 						Default:      managedclusters.ArtifactSourceDirect,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
 					},
 
 					"container_registry_id": {
@@ -715,16 +715,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Description:      "The end of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"start": {
 									Description:      "The start of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 							},
 						},
@@ -819,16 +819,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Description:      "The end of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"start": {
 									Description:      "The start of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 							},
 						},
@@ -900,8 +900,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						Computed:         true, // azignore:AZS007 - pre-existing violation
-						DiffSuppressFunc: suppress.RFC3339Time,
 						ValidateFunc:     validation.IsRFC3339Time,
+						DiffSuppressFunc: suppress.RFC3339Time,
 					},
 
 					"start_time": {
@@ -925,16 +925,16 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Description:      "The end of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 
 								"start": {
 									Description:      "The start of a time span, formatted as an RFC3339 string.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.RFC3339Time,
 									ValidateFunc:     validation.IsRFC3339Time,
+									DiffSuppressFunc: suppress.RFC3339Time,
 								},
 							},
 						},
@@ -946,8 +946,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"monitor_metrics": {
 			Description: "A Prometheus add-on profile for the Kubernetes Cluster.",
 			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
 			Optional:    true,
+			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"annotations_allowed": {
@@ -968,14 +968,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_management_service": {
-			Description: "For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/azure/aks/use-kms-etcd-encryption).",
+			Description: "For more details, visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/azure/aks/use-kms-etcd-encryption).",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
-						Description: "Identifier of Azure Key Vault Key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. A versioned key ID uses the legacy KMS experience, while a versionless key ID uses the new KMS experience with automatic key rotation. For more details, please visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).",
+						Description: "Identifier of Azure Key Vault Key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. A versioned key ID uses the legacy KMS experience, while a versionless key ID uses the new KMS experience with automatic key rotation. For more details, visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ValidateFunc: validation.Any(
@@ -991,8 +991,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					"key_vault_network_access": {
 						Description:  "Network access of the Key Vault. `Public` means the Key Vault allows public access from all networks. `Private` means the Key Vault disables public access and enables Private Link.",
 						Type:         pluginsdk.TypeString,
-						Default:      string(managedclusters.KeyVaultNetworkAccessTypesPublic),
 						Optional:     true,
+						Default:      string(managedclusters.KeyVaultNetworkAccessTypesPublic),
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKeyVaultNetworkAccessTypes(), false),
 					},
 				},
@@ -1122,8 +1122,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Description:  "The SKU of the Load Balancer used for this Kubernetes Cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      string(managedclusters.LoadBalancerSkuStandard),
 						ForceNew:     true,
+						Default:      string(managedclusters.LoadBalancerSkuStandard),
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLoadBalancerSku(), false),
 					},
 
@@ -1138,10 +1138,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					"load_balancer_profile": {
 						Description: "This can only be specified when `load_balancer_sku` is set to `standard`.",
 						Type:        pluginsdk.TypeList,
-						MaxItems:    1,
-						ForceNew:    true,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
+						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"outbound_ports_allocated": {
@@ -1223,10 +1223,10 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					"nat_gateway_profile": {
 						Description: "This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.",
 						Type:        pluginsdk.TypeList,
-						MaxItems:    1,
-						ForceNew:    true,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
+						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"idle_timeout_in_minutes": {
@@ -1259,8 +1259,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Description: "A list of IP versions the Kubernetes Cluster will use to assign IP addresses to its nodes and pods. `IPv4` must always be specified.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						ForceNew:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForIPFamily(), false),
@@ -1274,14 +1274,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"observability_enabled": {
-									Description:  "Is observability enabled?",
+									Description:  "Whether observability is enabled.",
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
 									AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
 								},
 								"security_enabled": {
-									Description:  "Is security enabled? This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.",
+									Description:  "Whether security is enabled. This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.",
 									Type:         pluginsdk.TypeBool,
 									Optional:     true,
 									Default:      false,
@@ -1350,7 +1350,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_cluster_enabled": {
-			Description: "Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located.",
+			Description: "Whether this Kubernetes Cluster should have its API server only exposed on internal IP addresses. This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
@@ -1384,12 +1384,12 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Description: "Whether Role Based Access Control for the Kubernetes Cluster should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     true,
 			ForceNew:    true,
+			Default:     true,
 		},
 
 		"run_command_enabled": {
-			Description: "Whether to enable run command for the cluster or not.",
+			Description: "Whether to enable run command for the cluster.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -1410,12 +1410,12 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"internal_ingress_gateway_enabled": {
-						Description: "Is Istio Internal Ingress Gateway enabled?",
+						Description: "Whether Istio Internal Ingress Gateway is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"external_ingress_gateway_enabled": {
-						Description: "Is Istio External Ingress Gateway enabled?",
+						Description: "Whether Istio External Ingress Gateway is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -1473,8 +1473,8 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 		"service_principal": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ExactlyOneOf: []string{"identity", "service_principal"},
 			MaxItems:     1,
+			ExactlyOneOf: []string{"identity", "service_principal"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_id": {
@@ -1510,25 +1510,25 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"blob_driver_enabled": {
-						Description: "Is the Blob CSI driver enabled?",
+						Description: "Whether the Blob CSI driver is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
 					},
 					"disk_driver_enabled": {
-						Description: "Is the Disk CSI driver enabled?",
+						Description: "Whether the Disk CSI driver is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 					"file_driver_enabled": {
-						Description: "Is the File CSI driver enabled?",
+						Description: "Whether the File CSI driver is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
 					},
 					"snapshot_controller_enabled": {
-						Description: "Is the Snapshot Controller enabled?",
+						Description: "Whether the Snapshot Controller is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,

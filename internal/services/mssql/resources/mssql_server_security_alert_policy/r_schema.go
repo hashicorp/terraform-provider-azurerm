@@ -41,7 +41,7 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"email_account_admins_enabled": {
-			Description: "Are the alerts sent to the account administrators?",
+			Description: "Whether the alerts are sent to the account administrators.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -51,10 +51,10 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 			Description: "An array of email addresses to which the alert is sent.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"retention_days": {
@@ -78,16 +78,16 @@ func mssqlServerSecurityAlertPolicySchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			RequiredWith: []string{"storage_endpoint"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"storage_endpoint"},
 		},
 
 		"storage_endpoint": {
 			Description:  "The blob storage endpoint that will hold all Threat Detection audit logs (e.g., `https://example.blob.core.windows.net`).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			RequiredWith: []string{"storage_account_access_key"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"storage_account_access_key"},
 		},
 	}
 }

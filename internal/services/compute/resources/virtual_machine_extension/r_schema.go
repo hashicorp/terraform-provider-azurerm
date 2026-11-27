@@ -58,13 +58,13 @@ func virtualMachineExtensionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automatic_upgrade_enabled": {
-			Description: "Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension?",
+			Description: "Whether the Extension should be automatically updated whenever the Publisher releases a new version of this VM Extension.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"failure_suppression_enabled": {
-			Description: "Should failures from the extension be suppressed?",
+			Description: "Whether failures from the extension should be suppressed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

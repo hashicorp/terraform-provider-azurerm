@@ -79,7 +79,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityOptionalForceNew(),
 
 			"public_network_access_enabled": {
-				Description: "Whether or not public endpoint access is allowed for this server.",
+				Description: "Whether public endpoint access is allowed for this server.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

@@ -18,65 +18,65 @@ type ApplicationV1ToV2 struct{}
 func (ApplicationV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"display_name": {
-			Computed: true,
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 		"identity": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
 				"principal_id": {
-					Computed: true,
 					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 				"tenant_id": {
-					Computed: true,
 					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 				"type": {
-					Required: true,
 					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 			}},
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"location": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"public_network_access_enabled": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 		"resource_group_name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"sku": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"sub_domain": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Optional: true,
 			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 		"template": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
 			Computed: true,
 			ForceNew: true,
-			Optional: true,
-			Type:     pluginsdk.TypeString,
 		},
 	}
 }

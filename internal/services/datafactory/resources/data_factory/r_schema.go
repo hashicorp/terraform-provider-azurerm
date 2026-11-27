@@ -72,10 +72,10 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"publishing_enabled": {
-						Description: "Is automated publishing enabled?",
+						Description: "Whether automated publishing is enabled.",
 						Type:        pluginsdk.TypeBool,
-						Default:     true,
 						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
@@ -125,10 +125,10 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsUUID,
 					},
 					"publishing_enabled": {
-						Description: "Is automated publishing enabled?",
+						Description: "Whether automated publishing is enabled.",
 						Type:        pluginsdk.TypeBool,
-						Default:     true,
 						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
@@ -164,13 +164,13 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_virtual_network_enabled": {
-			Description: "Is Managed Virtual Network enabled?",
+			Description: "Whether Managed Virtual Network is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"public_network_enabled": {
-			Description: "Is the Data Factory visible to the public network?",
+			Description: "Whether the Data Factory is visible to the public network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -186,16 +186,16 @@ func dataFactorySchema() map[string]*pluginsdk.Schema {
 		"customer_managed_key_id": {
 			Description:  "The Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption.",
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 
 		"customer_managed_key_identity_id": {
 			Description:  "The ID of the User Assigned Identity associated with the Customer Managed Key. Can be left empty once factory is created to use the System Assigned Identity. See the [Microsoft documentation](https://learn.microsoft.com/azure/data-factory/enable-customer-managed-key) for more information.",
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 

@@ -38,8 +38,8 @@ func eventgridDomainSchema() map[string]*pluginsdk.Schema {
 			Description:  "The schema in which incoming events will be published to this domain.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(domains.InputSchemaEventGridSchema),
 			ForceNew:     true,
+			Default:      string(domains.InputSchemaEventGridSchema),
 			ValidateFunc: validation.StringInSlice(domains.PossibleValuesForInputSchema(), false),
 		},
 
@@ -47,45 +47,45 @@ func eventgridDomainSchema() map[string]*pluginsdk.Schema {
 		"input_mapping_fields": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
 						Description: "The ID of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"topic": {
 						Description: "The topic of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"event_time": {
 						Description: "The event time of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"event_type": {
 						Description: "The event type of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"subject": {
 						Description: "The subject of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"data_version": {
 						Description: "The data version of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 				},
 			},
@@ -95,34 +95,34 @@ func eventgridDomainSchema() map[string]*pluginsdk.Schema {
 		"input_mapping_default_values": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"event_type": {
 						Description: "The default event type of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"subject": {
 						Description: "The default subject of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 					"data_version": {
 						Description: "The default data version of the EventGrid Event to associate with the domain.",
 						Type:        pluginsdk.TypeString,
-						ForceNew:    true,
 						Optional:    true,
+						ForceNew:    true,
 					},
 				},
 			},
 		},
 
 		"public_network_access_enabled": {
-			Description: "Whether or not public network access is allowed for this server.",
+			Description: "Whether public network access is allowed for this server.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -164,8 +164,8 @@ func eventgridDomainSchema() map[string]*pluginsdk.Schema {
 		"inbound_ip_rule": {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   128,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {

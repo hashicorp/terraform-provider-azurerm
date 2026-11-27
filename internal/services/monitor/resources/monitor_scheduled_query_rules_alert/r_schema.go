@@ -73,7 +73,7 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azure.ValidateResourceID,
 		},
 		"auto_mitigation_enabled": {
-			Description:   "Should the alerts in this Metric Alert be auto resolved?",
+			Description:   "Whether the alerts in this Metric Alert should be auto resolved.",
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Default:       false,

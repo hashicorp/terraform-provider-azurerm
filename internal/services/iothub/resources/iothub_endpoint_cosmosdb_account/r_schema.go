@@ -94,8 +94,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Sensitive:     true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"identity_id"},
 			RequiredWith:  []string{"secondary_key"},
+			ConflictsWith: []string{"identity_id"},
 		},
 
 		"secondary_key": {
@@ -104,8 +104,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Sensitive:     true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"identity_id"},
 			RequiredWith:  []string{"primary_key"},
+			ConflictsWith: []string{"identity_id"},
 		},
 
 		"subscription_id": {

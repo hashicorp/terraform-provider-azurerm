@@ -33,7 +33,7 @@ func dedicatedHostGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automatic_placement_enabled": {
-			Description: "Would Virtual Machines or Virtual Machine Scale Sets be placed automatically on this Dedicated Host Group?",
+			Description: "Whether Virtual Machines or Virtual Machine Scale Sets are placed automatically on this Dedicated Host Group.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

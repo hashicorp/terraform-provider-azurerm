@@ -37,7 +37,7 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"user_upload_enabled": {
-						Description: "Is the user upload enabled for this site?",
+						Description: "Whether the user upload is enabled for this site.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -51,13 +51,13 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"endpoint_parameters_enabled": {
-						Description: "Is the endpoint parameters enabled for this site?",
+						Description: "Whether the endpoint parameters are enabled for this site.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"storage_enabled": {
-						Description: "Is the storage site enabled for detailed logging?",
+						Description: "Whether the storage site is enabled for detailed logging.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -80,12 +80,12 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 					"enhanced_authentication_enabled": {
 						Description: "Enables additional security measures for this site, see [Direct Line enhanced authentication](https://learn.microsoft.com/azure/bot-service/bot-builder-security-enhanced?view=azure-bot-service-4.0). Disabled by default.",
 						Type:        pluginsdk.TypeBool,
-						Default:     false,
 						Optional:    true,
+						Default:     false,
 					},
 
 					"trusted_origins": {
-						Description: "This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.",
+						Description: "This field is required when `enhanced_authentication_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{

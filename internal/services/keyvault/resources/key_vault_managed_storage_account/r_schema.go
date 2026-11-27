@@ -41,7 +41,7 @@ func keyVaultManagedStorageAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"regenerate_key_automatically": {
-			Description:  "Should Storage Account access key be regenerated periodically?",
+			Description:  "Whether Storage Account access key should be regenerated periodically.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			Default:      false,

@@ -69,8 +69,8 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 		"non_ssl_port_enabled": {
 			Description: "Enable the non-SSL port (6379) - disabled by default.",
 			Type:        pluginsdk.TypeBool,
-			Default:     false,
-			Optional:    true,
+
+			Optional: true, Default: false,
 		},
 
 		"subnet_id": {
@@ -226,8 +226,8 @@ func redisCacheSchema() map[string]*pluginsdk.Schema {
 						Description:      "The Weekday name.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     validation.IsDayOfTheWeek(true),
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"maintenance_window": {

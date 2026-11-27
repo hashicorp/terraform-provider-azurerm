@@ -5,6 +5,7 @@ package iothub_file_upload
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -95,7 +96,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("identity_id") {
 				if state.IdentityId != "" {
 					if state.AuthenticationType != string(devices.AuthenticationTypeIdentityBased) {
-						return fmt.Errorf("`identity_id` can only be specified when `authentication_type` is `identityBased`")
+						return errors.New("`identity_id` can only be specified when `authentication_type` is `identityBased`")
 					}
 					storageEndpoint.Identity = &devices.ManagedIdentity{
 						UserAssignedIdentity: pointer.To(state.IdentityId),

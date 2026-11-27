@@ -23,8 +23,8 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 		"read_access_id": {
 			Description:  "The ID of the readable Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.",
 			Type:         pluginsdk.TypeString,
-			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: azure.ValidateResourceID,
 			ExactlyOneOf: []string{"read_access_id", "write_access_id"},
 		},
@@ -38,7 +38,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 		},
 		// Exported properties
 		"name": {
-			Description: "The generated name of the Linked Service. The format for this attribute is always `<workspace name>/<linked service type>`(e.g. `workspace1/Automation` or `workspace1/Cluster`).",
+			Description: "The generated name of the Linked Service. The format for this attribute is always `<workspace name>/<linked service type>` (e.g. `workspace1/Automation` or `workspace1/Cluster`).",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},

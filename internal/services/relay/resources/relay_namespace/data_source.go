@@ -62,29 +62,29 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"primary_connection_string": {
 			Description: "The primary connection string for the authorization rule `RootManageSharedAccessKey`.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_key": {
 			Description: "The primary access key for the authorization rule `RootManageSharedAccessKey`.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_connection_string": {
 			Description: "The secondary connection string for the authorization rule `RootManageSharedAccessKey`.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_key": {
 			Description: "The secondary access key for the authorization rule `RootManageSharedAccessKey`.",
 			Type:        pluginsdk.TypeString,
-			Sensitive:   true,
 			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"sku_name": {

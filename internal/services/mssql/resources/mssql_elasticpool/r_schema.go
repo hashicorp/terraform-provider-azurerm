@@ -137,8 +137,8 @@ func mssqlElasticpoolSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// Note: O+C because this value is computed based on `max_size_gb` if not set
 			Computed:      true,
-			ConflictsWith: []string{"max_size_gb"},
 			ValidateFunc:  validation.IntAtLeast(0),
+			ConflictsWith: []string{"max_size_gb"},
 		},
 
 		"max_size_gb": {
@@ -147,12 +147,12 @@ func mssqlElasticpoolSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// Note: O+C because this value is computed based on `max_size_bytes` if not set
 			Computed:      true,
-			ConflictsWith: []string{"max_size_bytes"},
 			ValidateFunc:  validation.FloatAtLeast(0),
+			ConflictsWith: []string{"max_size_bytes"},
 		},
 
 		"zone_redundant": {
-			Description: "Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.",
+			Description: "Whether this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

@@ -79,14 +79,14 @@ func devTestLinuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allow_claim": {
-			Description: "Can this Virtual Machine be claimed by users?",
+			Description: "Whether this Virtual Machine can be claimed by users.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"disallow_public_ip_address": {
-			Description: "Should the Virtual Machine be created without a Public IP Address?",
+			Description: "Whether the Virtual Machine should be created without a Public IP Address.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

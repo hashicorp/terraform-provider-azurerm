@@ -73,7 +73,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"tcp_reset_enabled": {
-				Description: "Is the bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination enabled? This value is useful when the protocol is set to TCP.",
+				Description: "Whether the bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination is enabled. This value is useful when the protocol is set to TCP.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

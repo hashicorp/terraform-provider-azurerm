@@ -5,6 +5,7 @@ package redis_cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"slices"
@@ -66,7 +67,7 @@ func RegisterResource() *pluginsdk.Resource {
 				log.Printf("[DEBUG] CustomizeDiff: access_keys_authentication_enabled: %v, active_directory_authentication_enabled: %v", accessKeysAuthenticationEnabled, activeDirectoryAuthenticationEnabled)
 
 				if !accessKeysAuthenticationEnabled && !activeDirectoryAuthenticationEnabled {
-					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to disable `access_keys_authentication_enabled`")
+					return errors.New("`active_directory_authentication_enabled` must be enabled in order to disable `access_keys_authentication_enabled`")
 				}
 
 				return nil

@@ -14,10 +14,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description: "The name which should be used for this Container Registry Credential Set.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The name which should be used for this Container Registry Credential Set.",
 		},
 		"container_registry_id": {
 			Description:  "The ID of the Container Registry.",

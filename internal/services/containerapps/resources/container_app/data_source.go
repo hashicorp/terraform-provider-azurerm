@@ -60,7 +60,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"read_secrets": {
-			Description: "Should the data source read the secrets from the Container App?",
+			Description: "Whether the data source should read the secrets from the Container App.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -107,22 +107,22 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"latest_revision_name": {
+			Description: "The name of the latest Container Revision.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the latest Container Revision.",
 		},
 
 		"latest_revision_fqdn": {
+			Description: "The fully qualified domain name of the latest Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The fully qualified domain name of the latest Container App.",
 		},
 
 		"custom_domain_verification_id": {
+			Description: "The ID of the Custom Domain Verification for this Container App.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
-			Description: "The ID of the Custom Domain Verification for this Container App.",
 		},
 
 		"workload_profile_name": {

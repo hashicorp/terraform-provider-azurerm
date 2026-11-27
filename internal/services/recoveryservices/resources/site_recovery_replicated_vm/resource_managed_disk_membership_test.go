@@ -5,6 +5,7 @@ package site_recovery_replicated_vm_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -415,5 +416,5 @@ func (e expectReplaceThenFailPlan) CheckPlan(ctx context.Context, req plancheck.
 	}
 
 	// If it WAS a replace, we intentionally return an error so we can trap it with ExpectError and abort the apply!
-	resp.Error = fmt.Errorf("INTENTIONAL_PLAN_ABORT_FOR_REPLACE")
+	resp.Error = errors.New("INTENTIONAL_PLAN_ABORT_FOR_REPLACE")
 }

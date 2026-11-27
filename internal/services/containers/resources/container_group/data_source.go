@@ -59,10 +59,10 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Description: "The subnet resource IDs for a Container Group.",
 				Type:        pluginsdk.TypeSet,
 				Computed:    true,
+				Set:         pluginsdk.HashString,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-				Set: pluginsdk.HashString,
 			},
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),

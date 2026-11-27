@@ -96,13 +96,13 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 			Description: "The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
 
 				maskedNew := accountKeyRegex.ReplaceAllString(new, "AccountKey=****")
 				return (new == d.Get(k).(string)) && (maskedNew == old)
 			},
-			Sensitive:     true,
 			ConflictsWith: []string{"identity_id"},
 			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
@@ -113,8 +113,8 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 			Optional:         true,
 			ForceNew:         true,
 			Default:          string(devices.EncodingAvro),
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validation.StringInEnumSlice(devices.PossibleEncodingValues(), true),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"subscription_id": {

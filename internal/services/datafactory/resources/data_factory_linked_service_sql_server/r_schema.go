@@ -33,17 +33,17 @@ func dataFactoryLinkedServiceSqlServerSchema() map[string]*pluginsdk.Schema {
 			Description:      "The connection string in which to authenticate with the SQL Server.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
+			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 		},
 
 		"key_vault_connection_string": {
 			Description:  "Use this argument to store SQL Server connection string in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
 			MaxItems:     1,
+			ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"linked_service_name": {

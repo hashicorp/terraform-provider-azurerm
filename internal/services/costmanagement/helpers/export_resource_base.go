@@ -71,8 +71,8 @@ func (br CostManagementExportBaseResource) Arguments(fields map[string]*pluginsd
 
 		"export_data_storage_location": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_id": {
@@ -95,8 +95,8 @@ func (br CostManagementExportBaseResource) Arguments(fields map[string]*pluginsd
 
 		"export_data_options": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {

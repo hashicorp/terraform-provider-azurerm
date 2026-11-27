@@ -64,8 +64,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ExactlyOneOf: []string{"value", "value_from_key_vault"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{"value", "value_from_key_vault"},
 		},
 
 		"value_from_key_vault": {

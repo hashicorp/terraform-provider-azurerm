@@ -63,7 +63,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -164,7 +164,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -230,7 +230,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -283,7 +283,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -317,7 +317,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -341,7 +341,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -375,7 +375,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Description: "Whether to use common alert schema.",
+							Description: "Whether the common alert schema is used.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

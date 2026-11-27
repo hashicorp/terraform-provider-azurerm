@@ -53,7 +53,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"managed": {
-				Description: "Whether the Availability Set is managed or not.",
+				Description: "Whether the Availability Set is managed.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

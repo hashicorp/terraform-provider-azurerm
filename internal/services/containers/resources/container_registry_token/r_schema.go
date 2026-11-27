@@ -38,7 +38,7 @@ func containerRegistryTokenSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should the Container Registry token be enabled?",
+			Description: "Whether the Container Registry token should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

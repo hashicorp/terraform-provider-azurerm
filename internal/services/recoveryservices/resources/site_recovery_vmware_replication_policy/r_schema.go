@@ -5,6 +5,7 @@ package site_recovery_vmware_replication_policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
@@ -59,7 +60,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 			if plan.RecoveryPointRetentionInMinutes == 0 && plan.ApplicationConsistentSnapshotFrequencyInMinutes > 0 {
-				return fmt.Errorf("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero")
+				return errors.New("application_consistent_snapshot_frequency_in_minutes cannot be greater than zero when recovery_point_retention_in_minutes is set to zero")
 			}
 
 			return nil

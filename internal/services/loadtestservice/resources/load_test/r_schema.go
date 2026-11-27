@@ -22,48 +22,48 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 		"name": {
 			Description: "The name of this Load Test.",
-			ForceNew:    true,
-			Required:    true,
 			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
 			Description: "Description of the resource.",
-			Optional:    true,
 			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"encryption": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			ForceNew: true,
 			MaxItems: 1,
-			Optional: true,
-			Type:     pluginsdk.TypeList,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"key_url": {
 						Description:  "The URI specifying the Key Vault and key to be used to encrypt data in this resource. The URI should include the key version.",
-						ForceNew:     true,
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"identity": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
 						ForceNew: true,
 						MaxItems: 1,
-						Required: true,
-						Type:     pluginsdk.TypeList,
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"type": {
-									ForceNew:     true,
-									Required:     true,
 									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
 									ValidateFunc: validation.StringInSlice(loadtests.PossibleValuesForType(), false),
 								},
 								"identity_id": {
-									ForceNew:     true,
-									Required:     true,
 									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
 									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 								},
 							},
@@ -80,8 +80,8 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_plane_uri": {
 			Description: "Resource data plane URI.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

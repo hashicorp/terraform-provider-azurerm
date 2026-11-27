@@ -198,7 +198,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"hidden": {
-						Description: "Is the column hidden?",
+						Description: "Whether the column is hidden.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},

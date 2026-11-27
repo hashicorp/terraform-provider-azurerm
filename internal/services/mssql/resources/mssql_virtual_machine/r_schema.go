@@ -61,8 +61,8 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 									Description:      "Frequency of full backups.",
 									Type:             pluginsdk.TypeString,
 									Required:         true,
-									DiffSuppressFunc: suppress.CaseDifference,
 									ValidateFunc:     validation.StringInSlice(sqlvirtualmachines.PossibleValuesForFullBackupFrequencyType(), false),
+									DiffSuppressFunc: suppress.CaseDifference,
 								},
 
 								"full_backup_start_hour": {
@@ -175,7 +175,7 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
-						Description: "Should Assessment be enabled?",
+						Description: "Whether Assessment should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -190,15 +190,15 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 									Description:  "How many weeks between assessment runs.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ExactlyOneOf: []string{"assessment.0.schedule.0.monthly_occurrence"},
 									ValidateFunc: validation.IntBetween(1, 6),
+									ExactlyOneOf: []string{"assessment.0.schedule.0.monthly_occurrence"},
 								},
 								"monthly_occurrence": {
 									Description:  "How many months between assessment runs.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ExactlyOneOf: []string{"assessment.0.schedule.0.weekly_interval"},
 									ValidateFunc: validation.IntBetween(1, 5),
+									ExactlyOneOf: []string{"assessment.0.schedule.0.weekly_interval"},
 								},
 								"day_of_week": {
 									Description:  "What day of the week the assessment will be run.",
@@ -220,7 +220,7 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"run_immediately": {
-						Description: "Should Assessment be run immediately?",
+						Description: "Whether Assessment should be run immediately.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -275,7 +275,7 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"r_services_enabled": {
-			Description: "Should R Services be enabled?",
+			Description: "Whether R Services should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

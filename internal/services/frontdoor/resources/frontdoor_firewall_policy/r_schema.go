@@ -26,7 +26,7 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"enabled": {
-			Description: "Is the policy an enabled state or disabled state?",
+			Description: "Whether the policy is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -36,8 +36,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Description:  "The Firewall Policy mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
 			Default:      string(webapplicationfirewallpolicies.PolicyModePrevention),
+			ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
 		},
 
 		"redirect_url": {
@@ -69,8 +69,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"custom_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -81,7 +81,7 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"enabled": {
-						Description: "Is the rule enabled or disabled?",
+						Description: "Whether the rule is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -123,7 +123,7 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"match_condition": {
-						Description: "Can support up to `10` `match_condition` blocks?",
+						Description: "The conditions a request must match for this custom rule to apply.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						MaxItems:    10,
@@ -162,7 +162,7 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								},
 
 								"negation_condition": {
-									Description: "Should the result of the condition be negated?",
+									Description: "Whether the result of the condition should be negated.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
@@ -187,8 +187,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"managed_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 100,
 			Optional: true,
+			MaxItems: 100,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -207,8 +207,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"exclusion": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"match_variable": {
@@ -235,8 +235,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 					"override": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 100,
 						Optional: true,
+						MaxItems: 100,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"rule_group_name": {
@@ -248,8 +248,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 								"exclusion": {
 									Type:     pluginsdk.TypeList,
-									MaxItems: 100,
 									Optional: true,
+									MaxItems: 100,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"match_variable": {
@@ -277,8 +277,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								"rule": {
 									Description: "If none are specified, all of the rules in the group will be disabled.",
 									Type:        pluginsdk.TypeList,
-									MaxItems:    1000,
 									Optional:    true,
+									MaxItems:    1000,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"rule_id": {
@@ -289,7 +289,7 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 											},
 
 											"enabled": {
-												Description: "Is the managed rule override enabled or disabled?",
+												Description: "Whether the managed rule override is enabled.",
 												Type:        pluginsdk.TypeBool,
 												Optional:    true,
 												Default:     false,
@@ -297,8 +297,8 @@ func frontdoorFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 											"exclusion": {
 												Type:     pluginsdk.TypeList,
-												MaxItems: 100,
 												Optional: true,
+												MaxItems: 100,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"match_variable": {

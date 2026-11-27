@@ -14,7 +14,7 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": schemaz.SchemaApiManagementChildName("Specifies the name of the API Management Workspace Policy Fragment."),
+		"name": schemaz.SchemaApiManagementChildName("The name of the API Management Workspace Policy Fragment."),
 
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&policyfragment.WorkspaceId{}, "API Management Workspace'"),
 

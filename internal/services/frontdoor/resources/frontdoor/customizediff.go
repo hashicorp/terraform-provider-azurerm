@@ -125,7 +125,7 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 
 func verifyBackendPoolExists(backendPoolName string, backendPools []any) error {
 	if backendPoolName == "" {
-		return fmt.Errorf(`"backend_pool_name" cannot be empty`)
+		return errors.New(`"backend_pool_name" cannot be empty`)
 	}
 
 	for _, bps := range backendPools {

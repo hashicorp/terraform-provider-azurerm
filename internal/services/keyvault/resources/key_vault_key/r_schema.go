@@ -48,7 +48,7 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_opts": {
-			Description: "A list of JSON web key operations. Please note these values are case-sensitive.",
+			Description: "A list of JSON web key operations. These values are case-sensitive.",
 			Type:        pluginsdk.TypeList,
 			Required:    true,
 			Elem: &pluginsdk.Schema{
@@ -72,9 +72,6 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				return old == "SECP256K1" && new == string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK)
-			},
 			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 				out := []string{
 					string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSix),
@@ -84,6 +81,9 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 				}
 				return validation.StringInSlice(out, false)
 			}(),
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return old == "SECP256K1" && new == string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK)
+			},
 			// TODO: the curve name should probably be mandatory for EC in the future,
 			// but handle the diff so that we don't break existing configurations and
 			// imported EC keys
@@ -140,13 +140,13 @@ func keyVaultKeySchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
-						AtLeastOneOf: []string{
-							"rotation_policy.0.expire_after",
-							"rotation_policy.0.automatic",
-						},
 						RequiredWith: []string{
 							"rotation_policy.0.expire_after",
 							"rotation_policy.0.notify_before_expiry",
+						},
+						AtLeastOneOf: []string{
+							"rotation_policy.0.expire_after",
+							"rotation_policy.0.automatic",
 						},
 					},
 

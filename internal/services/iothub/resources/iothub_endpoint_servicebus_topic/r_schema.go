@@ -73,6 +73,7 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 			Description: "The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
 				sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
@@ -81,7 +82,6 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 				maskedNew = sharedAccessKeyRegex.ReplaceAllString(maskedNew, "SharedAccessKey=****")
 				return (new == d.Get(k).(string)) && (maskedNew == old)
 			},
-			Sensitive:     true,
 			ConflictsWith: []string{"identity_id"},
 			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},

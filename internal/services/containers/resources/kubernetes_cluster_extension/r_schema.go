@@ -34,7 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension_type": {
-			Description:  "The type of extension. For more information, please refer to [Available Extensions for AKS](https://learn.microsoft.com/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions).",
+			Description:  "The type of extension. For more information, refer to [Available Extensions for AKS](https://learn.microsoft.com/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -118,8 +118,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"version"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"version"},
 		},
 
 		"release_namespace": {
@@ -128,8 +128,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"target_namespace"},
 		},
 
 		"target_namespace": {
@@ -138,8 +138,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
-			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"release_namespace"},
 		},
 
 		"version": {
@@ -147,8 +147,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
-			ConflictsWith: []string{"release_train"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"release_train"},
 		},
 	}
 }

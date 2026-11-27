@@ -59,8 +59,8 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 		"encryption_in_transit_enabled": {
 			Description: "Whether encryption in transit is enabled for this HDInsight Kafka Cluster.",
 			Type:        pluginsdk.TypeBool,
-			ForceNew:    true,
 			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"disk_encryption": helpers.SchemaHDInsightsDiskEncryptionProperties(),
@@ -83,9 +83,10 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"rest_proxy": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"roles.0.kafka_management_node"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"security_group_id": {
@@ -105,7 +106,6 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			RequiredWith: []string{"roles.0.kafka_management_node"},
 		},
 
 		"tags": commonschema.Tags(),

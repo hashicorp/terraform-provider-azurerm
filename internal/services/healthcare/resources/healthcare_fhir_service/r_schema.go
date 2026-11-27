@@ -109,15 +109,15 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 					"image_name": {
 						Description:  "An image within Azure container registry used for export operations of the service instance.",
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"digest": {
 						Description:  "A digest of an image within Azure container registry used for export operations of the service instance to narrow the artifacts down.",
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},

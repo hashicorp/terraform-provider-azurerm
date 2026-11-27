@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -123,7 +124,7 @@ func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"compute_isolation_enabled": {
-					Description: "This field indicates whether to enable compute isolation or not.",
+					Description: "This field indicates whether to enable compute isolation.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -272,7 +273,7 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 				},
 
 				"private_link_enabled": {
-					Description: "Is the Private Link enabled?",
+					Description: "Whether the Private Link is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					ForceNew:    true,
@@ -850,7 +851,7 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"is_default": {
-					Description: "Is this the Default Storage Account for the HDInsight Hadoop Cluster?",
+					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 					ForceNew:    true,
@@ -890,7 +891,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"is_default": {
-					Description: "Is this the Default Storage Account for the HDInsight Hadoop Cluster?",
+					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 					ForceNew:    true,
@@ -1167,13 +1168,13 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
+			Set:         pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Set: pluginsdk.HashString,
-			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
 			},
 		},
 
@@ -1315,9 +1316,9 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: required,
 		Optional: !required,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: result,
 		},
@@ -1350,13 +1351,13 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
+			Set:         pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Set: pluginsdk.HashString,
-			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.password", schemaLocation),
 			},
 		},
 
@@ -1498,9 +1499,9 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Required: required,
 		Optional: !required,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: result,
 		},
@@ -1543,7 +1544,7 @@ func ExpandHDInsightNodeDefinition(name string, input []any, definition HDInsigh
 			Subnet: pointer.To(subnetId),
 		}
 	} else if (virtualNetworkSpecified && !subnetSpecified) || (subnetSpecified && !virtualNetworkSpecified) {
-		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty")
+		return nil, errors.New("`virtual_network_id` and `subnet_id` must both either be set or empty")
 	}
 
 	if password != "" {
@@ -1558,7 +1559,7 @@ func ExpandHDInsightNodeDefinition(name string, input []any, definition HDInsigh
 		}
 
 		if len(sshKeys) == 0 {
-			return nil, fmt.Errorf("either a `password` or `ssh_key` must be specified")
+			return nil, errors.New("either a `password` or `ssh_key` must be specified")
 		}
 
 		role.OsProfile.LinuxOperatingSystemProfile.SshProfile = &clusters.SshProfile{

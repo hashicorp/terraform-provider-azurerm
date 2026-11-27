@@ -45,8 +45,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Description: "List of IPv6 Addresses.",
 				Type:        pluginsdk.TypeSet,
 				Computed:    true,
-				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:         set.HashIPv6Address,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"ttl": {

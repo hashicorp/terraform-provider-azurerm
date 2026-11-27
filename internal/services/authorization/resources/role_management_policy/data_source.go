@@ -151,7 +151,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "Must an assignment have an expiry date?",
+						Description: "Whether an assignment must have an expiry date.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -172,7 +172,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_required": {
-						Description: "Must an assignment have an expiry date?",
+						Description: "Whether an assignment must have an expiry date.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -184,19 +184,19 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"require_multifactor_authentication": {
-						Description: "Is multi-factor authentication required to create new assignments?",
+						Description: "Whether multi-factor authentication is required to create new assignments.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_justification": {
-						Description: "Is a justification required to create new assignments?",
+						Description: "Whether a justification is required to create new assignments.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_ticket_info": {
-						Description: "Is ticket information required to create new assignments?",
+						Description: "Whether ticket information is required to create new assignments.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -217,7 +217,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"require_approval": {
-						Description: "Is approval required for activation?",
+						Description: "Whether approval is required for activation.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -259,19 +259,19 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"require_multifactor_authentication": {
-						Description: "Is multi-factor authentication required to activate the role?",
+						Description: "Whether multi-factor authentication is required to activate the role.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_justification": {
-						Description: "Is a justification required during activation of the role?",
+						Description: "Whether a justification is required during activation of the role.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
 
 					"require_ticket_info": {
-						Description: "Is ticket information required during activation of the role?",
+						Description: "Whether ticket information is required during activation of the role.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},
@@ -564,7 +564,7 @@ func notificationSettingsDataSourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"default_recipients": {
-			Description: "Should the default recipients receive these notifications?",
+			Description: "Whether the default recipients receive these notifications.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

@@ -42,7 +42,7 @@ func mssqlDatabaseExtendedAuditingPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_access_key_is_secondary": {
-			Description: "Is `storage_account_access_key` value the storage's secondary key?",
+			Description: "Whether the `storage_account_access_key` value is the storage's secondary key.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -57,7 +57,7 @@ func mssqlDatabaseExtendedAuditingPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_monitoring_enabled": {
-			Description: "Enable audit events to Azure Monitor?",
+			Description: "Whether to enable audit events to Azure Monitor.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

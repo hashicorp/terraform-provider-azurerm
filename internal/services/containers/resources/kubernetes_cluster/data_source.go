@@ -184,7 +184,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"azure_rbac_enabled": {
-							Description: "Is Role Based Access Control based on Azure AD enabled?",
+							Description: "Whether Role Based Access Control based on Azure AD is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -202,7 +202,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"azure_policy_enabled": {
-				Description: "Is Azure Policy enabled on this managed Kubernetes Cluster?",
+				Description: "Whether Azure Policy is enabled on this managed Kubernetes Cluster.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -246,7 +246,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"http_application_routing_enabled": {
-				Description: "Is HTTP Application Routing enabled for this managed Kubernetes Cluster?",
+				Description: "Whether HTTP Application Routing is enabled for this managed Kubernetes Cluster.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -319,7 +319,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_rotation_enabled": {
-							Description: "Is secret rotation enabled?",
+							Description: "Whether secret rotation is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -395,12 +395,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"msi_auth_for_monitoring_enabled": {
-							Description: "Is Managed Identity authentication for monitoring enabled?",
+							Description: "Whether Managed Identity authentication for monitoring is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
 						"retina_flow_logs_enabled": {
-							Description: "Is Retina Flow Logs collection enabled?",
+							Description: "Whether Retina Flow Logs collection is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -432,7 +432,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"open_service_mesh_enabled": {
-				Description: "Is Open Service Mesh enabled for this managed Kubernetes Cluster?",
+				Description: "Whether Open Service Mesh is enabled for this managed Kubernetes Cluster.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -717,7 +717,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"oidc_issuer_enabled": {
-				Description: "Whether or not the OIDC feature is enabled or disabled.",
+				Description: "Whether the OIDC feature is enabled or disabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -729,7 +729,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"role_based_access_control_enabled": {
-				Description: "Is Role Based Access Control enabled for this managed Kubernetes Cluster?",
+				Description: "Whether Role Based Access Control is enabled for this managed Kubernetes Cluster.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -784,12 +784,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"internal_ingress_gateway_enabled": {
-							Description: "Is Istio Internal Ingress Gateway enabled?",
+							Description: "Whether Istio Internal Ingress Gateway is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
 						"external_ingress_gateway_enabled": {
-							Description: "Is Istio External Ingress Gateway enabled?",
+							Description: "Whether Istio External Ingress Gateway is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

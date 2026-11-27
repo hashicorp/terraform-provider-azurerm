@@ -27,8 +27,8 @@ func routeFilterSchema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -57,7 +57,7 @@ func routeFilterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"communities": {
-						Description: "The collection for BGP community values to filter on. e.g. ['12076:5010','12076:5020'].",
+						Description: "The collection for BGP community values to filter on. e.g. `['12076:5010','12076:5020']`.",
 						Type:        pluginsdk.TypeList,
 						Required:    true,
 						MinItems:    1,

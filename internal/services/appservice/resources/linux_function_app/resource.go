@@ -5,6 +5,7 @@ package linux_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -66,7 +67,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("reading Service Plan for Linux %s: %+v", id, err)
 		}
 		if !strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") && !strings.Contains(strings.ToLower(*sp.Model.Kind), "elastic") && !strings.Contains(strings.ToLower(*sp.Model.Kind), "functionapp") {
-			return fmt.Errorf("specified Service Plan is not a Linux Functionapp plan")
+			return errors.New("specified Service Plan is not a Linux Functionapp plan")
 		}
 
 		return nil

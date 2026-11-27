@@ -5,7 +5,7 @@ package elastic_san_volume
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -82,26 +82,26 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_iqn": {
 			Description: "The iSCSI Target IQN of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_portal_hostname": {
 			Description: "The iSCSI Target Portal Host Name of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_portal_port": {
 			Description: "The iSCSI Target Portal Port of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_id": {
 			Description: "The UUID of the Elastic SAN Volume.",
-			Computed:    true,
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -111,7 +111,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("size_in_gib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("new size_in_gib should be greater than the existing one")
+				return errors.New("new size_in_gib should be greater than the existing one")
 			}
 
 			return nil

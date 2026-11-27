@@ -107,9 +107,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			// which leads to unnecessary resource recreation on subsequent plans where Terraform tries to remove it.
 			Computed:     true,
 			ForceNew:     true,
-			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
-			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"administrator_login", "administrator_login_password"},
+			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
 		},
 
 		"administrator_login_password": {
@@ -117,9 +117,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			AtLeastOneOf: []string{"administrator_login_password", "azure_active_directory_administrator"},
-			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"administrator_login", "administrator_login_password"},
+			AtLeastOneOf: []string{"administrator_login_password", "azure_active_directory_administrator"},
 		},
 
 		"azure_active_directory_administrator": {
@@ -170,9 +170,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "How the SQL Managed Instance will be collated.",
 			Type:         schema.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "SQL_Latin1_General_CP1_CI_AS",
 			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
 		},
 
 		"database_format": {
@@ -184,7 +184,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_zone_partner_id": {
-			Description:  "The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_sql_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.",
+			Description:  "The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_mssql_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.",
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
@@ -242,7 +242,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_data_endpoint_enabled": {
-			Description: "Is the public data endpoint enabled?",
+			Description: "Whether the public data endpoint is enabled.",
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -283,9 +283,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The TimeZone ID that the SQL Managed Instance will be operating in.",
 			Type:         schema.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "UTC",
 			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
 		},
 
 		"zone_redundant_enabled": {
@@ -348,7 +348,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			adminPassword := rawConfig["administrator_login_password"]
 
 			if aadAdminOk && !authOnlyEnabled && (adminLogin.IsNull() || adminPassword.IsNull()) {
-				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
+				return errors.New("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
 			// Unknown values can come from expressions and may later resolve to null, so only

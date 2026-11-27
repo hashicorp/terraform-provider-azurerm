@@ -102,14 +102,14 @@ func healthcareServiceSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						MaxItems:    64,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 						AtLeastOneOf: []string{
 							"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 							"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 							"cors_configuration.0.allow_credentials",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 					"allowed_headers": {
@@ -117,14 +117,14 @@ func healthcareServiceSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
 						MaxItems:    64,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 						AtLeastOneOf: []string{
 							"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
 							"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
 							"cors_configuration.0.allow_credentials",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 					"allowed_methods": {
@@ -132,6 +132,11 @@ func healthcareServiceSchema() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						MaxItems:    64,
+						AtLeastOneOf: []string{
+							"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+							"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+							"cors_configuration.0.allow_credentials",
+						},
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -144,11 +149,6 @@ func healthcareServiceSchema() map[string]*pluginsdk.Schema {
 								"PUT",
 								"PATCH",
 							}, false),
-						},
-						AtLeastOneOf: []string{
-							"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
-							"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
-							"cors_configuration.0.allow_credentials",
 						},
 					},
 					"max_age_in_seconds": {

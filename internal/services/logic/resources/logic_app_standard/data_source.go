@@ -61,7 +61,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"use_extension_bundle": {
-				Description: "Whether the Logic App should use the bundled extension package.",
+				Description: "Whether the Logic App uses the bundled extension package.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -73,7 +73,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"client_affinity_enabled": {
-				Description: "Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?",
+				Description: "Whether the Logic App sends session affinity cookies, which route client requests in the same session to the same instance.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -150,9 +150,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"storage_key_vault_secret_id": {
+				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend Storage Account for the Logic App.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend Storage Account for the Logic App.",
 			},
 
 			"storage_account_share_name": {
@@ -199,7 +199,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"public_network_access": {
-				Description: "Whether Public Network Access should be enabled or not.",
+				Description: "Whether Public Network Access is enabled.",
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
 			},
@@ -519,7 +519,7 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Description: "Should the Logic App be loaded at all times?",
+					Description: "Whether the Logic App is loaded at all times.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -533,7 +533,7 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Whether the HTTP2 protocol should be enabled.",
+					Description: "Whether the HTTP2 protocol is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -566,7 +566,7 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Should the Logic App `ip_restriction` configuration be used for the SCM too?",
+					Description: "Whether the Logic App `ip_restriction` configuration is used for the SCM too.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -584,13 +584,13 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker_process": {
-					Description: "Should the Logic App run in 32 bit mode, rather than 64 bit mode?",
+					Description: "Whether the Logic App runs in 32 bit mode, rather than 64 bit mode.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
 
 				"websockets_enabled": {
-					Description: "Should WebSockets be enabled?",
+					Description: "Whether WebSockets are enabled.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -614,7 +614,7 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"runtime_scale_monitoring_enabled": {
-					Description: "Should Runtime Scale Monitoring be enabled? Only applicable to apps on the Premium plan.",
+					Description: "Whether Runtime Scale Monitoring is enabled. Only applicable to apps on the Premium plan.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -626,7 +626,7 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"vnet_route_all_enabled": {
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Whether all outbound traffic has Virtual Network Security Groups and User Defined Routes applied.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -659,7 +659,7 @@ func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {
 					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 				"support_credentials": {
-					Description: "Are credentials supported?",
+					Description: "Whether credentials are supported.",
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
 				},
@@ -705,7 +705,7 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 				},
 
 				"action": {
-					Description: "Does this restriction `Allow` or `Deny` access for this IP range?",
+					Description: "Whether this restriction allows or denies access for this IP range.",
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 				},
@@ -718,7 +718,7 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 						Schema: map[string]*pluginsdk.Schema{
 							// lintignore:S018
 							"x_forwarded_host": {
-								Description: "A list of allowed 'X-Forwarded-Host' domains.",
+								Description: "A list of allowed `X-Forwarded-Host` domains.",
 								Type:        pluginsdk.TypeSet,
 								Computed:    true,
 								Elem: &pluginsdk.Schema{
@@ -728,7 +728,7 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 
 							// lintignore:S018
 							"x_forwarded_for": {
-								Description: "A list of allowed 'X-Forwarded-For' IPs in CIDR notation.",
+								Description: "A list of allowed `X-Forwarded-For` IPs in CIDR notation.",
 								Type:        pluginsdk.TypeSet,
 								Computed:    true,
 								Elem: &pluginsdk.Schema{

@@ -39,7 +39,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"load_balancer_enabled": {
-			Description: "Should the Front Door Load Balancer be enabled?",
+			Description: "Whether the Front Door Load Balancer should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -49,8 +49,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"routing_rule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 500,
 			Required: true,
+			MaxItems: 500,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -107,7 +107,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"custom_fragment": {
-									Description: "The destination fragment in the portion of URL after '#'. Set this to add a fragment to the redirect URL.",
+									Description: "The destination fragment in the portion of URL after `#`. Set this to add a fragment to the redirect URL.",
 									Type:        pluginsdk.TypeString,
 									Optional:    true,
 								},
@@ -209,8 +209,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"backend_pool_load_balancing": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 5000,
 			Required: true,
+			MaxItems: 5000,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -248,8 +248,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"backend_pool_health_probe": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 5000,
 			Required: true,
+			MaxItems: 5000,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -264,7 +264,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"enabled": {
-						Description: "Is this health probe enabled?",
+						Description: "Whether this health probe is enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -306,12 +306,12 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"backend": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 500,
 						Required: true,
+						MaxItems: 500,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
-									Description: "Whether the backend is enabled or not.",
+									Description: "Whether the backend is enabled.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     true,
@@ -404,8 +404,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"frontend_endpoint": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 500,
 			Required: true,
+			MaxItems: 500,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -420,7 +420,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"host_name": {
-						Description: "The host name of the `frontend_endpoint`. In order to use a name.azurefd.net domain, the name value must match the Front Door name.",
+						Description: "The host name of the `frontend_endpoint`. To use a name.azurefd.net domain, the name value must match the Front Door name.",
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 					},

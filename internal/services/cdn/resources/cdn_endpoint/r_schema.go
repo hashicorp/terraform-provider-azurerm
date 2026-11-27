@@ -109,10 +109,10 @@ func cdnEndpointSchema() map[string]*pluginsdk.Schema {
 			Description: "An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"is_compression_enabled": {
@@ -160,7 +160,7 @@ func cdnEndpointSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"optimization_type": {
-			Description:  "What types of optimization should this CDN Endpoint optimize for?",
+			Description:  "The type of optimization this CDN Endpoint should optimize for.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInEnumSlice(cdn.PossibleOptimizationTypeValues(), false),

@@ -62,15 +62,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 						"principal_id": {
 							Description: "The principal UUID for the internal databricks disks identity needed to provide access to the workspace for enabling Customer Managed Keys.",
 							Type:        pluginsdk.TypeString,
-							Sensitive:   true,
 							Computed:    true,
+							Sensitive:   true,
 						},
 
 						"tenant_id": {
 							Description: "The UUID of the tenant where the internal databricks disks identity was created.",
 							Type:        pluginsdk.TypeString,
-							Sensitive:   true,
 							Computed:    true,
+							Sensitive:   true,
 						},
 
 						"type": {
@@ -90,15 +90,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 						"principal_id": {
 							Description: "The principal UUID for the internal databricks Storage Account needed to provide access to the workspace for enabling Customer Managed Keys.",
 							Type:        pluginsdk.TypeString,
-							Sensitive:   true,
 							Computed:    true,
+							Sensitive:   true,
 						},
 
 						"tenant_id": {
 							Description: "The UUID of the tenant where the internal databricks Storage Account was created.",
 							Type:        pluginsdk.TypeString,
-							Sensitive:   true,
 							Computed:    true,
+							Sensitive:   true,
 						},
 
 						"type": {
@@ -158,7 +158,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"no_public_ip": {
-							Description: "Are public IP Addresses not allowed?",
+							Description: "Whether public IP Addresses are not allowed.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

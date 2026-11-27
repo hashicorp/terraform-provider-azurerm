@@ -132,7 +132,7 @@ func datadogMonitorSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"monitoring_enabled": {
-			Description: "Is monitoring enabled?",
+			Description: "Whether monitoring is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

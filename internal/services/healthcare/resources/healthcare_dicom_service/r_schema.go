@@ -142,11 +142,11 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_partitions_enabled": {
-			Description: "If data partitions are enabled or not.",
+			Description: "If data partitions are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     false,
 			ForceNew:    true,
+			Default:     false,
 		},
 
 		"encryption_key_url": {

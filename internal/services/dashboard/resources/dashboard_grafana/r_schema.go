@@ -165,8 +165,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The size of the SKU used for the Grafana instance.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      managedgrafanas.SizeXOne,
 			ForceNew:     true,
+			Default:      managedgrafanas.SizeXOne,
 			ValidateFunc: validation.StringInSlice(managedgrafanas.PossibleValuesForSize(), false),
 		},
 
@@ -175,8 +175,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"zone_redundancy_enabled": {
 			Description: "Whether to enable the zone redundancy setting of the Grafana instance.",
 			Type:        pluginsdk.TypeBool,
-			ForceNew:    true,
 			Optional:    true,
+			ForceNew:    true,
 			Default:     false,
 		},
 	}

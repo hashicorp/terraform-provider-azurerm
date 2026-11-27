@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"regexp"
@@ -87,7 +88,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"linux_os_config": SchemaNodePoolLinuxOSConfig(),
 
 					"fips_enabled": {
-						Description: "Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block.",
+						Description: "Whether the nodes in this Node Pool should have Federal Information Processing Standard enabled. `temporary_name_for_rotation` must be specified when changing this block.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -207,8 +208,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"ultra_ssd_enabled": {
 						Description: "Used to specify whether the UltraSSD is enabled in the Default Node Pool. See [the documentation](https://learn.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.",
 						Type:        pluginsdk.TypeBool,
-						Default:     false,
 						Optional:    true,
+						Default:     false,
 					},
 
 					"vnet_subnet_id": {
@@ -285,19 +286,19 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"zones": commonschema.ZonesMultipleOptional(),
 
 					"auto_scaling_enabled": {
-						Description: "Should [the Kubernetes Auto Scaler](https://learn.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?",
+						Description: "Whether [the Kubernetes Auto Scaler](https://learn.microsoft.com/azure/aks/cluster-autoscaler) should be enabled for this Node Pool.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"node_public_ip_enabled": {
-						Description: "Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.",
+						Description: "Whether nodes in this Node Pool should have a Public IP Address. `temporary_name_for_rotation` must be specified when changing this property.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"host_encryption_enabled": {
-						Description: "Should the nodes in the Default Node Pool have host encryption enabled? `temporary_name_for_rotation` must be specified when changing this property.",
+						Description: "Whether the nodes in the Default Node Pool should have host encryption enabled. `temporary_name_for_rotation` must be specified when changing this property.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -372,10 +373,10 @@ func SchemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				},
 
 				"cpu_cfs_quota_enabled": {
-					Description: "Is CPU CFS quota enforcement for containers enabled?",
+					Description: "Whether CPU CFS quota enforcement for containers is enabled.",
 					Type:        pluginsdk.TypeBool,
-					Default:     true,
 					Optional:    true,
+					Default:     true,
 				},
 
 				"cpu_cfs_quota_period": {
@@ -655,7 +656,7 @@ func SchemaNodePoolSysctlConfig() *pluginsdk.Schema {
 				},
 
 				"net_ipv4_tcp_tw_reuse": {
-					Description: "Is sysctl setting net.ipv4.tcp_tw_reuse enabled?",
+					Description: "Whether sysctl setting net.ipv4.tcp_tw_reuse is enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 				},
@@ -1094,7 +1095,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 		// Count must be set for the initial creation when using AutoScaling but cannot be updated
 		if d.HasChange("default_node_pool.0.node_count") && !d.IsNewResource() {
-			return nil, fmt.Errorf("cannot change `node_count` when `auto_scaling_enabled` is set to `true`")
+			return nil, errors.New("cannot change `node_count` when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if maxCount > 0 {
@@ -1104,7 +1105,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `auto_scaling_enabled` is set to `true`", count, maxCount)
 			}
 		} else {
-			return nil, fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return nil, errors.New("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > 0 {
@@ -1114,11 +1115,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `auto_scaling_enabled` is set to `true`", count, minCount)
 			}
 		} else {
-			return nil, fmt.Errorf("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
+			return nil, errors.New("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > maxCount {
-			return nil, fmt.Errorf("`max_count` must be >= `min_count`")
+			return nil, errors.New("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
 		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
@@ -1267,10 +1268,10 @@ func ExpandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConf
 	netIpv4IPLocalPortRangeMin := raw["net_ipv4_ip_local_port_range_min"].(int)
 	netIpv4IPLocalPortRangeMax := raw["net_ipv4_ip_local_port_range_max"].(int)
 	if (netIpv4IPLocalPortRangeMin != 0 && netIpv4IPLocalPortRangeMax == 0) || (netIpv4IPLocalPortRangeMin == 0 && netIpv4IPLocalPortRangeMax != 0) {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
+		return nil, errors.New("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
 	}
 	if netIpv4IPLocalPortRangeMin > netIpv4IPLocalPortRangeMax {
-		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
+		return nil, errors.New("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
 	}
 	if netIpv4IPLocalPortRangeMin != 0 && netIpv4IPLocalPortRangeMax != 0 {
 		result.NetIPv4IPLocalPortRange = pointer.To(fmt.Sprintf("%d %d", netIpv4IPLocalPortRangeMin, netIpv4IPLocalPortRangeMax))
@@ -1867,7 +1868,7 @@ func FindDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 		}
 
 		if defaultNodePoolName == nil {
-			return nil, fmt.Errorf("unable to Determine Default Agent Pool")
+			return nil, errors.New("unable to Determine Default Agent Pool")
 		}
 	}
 

@@ -5,6 +5,7 @@ package mssql_database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 
@@ -98,7 +99,7 @@ func calculateMaxSizeBytes(v float64) (*int64, error) {
 		case 5:
 			maxSizeBytes = 524288000
 		default:
-			return nil, fmt.Errorf("`max_size_gb` allows `0.1`, `0.5` and positive integers greater than or equal to 1")
+			return nil, errors.New("`max_size_gb` allows `0.1`, `0.5` and positive integers greater than or equal to 1")
 		}
 	}
 	return pointer.To(maxSizeBytes), nil

@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -66,8 +67,8 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					Required:         true,
 					ForceNew:         true,
 					Sensitive:        true,
-					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 					ValidateFunc:     ValidatePasswordComplexityWindows,
+					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 				},
 
 				"computer_name_prefix": ComputerPrefixWindowsSchema(),
@@ -81,18 +82,18 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				},
 
 				"hotpatching_enabled": {
-					Description: "Should the VM be patched without requiring a reboot? For more information about hot patching please see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
+					Description: "Whether the VM should be patched without requiring a reboot. For more information about hot patching see the [product documentation](https://learn.microsoft.com/azure/automanage/automanage-hotpatch).",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 
 				"provision_vm_agent": {
-					Description: "Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set?",
+					Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     true,
 					ForceNew:    true,
+					Default:     true,
 				},
 
 				"patch_assessment_mode": {
@@ -104,7 +105,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				},
 
 				"patch_mode": {
-					Description:  "The mode of in-guest patching of this Windows Virtual Machine. For more information on patch modes please see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
+					Description:  "The mode of in-guest patching of this Windows Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
@@ -147,8 +148,8 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 					Optional:         true,
 					ForceNew:         true,
 					Sensitive:        true,
-					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 					ValidateFunc:     ValidatePasswordComplexityLinux,
+					DiffSuppressFunc: AdminPasswordDiffSuppressFunc,
 				},
 
 				"admin_ssh_key":        SSHKeysSchema(false),
@@ -162,11 +163,11 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				},
 
 				"provision_vm_agent": {
-					Description: "Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set?",
+					Description: "Whether the Azure VM Agent should be provisioned on each Virtual Machine in the Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     true,
 					ForceNew:    true,
+					Default:     true,
 				},
 
 				"patch_assessment_mode": {
@@ -178,7 +179,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				},
 
 				"patch_mode": {
-					Description:  "The mode of in-guest patching of this Linux Virtual Machine. For more information on patch modes please see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
+					Description:  "The mode of in-guest patching of this Linux Virtual Machine. For more information on patch modes see the [product documentation](https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
@@ -227,7 +228,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				},
 
 				"auto_upgrade_minor_version_enabled": {
-					Description: "Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation.",
+					Description: "Whether the latest version of the Extension should be used at Deployment Time, if one is available. This won't auto-update the extension on existing installation.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
@@ -235,7 +236,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 
 				// Only supported in Orchestrated mode
 				"failure_suppression_enabled": {
-					Description: "Should failures from the extension be suppressed?",
+					Description: "Whether failures from the extension should be suppressed.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -350,7 +351,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 				},
 
 				"primary": {
-					Description: "Is this the Primary IP Configuration?",
+					Description: "Whether this is the Primary IP Configuration.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -380,32 +381,32 @@ func OrchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Description: "A list of Backend Address Pools IDs from an Application Gateway which this Virtual Machine Scale Set should be connected to.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
-					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					Set:         pluginsdk.HashString,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 
 				"application_security_group_ids": {
 					Description: "A list of Application Security Group IDs which this Virtual Machine Scale Set should be connected to.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
+					MaxItems:    20,
+					Set:         pluginsdk.HashString,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 					},
-					Set:      pluginsdk.HashString,
-					MaxItems: 20,
 				},
 
 				"load_balancer_backend_address_pool_ids": {
 					Description: "A list of Backend Address Pools IDs from a Load Balancer which this Virtual Machine Scale Set should be connected to.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
-					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					Set:         pluginsdk.HashString,
+					Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 
 				"primary": {
-					Description: "Is this the Primary IP Configuration for this Network Interface?",
+					Description: "Whether this is the Primary IP Configuration for this Network Interface.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -555,11 +556,11 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Description: "The create option which should be used for this Data Disk. (FromImage should only be used if the source image includes data disks).",
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
+					Default:     string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 						string(virtualmachinescalesets.DiskCreateOptionTypesFromImage),
 					}, false),
-					Default: string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 				},
 
 				"disk_encryption_set_id": {
@@ -605,19 +606,19 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_iops_read_write": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntAtLeast(1),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
 					// Note: O+C because Azure assigns IOPS based on disk size when not specified
-					Computed: true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"disk_mbps_read_write": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntAtLeast(1),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
 					// Note: O+C because Azure assigns throughput based on disk size when not specified
-					Computed: true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 			},
 		},
@@ -632,11 +633,11 @@ func OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ultra_ssd_enabled": {
-					Description: "Should the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type be supported on this Virtual Machine Scale Set?",
+					Description: "Whether the capacity to enable Data Disks of the `UltraSSD_LRS` Storage Account type should be supported on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     false,
 					ForceNew:    true,
+					Default:     false,
 				},
 			},
 		},
@@ -739,7 +740,7 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
-					Description: "Should the termination notification be enabled on this Virtual Machine Scale Set?",
+					Description: "Whether the termination notification should be enabled on this Virtual Machine Scale Set.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
 				},
@@ -747,8 +748,8 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 					Description:  "Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in `ISO 8601` format.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 				},
 			},
 		},
@@ -766,15 +767,15 @@ func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Sche
 					Description:  "The base number of VMs of `Regular` priority that will be created before any VMs of priority `Spot` are created.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 1000),
 					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 1000),
 				},
 				"regular_percentage_above_base": {
 					Description:  "The desired percentage of VM instances that are of `Regular` priority after the base count has been reached.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
 					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 100),
 				},
 			},
 		},
@@ -1098,7 +1099,7 @@ func ExpandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]any)
 	primary := raw["primary"].(bool)
 	version := virtualmachinescalesets.IPVersion(raw["version"].(string))
 	if primary && version == virtualmachinescalesets.IPVersionIPvSix {
-		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, errors.New("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration{
@@ -1242,7 +1243,7 @@ func ExpandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	version := virtualmachinescalesets.IPVersion(raw["version"].(string))
 
 	if primary && version == virtualmachinescalesets.IPVersionIPvSix {
-		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, errors.New("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration{
@@ -1327,7 +1328,7 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []any, ultraSSDEnabl
 		}
 
 		if iops > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, errors.New("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1341,7 +1342,7 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []any, ultraSSDEnabl
 		}
 
 		if mbps > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, errors.New("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1483,7 +1484,7 @@ func ExpandOrchestratedVirtualMachineScaleSetExtensions(input []any) (extensionP
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			if protectedSettingsFromKeyVault != nil {
-				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+				return nil, false, errors.New("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
 			}
 
 			var result any

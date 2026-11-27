@@ -1,0 +1,172 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package storage_blob
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceStorageBlobRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"storage_container_id": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"access_tier": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"content_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"content_md5": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"cache_control": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"source_uri": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"metadata": helpers.MetaDataComputedSchema(),
+		},
+	}
+}
+
+func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+	var err error
+
+	containerIdStr := d.Get("storage_container_id").(string)
+	containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+	if err != nil {
+		return err
+	}
+	accountName = containerId.StorageAccountName
+	containerName = containerId.ContainerName
+	account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+	}
+
+	if account == nil {
+		return fmt.Errorf("locating Storage Account %q", accountName)
+	}
+
+	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Blobs Client: %v", err)
+	}
+
+	blobEndpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	if err != nil {
+		return fmt.Errorf("retrieving the blob data plane endpoint: %v", err)
+	}
+
+	accountId, err := accounts.ParseAccountID(*blobEndpoint, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	id := blobs.NewBlobID(*accountId, containerName, name)
+
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+	if err != nil {
+		if response.WasNotFound(props.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+
+		return fmt.Errorf("retrieving properties for %s: %v", id, err)
+	}
+
+	d.Set("name", name)
+	d.Set("storage_container_id", commonids.NewStorageContainerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
+
+	d.Set("access_tier", string(props.AccessTier))
+	d.Set("content_type", props.ContentType)
+	d.Set("cache_control", props.CacheControl)
+
+	// Set the ContentMD5 value to md5 hash in hex
+	contentMD5 := ""
+	if props.ContentMD5 != "" {
+		contentMD5, err = helpers.ConvertBase64ToHexEncoding(props.ContentMD5)
+		if err != nil {
+			return fmt.Errorf("in converting hex to base64 encoding for content_md5: %s", err)
+		}
+	}
+	d.Set("content_md5", contentMD5)
+	d.Set("encryption_scope", props.EncryptionScope)
+	d.Set("source_uri", props.CopySource)
+
+	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
+
+	d.SetId(id.ID())
+
+	d.Set("url", id.ID())
+
+	if err := d.Set("metadata", helpers.FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("setting `metadata`: %+v", err)
+	}
+
+	return nil
+}

@@ -13,11 +13,11 @@ import (
 func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The fully qualified name of the Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The fully qualified name of the Custom Domain.",
 		},
 
 		"container_app_id": {
@@ -33,16 +33,16 @@ func (a Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"certificate_binding_type"},
 			ValidateFunc: managedenvironments.ValidateCertificateID,
+			RequiredWith: []string{"certificate_binding_type"},
 		},
 
 		"certificate_binding_type": {
+			Description:  "The Certificate Binding type.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
-			Description:  "The Certificate Binding type.",
 		},
 	}
 }

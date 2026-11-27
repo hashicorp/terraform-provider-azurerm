@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/resources/vmware_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/resources/vmware_express_route_authorization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/resources/vmware_netapp_volume_attachment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/resources/vmware_private_cloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,22 +41,22 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_vmware_private_cloud": dataSourceVmwarePrivateCloud(),
+		"azurerm_vmware_private_cloud": vmware_private_cloud.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_vmware_cluster":                     resourceVmwareCluster(),
-		"azurerm_vmware_express_route_authorization": resourceVmwareExpressRouteAuthorization(),
-		"azurerm_vmware_private_cloud":               resourceVmwarePrivateCloud(),
+		"azurerm_vmware_cluster":                     vmware_cluster.RegisterResource(),
+		"azurerm_vmware_express_route_authorization": vmware_express_route_authorization.RegisterResource(),
+		"azurerm_vmware_private_cloud":               vmware_private_cloud.RegisterResource(),
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		NetappFileVolumeAttachmentResource{},
+		vmware_netapp_volume_attachment.Resource{},
 	}
 }
 
