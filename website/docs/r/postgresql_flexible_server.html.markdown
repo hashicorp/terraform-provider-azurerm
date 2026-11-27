@@ -180,7 +180,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15`, `16`, `17`, and `18`. Required when `create_mode` is `Default`.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, and `19`. Required when `create_mode` is `Default`.
 
 -> **Note:** Downgrading `version` isn't supported and will force a new PostgreSQL Flexible Server to be created.
 
@@ -272,7 +272,7 @@ A `cluster` block supports the following:
 
 -> **Note:** The maximum supported cluster size is currently 20 nodes. Support for up to 32 nodes will be available in the near future.
 
--> **Note:** Cluster support is only available for PostgreSQL version 17 and above, and is not supported when `create_mode` is set to anything other than `Default`.
+~> **Note:** The `cluster` block requires PostgreSQL version `17` or `18`. If `create_mode` is set, it must be `Default`.
 
 -> **Note:** The cluster `size` can only be increased, not decreased. Attempting to reduce the cluster size will result in an error.
 

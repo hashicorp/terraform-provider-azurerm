@@ -208,7 +208,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 				return nil
 			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
-				// only pg 17+ support cluster, and cluster does not support major version upgrade
+				// only PostgreSQL versions 17, 18 support cluster, and cluster does not support major version upgrade
 				if _, ok := diff.GetOk("cluster"); !ok {
 					return nil
 				}
@@ -239,11 +239,8 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 
 				versionOld, versionNew := diff.GetChange("version")
-				// version should be set since cluster only support pg17+
-				if version, err := strconv.ParseInt(versionNew.(string), 10, 32); err != nil {
-					return fmt.Errorf("parsing `version` %q: %v", versionNew.(string), err)
-				} else if version < 17 {
-					return errors.New("`cluster` is only supported for PostgreSQL major version 17 or above")
+				if versionNew != postgresqlVersion17 && versionNew != postgresqlVersion18 {
+					return fmt.Errorf("`cluster` requires PostgreSQL major version `%s` or `%s`, got `%s`", postgresqlVersion17, postgresqlVersion18, versionNew)
 				}
 
 				// major version upgrade is not allowed when cluster is enabled
