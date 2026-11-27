@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_qumulo_file_system"
 }
+
+func (r Resource) Description() string {
+	return "Manages an Azure Native Qumulo Scalable File System."
+}

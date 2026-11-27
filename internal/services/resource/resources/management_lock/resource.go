@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagementLockCreate,
-		Read:   resourceManagementLockRead,
-		Delete: resourceManagementLockDelete,
+		Description: "Manages a Management Lock which is scoped to a Subscription, Resource Group or Resource.",
+		Create:      resourceManagementLockCreate,
+		Read:        resourceManagementLockRead,
+		Delete:      resourceManagementLockDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := managementlocks.ParseScopedLockID(id)

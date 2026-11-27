@@ -23,26 +23,30 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceResourcesRead,
+		Description: "Use this data source to access information about existing resources.",
+		Read:        dataSourceResourcesRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "The name of the Resource.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 			},
 			"resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "The name of the Resource Group where the Resources are located.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 			},
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
+				Description: "The Resource Type of the Resources you want to list (e.g. `Microsoft.Network/virtualNetworks`). A resource type's name follows the format: `{resource-provider}/{resource-type}`. The resource type for a Key Vault is `Microsoft.KeyVault/vaults`. A full list of available Resource Providers can be found [here](https://learn.microsoft.com/azure/azure-resource-manager/azure-services-resource-providers). A full list of Resources Types can be found [here](https://learn.microsoft.com/azure/templates/#find-resources).",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"required_tags": commonschema.Tags(),
@@ -53,20 +57,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of this Resource.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of this Resource.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"resource_group_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Resource Group in which this Resource exists.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of this Resource. (e.g. `Microsoft.Network/virtualNetworks`).",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"location": commonschema.LocationComputed(),
 						"tags":     commonschema.TagsDataSource(),

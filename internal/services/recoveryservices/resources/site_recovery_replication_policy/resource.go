@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSiteRecoveryReplicationPolicyCreate,
-		Read:   resourceSiteRecoveryReplicationPolicyRead,
-		Update: resourceSiteRecoveryReplicationPolicyUpdate,
-		Delete: resourceSiteRecoveryReplicationPolicyDelete,
+		Description: "Manages an Azure Site Recovery replication policy within a recovery vault. Replication policies define the frequency at which recovery points are created and how long they are stored.",
+		Create:      resourceSiteRecoveryReplicationPolicyCreate,
+		Read:        resourceSiteRecoveryReplicationPolicyRead,
+		Update:      resourceSiteRecoveryReplicationPolicyUpdate,
+		Delete:      resourceSiteRecoveryReplicationPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := replicationpolicies.ParseReplicationPolicyID(id)
 			return err

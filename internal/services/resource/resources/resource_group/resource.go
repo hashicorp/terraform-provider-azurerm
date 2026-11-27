@@ -17,11 +17,12 @@ const resourceGroupResourceName = "azurerm_resource_group"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceResourceGroupCreate,
-		Read:     resourceResourceGroupRead,
-		Update:   resourceResourceGroupUpdate,
-		Delete:   resourceResourceGroupDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.ResourceGroupId{}),
+		Description: "Manages a Resource Group.",
+		Create:      resourceResourceGroupCreate,
+		Read:        resourceResourceGroupRead,
+		Update:      resourceResourceGroupUpdate,
+		Delete:      resourceResourceGroupDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.ResourceGroupId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),

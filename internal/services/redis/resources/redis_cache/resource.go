@@ -24,11 +24,12 @@ var redisCacheResourceName = "azurerm_redis_cache"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceRedisCacheCreate,
-		Read:     resourceRedisCacheRead,
-		Update:   resourceRedisCacheUpdate,
-		Delete:   resourceRedisCacheDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&redisresources.RediId{}),
+		Description: "Manages a Redis Cache.",
+		Create:      resourceRedisCacheCreate,
+		Read:        resourceRedisCacheRead,
+		Update:      resourceRedisCacheUpdate,
+		Delete:      resourceRedisCacheDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&redisresources.RediId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&redisresources.RediId{}),

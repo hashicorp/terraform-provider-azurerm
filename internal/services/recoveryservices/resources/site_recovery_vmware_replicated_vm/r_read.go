@@ -151,12 +151,14 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_id": {
+				Description:  "The ID of the disk to be replicated.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"target_disk_type": {
+				Description:  "The disk type of the disk to be created when a failover is done.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
@@ -173,32 +175,37 @@ func resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema() *pluginsdk.R
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_mac_address": {
+				Description:  "Mac address of the network interface of source VM.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5}$`), "The `source_mac_address` must be in format `00:00:00:00:00:00`"),
 			},
 
 			"target_static_ip": {
+				Description:  "Static IP to assign when a failover is done.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"target_subnet_name": {
+				Description:  "Name of the subnet to use when a failover is done.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"test_subnet_name": {
+				Description:  "Name of the subnet to use when a test failover is done.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"is_primary": {
-				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Description: "Whether this `network_interface` is primary for the replicated VM.",
+				Type:        pluginsdk.TypeBool,
+				Required:    true,
 			},
 		},
 	}

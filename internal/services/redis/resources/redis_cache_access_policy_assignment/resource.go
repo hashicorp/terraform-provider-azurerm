@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_redis_cache_access_policy_assignment"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Redis Cache Access Policy Assignment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return rediscacheaccesspolicyassignments.ValidateAccessPolicyAssignmentID
 }

@@ -16,6 +16,7 @@ func backupProtectedFileShareSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the Recovery Services Vault to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func backupProtectedFileShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_storage_account_id": {
+			Description:  "The ID of the Storage Account of the file share to backup.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func backupProtectedFileShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"source_file_share_name": {
+			Description:  "The name of the file share to backup.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -37,6 +40,7 @@ func backupProtectedFileShareSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"backup_policy_id": {
+			Description:  "The ID of the backup policy to use. The policy must be an Azure File Share backup policy. Other types are not supported.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: azure.ValidateResourceID,

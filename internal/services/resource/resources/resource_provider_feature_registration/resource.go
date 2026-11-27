@@ -33,6 +33,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_resource_provider_feature_registration"
 }
 
+func (r Resource) Description() string {
+	return "Manages the registration of a feature within a Resource Provider."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return features.ValidateFeatureID
 }

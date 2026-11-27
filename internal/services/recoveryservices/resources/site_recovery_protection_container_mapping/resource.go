@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSiteRecoveryContainerMappingCreate,
-		Read:   resourceSiteRecoveryContainerMappingRead,
-		Update: resourceSiteRecoveryContainerMappingUpdate,
-		Delete: resourceSiteRecoveryServicesContainerMappingDelete,
+		Description: "Manages an Azure recovery vault protection container mapping. A protection container mapping decides how to translate the protection container when a VM is migrated from one region to another.",
+		Create:      resourceSiteRecoveryContainerMappingCreate,
+		Read:        resourceSiteRecoveryContainerMappingRead,
+		Update:      resourceSiteRecoveryContainerMappingUpdate,
+		Delete:      resourceSiteRecoveryServicesContainerMappingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(id)
 			return err

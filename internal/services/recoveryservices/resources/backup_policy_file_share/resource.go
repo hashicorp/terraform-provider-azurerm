@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBackupProtectionPolicyFileShareCreateUpdate,
-		Read:   resourceBackupProtectionPolicyFileShareRead,
-		Update: resourceBackupProtectionPolicyFileShareCreateUpdate,
-		Delete: resourceBackupProtectionPolicyFileShareDelete,
+		Description: "Manages an Azure File Share Backup Policy within a Recovery Services Vault.",
+		Create:      resourceBackupProtectionPolicyFileShareCreateUpdate,
+		Read:        resourceBackupProtectionPolicyFileShareRead,
+		Update:      resourceBackupProtectionPolicyFileShareCreateUpdate,
+		Delete:      resourceBackupProtectionPolicyFileShareDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := protectionpolicies.ParseBackupPolicyID(id)

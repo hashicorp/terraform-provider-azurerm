@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_resource_deployment_script_azure_power_shell"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Resource Deployment Script of Azure PowerShell."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return deploymentscripts.ValidateDeploymentScriptID
 }

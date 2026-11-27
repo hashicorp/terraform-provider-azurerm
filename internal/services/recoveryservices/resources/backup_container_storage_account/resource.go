@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBackupProtectionContainerStorageAccountCreate,
-		Read:   resourceBackupProtectionContainerStorageAccountRead,
-		Delete: resourceBackupProtectionContainerStorageAccountDelete,
+		Description: "Manages registration of a Storage Account with Azure Backup. Storage Accounts must be registered with an Azure Recovery Vault to backup file shares within the Storage Account. Registering a Storage Account with a vault creates what is known as a protection container within Azure Recovery Services. Once the container is created, Azure file shares within the Storage Account can be backed up using the `azurerm_backup_protected_file_share` resource.",
+		Create:      resourceBackupProtectionContainerStorageAccountCreate,
+		Read:        resourceBackupProtectionContainerStorageAccountRead,
+		Delete:      resourceBackupProtectionContainerStorageAccountDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := protectioncontainers.ParseProtectionContainerID(id)
 			return err

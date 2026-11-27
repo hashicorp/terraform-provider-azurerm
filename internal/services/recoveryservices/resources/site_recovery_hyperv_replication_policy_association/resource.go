@@ -17,6 +17,10 @@ func (h Resource) ResourceType() string {
 	return "azurerm_site_recovery_hyperv_replication_policy_association"
 }
 
+func (h Resource) Description() string {
+	return "Manages an Azure Site Recovery replication policy for HyperV within a Recovery Vault."
+}
+
 func (h Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationprotectioncontainermappings.ValidateReplicationProtectionContainerMappingID
 }

@@ -18,11 +18,12 @@ var redisFirewallRuleResourceName = "azurerm_redis_firewall_rule"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceRedisFirewallRuleCreateUpdate,
-		Read:     resourceRedisFirewallRuleRead,
-		Update:   resourceRedisFirewallRuleCreateUpdate,
-		Delete:   resourceRedisFirewallRuleDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&redisfirewallrules.FirewallRuleId{}),
+		Description: "Manages a Firewall Rule associated with a Redis Cache.",
+		Create:      resourceRedisFirewallRuleCreateUpdate,
+		Read:        resourceRedisFirewallRuleRead,
+		Update:      resourceRedisFirewallRuleCreateUpdate,
+		Delete:      resourceRedisFirewallRuleDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&redisfirewallrules.FirewallRuleId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&redisfirewallrules.FirewallRuleId{}),

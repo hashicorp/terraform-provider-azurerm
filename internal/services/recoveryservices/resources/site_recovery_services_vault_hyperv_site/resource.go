@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_site_recovery_services_vault_hyperv_site"
 }
 
+func (r Resource) Description() string {
+	return "Manages a HyperV Site in Recovery Service Vault."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationfabrics.ValidateReplicationFabricID
 }

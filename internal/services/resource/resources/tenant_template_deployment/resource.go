@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: tenantTemplateDeploymentResourceCreate,
-		Read:   tenantTemplateDeploymentResourceRead,
-		Update: tenantTemplateDeploymentResourceUpdate,
-		Delete: tenantTemplateDeploymentResourceDelete,
+		Description: "Manages a Template Deployment at the Tenant Scope.",
+		Create:      tenantTemplateDeploymentResourceCreate,
+		Read:        tenantTemplateDeploymentResourceRead,
+		Update:      tenantTemplateDeploymentResourceUpdate,
+		Delete:      tenantTemplateDeploymentResourceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TenantTemplateDeploymentID(id)
 			return err

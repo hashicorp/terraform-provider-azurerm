@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_relay_hybrid_connection"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Relay Hybrid Connection."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return hybridconnections.ValidateHybridConnectionID
 }

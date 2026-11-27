@@ -17,6 +17,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Classic Replication Policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_vault_id": {
+			Description:  "ID of the Recovery Services Vault.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,12 +33,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_point_retention_in_minutes": {
+			Description:  "The period up to which the recovery points will be retained. Must between `0` to `21600`.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(0, 15*24*60),
 		},
 
 		"application_consistent_snapshot_frequency_in_minutes": {
+			Description:  "The frequency at which to create application consistent recovery points. Must between `0` to `720`.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(0, 12*60),

@@ -13,6 +13,7 @@ import (
 func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the replication policy association.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_vault_id": {
+			Description:  "The ID of the Recovery Service Vault to which the policy should be associated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (s Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_id": {
+			Description:  "The ID of the VMWare replication policy which to be associated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

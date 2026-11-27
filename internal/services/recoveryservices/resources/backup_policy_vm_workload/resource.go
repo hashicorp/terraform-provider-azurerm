@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_backup_policy_vm_workload"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure VM Workload Backup Policy within a Recovery Services Vault."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return protectionpolicies.ValidateBackupPolicyID
 }

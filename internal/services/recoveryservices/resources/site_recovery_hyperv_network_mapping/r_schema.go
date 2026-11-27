@@ -15,6 +15,7 @@ import (
 func (s Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name of the HyperV network mapping.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"recovery_vault_id": {
+			Description:  "The ID of the Recovery Services Vault where the HyperV network mapping should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"source_system_center_virtual_machine_manager_name": {
+			Description:  "The name of source System Center Virtual Machine Manager where the source network exists.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -36,6 +39,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"source_network_name": {
+			Description:      "The Name of the primary network.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -44,6 +48,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"target_network_id": {
+			Description:      "The ID of the recovery network.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,

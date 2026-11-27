@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceGroupTemplateDeploymentResourceCreate,
-		Read:   resourceGroupTemplateDeploymentResourceRead,
-		Update: resourceGroupTemplateDeploymentResourceUpdate,
-		Delete: resourceGroupTemplateDeploymentResourceDelete,
+		Description: "Manages a Resource Group Template Deployment.",
+		Create:      resourceGroupTemplateDeploymentResourceCreate,
+		Read:        resourceGroupTemplateDeploymentResourceRead,
+		Update:      resourceGroupTemplateDeploymentResourceUpdate,
+		Delete:      resourceGroupTemplateDeploymentResourceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := deployments.ParseResourceGroupProviderDeploymentID(id)
 			return err

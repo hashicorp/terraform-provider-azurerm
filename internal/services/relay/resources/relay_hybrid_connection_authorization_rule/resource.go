@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRelayHybridConnectionAuthorizationRuleCreateUpdate,
-		Read:   resourceRelayHybridConnectionAuthorizationRuleRead,
-		Update: resourceRelayHybridConnectionAuthorizationRuleCreateUpdate,
-		Delete: resourceRelayHybridConnectionAuthorizationRuleDelete,
+		Description: "Manages an Azure Relay Hybrid Connection Authorization Rule.",
+		Create:      resourceRelayHybridConnectionAuthorizationRuleCreateUpdate,
+		Read:        resourceRelayHybridConnectionAuthorizationRuleRead,
+		Update:      resourceRelayHybridConnectionAuthorizationRuleCreateUpdate,
+		Delete:      resourceRelayHybridConnectionAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(id)
@@ -34,21 +35,24 @@ func RegisterResource() *pluginsdk.Resource {
 		// function takes a schema map and adds the authorization rule properties to it
 		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "The name which should be used for this Azure Relay Hybrid Connection Authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"namespace_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "Name of the Azure Relay Namespace for which this Azure Relay Hybrid Connection Authorization Rule will be created.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"hybrid_connection_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Description: "Name of the Azure Relay Hybrid Connection for which this Azure Relay Hybrid Connection Authorization Rule will be created.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),

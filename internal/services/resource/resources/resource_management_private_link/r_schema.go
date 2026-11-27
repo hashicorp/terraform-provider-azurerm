@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Resource Management Private Link.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -13,6 +13,7 @@ import (
 func siteRecoveryFabricSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the network mapping.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func siteRecoveryFabricSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the vault that should be updated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

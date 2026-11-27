@@ -13,6 +13,7 @@ import (
 func siteRecoveryProtectionContainerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the protection container.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,12 +22,14 @@ func siteRecoveryProtectionContainerSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"recovery_vault_name": {
+			Description:  "The name of the vault that should be updated.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 		"recovery_fabric_name": {
+			Description:  "Name of fabric that should contain this protection container.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

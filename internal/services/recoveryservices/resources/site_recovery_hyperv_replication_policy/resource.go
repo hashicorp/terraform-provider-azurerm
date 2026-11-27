@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_site_recovery_hyperv_replication_policy"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Site Recovery replication policy for HyperV within a Recovery Vault. Replication policies define the frequency at which recovery points are created and how long they are stored."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return replicationpolicies.ValidateReplicationPolicyID
 }
