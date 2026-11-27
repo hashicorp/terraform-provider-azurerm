@@ -34,7 +34,7 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_api_management_api_policy", id.ID())
+				return tf.ImportAsExistsError(azurermApiManagementApiPolicy, id.ID())
 			}
 		}
 	}
@@ -72,6 +72,9 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementAPIPolicyRead(d, meta)
 }

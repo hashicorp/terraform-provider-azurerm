@@ -38,11 +38,15 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta any) err
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
+	return resourceApiManagementApiPolicyFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementApiPolicyFlatten(d *pluginsdk.ResourceData, id *apipolicy.ApiId, model *apipolicy.PolicyContract) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("api_name", helpers.GetApiName(id.ApiId))
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			policyContent := ""
 			if pc := props.Value; pc != "" {
@@ -54,5 +58,5 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta any) err
 			d.Set("xml_content", policyContent)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
