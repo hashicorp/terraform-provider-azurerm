@@ -105,6 +105,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Description:  "The driver type for GPU nodes.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 					},

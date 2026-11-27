@@ -108,6 +108,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Description:  "Whether to install the GPU Driver for the nodes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 		},
