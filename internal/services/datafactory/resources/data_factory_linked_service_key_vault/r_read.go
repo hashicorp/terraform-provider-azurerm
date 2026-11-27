@@ -6,6 +6,7 @@ package data_factory_linked_service_key_vault
 import (
 	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -80,13 +81,16 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 
 	var keyVaultId *string
 	if baseUrl != "" {
-		subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-		keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, baseUrl)
-		if err != nil {
-			return err
+		if _, err := url.ParseRequestURI(baseUrl); err != nil {
+			d.Set("key_vault_base_url_dynamic_expression", baseUrl)
+		} else {
+			subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+			keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, baseUrl)
+			if err != nil {
+				return err
+			}
+			d.Set("key_vault_id", keyVaultId)
 		}
 	}
-	d.Set("key_vault_id", keyVaultId)
-
 	return nil
 }
