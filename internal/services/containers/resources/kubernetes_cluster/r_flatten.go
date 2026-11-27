@@ -207,14 +207,19 @@ func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclust
 	}
 
 	securityEnabled := false
-	if advancedNetworking.Security != nil {
-		securityEnabled = pointer.From(advancedNetworking.Security.Enabled)
+	transitEncryptionType := string(managedclusters.TransitEncryptionTypeNone)
+	if security := advancedNetworking.Security; security != nil {
+		securityEnabled = pointer.From(security.Enabled)
+		if security.TransitEncryption != nil && security.TransitEncryption.Type != nil {
+			transitEncryptionType = string(*security.TransitEncryption.Type)
+		}
 	}
 
 	return []any{
 		map[string]any{
-			"observability_enabled": observabilityEnabled,
-			"security_enabled":      securityEnabled,
+			"observability_enabled":   observabilityEnabled,
+			"security_enabled":        securityEnabled,
+			"transit_encryption_type": transitEncryptionType,
 		},
 	}
 }

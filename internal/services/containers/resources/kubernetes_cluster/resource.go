@@ -181,6 +181,11 @@ func RegisterResource() *pluginsdk.Resource {
 							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
 						}
 					}
+
+					transitEncryptionType := d.Get("network_profile.0.advanced_networking.0.transit_encryption_type").(string)
+					if transitEncryptionType == string(managedclusters.TransitEncryptionTypeWireGuard) && !securityEnabled {
+						return fmt.Errorf("`network_profile.0.advanced_networking.0.transit_encryption_type` can only be set to `%s` when `security_enabled` is set to `true`", managedclusters.TransitEncryptionTypeWireGuard)
+					}
 				}
 				return nil
 			},

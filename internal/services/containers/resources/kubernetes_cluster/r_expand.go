@@ -308,14 +308,21 @@ func expandKubernetesClusterAdvancedNetworking(input []any, d *pluginsdk.Resourc
 	observabilityEnabled := config["observability_enabled"].(bool)
 	securityEnabled := config["security_enabled"].(bool)
 
+	security := &managedclusters.AdvancedNetworkingSecurity{
+		Enabled: pointer.To(securityEnabled),
+	}
+	if securityEnabled {
+		security.TransitEncryption = &managedclusters.AdvancedNetworkingSecurityTransitEncryption{
+			Type: pointer.To(managedclusters.TransitEncryptionType(config["transit_encryption_type"].(string))),
+		}
+	}
+
 	return &managedclusters.AdvancedNetworking{
 		Enabled: pointer.To(true),
 		Observability: &managedclusters.AdvancedNetworkingObservability{
 			Enabled: pointer.To(observabilityEnabled),
 		},
-		Security: &managedclusters.AdvancedNetworkingSecurity{
-			Enabled: pointer.To(securityEnabled),
-		},
+		Security: security,
 	}
 }
 
