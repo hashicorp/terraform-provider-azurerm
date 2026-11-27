@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -128,7 +129,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 							nicModel.TargetSubnetName = pointer.From(nic.TargetSubnetName)
 							nicModel.TestSubnetName = pointer.From(nic.TestSubnetName)
 							nicModel.SourceMacAddress = pointer.From(nic.NicId)
-							nicModel.IsPrimary = pointer.From(nic.IsPrimaryNic) == "true"
+							nicModel.Primary = pointer.From(nic.IsPrimaryNic) == "true"
+							if !features.SixPointOh() {
+								nicModel.IsPrimary = nicModel.Primary
+							}
 
 							nicsOutput = append(nicsOutput, nicModel)
 						}
@@ -172,7 +176,7 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 }
 
 func resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_mac_address": {
 				Description:  "Mac address of the network interface of source VM.",
@@ -202,13 +206,32 @@ func resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema() *pluginsdk.R
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"is_primary": {
+			"primary": {
 				Description: "Whether this `network_interface` is primary for the replicated VM.",
 				Type:        pluginsdk.TypeBool,
 				Required:    true,
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["is_primary"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this `network_interface` is primary for the replicated VM.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			Deprecated:  "`network_interface.is_primary` has been deprecated in favour of `network_interface.primary` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		r.Schema["primary"] = &pluginsdk.Schema{
+			Description: "Whether this `network_interface` is primary for the replicated VM.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+		}
+	}
+
+	return r
 }
 
 func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, vaultId string) (string, error) {

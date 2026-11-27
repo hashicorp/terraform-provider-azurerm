@@ -52,7 +52,7 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	if d.HasChange("policy_group") {
-		payload.Properties.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(d.Get("policy_group").([]any))
+		payload.Properties.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(d, d.Get("policy_group").([]any))
 	}
 
 	if d.HasChange("vpn_client_configuration") {

@@ -1911,7 +1911,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_cognitive_account.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_cognitive_account.test.id
     subresource_names              = ["account"]
   }

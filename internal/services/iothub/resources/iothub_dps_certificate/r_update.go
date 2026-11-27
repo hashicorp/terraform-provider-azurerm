@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -31,7 +32,11 @@ func resourceIotHubDPSCertificateUpdate(d *pluginsdk.ResourceData, meta any) err
 		etag = *existing.Model.Etag
 	}
 
-	if d.HasChange("is_verified") {
+	if d.HasChange("verified") {
+		existing.Model.Properties.IsVerified = pointer.To(d.Get("verified").(bool))
+	}
+
+	if !features.SixPointOh() && d.HasChange("is_verified") && !pluginsdk.IsExplicitlyNullInConfig(d, "is_verified") {
 		existing.Model.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
 	}
 

@@ -13,12 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceAppServiceCertificateOrderRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -108,7 +109,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"is_private_key_external": {
+			"private_key_external": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -139,6 +140,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["is_private_key_external"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`is_private_key_external` has been deprecated in favour of `private_key_external` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta any) error {
@@ -174,7 +185,11 @@ func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta an
 			d.Set("validity_in_years", props.ValidityInYears)
 			d.Set("domain_verification_token", props.DomainVerificationToken)
 			d.Set("status", pointer.FromEnum(props.Status))
-			d.Set("is_private_key_external", props.IsPrivateKeyExternal)
+			d.Set("private_key_external", props.IsPrivateKeyExternal)
+			if !features.SixPointOh() {
+				d.Set("is_private_key_external", props.IsPrivateKeyExternal)
+			}
+
 			d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
 			d.Set("app_service_certificate_not_renewable_reasons", flattenAppServiceCertificateNotRenewableReasons(props.AppServiceCertificateNotRenewableReasons))
 			d.Set("expiration_time", props.ExpirationTime)

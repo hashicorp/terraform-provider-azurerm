@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `policy` - (Required) One or more `policy` blocks as defined below.
 
-* `is_default` - (Optional) Is this a default VPN Server Configuration Policy Group? Defaults to `false`. Changing this forces a new resource to be created.
+* `default` - (Optional) Is this a default VPN Server Configuration Policy Group? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `priority` - (Optional) The priority of this VPN Server Configuration Policy Group. Defaults to `0`.
 

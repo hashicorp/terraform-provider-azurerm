@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -551,8 +552,8 @@ func FlattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 			"string_not_contains":           stringNotContains,
 			"string_in":                     stringIn,
 			"string_not_in":                 stringNotIn,
-			"is_not_null":                   isNotNull,
-			"is_null_or_undefined":          isNullOrUndefined,
+			"not_null":                      isNotNull,
+			"null_or_undefined":             isNullOrUndefined,
 		},
 	}
 }
@@ -609,8 +610,35 @@ func ExpandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	return filter, nil
 }
 
+// AdvancedFilterUnderOldNames moves the null checks back under their 5.x names where the state already has them there, so a config still using those
+// names shows no changes.
+func AdvancedFilterUnderOldNames(d *pluginsdk.ResourceData, advancedFilter []any) []any {
+	if len(advancedFilter) == 0 {
+		return advancedFilter
+	}
+
+	filters := advancedFilter[0].(map[string][]any)
+	for oldName, newName := range map[string]string{"is_not_null": "not_null", "is_null_or_undefined": "null_or_undefined"} {
+		if v, ok := d.Get("advanced_filter.0." + oldName).([]any); ok && len(v) > 0 {
+			filters[oldName] = filters[newName]
+			filters[newName] = make([]any, 0)
+		}
+	}
+
+	return advancedFilter
+}
+
 func ExpandEventSubscriptionAdvancedFilter(operatorType string, config map[string]any) (eventsubscriptions.AdvancedFilter, error) {
 	k := config["key"].(string)
+
+	if !features.SixPointOh() {
+		switch operatorType {
+		case "is_not_null":
+			operatorType = "not_null"
+		case "is_null_or_undefined":
+			operatorType = "null_or_undefined"
+		}
+	}
 
 	switch operatorType {
 	case "bool_equals":
@@ -698,11 +726,11 @@ func ExpandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Key:    &k,
 			Values: v,
 		}, nil
-	case "is_not_null":
+	case "not_null":
 		return eventsubscriptions.IsNotNullAdvancedFilter{
 			Key: &k,
 		}, nil
-	case "is_null_or_undefined":
+	case "null_or_undefined":
 		return eventsubscriptions.IsNullOrUndefinedAdvancedFilter{
 			Key: &k,
 		}, nil

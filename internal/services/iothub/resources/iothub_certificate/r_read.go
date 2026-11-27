@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,7 +38,12 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	d.Set("iothub_name", id.IotHubName)
 
 	if props := resp.Properties; props != nil {
-		d.Set("is_verified", props.IsVerified)
+		d.Set("verified", props.IsVerified)
+
+		if !features.SixPointOh() {
+			d.Set("is_verified", props.IsVerified)
+		}
+
 		d.Set("certificate_content", props.Certificate)
 	}
 

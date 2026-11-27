@@ -169,9 +169,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the API Management API.
 
-* `is_current` - Is this the current API Revision?
+* `current` - Is this the current API Revision?
 
-* `is_online` - Is this API Revision online/accessible via the Gateway?
+* `online` - Is this API Revision online/accessible via the Gateway?
 
 * `version` - The Version number of this API, if this API is versioned.
 

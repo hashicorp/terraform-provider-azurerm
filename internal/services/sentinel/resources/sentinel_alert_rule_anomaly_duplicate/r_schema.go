@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -184,7 +185,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 }
 
 func (r Resource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+	s := map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -210,7 +211,7 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 			Computed: true,
 		},
 
-		"is_default_settings": {
+		"default_settings": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -257,4 +258,14 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_default_settings"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`is_default_settings` has been deprecated in favour of `default_settings` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }

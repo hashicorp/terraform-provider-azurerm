@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -103,9 +104,13 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	updateRequired := d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 		"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
 		"capacity", "restore", "mongo_server_version",
-		"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
+		"public_network_access_enabled", "ip_range_filter", "offer_type", "virtual_network_filter_enabled",
 		"tags", "automatic_failover_enabled", "analytical_storage_enabled",
 		"local_authentication_enabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
+
+	if !features.SixPointOh() && d.HasChange("is_virtual_network_filter_enabled") {
+		updateRequired = true
+	}
 
 	// Incident : #383341730
 	// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
@@ -134,7 +139,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(d.Get("offer_type").(string)),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*pluginsdk.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
-			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),
+			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("virtual_network_filter_enabled").(bool)),
 			EnableFreeTier:                     existing.Model.Properties.EnableFreeTier,
 			EnableAutomaticFailover:            pointer.To(d.Get("automatic_failover_enabled").(bool)),
 			MinimalTlsVersion:                  pointer.ToEnum[cosmosdb.MinimalTlsVersion](d.Get("minimal_tls_version").(string)),
@@ -156,6 +161,10 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 			EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
+	}
+
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_virtual_network_filter_enabled") {
+		account.Properties.IsVirtualNetworkFilterEnabled = pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
 	}
 
 	// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.

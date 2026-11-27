@@ -126,7 +126,7 @@ func TestAccPrivateEndpoint_invalidRequestMessage(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAtuoWithRequestMessage(data),
-			ExpectError: regexp.MustCompile(`the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`),
+			ExpectError: regexp.MustCompile(`the "request_message" attribute cannot be set if the "manual_connection" attribute is "false"`),
 		},
 		{
 			Config:      r.invalidManualWithoutRequestMessage(data),
@@ -568,7 +568,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
@@ -692,7 +692,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
@@ -711,7 +711,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 
@@ -735,7 +735,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
@@ -754,7 +754,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = true
+    manual_connection              = true
     private_connection_resource_id = azurerm_private_link_service.test.id
     request_message                = %q
   }
@@ -774,7 +774,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     request_message                = "foo"
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
@@ -794,7 +794,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = true
+    manual_connection              = true
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
@@ -868,7 +868,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-psc-%d"
     private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -936,7 +936,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-psc-%d"
     private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1014,7 +1014,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-psc-%d"
     private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1092,7 +1092,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-psc-%d"
     private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1110,7 +1110,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 
@@ -1189,7 +1189,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-psc-%d"
     private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1215,7 +1215,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                              = azurerm_private_link_service.test.name
-    is_manual_connection              = true
+    manual_connection                 = true
     private_connection_resource_alias = azurerm_private_link_service.test.alias
     request_message                   = "test"
   }
@@ -1242,8 +1242,8 @@ resource "azurerm_private_endpoint" "test" {
   subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                 = azurerm_private_link_service.test.name
-    is_manual_connection = %t
+    name              = azurerm_private_link_service.test.name
+    manual_connection = %t
     %s
   }
 }
@@ -1283,7 +1283,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-%[2]d"
-    is_manual_connection           = false
+    manual_connection              = false
     subresource_names              = ["AzureSiteRecovery"]
     private_connection_resource_id = azurerm_recovery_services_vault.test.id
   }
@@ -1354,7 +1354,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_storage_account.test.id
     subresource_names              = ["blob"]
   }

@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -823,7 +824,7 @@ func FlattenHDInsightsAmbariMetastore(conf map[string]string) []any {
 }
 
 func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -850,7 +851,7 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
-				"is_default": {
+				"default": {
 					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
@@ -859,10 +860,33 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		account := s.Elem.(*pluginsdk.Resource).Schema
+
+		account["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+			Deprecated:  "`storage_account.is_default` has been deprecated in favour of `storage_account.default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		account["default"] = &pluginsdk.Schema{
+			Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+		}
+	}
+
+	return s
 }
 
 func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		// HDInsight doesn't seem to allow adding more than one gen2 cluster right now.
@@ -890,7 +914,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				"is_default": {
+				"default": {
 					Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
 					Type:        pluginsdk.TypeBool,
 					Required:    true,
@@ -899,6 +923,29 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		account := s.Elem.(*pluginsdk.Resource).Schema
+
+		account["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+			Deprecated:  "`storage_account_gen2.is_default` has been deprecated in favour of `storage_account_gen2.default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		account["default"] = &pluginsdk.Schema{
+			Description: "Whether this is the Default Storage Account for the HDInsight Hadoop Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+		}
+	}
+
+	return s
 }
 
 func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
@@ -1061,6 +1108,23 @@ func FlattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 	}, nil
 }
 
+// HDInsightsStorageAccountsWithBothDefaultNames gives `default` and `is_default` the same value in each storage account. Storage accounts are never
+// read back from Azure, so this is what lets a config move from one name to the other without replacing the cluster.
+func HDInsightsStorageAccountsWithBothDefaultNames(input []any) []any {
+	for _, raw := range input {
+		v, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		isDefault := v["default"].(bool) || v["is_default"].(bool)
+		v["default"] = isDefault
+		v["is_default"] = isDefault
+	}
+
+	return input
+}
+
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
 func ExpandHDInsightsStorageAccounts(storageAccounts []any, gen2storageAccounts []any) (*[]clusters.StorageAccount, *identity.SystemAndUserAssignedMap, error) {
@@ -1074,7 +1138,10 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []any, gen2storageAccounts 
 		storageAccountKey := v["storage_account_key"].(string)
 		storageContainerURL := v["storage_container_url"].(string)
 		storageResourceID := v["storage_account_id"].(string)
-		isDefault := v["is_default"].(bool)
+		isDefault := v["default"].(bool)
+		if !features.SixPointOh() && v["is_default"].(bool) {
+			isDefault = true
+		}
 
 		uri, err := url.Parse(storageContainerURL)
 		if err != nil {
@@ -1098,7 +1165,10 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []any, gen2storageAccounts 
 		storageResourceID := v["storage_account_id"].(string)
 		managedIdentityResourceID := v["user_assigned_identity_id"].(string)
 
-		isDefault := v["is_default"].(bool)
+		isDefault := v["default"].(bool)
+		if !features.SixPointOh() && v["is_default"].(bool) {
+			isDefault = true
+		}
 
 		uri, err := url.Parse(fileSystemID)
 		if err != nil {

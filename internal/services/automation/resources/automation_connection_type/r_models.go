@@ -7,7 +7,8 @@ type AutomationConnectionTypeModel struct {
 	ResourceGroup         string  `json:"resource_group"          tfschema:"resource_group_name"`
 	AutomationAccountName string  `json:"automation_account_name" tfschema:"automation_account_name"`
 	Name                  string  `json:"name"                    tfschema:"name"`
-	IsGlobal              bool    `json:"is_global"               tfschema:"is_global"`
+	Global                bool    `json:"global"                  tfschema:"global"`
+	IsGlobal              bool    `json:"is_global"               tfschema:"is_global,removedInNextMajorVersion"`
 	Field                 []Field `json:"field"                   tfschema:"field"`
 }
 

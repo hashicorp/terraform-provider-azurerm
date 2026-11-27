@@ -54,7 +54,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			vmNics := make([]replicationprotecteditems.InMageRcmNicInput, 0)
 			if metadata.ResourceData.HasChange("network_interface") {
-				vmNics = expandVMWareReplicatedVMNics(model.NetworkInterface)
+				vmNics = expandVMWareReplicatedVMNics(metadata.ResourceData, model.NetworkInterface)
 			} else {
 				if existingDetails.VMNics == nil {
 					return errors.New("retrieving `network_interface`: VMNics was nil")

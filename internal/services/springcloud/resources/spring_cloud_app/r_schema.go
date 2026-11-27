@@ -82,7 +82,7 @@ func springCloudAppSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"is_public": {
+		"is_public": { // azignore:AZS023 - Azure Spring Apps is being retired, so it is left as it is
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,

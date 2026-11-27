@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -192,7 +193,10 @@ func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]actiongroup
 			val["automation_account_id"] = receiver.AutomationAccountId
 			val["runbook_name"] = receiver.RunbookName
 			val["webhook_resource_id"] = receiver.WebhookResourceId
-			val["is_global_runbook"] = receiver.IsGlobalRunbook
+			val["global_runbook"] = receiver.IsGlobalRunbook
+			if !features.SixPointOh() {
+				val["is_global_runbook"] = receiver.IsGlobalRunbook
+			}
 
 			if receiver.ServiceUri != nil {
 				val["service_uri"] = *receiver.ServiceUri

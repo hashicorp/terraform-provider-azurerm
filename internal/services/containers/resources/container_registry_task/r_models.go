@@ -8,7 +8,8 @@ type ContainerRegistryTaskModel struct {
 	ContainerRegistryId string               `tfschema:"container_registry_id"`
 	AgentConfig         []AgentConfig        `tfschema:"agent_setting"`
 	AgentPoolName       string               `tfschema:"agent_pool_name"`
-	IsSystemTask        bool                 `tfschema:"is_system_task"`
+	SystemTask          bool                 `tfschema:"system_task"`
+	IsSystemTask        bool                 `tfschema:"is_system_task,removedInNextMajorVersion"`
 	LogTemplate         string               `tfschema:"log_template"`
 	Platform            []Platform           `tfschema:"platform"`
 	Enabled             bool                 `tfschema:"enabled"`

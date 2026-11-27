@@ -53,7 +53,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"is_public": {
+			"is_public": { // azignore:AZS023 - Azure Spring Apps is being retired, so it is left as it is
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},

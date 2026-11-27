@@ -229,9 +229,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `created_with_api_version` - The api-version used when creating this alert rule.
 
-* `is_a_legacy_log_analytics_rule` - True if this alert rule is a legacy Log Analytic Rule.
+* `legacy_log_analytics_rule` - True if this alert rule is a legacy Log Analytic Rule.
 
-* `is_workspace_alerts_storage_configured` - The flag indicates whether this Scheduled Query Rule has been configured to be stored in the customer's storage.
+* `workspace_alerts_storage_configured` - The flag indicates whether this Scheduled Query Rule has been configured to be stored in the customer's storage.
 
 * `identity` - An `identity` block as defined below.
 

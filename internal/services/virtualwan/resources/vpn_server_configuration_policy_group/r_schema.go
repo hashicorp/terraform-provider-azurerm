@@ -5,12 +5,13 @@ package vpn_server_configuration_policy_group
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func vpnServerConfigurationPolicyGroupSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -51,7 +52,7 @@ func vpnServerConfigurationPolicyGroupSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"is_default": {
+		"default": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
@@ -65,4 +66,25 @@ func vpnServerConfigurationPolicyGroupSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"default"},
+			Deprecated:    "`is_default` has been deprecated in favour of `default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["default"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"is_default"},
+		}
+	}
+
+	return s
 }

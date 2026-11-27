@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -21,7 +22,7 @@ import (
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Description: "Use this data source to access information about an existing API Management API.",
 		Read:        dataSourceApiManagementApiRead,
 
@@ -60,13 +61,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Computed:    true,
 			},
 
-			"is_current": {
+			"current": {
 				Description: "Whether this is the current API Revision.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
-			"is_online": {
+			"online": {
 				Description: "Whether this API Revision is online/accessible via the Gateway.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
@@ -137,6 +138,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["is_current"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this is the current API Revision.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_current` has been deprecated in favour of `current` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		r.Schema["is_online"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this API Revision is online/accessible via the Gateway.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_online` has been deprecated in favour of `online` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
@@ -167,8 +186,8 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", pointer.From(props.DisplayName))
-			d.Set("is_current", pointer.From(props.IsCurrent))
-			d.Set("is_online", pointer.From(props.IsOnline))
+			d.Set("current", pointer.From(props.IsCurrent))
+			d.Set("online", pointer.From(props.IsOnline))
 			d.Set("path", props.Path)
 			d.Set("revision", pointer.From(props.ApiRevision))
 			d.Set("service_url", pointer.From(props.ServiceURL))
@@ -176,6 +195,12 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
 			d.Set("version", pointer.From(props.ApiVersion))
 			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
+
+			if !features.SixPointOh() {
+				d.Set("is_current", pointer.From(props.IsCurrent))
+				d.Set("is_online", pointer.From(props.IsOnline))
+			}
+
 			if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
 				return fmt.Errorf("setting `protocols`: %s", err)
 			}

@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func expandMonitorActionGroupEmailReceiver(v []any) *[]actiongroupsapis.EmailReceiver {
@@ -109,19 +111,24 @@ func expandMonitorActionGroupWebHookReceiver(tenantId string, v []any) *[]action
 	return &receivers
 }
 
-func expandMonitorActionGroupAutomationRunbookReceiver(v []any) *[]actiongroupsapis.AutomationRunbookReceiver {
+func expandMonitorActionGroupAutomationRunbookReceiver(d *pluginsdk.ResourceData, v []any) *[]actiongroupsapis.AutomationRunbookReceiver {
 	receivers := make([]actiongroupsapis.AutomationRunbookReceiver, 0)
-	for _, receiverValue := range v {
+	for i, receiverValue := range v {
 		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.AutomationRunbookReceiver{
 			Name:                 pointer.To(val["name"].(string)),
 			AutomationAccountId:  val["automation_account_id"].(string),
 			RunbookName:          val["runbook_name"].(string),
 			WebhookResourceId:    val["webhook_resource_id"].(string),
-			IsGlobalRunbook:      val["is_global_runbook"].(bool),
+			IsGlobalRunbook:      val["global_runbook"].(bool),
 			ServiceUri:           pointer.To(val["service_uri"].(string)),
 			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
+
+		if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("automation_runbook_receiver.%d.is_global_runbook", i)) {
+			receiver.IsGlobalRunbook = val["is_global_runbook"].(bool)
+		}
+
 		receivers = append(receivers, receiver)
 	}
 	return &receivers

@@ -57,7 +57,7 @@ The following attributes are exported:
 
 * `capabilities` - Capabilities enabled on this Cosmos DB account.
 
-* `is_virtual_network_filter_enabled` - If virtual network filtering is enabled for this Cosmos DB account.
+* `virtual_network_filter_enabled` - If virtual network filtering is enabled for this Cosmos DB account.
 
 * `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
 

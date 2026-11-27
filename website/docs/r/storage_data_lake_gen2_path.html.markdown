@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "example" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  is_hns_enabled           = "true"
+  hns_enabled              = "true"
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
@@ -77,7 +77,7 @@ More details on ACLs can be found here: <https://docs.microsoft.com/azure/storag
 
 ~> **Note:** Using the service's ACE inheritance features will not work well with terraform since we cannot handle changes that are taking place out-of-band. Setting the path to inherit its permissions from its parent will result in terraform trying to revert them in the next apply operation.
 
-~> **Note:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
+~> **Note:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `hns_enabled` has to be set to `true`.
 
 ## Attributes Reference
 

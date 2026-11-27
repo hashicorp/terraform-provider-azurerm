@@ -54,7 +54,7 @@ output "storage_account_tier" {
 
 * `allow_nested_items_to_be_public` - Can nested items in the storage account opt into allowing public access?
 
-* `is_hns_enabled` - Is Hierarchical Namespace enabled?
+* `hns_enabled` - Is Hierarchical Namespace enabled?
 
 * `nfsv3_enabled` - Is NFSv3 protocol enabled?
 

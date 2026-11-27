@@ -55,13 +55,15 @@ func (a AutomationConnectionTypeResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_automation_connection_type" "test" {
   name                    = "acctest-%[2]d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
-  is_global               = false
+  global                  = false
   field {
     name = "my_def"
     type = "string"
@@ -88,7 +90,7 @@ func TestAccAutomationConnectionType_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_global").HasValue("false"),
+				check.That(data.ResourceName).Key("global").HasValue("false"),
 			),
 		},
 		data.ImportStep(),

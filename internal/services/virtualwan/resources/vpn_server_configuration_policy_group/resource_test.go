@@ -155,7 +155,7 @@ func (r VPNServerConfigurationPolicyGroupResource) complete(data acceptance.Test
 resource "azurerm_vpn_server_configuration_policy_group" "test" {
   name                        = "acctestVPNSCPG-%d"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
-  is_default                  = true
+  default                     = true
   priority                    = 1
 
   policy {
@@ -174,7 +174,7 @@ func (r VPNServerConfigurationPolicyGroupResource) update(data acceptance.TestDa
 resource "azurerm_vpn_server_configuration_policy_group" "test" {
   name                        = "acctestVPNSCPG-%d"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
-  is_default                  = true
+  default                     = true
   priority                    = 2
 
   policy {
@@ -193,7 +193,7 @@ func (r VPNServerConfigurationPolicyGroupResource) multiplePolicyGroups(data acc
 resource "azurerm_vpn_server_configuration_policy_group" "test" {
   name                        = "acctestVPNSCPG-%d"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
-  is_default                  = true
+  default                     = true
   priority                    = 1
 
   policy {
@@ -206,7 +206,7 @@ resource "azurerm_vpn_server_configuration_policy_group" "test" {
 resource "azurerm_vpn_server_configuration_policy_group" "test2" {
   name                        = "acctestVPNSCPG2-%d"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
-  is_default                  = false
+  default                     = false
   priority                    = 2
 
   policy {
@@ -219,7 +219,7 @@ resource "azurerm_vpn_server_configuration_policy_group" "test2" {
 resource "azurerm_vpn_server_configuration_policy_group" "test3" {
   name                        = "acctestVPNSCPG3-%d"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
-  is_default                  = false
+  default                     = false
   priority                    = 3
 
   policy {

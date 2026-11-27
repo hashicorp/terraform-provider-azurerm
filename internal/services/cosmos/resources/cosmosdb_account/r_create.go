@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -71,7 +72,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(d.Get("offer_type").(string)),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*pluginsdk.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
-			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),
+			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("virtual_network_filter_enabled").(bool)),
 			EnableFreeTier:                     pointer.To(d.Get("free_tier_enabled").(bool)),
 			EnableAutomaticFailover:            pointer.To(d.Get("automatic_failover_enabled").(bool)),
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
@@ -91,6 +92,10 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 			DisableLocalAuth:                   pointer.To(!d.Get("local_authentication_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
+	}
+
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_virtual_network_filter_enabled") {
+		account.Properties.IsVirtualNetworkFilterEnabled = pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("default_identity_type"); ok {

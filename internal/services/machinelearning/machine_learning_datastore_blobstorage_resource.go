@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -31,7 +32,8 @@ type MachineLearningDataStoreBlobStorageModel struct {
 	WorkSpaceID             string            `tfschema:"workspace_id"`
 	StorageContainerID      string            `tfschema:"storage_container_id"`
 	Description             string            `tfschema:"description"`
-	IsDefault               bool              `tfschema:"is_default"`
+	Default                 bool              `tfschema:"default"`
+	IsDefault               bool              `tfschema:"is_default,removedInNextMajorVersion"`
 	ServiceDataAuthIdentity string            `tfschema:"service_data_auth_identity"`
 	AccountKey              string            `tfschema:"account_key"`
 	SharedAccessSignature   string            `tfschema:"shared_access_signature"`
@@ -60,7 +62,7 @@ var (
 )
 
 func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -88,7 +90,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			ForceNew: true,
 		},
 
-		"is_default": {
+		"default": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -118,6 +120,25 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 
 		"tags": commonschema.TagsForceNew(),
 	}
+
+	if !features.SixPointOh() {
+		s["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default"},
+			Deprecated:    "`is_default` has been deprecated in favour of `default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["default"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"is_default"},
+		}
+	}
+
+	return s
 }
 
 func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
@@ -185,8 +206,12 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataAuthIdentity),
-				IsDefault:                     pointer.To(model.IsDefault),
+				IsDefault:                     pointer.To(model.Default),
 				Tags:                          pointer.To(model.Tags),
+			}
+
+			if !features.SixPointOh() && !metadata.IsNullAt("is_default") {
+				props.IsDefault = pointer.To(model.IsDefault)
 			}
 
 			accountKey := model.AccountKey
@@ -261,8 +286,12 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(state.Description),
 				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataAuthIdentity),
-				IsDefault:                     pointer.To(state.IsDefault),
+				IsDefault:                     pointer.To(state.Default),
 				Tags:                          pointer.To(state.Tags),
+			}
+
+			if !features.SixPointOh() && !metadata.IsNullAt("is_default") {
+				props.IsDefault = pointer.To(state.IsDefault)
 			}
 
 			accountKey := state.AccountKey
@@ -362,7 +391,10 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()
 
-			model.IsDefault = *data.IsDefault
+			model.Default = *data.IsDefault
+			if !features.SixPointOh() {
+				model.IsDefault = model.Default
+			}
 
 			if v, ok := metadata.ResourceData.GetOk("account_key"); ok {
 				if v.(string) != "" {

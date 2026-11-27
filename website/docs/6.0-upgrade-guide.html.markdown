@@ -80,6 +80,33 @@ Please follow the format in the example below for listing breaking changes in re
 
 ---
 
+### `azurerm_api_management_api`
+
+* The deprecated `is_current` property has been removed in favour of the `current` property.
+* The deprecated `is_online` property has been removed in favour of the `online` property.
+
+### `azurerm_api_management_gateway_certificate_authority`
+
+* The deprecated `is_trusted` property has been removed in favour of the `trusted` property.
+
+### `azurerm_app_service_certificate_order`
+
+* The deprecated `is_private_key_external` property has been removed in favour of the `private_key_external` property.
+
+### `azurerm_automation_connection_type`
+
+* The deprecated `is_global` property has been removed in favour of the `global` property.
+* The deprecated `field.is_encrypted` property has been removed in favour of the `field.encrypted` property.
+* The deprecated `field.is_optional` property has been removed in favour of the `field.optional` property.
+
+### `azurerm_container_registry_task`
+
+* The deprecated `is_system_task` property has been removed in favour of the `system_task` property.
+
+### `azurerm_cosmosdb_account`
+
+* The deprecated `is_virtual_network_filter_enabled` property has been removed in favour of the `virtual_network_filter_enabled` property.
+
 ### `azurerm_data_protection_backup_vault`
 
 * The `alerts_for_all_job_failures_enabled` property now defaults to `true`.
@@ -93,6 +120,70 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_databricks_workspace_root_dbfs_customer_managed_key`
 
 * The deprecated `key_vault_id` property has been removed.
+
+### `azurerm_eventgrid_event_subscription`
+
+* The deprecated `advanced_filter.is_not_null` block has been removed in favour of the `advanced_filter.not_null` block.
+* The deprecated `advanced_filter.is_null_or_undefined` block has been removed in favour of the `advanced_filter.null_or_undefined` block.
+
+### `azurerm_eventgrid_system_topic_event_subscription`
+
+* The deprecated `advanced_filter.is_not_null` block has been removed in favour of the `advanced_filter.not_null` block.
+* The deprecated `advanced_filter.is_null_or_undefined` block has been removed in favour of the `advanced_filter.null_or_undefined` block.
+
+### `azurerm_hdinsight_hadoop_cluster`
+
+* The deprecated `storage_account.is_default` property has been removed in favour of the `storage_account.default` property.
+* The deprecated `storage_account_gen2.is_default` property has been removed in favour of the `storage_account_gen2.default` property.
+
+### `azurerm_hdinsight_hbase_cluster`
+
+* The deprecated `storage_account.is_default` property has been removed in favour of the `storage_account.default` property.
+* The deprecated `storage_account_gen2.is_default` property has been removed in favour of the `storage_account_gen2.default` property.
+
+### `azurerm_hdinsight_interactive_query_cluster`
+
+* The deprecated `storage_account.is_default` property has been removed in favour of the `storage_account.default` property.
+* The deprecated `storage_account_gen2.is_default` property has been removed in favour of the `storage_account_gen2.default` property.
+
+### `azurerm_hdinsight_kafka_cluster`
+
+* The deprecated `storage_account.is_default` property has been removed in favour of the `storage_account.default` property.
+* The deprecated `storage_account_gen2.is_default` property has been removed in favour of the `storage_account_gen2.default` property.
+
+### `azurerm_hdinsight_spark_cluster`
+
+* The deprecated `storage_account.is_default` property has been removed in favour of the `storage_account.default` property.
+* The deprecated `storage_account_gen2.is_default` property has been removed in favour of the `storage_account_gen2.default` property.
+
+### `azurerm_iothub_certificate`
+
+* The deprecated `is_verified` property has been removed in favour of the `verified` property.
+
+### `azurerm_iothub_dps_certificate`
+
+* The deprecated `is_verified` property has been removed in favour of the `verified` property.
+
+### `azurerm_machine_learning_datastore_blobstorage`
+
+* The deprecated `is_default` property has been removed in favour of the `default` property.
+
+### `azurerm_machine_learning_datastore_datalake_gen2`
+
+* The deprecated `is_default` property has been removed in favour of the `default` property.
+
+### `azurerm_machine_learning_datastore_fileshare`
+
+* The deprecated `is_default` property has been removed in favour of the `default` property.
+
+### `azurerm_monitor_action_group`
+
+* The deprecated `automation_runbook_receiver.is_global_runbook` property has been removed in favour of the `automation_runbook_receiver.global_runbook` property.
+
+### `azurerm_monitor_scheduled_query_rules_alert_v2`
+
+* The deprecated `is_a_legacy_log_analytics_rule` property has been removed in favour of the `legacy_log_analytics_rule` property.
+* The deprecated `is_workspace_alerts_storage_configured` property has been removed in favour of the `workspace_alerts_storage_configured` property.
 
 ### `azurerm_mssql_job_credential`
 
@@ -115,10 +206,43 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `administrator_password_wo_version` property must now be at least `1`.
 
+### `azurerm_private_endpoint`
+
+* The deprecated `private_service_connection.is_manual_connection` property has been removed in favour of the `private_service_connection.manual_connection` property.
+
+### `azurerm_sentinel_alert_rule_anomaly_duplicate`
+
+* The deprecated `is_default_settings` property has been removed in favour of the `default_settings` property.
+
+### `azurerm_service_fabric_cluster`
+
+* The deprecated `client_certificate_thumbprint.is_admin` property has been removed in favour of the `client_certificate_thumbprint.admin` property.
+* The deprecated `client_certificate_common_name.is_admin` property has been removed in favour of the `client_certificate_common_name.admin` property.
+* The deprecated `node_type.is_primary` property has been removed in favour of the `node_type.primary` property.
+* The deprecated `node_type.is_stateless` property has been removed in favour of the `node_type.stateless` property.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `client_scoped_subscription.is_client_scoped_subscription_shareable` property has been removed in favour of the `client_scoped_subscription.shareable` property.
+* The deprecated `client_scoped_subscription.is_client_scoped_subscription_durable` property has been removed in favour of the `client_scoped_subscription.durable` property.
+
+### `azurerm_site_recovery_vmware_replicated_vm`
+
+* The deprecated `network_interface.is_primary` property has been removed in favour of the `network_interface.primary` property.
+
 ### `azurerm_storage_account`
 
 * The `account_kind` property no longer accepts the `BlobStorage` and `Storage` values.
 * The deprecated `public_network_access_enabled` property has been removed.
+* The deprecated `is_hns_enabled` property has been removed in favour of the `hns_enabled` property.
+
+### `azurerm_virtual_network_gateway`
+
+* The deprecated `policy_group.is_default` property has been removed in favour of the `policy_group.default` property.
+
+### `azurerm_vpn_server_configuration_policy_group`
+
+* The deprecated `is_default` property has been removed in favour of the `default` property.
 
 ## Breaking Changes in Data Sources
 
@@ -132,3 +256,24 @@ Please follow the format in the example below for listing breaking changes in da
 ```
 
 ---
+
+### `azurerm_api_management_api`
+
+* The deprecated `is_current` property has been removed in favour of the `current` property.
+* The deprecated `is_online` property has been removed in favour of the `online` property.
+
+### `azurerm_app_service_certificate_order`
+
+* The deprecated `is_private_key_external` property has been removed in favour of the `private_key_external` property.
+
+### `azurerm_cosmosdb_account`
+
+* The deprecated `is_virtual_network_filter_enabled` property has been removed in favour of the `virtual_network_filter_enabled` property.
+
+### `azurerm_monitor_action_group`
+
+* The deprecated `automation_runbook_receiver.is_global_runbook` property has been removed in favour of the `automation_runbook_receiver.global_runbook` property.
+
+### `azurerm_storage_account`
+
+* The deprecated `is_hns_enabled` property has been removed in favour of the `hns_enabled` property.

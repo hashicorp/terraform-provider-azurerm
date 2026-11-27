@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -51,17 +52,35 @@ func (m Resource) Create() sdk.ResourceFunc {
 			param := connectiontype.ConnectionTypeCreateOrUpdateParameters{
 				Name: model.Name,
 				Properties: connectiontype.ConnectionTypeCreateOrUpdateProperties{
-					IsGlobal:         pointer.To(model.IsGlobal),
+					IsGlobal:         pointer.To(model.Global),
 					FieldDefinitions: map[string]connectiontype.FieldDefinition{},
 				},
 			}
-			for _, field := range model.Field {
-				param.Properties.FieldDefinitions[field.Name] = connectiontype.FieldDefinition{
-					IsEncrypted: pointer.To(field.IsEncrypted),
-					IsOptional:  pointer.To(field.IsOptional),
+
+			if !features.SixPointOh() && !metadata.IsNullAt("is_global") {
+				param.Properties.IsGlobal = pointer.To(model.IsGlobal)
+			}
+
+			for i, field := range model.Field {
+				definition := connectiontype.FieldDefinition{
+					IsEncrypted: pointer.To(field.Encrypted),
+					IsOptional:  pointer.To(field.Optional),
 					Type:        field.Type,
 				}
+
+				if !features.SixPointOh() {
+					if !metadata.IsNullAt(fmt.Sprintf("field.%d.is_encrypted", i)) {
+						definition.IsEncrypted = pointer.To(field.IsEncrypted)
+					}
+
+					if !metadata.IsNullAt(fmt.Sprintf("field.%d.is_optional", i)) {
+						definition.IsOptional = pointer.To(field.IsOptional)
+					}
+				}
+
+				param.Properties.FieldDefinitions[field.Name] = definition
 			}
+
 			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}

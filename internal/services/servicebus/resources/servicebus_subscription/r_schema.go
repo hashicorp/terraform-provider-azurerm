@@ -6,13 +6,14 @@ package servicebus_subscription
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -112,14 +113,14 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 					},
 
-					"is_client_scoped_subscription_shareable": {
+					"shareable": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
 						Default:  true,
 					},
 
-					"is_client_scoped_subscription_durable": {
+					"durable": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -127,4 +128,33 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		client := s["client_scoped_subscription"].Elem.(*pluginsdk.Resource).Schema
+
+		client["is_client_scoped_subscription_shareable"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"client_scoped_subscription.0.shareable"},
+			Deprecated:    "`client_scoped_subscription.is_client_scoped_subscription_shareable` has been deprecated in favour of `client_scoped_subscription.shareable` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		client["shareable"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"client_scoped_subscription.0.is_client_scoped_subscription_shareable"},
+		}
+
+		client["is_client_scoped_subscription_durable"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`client_scoped_subscription.is_client_scoped_subscription_durable` has been deprecated in favour of `client_scoped_subscription.durable` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }

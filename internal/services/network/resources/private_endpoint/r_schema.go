@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func privateEndpointSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The Name of the Private Endpoint.",
 			Type:         pluginsdk.TypeString,
@@ -115,7 +116,7 @@ func privateEndpointSchema() map[string]*pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: validate.PrivateLinkName,
 					},
-					"is_manual_connection": {
+					"manual_connection": {
 						Description: "Whether the Private Endpoint requires manual approval from the remote resource owner.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
@@ -148,7 +149,7 @@ func privateEndpointSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"request_message": {
-						Description:  "A message passed to the owner of the remote resource when the Private Endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the Private Endpoint is connected to. Only valid if `is_manual_connection` is set to `true`.",
+						Description:  "A message passed to the owner of the remote resource when the Private Endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the Private Endpoint is connected to. Only valid if `manual_connection` is set to `true`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 140),
@@ -302,4 +303,29 @@ func privateEndpointSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		connection := s["private_service_connection"].Elem.(*pluginsdk.Resource).Schema
+
+		connection["is_manual_connection"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description:  "Whether the Private Endpoint requires manual approval from the remote resource owner.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"private_service_connection.0.is_manual_connection", "private_service_connection.0.manual_connection"},
+			Deprecated:   "`private_service_connection.is_manual_connection` has been deprecated in favour of `private_service_connection.manual_connection` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		connection["manual_connection"] = &pluginsdk.Schema{
+			Description:  "Whether the Private Endpoint requires manual approval from the remote resource owner.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"private_service_connection.0.is_manual_connection", "private_service_connection.0.manual_connection"},
+		}
+	}
+
+	return s
 }

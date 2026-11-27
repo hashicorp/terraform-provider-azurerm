@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,6 +90,11 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta any) err
 			d.Set("tier", pointer.FromEnum(props.Tier))
 			d.Set("cluster_version", props.ClusterVersion)
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
+
+			if !features.SixPointOh() {
+				d.Set("storage_account", helpers.HDInsightsStorageAccountsWithBothDefaultNames(d.Get("storage_account").([]any)))
+				d.Set("storage_account_gen2", helpers.HDInsightsStorageAccountsWithBothDefaultNames(d.Get("storage_account_gen2").([]any)))
+			}
 
 			if err := d.Set("component_version", flattenHDInsightHadoopComponentVersion(props.ClusterDefinition.ComponentVersion)); err != nil {
 				return fmt.Errorf("flattening `component_version`: %+v", err)

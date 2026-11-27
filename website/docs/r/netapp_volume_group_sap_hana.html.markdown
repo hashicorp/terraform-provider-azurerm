@@ -378,7 +378,7 @@ resource "azurerm_private_endpoint" "example" {
   private_service_connection {
     name                           = "${var.prefix}-pe-sc-kv"
     private_connection_resource_id = azurerm_key_vault.example.id
-    is_manual_connection           = false
+    manual_connection              = false
     subresource_names              = ["Vault"]
   }
 }

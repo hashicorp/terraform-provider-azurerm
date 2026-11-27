@@ -5,9 +5,11 @@ package virtual_network_gateway
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -250,19 +252,24 @@ func expandVirtualNetworkGatewayRadiusServers(input []any) *[]virtualnetworkgate
 	return &results
 }
 
-func expandVirtualNetworkGatewayPolicyGroups(input []any) *[]virtualnetworkgateways.VirtualNetworkGatewayPolicyGroup {
+func expandVirtualNetworkGatewayPolicyGroups(d *pluginsdk.ResourceData, input []any) *[]virtualnetworkgateways.VirtualNetworkGatewayPolicyGroup {
 	results := make([]virtualnetworkgateways.VirtualNetworkGatewayPolicyGroup, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
-	for _, item := range input {
+	for i, item := range input {
 		policyGroup := item.(map[string]any)
+
+		isDefault := policyGroup["default"].(bool)
+		if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("policy_group.%d.is_default", i)) {
+			isDefault = policyGroup["is_default"].(bool)
+		}
 
 		results = append(results, virtualnetworkgateways.VirtualNetworkGatewayPolicyGroup{
 			Name: pointer.To(policyGroup["name"].(string)),
 			Properties: &virtualnetworkgateways.VirtualNetworkGatewayPolicyGroupProperties{
-				IsDefault:     policyGroup["is_default"].(bool),
+				IsDefault:     isDefault,
 				PolicyMembers: *expandVirtualNetworkGatewayPolicyMembers(policyGroup["policy_member"].([]any)),
 				Priority:      int64(policyGroup["priority"].(int)),
 			},
@@ -393,7 +400,7 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	props.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
 
 	if v, ok := d.GetOk("policy_group"); ok {
-		props.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(v.([]any))
+		props.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(d, v.([]any))
 	}
 
 	if _, ok := d.GetOk("vpn_client_configuration"); ok {

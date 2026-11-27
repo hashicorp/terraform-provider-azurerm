@@ -1031,12 +1031,13 @@ resource "azurerm_private_endpoint" "test" {
   private_service_connection {
     name                           = "acctestpsc-%[2]d"
     private_connection_resource_id = azurerm_storage_account.test.id
-    is_manual_connection           = false
+    manual_connection              = false
     subresource_names              = ["blob"]
   }
 
   %[3]s
 }
+
 
 `, r.template(data), data.RandomInteger, peDependsOn)
 }

@@ -6,6 +6,7 @@ package api_management_api
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -13,7 +14,7 @@ import (
 )
 
 func apiManagementApiSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementApiName("The name of the API Management API."),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
@@ -291,13 +292,13 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		// Computed
-		"is_current": {
+		"current": {
 			Description: "Whether this is the current API Revision.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
-		"is_online": {
+		"online": {
 			Description: "Whether this API Revision is online/accessible via the Gateway.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
@@ -326,4 +327,22 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_current"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this is the current API Revision.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_current` has been deprecated in favour of `current` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["is_online"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this API Revision is online/accessible via the Gateway.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_online` has been deprecated in favour of `online` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }

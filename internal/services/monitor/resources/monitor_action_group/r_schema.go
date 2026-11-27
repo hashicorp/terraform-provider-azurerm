@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func monitorActionGroupSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Action Group.",
 			Type:         pluginsdk.TypeString,
@@ -258,7 +259,7 @@ func monitorActionGroupSchema() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"is_global_runbook": {
+					"global_runbook": {
 						Description: "Whether this instance is global runbook.",
 						Type:        pluginsdk.TypeBool,
 						Required:    true,
@@ -451,4 +452,25 @@ func monitorActionGroupSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		receiver := s["automation_runbook_receiver"].Elem.(*pluginsdk.Resource).Schema
+
+		receiver["is_global_runbook"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this instance is global runbook.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			Deprecated:  "`automation_runbook_receiver.is_global_runbook` has been deprecated in favour of `automation_runbook_receiver.global_runbook` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		receiver["global_runbook"] = &pluginsdk.Schema{
+			Description: "Whether this instance is global runbook.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+		}
+	}
+
+	return s
 }

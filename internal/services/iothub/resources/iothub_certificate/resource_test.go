@@ -27,7 +27,7 @@ func TestAccIotHubCertificate_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_verified").HasValue("false"),
+				check.That(data.ResourceName).Key("verified").HasValue("false"),
 			),
 		},
 		data.ImportStep("certificate_content"),
@@ -61,7 +61,7 @@ func TestAccIotHubCertificate_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_verified").HasValue("false"),
+				check.That(data.ResourceName).Key("verified").HasValue("false"),
 			),
 		},
 		data.ImportStep("certificate_content"),
@@ -69,7 +69,7 @@ func TestAccIotHubCertificate_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_verified").HasValue("true"),
+				check.That(data.ResourceName).Key("verified").HasValue("true"),
 			),
 		},
 		data.ImportStep("certificate_content"),
@@ -166,7 +166,7 @@ resource "azurerm_iothub_certificate" "test" {
   name                = "acctestIoTHubCertificate-%d"
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
-  is_verified         = true
+  verified            = true
 
   certificate_content = filebase64("testdata/iothub_test.cer")
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 )
@@ -105,7 +106,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				ContainerRegistryId: registryId.ID(),
 				AgentConfig:         agentConfig,
 				AgentPoolName:       agentPoolName,
-				IsSystemTask:        isSystemTask,
+				SystemTask:          isSystemTask,
 				LogTemplate:         logTemplate,
 				Platform:            platform,
 				Enabled:             enabled,
@@ -118,6 +119,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 				TimerTrigger:        timerTrigger,
 				RegistryCredential:  registryCredential,
 				Tags:                tag,
+			}
+
+			if !features.SixPointOh() {
+				model.IsSystemTask = isSystemTask
 			}
 
 			if err := metadata.Encode(&model); err != nil {

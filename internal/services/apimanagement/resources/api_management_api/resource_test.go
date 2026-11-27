@@ -44,8 +44,8 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("is_current").HasValue("true"),
-				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+				check.That(data.ResourceName).Key("current").HasValue("true"),
+				check.That(data.ResourceName).Key("online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
 			),
 		},
@@ -79,8 +79,8 @@ func TestAccApiManagementApi_blankPath(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("is_current").HasValue("true"),
-				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+				check.That(data.ResourceName).Key("current").HasValue("true"),
+				check.That(data.ResourceName).Key("online").HasValue("false"),
 				check.That(data.ResourceName).Key("path").HasValue(""),
 			),
 		},

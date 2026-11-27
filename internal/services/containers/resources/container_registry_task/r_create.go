@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 )
@@ -71,7 +72,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					Step:               expandRegistryTaskStep(model),
 					Trigger:            expandRegistryTaskTrigger(model),
 					Status:             pointer.To(status),
-					IsSystemTask:       &model.IsSystemTask,
+					IsSystemTask:       pointer.To(model.SystemTask),
 					Timeout:            pointer.To(model.TimeoutInSec),
 					Credentials:        expandRegistryTaskCredentials(model.RegistryCredential),
 					AgentConfiguration: expandRegistryTaskAgentProperties(model.AgentConfig),
@@ -88,6 +89,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			if model.LogTemplate != "" {
 				params.Properties.LogTemplate = &model.LogTemplate
+			}
+
+			if !features.SixPointOh() && !metadata.IsNullAt("is_system_task") {
+				params.Properties.IsSystemTask = pointer.To(model.IsSystemTask)
 			}
 
 			if err := client.CreateCallbackThenPoll(ctx, id, params, metadata.SetIDCallback(&id)); err != nil {

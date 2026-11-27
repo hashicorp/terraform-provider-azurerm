@@ -1554,7 +1554,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   private_service_connection {
     name                           = "acctest-sc-acr"
     private_connection_resource_id = azurerm_container_registry.registry.id
-    is_manual_connection           = false
+    manual_connection              = false
     subresource_names = [
       "registry"
     ]
@@ -1605,6 +1605,8 @@ resource "azurerm_role_assignment" "aks_to_kubeletidentity" {
   role_definition_name = "Managed Identity Operator"
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
+
+
 
 
   `, data.Locations.Primary, data.RandomInteger)

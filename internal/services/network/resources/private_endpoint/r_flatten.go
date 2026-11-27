@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatednszonegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -168,14 +169,18 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				state = pointer.From(props.PrivateLinkServiceConnectionState)
 			}
 			attrs := map[string]any{
-				"name":                 pointer.From(item.Name),
-				"is_manual_connection": false,
-				"private_ip_address":   privateIPAddress,
-				"subresource_names":    subResourceNames,
-				"status":               pointer.From(state.Status),
-				"description":          pointer.From(state.Description),
-				"action_required":      pointer.From(state.ActionsRequired),
+				"name":               pointer.From(item.Name),
+				"manual_connection":  false,
+				"private_ip_address": privateIPAddress,
+				"subresource_names":  subResourceNames,
+				"status":             pointer.From(state.Status),
+				"description":        pointer.From(state.Description),
+				"action_required":    pointer.From(state.ActionsRequired),
 			}
+			if !features.SixPointOh() {
+				attrs["is_manual_connection"] = attrs["manual_connection"]
+			}
+
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
@@ -208,15 +213,19 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 			}
 
 			attrs := map[string]any{
-				"name":                 pointer.From(item.Name),
-				"is_manual_connection": true,
-				"private_ip_address":   privateIPAddress,
-				"request_message":      requestMessage,
-				"subresource_names":    subResourceNames,
-				"status":               pointer.From(state.Status),
-				"description":          pointer.From(state.Description),
-				"action_required":      pointer.From(state.ActionsRequired),
+				"name":               pointer.From(item.Name),
+				"manual_connection":  true,
+				"private_ip_address": privateIPAddress,
+				"request_message":    requestMessage,
+				"subresource_names":  subResourceNames,
+				"status":             pointer.From(state.Status),
+				"description":        pointer.From(state.Description),
+				"action_required":    pointer.From(state.ActionsRequired),
 			}
+			if !features.SixPointOh() {
+				attrs["is_manual_connection"] = attrs["manual_connection"]
+			}
+
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {

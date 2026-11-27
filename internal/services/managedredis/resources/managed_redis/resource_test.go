@@ -693,7 +693,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-redis-psc-%[1]d"
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_managed_redis.test.id
     subresource_names              = ["redisEnterprise"]
   }

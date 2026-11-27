@@ -43,9 +43,9 @@ output "api_management_api_id" {
 
 * `display_name` - The display name of the API.
 
-* `is_current` - Is this the current API Revision?
+* `current` - Is this the current API Revision?
 
-* `is_online` - Is this API Revision online/accessible via the Gateway?
+* `online` - Is this API Revision online/accessible via the Gateway?
 
 * `path` - The Path for this API Management API.
 

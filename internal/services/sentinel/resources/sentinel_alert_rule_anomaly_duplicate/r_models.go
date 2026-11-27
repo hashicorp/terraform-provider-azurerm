@@ -18,7 +18,8 @@ type AlertRuleAnomalyDuplicateModel struct {
 	AnomalySettingsVersion       int64                                           `tfschema:"anomaly_settings_version"`
 	Description                  string                                          `tfschema:"description"`
 	Frequency                    string                                          `tfschema:"frequency"`
-	IsDefaultSettings            bool                                            `tfschema:"is_default_settings"`
+	DefaultSettings              bool                                            `tfschema:"default_settings"`
+	IsDefaultSettings            bool                                            `tfschema:"is_default_settings,removedInNextMajorVersion"`
 	RequiredDataConnectors       []helpers.AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
 	SettingsDefinitionId         string                                          `tfschema:"settings_definition_id"`
 	Tactics                      []string                                        `tfschema:"tactics"`

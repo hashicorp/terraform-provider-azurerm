@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -236,7 +237,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 						TargetVMName:                          providerSpecificDetail.TargetVMName,
 						TargetVMSize:                          providerSpecificDetail.TargetVMSize,
 						TestNetworkId:                         providerSpecificDetail.TestNetworkId,
-						VMNics:                                pointer.To(expandVMWareReplicatedVMNics(model.NetworkInterface)),
+						VMNics:                                pointer.To(expandVMWareReplicatedVMNics(metadata.ResourceData, model.NetworkInterface)),
 					},
 				},
 			}
@@ -250,9 +251,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 	}
 }
 
-func expandVMWareReplicatedVMNics(input []NetworkInterfaceModel) []replicationprotecteditems.InMageRcmNicInput {
+func expandVMWareReplicatedVMNics(d *pluginsdk.ResourceData, input []NetworkInterfaceModel) []replicationprotecteditems.InMageRcmNicInput {
 	vmNics := make([]replicationprotecteditems.InMageRcmNicInput, 0)
-	for _, nic := range input {
+	for i, nic := range input {
+		primary := nic.Primary
+		if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("network_interface.%d.is_primary", i)) {
+			primary = nic.IsPrimary
+		}
+
 		vmNic := replicationprotecteditems.InMageRcmNicInput{
 			NicId:            nic.SourceMacAddress,
 			TargetSubnetName: &nic.TargetSubnetName,
@@ -261,7 +267,7 @@ func expandVMWareReplicatedVMNics(input []NetworkInterfaceModel) []replicationpr
 		if nic.TargetStaticIp != "" {
 			vmNic.TargetStaticIPAddress = &nic.TargetStaticIp
 		}
-		if nic.IsPrimary {
+		if primary {
 			vmNic.IsPrimaryNic = strconv.FormatBool(true)
 			vmNic.IsSelectedForFailover = pointer.To("true")
 		} else {

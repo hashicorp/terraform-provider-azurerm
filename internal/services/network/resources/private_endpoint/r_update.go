@@ -52,8 +52,8 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
 	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
-	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false)
-	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true)
+	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d, privateServiceConnections, false)
+	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d, privateServiceConnections, true)
 	privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, manualPrivateLinkServiceConnectionIds...)
 	locks.MultipleByID(pointer.To(privateLinkServiceConnectionIds))
 	defer locks.UnlockMultipleByID(pointer.To(privateLinkServiceConnectionIds))

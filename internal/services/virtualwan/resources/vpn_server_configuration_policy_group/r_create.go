@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,10 +48,14 @@ func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, 
 
 	payload := virtualwans.VpnServerConfigurationPolicyGroup{
 		Properties: &virtualwans.VpnServerConfigurationPolicyGroupProperties{
-			IsDefault:     pointer.To(d.Get("is_default").(bool)),
+			IsDefault:     pointer.To(d.Get("default").(bool)),
 			PolicyMembers: expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy").(*pluginsdk.Set).List()),
 			Priority:      pointer.To(int64(d.Get("priority").(int))),
 		},
+	}
+
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_default") {
+		payload.Properties.IsDefault = pointer.To(d.Get("is_default").(bool))
 	}
 
 	if err := client.ConfigurationPolicyGroupsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {

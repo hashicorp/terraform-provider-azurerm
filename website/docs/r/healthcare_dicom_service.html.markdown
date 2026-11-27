@@ -88,7 +88,7 @@ A `storage` block supports the following:
 
 * `storage_account_id` - (Required) The resource ID of connected storage account. Changing this forces a new Healthcare DICOM Service to be created.
 
-~> **Note:** The `is_hns_enabled` needs to be set to `true` for the storage account to be used with the Healthcare DICOM Service.
+~> **Note:** The `hns_enabled` needs to be set to `true` for the storage account to be used with the Healthcare DICOM Service.
 
 ## Attributes Reference
 

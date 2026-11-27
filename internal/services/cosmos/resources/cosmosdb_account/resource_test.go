@@ -989,7 +989,7 @@ func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 			Config: r.vNetFilters(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_virtual_network_filter_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("virtual_network_filter_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("virtual_network_rule.#").HasValue("2"),
 			),
 		},
@@ -1728,7 +1728,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
@@ -1786,7 +1786,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
@@ -1851,7 +1851,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
@@ -2009,7 +2009,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
@@ -2074,7 +2074,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
@@ -2151,7 +2151,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
@@ -2223,7 +2223,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
@@ -2532,8 +2532,8 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 100
   }
 
-  is_virtual_network_filter_enabled = true
-  ip_range_filter                   = []
+  virtual_network_filter_enabled = true
+  ip_range_filter                = []
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id
@@ -3765,7 +3765,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%[3]s"
 
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
 
   consistency_policy {
     consistency_level = "%[4]s"
@@ -4704,8 +4704,8 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 100
   }
 
-  is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["55.0.1.0/24"]
+  virtual_network_filter_enabled = true
+  ip_range_filter                = ["55.0.1.0/24"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id
@@ -4745,8 +4745,8 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 100
   }
 
-  is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
+  virtual_network_filter_enabled = true
+  ip_range_filter                = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id
@@ -4830,7 +4830,7 @@ resource "azurerm_cosmosdb_account" "test" {
     max_interval_in_seconds = 300
     max_staleness_prefix    = 170000
   }
-  is_virtual_network_filter_enabled = true
+  virtual_network_filter_enabled = true
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
   }

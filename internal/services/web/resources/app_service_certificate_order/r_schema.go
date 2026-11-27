@@ -5,12 +5,13 @@ package app_service_certificate_order
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func appServiceCertificateOrderSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -109,7 +110,7 @@ func appServiceCertificateOrderSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"is_private_key_external": {
+		"private_key_external": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -139,4 +140,14 @@ func appServiceCertificateOrderSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["is_private_key_external"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`is_private_key_external` has been deprecated in favour of `private_key_external` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }

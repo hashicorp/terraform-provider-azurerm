@@ -295,7 +295,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

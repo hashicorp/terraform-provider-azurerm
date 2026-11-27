@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -118,7 +119,13 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta any)
 			}
 			d.Set("advanced_filtering_on_arrays_enabled", enableAdvancedFilteringOnArrays)
 			d.Set("included_event_types", includedEventTypes)
-			if err := d.Set("advanced_filter", helpers.FlattenEventSubscriptionAdvancedFilter(props.Filter)); err != nil {
+
+			advancedFilter := helpers.FlattenEventSubscriptionAdvancedFilter(props.Filter)
+			if !features.SixPointOh() {
+				advancedFilter = helpers.AdvancedFilterUnderOldNames(d, advancedFilter)
+			}
+
+			if err := d.Set("advanced_filter", advancedFilter); err != nil {
 				return fmt.Errorf("setting `advanced_filter` for %s: %+v", *id, err)
 			}
 			if err := d.Set("retry_policy", helpers.FlattenEventSubscriptionRetryPolicy(props.RetryPolicy)); err != nil {

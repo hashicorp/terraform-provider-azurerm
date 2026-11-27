@@ -573,8 +573,8 @@ resource "azurerm_servicebus_subscription" "test" {
   max_delivery_count                 = 10
   client_scoped_subscription_enabled = true
   client_scoped_subscription {
-    client_id                               = "123456"
-    is_client_scoped_subscription_shareable = false
+    client_id = "123456"
+    shareable = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

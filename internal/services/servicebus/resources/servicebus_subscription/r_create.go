@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -36,7 +37,17 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 			}
 			name = name + "$" + clientId + "$D"
 
-			isSubShared = clientScopedSubsProps["is_client_scoped_subscription_shareable"].(bool)
+			isSubShared = clientScopedSubsProps["shareable"].(bool)
+
+			// without a default in 5.x, leaving both names out has to mean shareable
+			if !features.SixPointOh() {
+				switch {
+				case !pluginsdk.IsExplicitlyNullInConfigAt(d, "client_scoped_subscription.0.is_client_scoped_subscription_shareable"):
+					isSubShared = clientScopedSubsProps["is_client_scoped_subscription_shareable"].(bool)
+				case pluginsdk.IsExplicitlyNullInConfigAt(d, "client_scoped_subscription.0.shareable"):
+					isSubShared = true
+				}
+			}
 		}
 	}
 

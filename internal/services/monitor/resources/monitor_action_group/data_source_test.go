@@ -258,7 +258,7 @@ resource "azurerm_monitor_action_group" "test" {
     automation_account_id   = azurerm_automation_account.test.id
     runbook_name            = "webhook_alert"
     webhook_resource_id     = "%s"
-    is_global_runbook       = true
+    global_runbook          = true
     service_uri             = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
     use_common_alert_schema = false
   }

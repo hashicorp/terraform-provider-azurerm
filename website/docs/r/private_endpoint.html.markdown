@@ -90,7 +90,7 @@ resource "azurerm_private_endpoint" "example" {
   private_service_connection {
     name                           = "example-privateserviceconnection"
     private_connection_resource_id = azurerm_private_link_service.example.id
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 ```
@@ -122,7 +122,7 @@ resource "azurerm_private_endpoint" "example" {
   private_service_connection {
     name                              = "example-privateserviceconnection"
     private_connection_resource_alias = "example-privatelinkservice.d20286c8-4ea5-11eb-9584-8f53157226c6.centralus.azure.privatelinkservice"
-    is_manual_connection              = true
+    manual_connection                 = true
     request_message                   = "PL"
   }
 }
@@ -168,7 +168,7 @@ resource "azurerm_private_endpoint" "example" {
     name                           = "example-privateserviceconnection"
     private_connection_resource_id = azurerm_storage_account.example.id
     subresource_names              = ["blob"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 
   private_dns_zone_group {
@@ -233,7 +233,7 @@ A `private_service_connection` block supports the following:
 
 * `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces a new resource to be created.
 
-* `is_manual_connection` - (Required) Does the Private Endpoint require Manual Approval from the remote resource owner? Changing this forces a new resource to be created.
+* `manual_connection` - (Required) Does the Private Endpoint require Manual Approval from the remote resource owner? Changing this forces a new resource to be created.
 
 -> **Note:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
 
@@ -247,7 +247,7 @@ A `private_service_connection` block supports the following:
 
 -> **Note:** For most Private Links one or more `subresource_names` will need to be specified, please see the linked documentation for details.
 
-* `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the private endpoint is connected to. Only valid if `is_manual_connection` is set to `true`.
+* `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the private endpoint is connected to. Only valid if `manual_connection` is set to `true`.
 
 -> **Note:** When connected to an SQL resource the `request_message` maximum length is `128`.
 

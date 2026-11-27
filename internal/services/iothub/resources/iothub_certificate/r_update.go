@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +29,11 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	etag := pointer.From(existing.Etag)
 
-	if d.HasChange("is_verified") {
+	if d.HasChange("verified") {
+		existing.Properties.IsVerified = pointer.To(d.Get("verified").(bool))
+	}
+
+	if !features.SixPointOh() && d.HasChange("is_verified") && !pluginsdk.IsExplicitlyNullInConfig(d, "is_verified") {
 		existing.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
 	}
 

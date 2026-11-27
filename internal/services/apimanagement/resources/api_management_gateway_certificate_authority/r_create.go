@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -45,8 +46,12 @@ func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.R
 
 	parameters := gatewaycertificateauthority.GatewayCertificateAuthorityContract{
 		Properties: &gatewaycertificateauthority.GatewayCertificateAuthorityContractProperties{
-			IsTrusted: pointer.To(d.Get("is_trusted").(bool)),
+			IsTrusted: pointer.To(d.Get("trusted").(bool)),
 		},
+	}
+
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_trusted") {
+		parameters.Properties.IsTrusted = pointer.To(d.Get("is_trusted").(bool))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters, gatewaycertificateauthority.CreateOrUpdateOperationOptions{}); err != nil {

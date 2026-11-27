@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -52,7 +53,11 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta any)
 			d.Set("validity_in_years", props.ValidityInYears)
 			d.Set("domain_verification_token", props.DomainVerificationToken)
 			d.Set("status", pointer.FromEnum(props.Status))
-			d.Set("is_private_key_external", props.IsPrivateKeyExternal)
+			d.Set("private_key_external", props.IsPrivateKeyExternal)
+			if !features.SixPointOh() {
+				d.Set("is_private_key_external", props.IsPrivateKeyExternal)
+			}
+
 			d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
 			d.Set("app_service_certificate_not_renewable_reasons", flattenAppServiceCertificateNotRenewableReasons(props.AppServiceCertificateNotRenewableReasons))
 			d.Set("expiration_time", props.ExpirationTime)

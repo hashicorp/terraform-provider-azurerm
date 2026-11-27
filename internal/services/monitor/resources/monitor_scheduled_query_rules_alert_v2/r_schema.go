@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -336,23 +337,41 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"created_with_api_version": {
 			Description: "The api-version used when creating this alert rule.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
 
-		"is_a_legacy_log_analytics_rule": {
+		"legacy_log_analytics_rule": {
 			Description: "True if this alert rule is a legacy Log Analytic Rule.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
-		"is_workspace_alerts_storage_configured": {
+		"workspace_alerts_storage_configured": {
 			Description: "The flag indicates whether this Scheduled Query Rule has been configured to be stored in the customer's storage.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_a_legacy_log_analytics_rule"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "True if this alert rule is a legacy Log Analytic Rule.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_a_legacy_log_analytics_rule` has been deprecated in favour of `legacy_log_analytics_rule` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["is_workspace_alerts_storage_configured"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "The flag indicates whether this Scheduled Query Rule has been configured to be stored in the customer's storage.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_workspace_alerts_storage_configured` has been deprecated in favour of `workspace_alerts_storage_configured` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }

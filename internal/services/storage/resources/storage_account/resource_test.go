@@ -267,7 +267,7 @@ func TestAccStorageAccount_isHnsEnabled(t *testing.T) {
 			Config: r.isHnsEnabledTrue(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_hns_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("hns_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -283,7 +283,7 @@ func TestAccStorageAccount_isHnsDisabled(t *testing.T) {
 			Config: r.isHnsEnabledFalse(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_hns_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("hns_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -2179,7 +2179,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -2203,7 +2203,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = false
+  hns_enabled              = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -2244,7 +2244,7 @@ resource "azurerm_storage_account" "test" {
   account_tier               = "Premium"
   account_kind               = "BlockBlobStorage"
   account_replication_type   = "LRS"
-  is_hns_enabled             = true
+  hns_enabled                = true
   nfsv3_enabled              = true
   https_traffic_only_enabled = false
   network_rules {
@@ -3102,7 +3102,7 @@ resource "azurerm_storage_account" "test" {
   account_kind               = "BlockBlobStorage"
   account_tier               = "Premium"
   account_replication_type   = "LRS"
-  is_hns_enabled             = true
+  hns_enabled                = true
   min_tls_version            = "TLS1_2"
   https_traffic_only_enabled = true
 }
@@ -4490,7 +4490,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
   sftp_enabled             = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -4515,7 +4515,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
   sftp_enabled             = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -4540,7 +4540,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
   sftp_enabled             = true
   local_user_enabled       = %t
 }

@@ -33,7 +33,7 @@ resource "azurerm_iothub_certificate" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   iothub_name         = azurerm_iothub.example.name
-  is_verified         = true
+  verified            = true
 
   certificate_content = filebase64("example.cer")
 }
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `certificate_content` - (Required) The Base-64 representation of the X509 leaf certificate .cer file or just a .pem file content.
 
-* `is_verified` - (Optional) Is the certificate verified? Defaults to `false`.
+* `verified` - (Optional) Is the certificate verified? Defaults to `false`.
 
 ## Attributes Reference
 

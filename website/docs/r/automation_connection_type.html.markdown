@@ -57,7 +57,7 @@ The following arguments are supported:
 
 ---
 
-* `is_global` - (Optional) Whether the connection type is global. Changing this forces a new Automation to be created.
+* `global` - (Optional) Whether the connection type is global. Changing this forces a new Automation to be created.
 
 ---
 
@@ -67,9 +67,9 @@ A `field` block supports the following:
 
 * `type` - (Required) The type of the connection field definition.
 
-* `is_encrypted` - (Optional) Whether to set the isEncrypted flag of the connection field definition.
+* `encrypted` - (Optional) Whether to set the isEncrypted flag of the connection field definition.
 
-* `is_optional` - (Optional) Whether to set the isOptional flag of the connection field definition.
+* `optional` - (Optional) Whether to set the isOptional flag of the connection field definition.
 
 ## Attributes Reference
 

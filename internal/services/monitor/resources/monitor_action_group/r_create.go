@@ -72,7 +72,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta any)
 			ItsmReceivers:              expandedItsmReceiver,
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
 			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(tenantId, webhookReceiversRaw),
-			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
+			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(d, automationRunbookReceiversRaw),
 			VoiceReceivers:             expandMonitorActionGroupVoiceReceiver(voiceReceiversRaw),
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -39,8 +40,8 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *scheduledqueryrules
 		state.DisplayName = pointer.From(properties.DisplayName)
 		state.Enabled = pointer.From(properties.Enabled)
 		state.EvaluationFrequency = pointer.From(properties.EvaluationFrequency)
-		state.IsLegacyLogAnalyticsRule = pointer.From(properties.IsLegacyLogAnalyticsRule)
-		state.IsWorkspaceAlertsStorageConfigured = pointer.From(properties.IsWorkspaceAlertsStorageConfigured)
+		state.LegacyLogAnalyticsRule = pointer.From(properties.IsLegacyLogAnalyticsRule)
+		state.WorkspaceAlertsStorageConfigured = pointer.From(properties.IsWorkspaceAlertsStorageConfigured)
 		state.MuteActionsDuration = pointer.From(properties.MuteActionsDuration)
 		state.OverrideQueryTimeRange = pointer.From(properties.OverrideQueryTimeRange)
 		state.Scopes = pointer.From(properties.Scopes)
@@ -49,6 +50,11 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *scheduledqueryrules
 		state.TargetResourceTypes = pointer.From(properties.TargetResourceTypes)
 		state.WindowSize = pointer.From(properties.WindowSize)
 		state.Tags = pointer.From(model.Tags)
+
+		if !features.SixPointOh() {
+			state.IsLegacyLogAnalyticsRule = state.LegacyLogAnalyticsRule
+			state.IsWorkspaceAlertsStorageConfigured = state.WorkspaceAlertsStorageConfigured
+		}
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

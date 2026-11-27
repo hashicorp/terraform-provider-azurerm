@@ -31,7 +31,7 @@ resource "azurerm_service_fabric_cluster" "example" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -157,7 +157,7 @@ A `client_certificate_thumbprint` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint associated with the Client Certificate.
 
-* `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
+* `admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 
 ---
 
@@ -169,7 +169,7 @@ A `client_certificate_common_name` block supports the following:
 
 -> **Note:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
-* `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
+* `admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 
 ---
 
@@ -205,9 +205,9 @@ A `node_type` block supports the following:
 
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
-* `is_primary` - (Required) Is this the Primary Node Type? 
+* `primary` - (Required) Is this the Primary Node Type? 
 
-* `is_stateless` - (Optional) Should this node type run only stateless services?
+* `stateless` - (Optional) Should this node type run only stateless services?
 
 * `multiple_availability_zones` - (Optional) Does this node type span availability zones?
 

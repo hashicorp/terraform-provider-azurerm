@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -318,9 +319,14 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 		"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
 		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
 		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
-		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
+		"advanced_filter.0.string_not_in", "advanced_filter.0.not_null", "advanced_filter.0.null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
 	}
-	return &pluginsdk.Schema{
+
+	if !features.SixPointOh() {
+		atLeastOneOf = append(atLeastOneOf, "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined")
+	}
+
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -651,7 +657,7 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 						},
 					},
 				},
-				"is_not_null": {
+				"not_null": {
 					Description:  "Evaluates if a value of an event isn't NULL or undefined.",
 					Type:         pluginsdk.TypeList,
 					Optional:     true,
@@ -666,7 +672,7 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 						},
 					},
 				},
-				"is_null_or_undefined": {
+				"null_or_undefined": {
 					Description:  "Evaluates if a value of an event is NULL or undefined.",
 					Type:         pluginsdk.TypeList,
 					Optional:     true,
@@ -740,6 +746,46 @@ func EventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		filters := s.Elem.(*pluginsdk.Resource).Schema
+
+		filters["is_not_null"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description:  "Evaluates if a value of an event isn't NULL or undefined.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			AtLeastOneOf: atLeastOneOf,
+			Deprecated:   "`advanced_filter.is_not_null` has been deprecated in favour of `advanced_filter.not_null` and will be removed in v6.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+
+		filters["is_null_or_undefined"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description:  "Evaluates if a value of an event is NULL or undefined.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			AtLeastOneOf: atLeastOneOf,
+			Deprecated:   "`advanced_filter.is_null_or_undefined` has been deprecated in favour of `advanced_filter.null_or_undefined` and will be removed in v6.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return s
 }
 
 func EventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema {

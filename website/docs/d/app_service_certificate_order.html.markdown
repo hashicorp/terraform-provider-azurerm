@@ -55,7 +55,7 @@ output "certificate_order_id" {
 
 * `expiration_time` - Certificate expiration time.
 
-* `is_private_key_external` - Whether the private key is external or not.
+* `private_key_external` - Whether the private key is external or not.
 
 * `app_service_certificate_not_renewable_reasons` - Reasons why App Service Certificate is not renewable at the current moment.
 

@@ -1051,7 +1051,7 @@ func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) stri
 resource "azurerm_container_registry_task" "test" {
   name                  = "quicktask"
   container_registry_id = azurerm_container_registry.test.id
-  is_system_task        = true
+  system_task           = true
 }
 `, template)
 }

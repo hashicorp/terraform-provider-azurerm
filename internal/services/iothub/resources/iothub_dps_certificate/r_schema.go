@@ -5,13 +5,14 @@ package iothub_dps_certificate
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func iothubDpsCertificateSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Iot Device Provisioning Service Certificate resource.",
 			Type:         pluginsdk.TypeString,
@@ -38,7 +39,7 @@ func iothubDpsCertificateSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"is_verified": {
+		"verified": {
 			Description: "Whether the certificate is created in verified state.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
@@ -46,4 +47,27 @@ func iothubDpsCertificateSchema() map[string]*pluginsdk.Schema {
 			Default:     false,
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_verified"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description:   "Whether the certificate is created in verified state.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"verified"},
+			Deprecated:    "`is_verified` has been deprecated in favour of `verified` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["verified"] = &pluginsdk.Schema{
+			Description:   "Whether the certificate is created in verified state.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"is_verified"},
+		}
+	}
+
+	return s
 }

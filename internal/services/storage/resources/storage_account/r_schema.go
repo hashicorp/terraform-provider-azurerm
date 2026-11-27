@@ -257,7 +257,7 @@ func storageAccountSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"is_hns_enabled": {
+		"hns_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,

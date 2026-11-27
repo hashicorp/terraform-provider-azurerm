@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewaycertificateauthority"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -45,7 +46,11 @@ func resourceApiManagementGatewayCertificateAuthorityRead(d *pluginsdk.ResourceD
 	if model := resp.Model; model != nil {
 		d.Set("certificate_name", pointer.From(model.Name))
 		if props := model.Properties; props != nil {
-			d.Set("is_trusted", pointer.From(props.IsTrusted))
+			d.Set("trusted", pointer.From(props.IsTrusted))
+
+			if !features.SixPointOh() {
+				d.Set("is_trusted", pointer.From(props.IsTrusted))
+			}
 		}
 	}
 

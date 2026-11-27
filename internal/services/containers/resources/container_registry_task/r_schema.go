@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,7 +21,7 @@ import (
 )
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name which should be used for this Container Registry Task.",
 			Type:         pluginsdk.TypeString,
@@ -486,7 +487,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Default:     true,
 		},
-		"is_system_task": {
+		"system_task": {
 			Description: "Whether this Container Registry Task is a system task.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
@@ -508,13 +509,39 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["is_system_task"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description:   "Whether this Container Registry Task is a system task.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"system_task"},
+			Deprecated:    "`is_system_task` has been deprecated in favour of `system_task` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["system_task"] = &pluginsdk.Schema{
+			Description:   "Whether this Container Registry Task is a system task.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"is_system_task"},
+		}
+	}
+
+	return s
 }
 
 func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
-			isSystemTask := rd.Get("is_system_task").(bool)
+			isSystemTask := rd.Get("system_task").(bool)
+			if !features.SixPointOh() && !metadata.IsNullAt("is_system_task") {
+				isSystemTask = rd.Get("is_system_task").(bool)
+			}
 
 			if isSystemTask {
 				invalidProps := []string{"platform", "docker_step", "file_step", "encoded_step", "base_image_trigger", "source_trigger", "timer_trigger"}

@@ -1109,7 +1109,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = azurerm_container_app_environment.test.name
     private_connection_resource_id = azurerm_container_app_environment.test.id
     subresource_names              = ["managedEnvironments"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, r.template(data), data.RandomInteger)

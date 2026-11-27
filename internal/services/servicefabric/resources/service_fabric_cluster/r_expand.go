@@ -4,8 +4,11 @@
 package service_fabric_cluster
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabric/2021-06-01/cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -136,31 +139,39 @@ func expandServiceFabricClusterReverseProxyCertificate(input []any) *cluster.Cer
 	return &result
 }
 
-func expandServiceFabricClusterClientCertificateThumbprints(input []any) *[]cluster.ClientCertificateThumbprint {
+func expandServiceFabricClusterClientCertificateThumbprints(d *pluginsdk.ResourceData, input []any) *[]cluster.ClientCertificateThumbprint {
 	results := make([]cluster.ClientCertificateThumbprint, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		val := v.(map[string]any)
 
 		result := cluster.ClientCertificateThumbprint{
 			CertificateThumbprint: val["thumbprint"].(string),
-			IsAdmin:               val["is_admin"].(bool),
+			IsAdmin:               val["admin"].(bool),
 		}
+
+		if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("client_certificate_thumbprint.%d.is_admin", i)) {
+			result.IsAdmin = val["is_admin"].(bool)
+		}
+
 		results = append(results, result)
 	}
 
 	return &results
 }
 
-func expandServiceFabricClusterClientCertificateCommonNames(input []any) *[]cluster.ClientCertificateCommonName {
+func expandServiceFabricClusterClientCertificateCommonNames(d *pluginsdk.ResourceData, input []any) *[]cluster.ClientCertificateCommonName {
 	results := make([]cluster.ClientCertificateCommonName, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		val := v.(map[string]any)
 
 		certificateCommonName := val["common_name"].(string)
 		certificateIssuerThumbprint := val["issuer_thumbprint"].(string)
-		isAdmin := val["is_admin"].(bool)
+		isAdmin := val["admin"].(bool)
+		if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("client_certificate_common_name.%d.is_admin", i)) {
+			isAdmin = val["is_admin"].(bool)
+		}
 
 		result := cluster.ClientCertificateCommonName{
 			CertificateCommonName:       certificateCommonName,
@@ -270,23 +281,33 @@ func expandServiceFabricClusterFabricSettings(input []any) *[]cluster.SettingsSe
 	return &results
 }
 
-func expandServiceFabricClusterNodeTypes(input []any) []cluster.NodeTypeDescription {
+func expandServiceFabricClusterNodeTypes(d *pluginsdk.ResourceData, input []any) []cluster.NodeTypeDescription {
 	results := make([]cluster.NodeTypeDescription, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		node := v.(map[string]any)
 
 		result := cluster.NodeTypeDescription{
 			Name:                         node["name"].(string),
 			VMInstanceCount:              int64(node["instance_count"].(int)),
-			IsPrimary:                    node["is_primary"].(bool),
+			IsPrimary:                    node["primary"].(bool),
 			ClientConnectionEndpointPort: int64(node["client_endpoint_port"].(int)),
 			HTTPGatewayEndpointPort:      int64(node["http_endpoint_port"].(int)),
 			DurabilityLevel:              pointer.ToEnum[cluster.DurabilityLevel](node["durability_level"].(string)),
 		}
 
-		if isStateless, ok := node["is_stateless"]; ok {
+		if isStateless, ok := node["stateless"]; ok {
 			result.IsStateless = pointer.To(isStateless.(bool))
+		}
+
+		if !features.SixPointOh() {
+			if !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("node_type.%d.is_primary", i)) {
+				result.IsPrimary = node["is_primary"].(bool)
+			}
+
+			if !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("node_type.%d.is_stateless", i)) {
+				result.IsStateless = pointer.To(node["is_stateless"].(bool))
+			}
 		}
 
 		if multipleAvailabilityZones, ok := node["multiple_availability_zones"]; ok {

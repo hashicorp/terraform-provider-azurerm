@@ -914,10 +914,10 @@ resource "azurerm_eventgrid_event_subscription" "test2" {
       key    = "data.blobType"
       values = ["Page"]
     }
-    is_not_null {
+    not_null {
       key = "subject"
     }
-    is_null_or_undefined {
+    null_or_undefined {
       key = "subject"
     }
   }

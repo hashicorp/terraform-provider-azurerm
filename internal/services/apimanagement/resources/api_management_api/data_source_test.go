@@ -37,8 +37,8 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("protocols.0").HasValue("https"),
 				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
-				check.That(data.ResourceName).Key("is_current").HasValue("true"),
-				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+				check.That(data.ResourceName).Key("current").HasValue("true"),
+				check.That(data.ResourceName).Key("online").HasValue("false"),
 			),
 		},
 	})
@@ -60,8 +60,8 @@ func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_key_parameter_names.0.header").HasValue("X-Butter-Robot-API-Key"),
 				check.That(data.ResourceName).Key("subscription_key_parameter_names.0.query").HasValue("location"),
-				check.That(data.ResourceName).Key("is_current").HasValue("true"),
-				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+				check.That(data.ResourceName).Key("current").HasValue("true"),
+				check.That(data.ResourceName).Key("online").HasValue("false"),
 			),
 		},
 	})

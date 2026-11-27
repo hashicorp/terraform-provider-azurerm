@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `platform` - (Optional) A `platform` block as defined below.
 
-~> **Note:** The `platform` is required for non-system task (when `is_system_task` is set to `false`).
+~> **Note:** The `platform` is required for non-system task (when `system_task` is set to `false`).
 
 * `docker_step` - (Optional) A `docker_step` block as defined below.
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `file_step` - (Optional) A `file_step` block as defined below.
 
-~> **Note:** For non-system task (when `is_system_task` is set to `false`), one and only one of the `docker_step`, `encoded_step` and `file_step` should be specified.
+~> **Note:** For non-system task (when `system_task` is set to `false`), one and only one of the `docker_step`, `encoded_step` and `file_step` should be specified.
 
 * `base_image_trigger` - (Optional) A `base_image_trigger` block as defined below.
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `timer_trigger` - (Optional) One or more `timer_trigger` blocks as defined below.
 
-* `is_system_task` - (Optional) Whether this Container Registry Task is a system task. Changing this forces a new Container Registry Task to be created. Defaults to `false`.
+* `system_task` - (Optional) Whether this Container Registry Task is a system task. Changing this forces a new Container Registry Task to be created. Defaults to `false`.
 
 ~> **Note:** For system task, the `name` has to be set as `quicktask`. And the following properties can't be specified: `docker_step`, `encoded_step`, `file_step`, `platform`, `base_image_trigger`, `source_trigger`, `timer_trigger`.
 

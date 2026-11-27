@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -35,18 +36,29 @@ type MachineLearningDataStoreDataLakeGen2Model struct {
 	ClientSecret        string            `tfschema:"client_secret"`
 	AuthorityURL        string            `tfschema:"authority_url"`
 	Description         string            `tfschema:"description"`
-	IsDefault           bool              `tfschema:"is_default"`
+	Default             bool              `tfschema:"default"`
+	IsDefault           bool              `tfschema:"is_default,removedInNextMajorVersion"`
 	ServiceDataIdentity string            `tfschema:"service_data_identity"`
 	Tags                map[string]string `tfschema:"tags"`
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) Attributes() map[string]*schema.Schema {
-	return map[string]*pluginsdk.Schema{
-		"is_default": {
+	s := map[string]*pluginsdk.Schema{
+		"default": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`is_default` has been deprecated in favour of `default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) ModelObject() any {
@@ -337,7 +349,10 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
-			model.IsDefault = *data.IsDefault
+			model.Default = *data.IsDefault
+			if !features.SixPointOh() {
+				model.IsDefault = model.Default
+			}
 
 			if creds, ok := data.Credentials.(datastore.ServicePrincipalDatastoreCredentials); ok {
 				if !strings.EqualFold(creds.TenantId, "00000000-0000-0000-0000-000000000000") && !strings.EqualFold(creds.ClientId, "00000000-0000-0000-0000-000000000000") {

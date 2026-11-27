@@ -52,7 +52,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "example" {
   storage_account {
     storage_container_url = azurerm_storage_container.example.url
     storage_account_key   = azurerm_storage_account.example.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -208,7 +208,7 @@ A `compute_isolation` block supports the following:
 
 A `storage_account` block supports the following:
 
-* `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
+* `default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
 
 -> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
@@ -222,7 +222,7 @@ A `storage_account` block supports the following:
 
 A `storage_account_gen2` block supports the following:
 
-* `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
+* `default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
 
 -> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -39,9 +40,13 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta any) error 
 
 	certificate := devices.CertificateDescription{
 		Properties: &devices.CertificateProperties{
-			IsVerified:  pointer.To(d.Get("is_verified").(bool)),
+			IsVerified:  pointer.To(d.Get("verified").(bool)),
 			Certificate: pointer.To(d.Get("certificate_content").(string)),
 		},
+	}
+
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_verified") {
+		certificate.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, certificate, ""); err != nil {

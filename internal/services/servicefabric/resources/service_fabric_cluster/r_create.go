@@ -55,7 +55,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta an
 	fabricSettings := expandServiceFabricClusterFabricSettings(fabricSettingsRaw)
 
 	nodeTypesRaw := d.Get("node_type").([]any)
-	nodeTypes := expandServiceFabricClusterNodeTypes(nodeTypesRaw)
+	nodeTypes := expandServiceFabricClusterNodeTypes(d, nodeTypesRaw)
 
 	location := d.Get("location").(string)
 	reliabilityLevel := cluster.ReliabilityLevel(d.Get("reliability_level").(string))
@@ -101,11 +101,11 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta an
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
-		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]any))
+		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(d, clientCertificateThumbprintRaw.([]any))
 	}
 
 	if clientCertificateCommonNamesRaw, ok := d.GetOk("client_certificate_common_name"); ok {
-		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]any))
+		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(d, clientCertificateCommonNamesRaw.([]any))
 	}
 
 	if clusterCodeVersion != "" {

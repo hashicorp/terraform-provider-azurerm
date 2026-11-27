@@ -916,9 +916,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 
   policy_group {
-    name       = "TestPolicyGroup"
-    is_default = true
-    priority   = 1
+    name     = "TestPolicyGroup"
+    default  = true
+    priority = 1
 
     policy_member {
       name  = "TestPolicyMember"
@@ -1039,9 +1039,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 
   policy_group {
-    name       = "TestPolicyGroup"
-    is_default = true
-    priority   = 1
+    name     = "TestPolicyGroup"
+    default  = true
+    priority = 1
 
     policy_member {
       name  = "TestPolicyMember"

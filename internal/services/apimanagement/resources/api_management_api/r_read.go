@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,14 +51,20 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("api_type", apiType)
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", pointer.From(props.DisplayName))
-			d.Set("is_current", pointer.From(props.IsCurrent))
-			d.Set("is_online", pointer.From(props.IsOnline))
+			d.Set("current", pointer.From(props.IsCurrent))
+			d.Set("online", pointer.From(props.IsOnline))
 			d.Set("path", props.Path)
 			d.Set("service_url", pointer.From(props.ServiceURL))
 			d.Set("revision", pointer.From(props.ApiRevision))
 			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
 			d.Set("version", pointer.From(props.ApiVersion))
 			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
+
+			if !features.SixPointOh() {
+				d.Set("is_current", pointer.From(props.IsCurrent))
+				d.Set("is_online", pointer.From(props.IsOnline))
+			}
+
 			d.Set("revision_description", pointer.From(props.ApiRevisionDescription))
 			d.Set("version_description", pointer.From(props.ApiVersionDescription))
 			d.Set("terms_of_service_url", pointer.From(props.TermsOfServiceURL))

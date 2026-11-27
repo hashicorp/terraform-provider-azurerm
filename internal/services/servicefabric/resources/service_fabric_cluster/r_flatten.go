@@ -5,6 +5,7 @@ package service_fabric_cluster
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabric/2021-06-01/cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func flattenServiceFabricClusterAzureActiveDirectory(input *cluster.AzureActiveDirectory) []any {
@@ -118,7 +119,10 @@ func flattenServiceFabricClusterClientCertificateThumbprints(input *[]cluster.Cl
 		result := make(map[string]any)
 
 		result["thumbprint"] = v.CertificateThumbprint
-		result["is_admin"] = v.IsAdmin
+		result["admin"] = v.IsAdmin
+		if !features.SixPointOh() {
+			result["is_admin"] = v.IsAdmin
+		}
 
 		results = append(results, result)
 	}
@@ -138,7 +142,10 @@ func flattenServiceFabricClusterClientCertificateCommonNames(input *[]cluster.Cl
 
 		result["common_name"] = v.CertificateCommonName
 		result["issuer_thumbprint"] = v.CertificateIssuerThumbprint
-		result["is_admin"] = v.IsAdmin
+		result["admin"] = v.IsAdmin
+		if !features.SixPointOh() {
+			result["is_admin"] = v.IsAdmin
+		}
 
 		results = append(results, result)
 	}
@@ -253,7 +260,11 @@ func flattenServiceFabricClusterNodeTypes(input []cluster.NodeTypeDescription) [
 
 		output["name"] = v.Name
 		output["instance_count"] = v.VMInstanceCount
-		output["is_primary"] = v.IsPrimary
+		output["primary"] = v.IsPrimary
+		if !features.SixPointOh() {
+			output["is_primary"] = v.IsPrimary
+		}
+
 		output["client_endpoint_port"] = v.ClientConnectionEndpointPort
 		output["http_endpoint_port"] = v.HTTPGatewayEndpointPort
 
@@ -270,7 +281,10 @@ func flattenServiceFabricClusterNodeTypes(input []cluster.NodeTypeDescription) [
 		}
 
 		if isStateless := v.IsStateless; isStateless != nil {
-			output["is_stateless"] = *isStateless
+			output["stateless"] = *isStateless
+			if !features.SixPointOh() {
+				output["is_stateless"] = *isStateless
+			}
 		}
 
 		if multipleAvailabilityZones := v.MultipleAvailabilityZones; multipleAvailabilityZones != nil {

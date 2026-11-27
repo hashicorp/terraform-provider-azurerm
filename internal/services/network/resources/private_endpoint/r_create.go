@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,8 +50,8 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
 	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
-	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]any), false)
-	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]any), true)
+	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d, d.Get("private_service_connection").([]any), false)
+	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d, d.Get("private_service_connection").([]any), true)
 	privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, manualPrivateLinkServiceConnectionIds...)
 	locks.MultipleByID(pointer.To(privateLinkServiceConnectionIds))
 	defer locks.UnlockMultipleByID(pointer.To(privateLinkServiceConnectionIds))
@@ -146,11 +147,11 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	return resourcePrivateEndpointRead(d, meta)
 }
 
-func expandPrivateLinkEndpointServiceConnection(input []any, parseManual bool) (*[]privateendpoints.PrivateLinkServiceConnection, []string) {
+func expandPrivateLinkEndpointServiceConnection(d *pluginsdk.ResourceData, input []any, parseManual bool) (*[]privateendpoints.PrivateLinkServiceConnection, []string) {
 	results := make([]privateendpoints.PrivateLinkServiceConnection, 0)
 	privateConnectionResourceIds := make([]string, 0)
 
-	for _, item := range input {
+	for i, item := range input {
 		v := item.(map[string]any)
 		privateConnectionResourceId := v["private_connection_resource_id"].(string)
 		if privateConnectionResourceId == "" {
@@ -160,7 +161,11 @@ func expandPrivateLinkEndpointServiceConnection(input []any, parseManual bool) (
 
 		subresourceNames := v["subresource_names"].([]any)
 		requestMessage := v["request_message"].(string)
-		isManual := v["is_manual_connection"].(bool)
+		isManual := v["manual_connection"].(bool)
+		if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("private_service_connection.%d.is_manual_connection", i)) {
+			isManual = v["is_manual_connection"].(bool)
+		}
+
 		name := v["name"].(string)
 
 		if isManual == parseManual {

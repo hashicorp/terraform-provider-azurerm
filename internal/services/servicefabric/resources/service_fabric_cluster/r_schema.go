@@ -6,6 +6,7 @@ package service_fabric_cluster
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabric/2021-06-01/cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -13,7 +14,7 @@ import (
 )
 
 func serviceFabricClusterSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -223,7 +224,7 @@ func serviceFabricClusterSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
-					"is_admin": {
+					"admin": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
@@ -248,7 +249,7 @@ func serviceFabricClusterSchema() map[string]*pluginsdk.Schema {
 						// todo remove this when https://github.com/Azure/azure-sdk-for-go/issues/17744 is fixed
 						DiffSuppressFunc: suppress.CaseDifference,
 					},
-					"is_admin": {
+					"admin": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
@@ -431,11 +432,11 @@ func serviceFabricClusterSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Required: true,
 					},
-					"is_primary": {
+					"primary": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
-					"is_stateless": {
+					"stateless": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
@@ -511,4 +512,63 @@ func serviceFabricClusterSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
+
+	if !features.SixPointOh() {
+		thumbprint := s["client_certificate_thumbprint"].Elem.(*pluginsdk.Resource).Schema
+		thumbprint["is_admin"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`client_certificate_thumbprint.is_admin` has been deprecated in favour of `client_certificate_thumbprint.admin` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		thumbprint["admin"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+
+		commonName := s["client_certificate_common_name"].Elem.(*pluginsdk.Resource).Schema
+		commonName["is_admin"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`client_certificate_common_name.is_admin` has been deprecated in favour of `client_certificate_common_name.admin` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		commonName["admin"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+
+		nodeType := s["node_type"].Elem.(*pluginsdk.Resource).Schema
+		nodeType["is_primary"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`node_type.is_primary` has been deprecated in favour of `node_type.primary` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		nodeType["primary"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+
+		nodeType["is_stateless"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`node_type.is_stateless` has been deprecated in favour of `node_type.stateless` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		nodeType["stateless"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return s
 }

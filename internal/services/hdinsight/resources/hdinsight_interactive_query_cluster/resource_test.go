@@ -598,7 +598,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -649,7 +649,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -708,7 +708,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     storage_account_id        = azurerm_storage_account.gen2test.id
     filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-    is_default                = true
+    default                   = true
   }
 
   roles {
@@ -816,7 +816,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     storage_account_id        = azurerm_storage_account.gen2test.id
     filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-    is_default                = true
+    default                   = true
   }
 
   private_link_configuration {
@@ -893,7 +893,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
   dynamic "storage_account" {
     for_each = azurerm_hdinsight_interactive_query_cluster.test.storage_account
     content {
-      is_default            = storage_account.value.is_default
+      default               = storage_account.value.default
       storage_account_key   = storage_account.value.storage_account_key
       storage_container_url = storage_account.value.storage_container_url
     }
@@ -962,7 +962,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1013,7 +1013,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1082,7 +1082,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1154,7 +1154,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_id    = azurerm_storage_account.test.id
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   network {
@@ -1240,7 +1240,7 @@ resource "azurerm_storage_account" "gen2test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "gen2test" {
@@ -1501,7 +1501,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1554,7 +1554,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1609,7 +1609,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1689,7 +1689,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
   roles {
     head_node {
@@ -1774,7 +1774,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
   roles {
     head_node {
@@ -1837,7 +1837,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1900,7 +1900,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {
@@ -1953,7 +1953,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
   roles {
     head_node {
@@ -2020,7 +2020,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
+    default               = true
   }
 
   roles {

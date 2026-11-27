@@ -158,7 +158,7 @@ The following arguments are supported:
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
 
-* `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
+* `virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
 
 * `key_vault_key_id` - (Optional) A versionless Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
 

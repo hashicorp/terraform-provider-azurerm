@@ -195,7 +195,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "psc-sig-test"
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_web_pubsub.test.id
     subresource_names              = ["webpubsub"]
   }
@@ -275,7 +275,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "psc-sig-test"
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_web_pubsub.test.id
     subresource_names              = ["webpubsub"]
   }
@@ -305,7 +305,7 @@ resource "azurerm_private_endpoint" "test2" {
 
   private_service_connection {
     name                           = "psc-sig-test2"
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_web_pubsub.test.id
     subresource_names              = ["webpubsub"]
   }

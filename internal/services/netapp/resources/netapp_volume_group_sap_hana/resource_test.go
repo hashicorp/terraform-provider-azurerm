@@ -2737,7 +2737,7 @@ resource "azurerm_private_endpoint" "test" {
   private_service_connection {
     name                           = "acctest-pe-sc-akv-%[1]d"
     private_connection_resource_id = azurerm_key_vault.test.id
-    is_manual_connection           = false
+    manual_connection              = false
     subresource_names              = ["Vault"]
   }
 

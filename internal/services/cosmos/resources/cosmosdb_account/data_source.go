@@ -16,13 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Description: "Use this data source to access information about an existing CosmosDB (formally DocumentDB) Account.",
 		Read:        dataSourceCosmosDbAccountRead,
 
@@ -136,7 +137,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				},
 			},
 
-			"is_virtual_network_filter_enabled": {
+			"virtual_network_filter_enabled": {
 				Description: "If Virtual Network filtering is enabled for this Cosmos DB account.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
@@ -277,6 +278,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["is_virtual_network_filter_enabled"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "If Virtual Network filtering is enabled for this Cosmos DB account.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`is_virtual_network_filter_enabled` has been deprecated in favour of `virtual_network_filter_enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
@@ -309,10 +321,14 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("offer_type", pointer.FromEnum(props.DatabaseAccountOfferType))
 			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
-			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
+			d.Set("virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
 			d.Set("free_tier_enabled", props.EnableFreeTier)
 			d.Set("automatic_failover_enabled", props.EnableAutomaticFailover)
 			d.Set("multiple_write_locations_enabled", props.EnableMultipleWriteLocations)
+
+			if !features.SixPointOh() {
+				d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
+			}
 
 			if v := props.KeyVaultKeyUri; v != nil {
 				d.Set("key_vault_key_id", v)

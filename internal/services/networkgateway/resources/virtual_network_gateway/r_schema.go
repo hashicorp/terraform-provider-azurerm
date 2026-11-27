@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -17,7 +18,7 @@ import (
 )
 
 func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Virtual Network Gateway.",
 			Type:         pluginsdk.TypeString,
@@ -184,7 +185,7 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"is_default": {
+					"default": {
 						Description: "Whether this is a Default Virtual Network Gateway Policy Group.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
@@ -627,4 +628,25 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		policyGroup := s["policy_group"].Elem.(*pluginsdk.Resource).Schema
+
+		policyGroup["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this is a Default Virtual Network Gateway Policy Group.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+			Deprecated:  "`policy_group.is_default` has been deprecated in favour of `policy_group.default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		policyGroup["default"] = &pluginsdk.Schema{
+			Description: "Whether this is a Default Virtual Network Gateway Policy Group.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Computed:    true,
+		}
+	}
+
+	return s
 }

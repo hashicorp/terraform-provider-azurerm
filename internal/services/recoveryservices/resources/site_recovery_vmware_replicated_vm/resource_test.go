@@ -192,7 +192,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
     source_mac_address = "%[10]s"
     target_subnet_name = azurerm_subnet.target.name
     test_subnet_name   = azurerm_subnet.test.name
-    is_primary         = true
+    primary            = true
   }
 
   lifecycle {

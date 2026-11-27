@@ -24,7 +24,7 @@ resource "azurerm_storage_account" "example" {
   account_tier             = "Standard"
   account_kind             = "StorageV2"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
 }
 
 data "azurerm_client_config" "current" {}

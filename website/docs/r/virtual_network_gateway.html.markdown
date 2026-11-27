@@ -192,7 +192,7 @@ The `policy_group` block supports:
 
 * `policy_member` - (Required) One or more `policy_member` blocks as defined below.
 
-* `is_default` - (Optional) Is this a Default Virtual Network Gateway Policy Group? Defaults to `false`.
+* `default` - (Optional) Is this a Default Virtual Network Gateway Policy Group? Defaults to `false`.
 
 * `priority` - (Optional) The priority for the Virtual Network Gateway Policy Group. Defaults to `0`.
 

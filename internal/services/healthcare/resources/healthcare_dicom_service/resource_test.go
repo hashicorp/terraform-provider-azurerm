@@ -130,7 +130,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true
+  hns_enabled              = true
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {

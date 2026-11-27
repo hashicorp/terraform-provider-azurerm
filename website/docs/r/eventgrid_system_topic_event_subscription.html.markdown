@@ -178,8 +178,8 @@ A `advanced_filter` supports the following nested blocks:
 * `string_not_contains` - (Optional) Compares a value of an event using multiple string values.
 * `string_in` - (Optional) Compares a value of an event using multiple string values.
 * `string_not_in` - (Optional) Compares a value of an event using multiple string values.
-* `is_not_null` - (Optional) Evaluates if a value of an event isn't NULL or undefined.
-* `is_null_or_undefined` - (Optional) Evaluates if a value of an event is NULL or undefined.
+* `not_null` - (Optional) Evaluates if a value of an event isn't NULL or undefined.
+* `null_or_undefined` - (Optional) Evaluates if a value of an event is NULL or undefined.
 
 Each nested block consists of a key and a value(s) element.
 

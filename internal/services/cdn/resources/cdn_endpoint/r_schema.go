@@ -37,14 +37,14 @@ func cdnEndpointSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 		},
 
-		"is_http_allowed": {
+		"is_http_allowed": { // azignore:AZS023 - classic CDN can no longer be created, so it is left as it is
 			Description: "Whether HTTP allowed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
-		"is_https_allowed": {
+		"is_https_allowed": { // azignore:AZS023 - classic CDN can no longer be created, so it is left as it is
 			Description: "Whether HTTPS allowed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
@@ -115,7 +115,7 @@ func cdnEndpointSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"is_compression_enabled": {
+		"is_compression_enabled": { // azignore:AZS023 - classic CDN can no longer be created, so it is left as it is
 			Description: "Whether compression is to be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,

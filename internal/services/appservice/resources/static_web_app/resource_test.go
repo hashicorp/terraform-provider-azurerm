@@ -738,7 +738,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "swa"
     private_connection_resource_id = azurerm_static_web_app.test.id
     subresource_names              = ["staticSites"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Secondary)
@@ -794,7 +794,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "swa"
     private_connection_resource_id = azurerm_static_web_app.test.id
     subresource_names              = ["staticSites"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, data.RandomInteger, data.Locations.Secondary)

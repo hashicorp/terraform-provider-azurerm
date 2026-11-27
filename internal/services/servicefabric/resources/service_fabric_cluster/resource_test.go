@@ -61,7 +61,7 @@ func TestAccServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
 				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
-				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.0.primary").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -77,8 +77,8 @@ func TestAccServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
 				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
-				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
-				check.That(data.ResourceName).Key("node_type.1.is_primary").HasValue("false"),
+				check.That(data.ResourceName).Key("node_type.0.primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.1.primary").HasValue("false"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -313,7 +313,7 @@ func TestAccServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("1"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("8155941a075f972a60ae1c74c749bbddf82960b5"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.admin").HasValue("true"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
 				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
@@ -350,14 +350,14 @@ func TestAccServiceFabricCluster_clientCertificateCommonNames(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("2"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.common_name").HasValue("firstcertcommonname"),
-				check.That(data.ResourceName).Key("client_certificate_common_name.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.admin").HasValue("true"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("8155941a075f972a60ae1c74c749bbddf82960b5"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.common_name").HasValue("secondcertcommonname"),
-				check.That(data.ResourceName).Key("client_certificate_common_name.1.is_admin").HasValue("false"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.1.admin").HasValue("false"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.issuer_thumbprint").IsEmpty(),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("1"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.admin").HasValue("true"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
 				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
 				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
@@ -381,9 +381,9 @@ func TestAccServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testi
 				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("2"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("8155941a075f972a60ae1c74c749bbddf82960b5"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.admin").HasValue("true"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.thumbprint").HasValue("312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.is_admin").HasValue("false"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.admin").HasValue("false"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
 				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
@@ -619,10 +619,10 @@ func TestAccServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
 				check.That(data.ResourceName).Key("node_type.0.name").HasValue("first"),
 				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
-				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.0.primary").HasValue("true"),
 				check.That(data.ResourceName).Key("node_type.1.name").HasValue("second"),
 				check.That(data.ResourceName).Key("node_type.1.instance_count").HasValue("4"),
-				check.That(data.ResourceName).Key("node_type.1.is_primary").HasValue("false"),
+				check.That(data.ResourceName).Key("node_type.1.primary").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -732,11 +732,11 @@ func TestAccServiceFabricCluster_nodeTypesStateless(t *testing.T) {
 				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
 				check.That(data.ResourceName).Key("node_type.0.name").HasValue("first"),
 				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
-				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.0.primary").HasValue("true"),
 				check.That(data.ResourceName).Key("node_type.1.name").HasValue("second"),
 				check.That(data.ResourceName).Key("node_type.1.instance_count").HasValue("4"),
-				check.That(data.ResourceName).Key("node_type.1.is_primary").HasValue("false"),
-				check.That(data.ResourceName).Key("node_type.1.is_stateless").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.1.primary").HasValue("false"),
+				check.That(data.ResourceName).Key("node_type.1.stateless").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -814,7 +814,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = %d
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -850,7 +850,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = %d
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -858,7 +858,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "second"
     instance_count       = %d
-    is_primary           = false
+    primary              = false
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -882,7 +882,7 @@ resource "azurerm_service_fabric_cluster" "import" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -919,7 +919,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -956,7 +956,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1000,7 +1000,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1049,7 +1049,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                        = "first"
     instance_count              = 3
-    is_primary                  = true
+    primary                     = true
     client_endpoint_port        = 2020
     http_endpoint_port          = 80
     reverse_proxy_endpoint_port = 19081
@@ -1085,7 +1085,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   client_certificate_thumbprint {
     thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
-    is_admin   = true
+    admin      = true
   }
 
   fabric_settings {
@@ -1099,7 +1099,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1134,17 +1134,17 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   client_certificate_thumbprint {
     thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
-    is_admin   = true
+    admin      = true
   }
 
   client_certificate_thumbprint {
     thumbprint = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
-    is_admin   = false
+    admin      = false
   }
 
   client_certificate_thumbprint {
     thumbprint = "83FFBFC8848B5A5836C94D0112367E16148A286F"
-    is_admin   = true
+    admin      = true
   }
 
   fabric_settings {
@@ -1158,7 +1158,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1194,17 +1194,17 @@ resource "azurerm_service_fabric_cluster" "test" {
   client_certificate_common_name {
     common_name       = "firstcertcommonname"
     issuer_thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
-    is_admin          = true
+    admin             = true
   }
 
   client_certificate_common_name {
     common_name = "secondcertcommonname"
-    is_admin    = false
+    admin       = false
   }
 
   client_certificate_thumbprint {
     thumbprint = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
-    is_admin   = true
+    admin      = true
   }
 
   fabric_settings {
@@ -1218,7 +1218,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1253,12 +1253,12 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   client_certificate_thumbprint {
     thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
-    is_admin   = true
+    admin      = true
   }
 
   client_certificate_thumbprint {
     thumbprint = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
-    is_admin   = false
+    admin      = false
   }
 
   fabric_settings {
@@ -1272,7 +1272,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1319,7 +1319,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1374,7 +1374,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1498,7 +1498,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "system"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 19000
     http_endpoint_port   = 19080
   }
@@ -1545,7 +1545,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "system"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 19000
     http_endpoint_port   = 19080
   }
@@ -1597,7 +1597,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1641,7 +1641,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1685,7 +1685,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1721,7 +1721,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
 
@@ -1767,7 +1767,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1775,7 +1775,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "second"
     instance_count       = 4
-    is_primary           = false
+    primary              = false
     client_endpoint_port = 2121
     http_endpoint_port   = 81
   }
@@ -1821,7 +1821,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     }
 
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1861,7 +1861,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1929,7 +1929,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -1984,7 +1984,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -2020,7 +2020,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "first"
     instance_count       = 3
-    is_primary           = true
+    primary              = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
@@ -2028,8 +2028,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                 = "second"
     instance_count       = 4
-    is_primary           = false
-    is_stateless         = true
+    primary              = false
+    stateless            = true
     client_endpoint_port = 2121
     http_endpoint_port   = 81
   }
@@ -2067,7 +2067,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   node_type {
     name                        = "first"
     instance_count              = 3
-    is_primary                  = true
+    primary                     = true
     client_endpoint_port        = 2020
     http_endpoint_port          = 80
     multiple_availability_zones = true

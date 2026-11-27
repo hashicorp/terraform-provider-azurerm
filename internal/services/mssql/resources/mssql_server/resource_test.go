@@ -567,7 +567,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-mssc-%[2]d"
     private_connection_resource_id = azurerm_mssql_server.test.id
     subresource_names              = ["sqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(15))
@@ -654,7 +654,7 @@ resource "azurerm_private_endpoint" "test" {
     name                           = "acctest-privatelink-mssc-%[2]d"
     private_connection_resource_id = azurerm_mssql_server.test.id
     subresource_names              = ["sqlServer"]
-    is_manual_connection           = false
+    manual_connection              = false
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(15))

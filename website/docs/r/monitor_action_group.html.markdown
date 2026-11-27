@@ -44,7 +44,7 @@ resource "azurerm_monitor_action_group" "example" {
     automation_account_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-runbooks/providers/Microsoft.Automation/automationAccounts/aaa001"
     runbook_name            = "my runbook"
     webhook_resource_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-runbooks/providers/Microsoft.Automation/automationAccounts/aaa001/webHooks/webhook_alert"
-    is_global_runbook       = true
+    global_runbook          = true
     service_uri             = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
     use_common_alert_schema = true
   }
@@ -154,7 +154,7 @@ The `automation_runbook_receiver` block supports the following:
 * `automation_account_id` - (Required) The automation account ID which holds this runbook and authenticates to Azure resources.
 * `runbook_name` - (Required) The name for this runbook.
 * `webhook_resource_id` - (Required) The resource id for webhook linked to this runbook.
-* `is_global_runbook` - (Required) Indicates whether this instance is global runbook.
+* `global_runbook` - (Required) Indicates whether this instance is global runbook.
 * `service_uri` - (Required) The URI where webhooks should be sent.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 

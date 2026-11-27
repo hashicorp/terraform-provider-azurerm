@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,7 +20,7 @@ import (
 )
 
 func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description: "The name of the CosmosDB Account.",
 			Type:        pluginsdk.TypeString,
@@ -273,7 +274,7 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"is_virtual_network_filter_enabled": {
+		"virtual_network_filter_enabled": {
 			Description: "Enables Virtual Network filtering for this Cosmos DB account.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
@@ -618,4 +619,25 @@ func cosmosdbAccountSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["is_virtual_network_filter_enabled"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description:   "Enables Virtual Network filtering for this Cosmos DB account.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_filter_enabled"},
+			Deprecated:    "`is_virtual_network_filter_enabled` has been deprecated in favour of `virtual_network_filter_enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		s["virtual_network_filter_enabled"] = &pluginsdk.Schema{
+			Description:   "Enables Virtual Network filtering for this Cosmos DB account.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"is_virtual_network_filter_enabled"},
+		}
+	}
+
+	return s
 }

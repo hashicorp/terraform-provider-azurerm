@@ -213,8 +213,9 @@ resource "azurerm_api_management_gateway_certificate_authority" "test" {
   api_management_id = azurerm_api_management.test.id
   certificate_name  = azurerm_api_management_certificate.test.name
   gateway_name      = azurerm_api_management_gateway.test.name
-  is_trusted        = true
+  trusted           = true
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -261,7 +262,7 @@ resource "azurerm_api_management_gateway_certificate_authority" "test" {
   api_management_id = azurerm_api_management.test.id
   certificate_name  = azurerm_api_management_certificate.test.name
   gateway_name      = azurerm_api_management_gateway.test.name
-  is_trusted        = false
+  trusted           = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

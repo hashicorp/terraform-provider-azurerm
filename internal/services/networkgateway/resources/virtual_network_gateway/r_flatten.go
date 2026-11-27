@@ -6,6 +6,7 @@ package virtual_network_gateway
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -247,12 +248,18 @@ func flattenVirtualNetworkGatewayPolicyGroups(input *[]virtualnetworkgateways.Vi
 			policyMember = flattenVirtualNetworkGatewayPolicy(props.PolicyMembers)
 			priority = props.Priority
 		}
-		results = append(results, map[string]any{
+		group := map[string]any{
 			"name":          pointer.From(item.Name),
-			"is_default":    isDefault,
+			"default":       isDefault,
 			"policy_member": policyMember,
 			"priority":      priority,
-		})
+		}
+
+		if !features.SixPointOh() {
+			group["is_default"] = isDefault
+		}
+
+		results = append(results, group)
 	}
 	return results
 }

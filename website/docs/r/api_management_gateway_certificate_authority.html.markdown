@@ -51,7 +51,7 @@ resource "azurerm_api_management_gateway_certificate_authority" "example" {
   api_management_id = azurerm_api_management.example.id
   certificate_name  = azurerm_api_management_certificate.example.name
   gateway_name      = azurerm_api_management_gateway.example.name
-  is_trusted        = true
+  trusted           = true
 }
 ```
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `gateway_name` - (Required) The name of the API Management Gateway. Changing this forces a new resource to be created.
 
-* `is_trusted` - (Optional) Whether the API Management Gateway Certificate Authority is trusted.
+* `trusted` - (Optional) Whether the API Management Gateway Certificate Authority is trusted.
 
 ## Attributes Reference
 

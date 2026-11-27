@@ -95,7 +95,7 @@ resource "azurerm_private_endpoint" "example" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.example.name
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_private_link_service.example.id
   }
 }

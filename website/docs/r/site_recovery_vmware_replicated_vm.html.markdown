@@ -79,7 +79,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
   network_interface {
     source_mac_address = "00:00:00:00:00:00"
     target_subnet_name = azurerm_subnet.example.name
-    is_primary         = true
+    primary            = true
   }
 }
 ```
@@ -173,7 +173,7 @@ A `network_interface` block supports the following:
 
 * `source_mac_address` - (Required) Mac address of the network interface of source VM. 
 
-* `is_primary` - (Required) Whether this `network_interface` is primary for the replicated VM.
+* `primary` - (Required) Whether this `network_interface` is primary for the replicated VM.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 

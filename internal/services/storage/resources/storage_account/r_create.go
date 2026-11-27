@@ -80,7 +80,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	dnsEndpointType := d.Get("dns_endpoint_type").(string)
-	isHnsEnabled := d.Get("is_hns_enabled").(bool)
+	isHnsEnabled := d.Get("hns_enabled").(bool)
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_hns_enabled") {
+		isHnsEnabled = d.Get("is_hns_enabled").(bool)
+	}
+
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	payload := storageaccounts.StorageAccountCreateParameters{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -152,7 +156,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	// (https://learn.microsoft.com/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
 	if nfsV3Enabled {
 		if !isHnsEnabled {
-			return errors.New("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
+			return errors.New("`nfsv3_enabled` can only be used when `hns_enabled` is `true`")
 		}
 
 		isPremiumTierAndBlockBlobStorageKind := accountTier == storageaccounts.SkuTierPremium && accountKind == storageaccounts.KindBlockBlobStorage
@@ -245,7 +249,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		// See: https://learn.microsoft.com/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
 		if isVersioningEnabled && isHnsEnabled {
-			return errors.New("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+			return errors.New("`versioning_enabled` can't be true when `hns_enabled` is true")
 		}
 
 		if !isVersioningEnabled {

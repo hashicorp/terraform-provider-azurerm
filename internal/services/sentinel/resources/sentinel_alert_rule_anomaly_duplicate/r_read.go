@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/helpers"
 )
@@ -52,7 +53,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.Description = pointer.From(props.Description)
 					state.Enabled = props.Enabled
 					state.Frequency = props.Frequency
-					state.IsDefaultSettings = props.IsDefaultSettings
+					state.DefaultSettings = props.IsDefaultSettings
+					if !features.SixPointOh() {
+						state.IsDefaultSettings = props.IsDefaultSettings
+					}
 
 					state.RequiredDataConnectors = helpers.FlattenSentinelAlertRuleAnomalyRequiredDataConnectors(props.RequiredDataConnectors)
 					state.SettingsDefinitionId = pointer.From(props.SettingsDefinitionId)

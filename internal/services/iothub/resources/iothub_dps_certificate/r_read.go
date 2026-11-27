@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -39,7 +40,11 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta any) error
 	// We are unable to set `certificate_content` since it is not returned from the API
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("is_verified", pointer.From(props.IsVerified))
+			d.Set("verified", pointer.From(props.IsVerified))
+
+			if !features.SixPointOh() {
+				d.Set("is_verified", pointer.From(props.IsVerified))
+			}
 		}
 	}
 

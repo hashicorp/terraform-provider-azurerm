@@ -111,7 +111,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  is_hns_enabled           = "true"
+  hns_enabled              = "true"
 }
 
 resource "azurerm_stream_analytics_cluster" "test" {

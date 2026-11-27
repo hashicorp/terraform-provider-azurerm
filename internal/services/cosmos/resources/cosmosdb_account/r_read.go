@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -77,9 +78,13 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("create_mode", pointer.From(props.CreateMode))
 			d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
 			d.Set("burst_capacity_enabled", pointer.From(props.EnableBurstCapacity))
-			d.Set("is_virtual_network_filter_enabled", pointer.From(props.IsVirtualNetworkFilterEnabled))
+			d.Set("virtual_network_filter_enabled", pointer.From(props.IsVirtualNetworkFilterEnabled))
 			d.Set("automatic_failover_enabled", pointer.From(props.EnableAutomaticFailover))
 			d.Set("multiple_write_locations_enabled", pointer.From(props.EnableMultipleWriteLocations))
+
+			if !features.SixPointOh() {
+				d.Set("is_virtual_network_filter_enabled", pointer.From(props.IsVirtualNetworkFilterEnabled))
+			}
 
 			if v := props.KeyVaultKeyUri; v != nil {
 				key, err := keyvault.ParseNestedItemID(*v, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)

@@ -168,7 +168,7 @@ resource "azurerm_private_endpoint" "databricks" {
 
   private_service_connection {
     name                           = "acctest-psc-%[1]d"
-    is_manual_connection           = false
+    manual_connection              = false
     private_connection_resource_id = azurerm_databricks_workspace.test.id
     subresource_names              = ["databricks_ui_api"]
   }

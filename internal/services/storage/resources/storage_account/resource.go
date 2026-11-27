@@ -144,11 +144,15 @@ func RegisterResource() *pluginsdk.Resource {
 					}
 				}
 
-				isHnsEnabled := d.Get("is_hns_enabled").(bool)
+				isHnsEnabled := d.Get("hns_enabled").(bool)
+				if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, "is_hns_enabled") {
+					isHnsEnabled = d.Get("is_hns_enabled").(bool)
+				}
+
 				accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 				if _, supportsHns := storageKindsSupportHns[accountKind]; !supportsHns && isHnsEnabled {
 					keys := sortedKeysFromSlice(storageKindsSupportHns)
-					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
+					return fmt.Errorf("`hns_enabled` can only be used for accounts with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
 				}
 				return nil
 			}),
@@ -237,6 +241,23 @@ func RegisterResource() *pluginsdk.Resource {
 			Computed:      true,
 			ValidateFunc:  validation.StringInSlice(storageaccounts.PossibleValuesForPublicNetworkAccess(), false),
 			ConflictsWith: []string{"public_network_access_enabled"},
+		}
+
+		r.Schema["is_hns_enabled"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"hns_enabled"},
+			Deprecated:    "`is_hns_enabled` has been deprecated in favour of `hns_enabled` and will be removed in v6.0 of the AzureRM Provider",
+		}
+
+		r.Schema["hns_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"is_hns_enabled"},
 		}
 	}
 

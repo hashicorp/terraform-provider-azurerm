@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
@@ -32,7 +33,8 @@ type MachineLearningDataStoreFileShareModel struct {
 	WorkSpaceID           string            `tfschema:"workspace_id"`
 	StorageFileShareID    string            `tfschema:"storage_fileshare_id"`
 	Description           string            `tfschema:"description"`
-	IsDefault             bool              `tfschema:"is_default"`
+	Default               bool              `tfschema:"default"`
+	IsDefault             bool              `tfschema:"is_default,removedInNextMajorVersion"`
 	ServiceDataIdentity   string            `tfschema:"service_data_identity"`
 	AccountKey            string            `tfschema:"account_key"`
 	SharedAccessSignature string            `tfschema:"shared_access_signature"`
@@ -125,12 +127,22 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 }
 
 func (r MachineLearningDataStoreFileShare) Attributes() map[string]*schema.Schema {
-	return map[string]*pluginsdk.Schema{
-		"is_default": {
+	s := map[string]*pluginsdk.Schema{
+		"default": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 	}
+
+	if !features.SixPointOh() {
+		s["is_default"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`is_default` has been deprecated in favour of `default` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return s
 }
 
 func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
@@ -332,7 +344,10 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 
 			model.StorageFileShareID = fileshares.NewShareID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.FileShareName).ID()
 
-			model.IsDefault = *data.IsDefault
+			model.Default = *data.IsDefault
+			if !features.SixPointOh() {
+				model.IsDefault = model.Default
+			}
 
 			if v, ok := metadata.ResourceData.GetOk("account_key"); ok {
 				if v.(string) != "" {

@@ -136,7 +136,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `frequency` - The frequency the Anomaly Alert Rule will be run, such as "P1D".
 
-* `is_default_settings` - Whether the current settings of the Anomaly Alert Rule equals default settings.
+* `default_settings` - Whether the current settings of the Anomaly Alert Rule equals default settings.
 
 * `required_data_connector` - A `required_data_connector` block as defined below.
 

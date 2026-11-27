@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -78,6 +79,11 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta any) erro
 			d.Set("tier", pointer.FromEnum(props.Tier))
 			d.Set("cluster_version", props.ClusterVersion)
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
+
+			if !features.SixPointOh() {
+				d.Set("storage_account", helpers.HDInsightsStorageAccountsWithBothDefaultNames(d.Get("storage_account").([]any)))
+				d.Set("storage_account_gen2", helpers.HDInsightsStorageAccountsWithBothDefaultNames(d.Get("storage_account_gen2").([]any)))
+			}
 
 			if err := d.Set("component_version", flattenHDInsightKafkaComponentVersion(props.ClusterDefinition.ComponentVersion)); err != nil {
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)

@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "example" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  is_hns_enabled           = "true"
+  hns_enabled              = "true"
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group of the root path (i.e. `/`). Possible values also include `$superuser`.
 
-~> **Note:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
+~> **Note:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `hns_enabled` has to be set to `true`.
 
 ---
 

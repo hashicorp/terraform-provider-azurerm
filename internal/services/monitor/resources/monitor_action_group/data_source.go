@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func RegisterDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Description: "Use this data source to access the properties of an Action Group.",
 		Read:        dataSourceMonitorActionGroupRead,
 
@@ -219,7 +220,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},
-						"is_global_runbook": {
+						"global_runbook": {
 							Description: "Whether this instance is global runbook.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
@@ -389,6 +390,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["automation_runbook_receiver"].Elem.(*pluginsdk.Resource).Schema["is_global_runbook"] = &pluginsdk.Schema{ // azignore:AZS023 - the old name, kept until 6.0 removes it
+			Description: "Whether this instance is global runbook.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Deprecated:  "`automation_runbook_receiver.is_global_runbook` has been deprecated in favour of `automation_runbook_receiver.global_runbook` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta any) error {

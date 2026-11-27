@@ -29,8 +29,10 @@ type ScheduledQueryRulesAlertV2Model struct {
 	TargetResourceTypes                   []string                                   `tfschema:"target_resource_types"`
 	WindowSize                            string                                     `tfschema:"window_duration"`
 	CreatedWithApiVersion                 string                                     `tfschema:"created_with_api_version"`
-	IsLegacyLogAnalyticsRule              bool                                       `tfschema:"is_a_legacy_log_analytics_rule"`
-	IsWorkspaceAlertsStorageConfigured    bool                                       `tfschema:"is_workspace_alerts_storage_configured"`
+	LegacyLogAnalyticsRule                bool                                       `tfschema:"legacy_log_analytics_rule"`
+	IsLegacyLogAnalyticsRule              bool                                       `tfschema:"is_a_legacy_log_analytics_rule,removedInNextMajorVersion"`
+	WorkspaceAlertsStorageConfigured      bool                                       `tfschema:"workspace_alerts_storage_configured"`
+	IsWorkspaceAlertsStorageConfigured    bool                                       `tfschema:"is_workspace_alerts_storage_configured,removedInNextMajorVersion"`
 	Identity                              []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 

@@ -100,7 +100,11 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		d.Set("smb_oauth_enabled", smbOAuthEnabled)
 		d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
 		d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
-		d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+		d.Set("hns_enabled", pointer.From(props.IsHnsEnabled))
+		if !features.SixPointOh() {
+			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+		}
+
 		d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
 		d.Set("primary_location", pointer.From(props.PrimaryLocation))
 		if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {

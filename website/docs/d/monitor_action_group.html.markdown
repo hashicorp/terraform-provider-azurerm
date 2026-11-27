@@ -61,7 +61,7 @@ output "action_group_id" {
 * `automation_account_id` - The automation account ID which holds this runbook and authenticates to Azure resources.
 * `runbook_name` - The name for this runbook.
 * `webhook_resource_id` - The resource id for webhook linked to this runbook.
-* `is_global_runbook` - Indicates whether this instance is global runbook.
+* `global_runbook` - Indicates whether this instance is global runbook.
 * `service_uri` - The URI where webhooks should be sent.
 * `use_common_alert_schema` - Indicates whether to use common alert schema.
 

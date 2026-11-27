@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -53,17 +54,22 @@ func RegisterResource() *pluginsdk.Resource {
 			}
 
 			privateServiceConnections := d.Get("private_service_connection").([]any)
-			for _, psc := range privateServiceConnections {
+			for i, psc := range privateServiceConnections {
 				privateServiceConnection := psc.(map[string]any)
 				name := privateServiceConnection["name"].(string)
 
+				isManual := privateServiceConnection["manual_connection"].(bool)
+				if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfigAt(d, fmt.Sprintf("private_service_connection.%d.is_manual_connection", i)) {
+					isManual = privateServiceConnection["is_manual_connection"].(bool)
+				}
+
 				// If this is not a manual connection and the message is set return an error since this does not make sense.
-				if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
-					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+				if !isManual && privateServiceConnection["request_message"].(string) != "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "manual_connection" attribute is "false"`, name)
 				}
 
 				// If this is a manual connection and the message isn't set return an error.
-				if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+				if isManual && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
 					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
 				}
 			}

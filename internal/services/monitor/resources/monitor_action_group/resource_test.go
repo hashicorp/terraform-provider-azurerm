@@ -663,7 +663,7 @@ resource "azurerm_monitor_action_group" "test" {
     automation_account_id   = "${azurerm_automation_account.test.id}"
     runbook_name            = "${azurerm_automation_runbook.test.name}"
     webhook_resource_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"
-    is_global_runbook       = true
+    global_runbook          = true
     service_uri             = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
     use_common_alert_schema = false
   }
@@ -966,7 +966,7 @@ resource "azurerm_monitor_action_group" "test" {
     automation_account_id   = "${azurerm_automation_account.test.id}"
     runbook_name            = "${azurerm_automation_runbook.test.name}"
     webhook_resource_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"
-    is_global_runbook       = true
+    global_runbook          = true
     service_uri             = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
     use_common_alert_schema = false
   }
@@ -1092,6 +1092,8 @@ resource "azurerm_eventhub" "test" {
   partition_count   = 1
   message_retention = 1
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)

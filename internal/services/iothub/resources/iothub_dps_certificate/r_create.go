@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -41,7 +42,13 @@ func resourceIotHubDPSCertificateCreate(d *pluginsdk.ResourceData, meta any) err
 			Certificate: pointer.To(d.Get("certificate_content").(string)),
 		},
 	}
-	if d.Get("is_verified").(bool) {
+
+	verified := d.Get("verified").(bool)
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(d, "is_verified") {
+		verified = d.Get("is_verified").(bool)
+	}
+
+	if verified {
 		certificate.Properties.IsVerified = pointer.To(true)
 	}
 

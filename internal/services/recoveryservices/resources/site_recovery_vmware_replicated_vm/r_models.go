@@ -15,7 +15,8 @@ type NetworkInterfaceModel struct {
 	TargetStaticIp   string `tfschema:"target_static_ip"`
 	TargetSubnetName string `tfschema:"target_subnet_name"`
 	TestSubnetName   string `tfschema:"test_subnet_name"`
-	IsPrimary        bool   `tfschema:"is_primary"`
+	Primary          bool   `tfschema:"primary"`
+	IsPrimary        bool   `tfschema:"is_primary,removedInNextMajorVersion"`
 }
 
 type SiteRecoveryReplicatedVmVMwareModel struct {
