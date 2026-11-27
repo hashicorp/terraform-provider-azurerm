@@ -24,7 +24,7 @@ func cognitiveAccountCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 			Description:  "The ID of the Key Vault Key which should be used to Encrypt the data in this Cognitive Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 
 		"identity_client_id": {
