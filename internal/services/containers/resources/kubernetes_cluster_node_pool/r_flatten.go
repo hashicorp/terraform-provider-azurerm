@@ -4,6 +4,7 @@
 package kubernetes_cluster_node_pool
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -166,6 +167,16 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 		d.Set("vm_size", props.VMSize)
 		d.Set("host_group_id", props.HostGroupID)
 		d.Set("capacity_reservation_group_id", props.CapacityReservationGroupID)
+
+		messageOfTheDay := ""
+		if props.MessageOfTheDay != nil {
+			decoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
+			if err != nil {
+				return fmt.Errorf("decoding `message_of_the_day` for %s: %+v", *id, err)
+			}
+			messageOfTheDay = string(decoded)
+		}
+		d.Set("message_of_the_day", messageOfTheDay)
 
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
