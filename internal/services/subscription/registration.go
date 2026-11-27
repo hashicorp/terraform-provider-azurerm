@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/resources/extended_locations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/resources/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/resources/subscription"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/resources/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,22 +41,22 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_extended_locations": dataSourceExtendedLocations(),
-		"azurerm_subscription":       dataSourceSubscription(),
-		"azurerm_subscriptions":      dataSourceSubscriptions(),
+		"azurerm_extended_locations": extended_locations.RegisterDataSource(),
+		"azurerm_subscription":       subscription.RegisterDataSource(),
+		"azurerm_subscriptions":      subscriptions.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_subscription": resourceSubscription(),
+		"azurerm_subscription": subscription.RegisterResource(),
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		LocationDataSource{},
+		location.DataSource{},
 	}
 }
 
