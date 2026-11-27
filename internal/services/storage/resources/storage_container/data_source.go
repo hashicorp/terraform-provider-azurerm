@@ -123,7 +123,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	// Parse the blob endpoint as a data plane account ID
 	accountDpId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	d.Set("url", containers.NewContainerID(*accountDpId, id.ContainerName).ID())

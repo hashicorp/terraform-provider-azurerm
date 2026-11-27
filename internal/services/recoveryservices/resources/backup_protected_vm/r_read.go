@@ -53,7 +53,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 				if policyId := pointer.From(vm.PolicyId); policyId != "" {
 					parsedPolicyId, err := protectionpolicies.ParseBackupPolicyIDInsensitively(policyId)
 					if err != nil {
-						return fmt.Errorf("parsing policy ID %q: %+v", policyId, err)
+						return err
 					}
 					backupPolicyId = parsedPolicyId.ID()
 				}

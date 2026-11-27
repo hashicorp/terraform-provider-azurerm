@@ -47,12 +47,12 @@ func ScalingPlanHostPoolAssociationID(input string) (*ScalingPlanHostPoolAssocia
 
 	scalingplanId, err := scalingplan.ParseScalingPlanID(segments[0])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Scaling Plan ID for Scaling Plan/Host Pool Association %q: %+v", segments[0], err)
+		return nil, err
 	}
 
 	hostPoolId, err := scalingplan.ParseHostPoolID(segments[1])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Host Pool ID for Scaling Plan/Host Pool Association %q: %+v", segments[1], err)
+		return nil, err
 	}
 
 	return &ScalingPlanHostPoolAssociationId{

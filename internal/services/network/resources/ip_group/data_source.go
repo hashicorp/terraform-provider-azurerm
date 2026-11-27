@@ -106,7 +106,7 @@ func dataSourceIpGroupRead(d *pluginsdk.ResourceData, meta any) error {
 			for _, idStr := range getIds(props.Firewalls) {
 				firewallID, err := azurefirewalls.ParseAzureFirewallIDInsensitively(idStr)
 				if err != nil {
-					return fmt.Errorf("parsing Azure Firewall ID %q: %+v", idStr, err)
+					return err
 				}
 				firewallIDs = append(firewallIDs, firewallID.ID())
 			}
@@ -116,7 +116,7 @@ func dataSourceIpGroupRead(d *pluginsdk.ResourceData, meta any) error {
 			for _, idStr := range getIds(props.FirewallPolicies) {
 				policyID, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(idStr)
 				if err != nil {
-					return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", idStr, err)
+					return err
 				}
 				firewallPolicyIDs = append(firewallPolicyIDs, policyID.ID())
 			}

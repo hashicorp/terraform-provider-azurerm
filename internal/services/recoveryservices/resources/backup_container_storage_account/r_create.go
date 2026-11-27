@@ -28,7 +28,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	storageAccountID := d.Get("storage_account_id").(string)
 	parsedStorageAccountID, err := commonids.ParseStorageAccountID(storageAccountID)
 	if err != nil {
-		return fmt.Errorf("[ERROR] Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
+		return err
 	}
 
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)

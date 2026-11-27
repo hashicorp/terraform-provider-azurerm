@@ -86,7 +86,7 @@ func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertru
 	for _, idRaw := range input.GroupIds {
 		id, err := actiongroupsapis.ParseActionGroupIDInsensitively(idRaw)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %s: %v", idRaw, err)
+			return nil, err
 		}
 		groupIds = append(groupIds, id.ID())
 	}

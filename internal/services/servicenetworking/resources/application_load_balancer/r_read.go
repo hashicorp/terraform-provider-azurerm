@@ -22,7 +22,7 @@ func (t Resource) Read() sdk.ResourceFunc {
 
 			id, err := trafficcontrollerinterface.ParseTrafficControllerID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

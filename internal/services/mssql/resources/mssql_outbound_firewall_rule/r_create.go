@@ -25,7 +25,7 @@ func resourceMsSqlOutboundFirewallRuleCreate(d *pluginsdk.ResourceData, meta any
 	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
 	serverId, err := commonids.ParseSqlServerIDInsensitively(d.Get("server_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
+		return err
 	}
 
 	id := outboundfirewallrules.NewOutboundFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))

@@ -25,7 +25,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta any)
 
 	id, err := dicomservices.ParseDicomServiceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Dicom service error: %+v", err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, *id)

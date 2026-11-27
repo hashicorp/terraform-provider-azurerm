@@ -24,7 +24,7 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 
 	webPubSubId, err := webpubsub.ParseWebPubSubID(d.Get("web_pubsub_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing ID of %q: %+v", webPubSubId, err)
+		return err
 	}
 
 	id := webpubsub.NewSharedPrivateLinkResourceID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))

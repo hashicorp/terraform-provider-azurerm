@@ -118,7 +118,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 			// Parse the blob endpoint as a data plane account ID
 			accountId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
 			if err != nil {
-				return fmt.Errorf("parsing Account ID: %v", err)
+				return err
 			}
 
 			resp, err := blobServicesClient.BlobContainersListCompleteMatchingPredicate(ctx, *id, blobservices.BlobContainersListOperationOptions{}, blobservices.ListContainerItemOperationPredicate{})

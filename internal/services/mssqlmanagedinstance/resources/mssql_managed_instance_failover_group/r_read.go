@@ -52,7 +52,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 						if primaryId := instancePairs[0].PrimaryManagedInstanceId; primaryId != nil {
 							id, err := commonids.ParseSqlManagedInstanceIDInsensitively(*primaryId)
 							if err != nil {
-								return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
+								return err
 							}
 
 							model.ManagedInstanceId = id.ID()
@@ -61,7 +61,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 						if partnerId := instancePairs[0].PartnerManagedInstanceId; partnerId != nil {
 							id, err := commonids.ParseSqlManagedInstanceIDInsensitively(*partnerId)
 							if err != nil {
-								return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
+								return err
 							}
 
 							model.PartnerManagedInstanceId = id.ID()

@@ -321,7 +321,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]any, env
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
 			lawid, err := workspaces.ParseWorkspaceIDInsensitively(workspaceID.(string))
 			if err != nil {
-				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+				return nil, err
 			}
 			config["logAnalyticsWorkspaceResourceID"] = lawid.ID()
 		}

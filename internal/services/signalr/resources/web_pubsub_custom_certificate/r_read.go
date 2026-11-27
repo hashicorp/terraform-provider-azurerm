@@ -44,9 +44,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
 			}
 			if keyVaultIdRaw != nil {
-				vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-				if err != nil {
-					return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
+				if _, err := commonids.ParseKeyVaultID(*keyVaultIdRaw); err != nil {
+					return err
 				}
 			}
 

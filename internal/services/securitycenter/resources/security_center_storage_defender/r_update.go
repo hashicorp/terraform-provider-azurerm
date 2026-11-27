@@ -27,7 +27,7 @@ func (s Resource) Update() sdk.ResourceFunc {
 
 			id, err := commonids.ParseScopeID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("decoding %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

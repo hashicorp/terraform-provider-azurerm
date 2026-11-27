@@ -25,7 +25,7 @@ func (s Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.ContainerMappingClient
@@ -51,7 +51,7 @@ func (s Resource) Read() sdk.ResourceFunc {
 					if prop.PolicyId != nil && *prop.PolicyId != "" {
 						parsedPolicyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(*prop.PolicyId)
 						if err != nil {
-							return fmt.Errorf("parsing %s: %+v", *prop.PolicyId, err)
+							return err
 						}
 						policyId = parsedPolicyId.ID()
 					}
@@ -70,7 +70,7 @@ const SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId string = "
 func validateReplicationPolicyAssociationVaultConfig(ctx context.Context, settingsClient *replicationvaultsetting.ReplicationVaultSettingClient, vaultId string) error {
 	vId, err := replicationvaultsetting.ParseVaultID(vaultId)
 	if err != nil {
-		return fmt.Errorf("parse %s: %+v", vaultId, err)
+		return err
 	}
 
 	settingsId := replicationvaultsetting.NewReplicationVaultSettingID(vId.SubscriptionId, vId.ResourceGroupName, vId.VaultName, "default")
@@ -89,7 +89,7 @@ func validateReplicationPolicyAssociationVaultConfig(ctx context.Context, settin
 func fetchReplicationPolicyAssociationContainerId(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, vaultId string) (containerId string, err error) {
 	vId, err := replicationprotectioncontainers.ParseVaultID(vaultId)
 	if err != nil {
-		return "", fmt.Errorf("parse %s: %+v", vaultId, err)
+		return "", err
 	}
 
 	resp, err := containerClient.ListComplete(ctx, *vId)

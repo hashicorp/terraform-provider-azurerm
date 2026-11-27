@@ -31,7 +31,7 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 
 	workspace, err := linkedservices.ParseWorkspaceID(workspaceId)
 	if err != nil {
-		return fmt.Errorf("linked service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
+		return err
 	}
 
 	id := linkedservices.NewLinkedServiceID(subscriptionId, resourceGroup, workspace.WorkspaceName, LogAnalyticsLinkedServiceType(readAccess))

@@ -4,8 +4,6 @@
 package web_pubsub_custom_domain
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +22,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *webpubsub.CustomDom
 		if props.CustomCertificate.Id != nil {
 			webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
 			if err != nil {
-				return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", *id, err)
+				return err
 			}
 			state.WebPubsubCustomCertificateId = webPubsubCustomCertificateID.ID()
 		}

@@ -24,7 +24,7 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error
 	webPubSubIdRaw := d.Get("web_pubsub_id").(string)
 	webPubSubId, err := webpubsub.ParseWebPubSubID(webPubSubIdRaw)
 	if err != nil {
-		return fmt.Errorf("parsing ID of %q: %+v", webPubSubIdRaw, err)
+		return err
 	}
 
 	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))

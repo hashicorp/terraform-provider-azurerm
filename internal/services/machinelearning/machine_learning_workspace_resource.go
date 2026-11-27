@@ -618,7 +618,7 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta any)
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
 	options := workspaces.DefaultDeleteOperationOptions()
@@ -735,7 +735,7 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 	if input.Identity != nil && input.Identity.UserAssignedIdentity != nil {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity.UserAssignedIdentity)
 		if err != nil {
-			return nil, fmt.Errorf("parsing userAssignedIdentityId %q: %+v", *input.Identity.UserAssignedIdentity, err)
+			return nil, err
 		}
 
 		userAssignedIdentityId = id.ID()

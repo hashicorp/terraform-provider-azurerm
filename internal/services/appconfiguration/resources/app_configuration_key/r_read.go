@@ -28,7 +28,7 @@ func (k Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			domainSuffix, ok := metadata.Client.Account.Environment.AppConfiguration.DomainSuffix()

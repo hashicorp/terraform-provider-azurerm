@@ -22,7 +22,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta any) er
 
 	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -47,7 +47,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta any) er
 
 			subnetId, err := commonids.ParseSubnetIDInsensitively(props.VirtualNetworkSubnetId)
 			if err != nil {
-				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", props.VirtualNetworkSubnetId, err)
+				return err
 			}
 
 			d.Set("subnet_id", subnetId.ID())

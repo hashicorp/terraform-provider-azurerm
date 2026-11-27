@@ -88,7 +88,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
 		namespaceId, err := armdisasterrecoveries.ParseNamespaceID(v)
 		if err != nil {
-			return fmt.Errorf("parsing namespace ID %q: %+v", v, err)
+			return err
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
@@ -118,7 +118,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
 		ruleId, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigAuthorizationRuleID(input)
 		if err != nil {
-			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
+			return err
 		}
 		authRuleId = *ruleId
 	}

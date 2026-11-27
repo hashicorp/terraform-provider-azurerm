@@ -41,7 +41,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 			}
 
 			if _, err := commonids.ParseVirtualMachineScaleSetID(parsed.Scope); err != nil {
-				return fmt.Errorf("parsing %q as a Virtual Machine Scale Set ID: %+v", parsed.Scope, err)
+				return err
 			}
 
 			return nil
@@ -142,7 +142,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 
 	virtualMachineScaleSetId, err := commonids.ParseVirtualMachineScaleSetID(id.Scope)
 	if err != nil {
-		return fmt.Errorf("parsing %q as a virtual machine scale set id: %+v", id.Scope, err)
+		return err
 	}
 
 	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId.ID())
@@ -160,7 +160,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 			if props.MaintenanceConfigurationId != nil {
 				parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
 				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+					return err
 				}
 				maintenanceConfigurationId = parsedId.ID()
 			}

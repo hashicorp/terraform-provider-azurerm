@@ -105,7 +105,7 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]any, err
 	if identity := de.PrimaryUserAssignedIdentityId; identity != nil {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
+			return nil, err
 		}
 		item["primary_user_assigned_identity_id"] = parsed.ID()
 	}
@@ -116,7 +116,7 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]any, err
 	if identity := de.GeoBackupUserAssignedIdentityId; identity != nil {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
+			return nil, err
 		}
 		item["geo_backup_user_assigned_identity_id"] = parsed.ID()
 	}

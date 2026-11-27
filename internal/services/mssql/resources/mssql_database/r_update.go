@@ -61,7 +61,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing server ID: %+v", err)
+		return err
 	}
 
 	id := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, name)
@@ -235,7 +235,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 			for _, v := range partnerDatabases {
 				id, err := commonids.ParseSqlDatabaseIDInsensitively(pointer.From(v.Id))
 				if err != nil {
-					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", id.ID(), err)
+					return err
 				}
 
 				locks.ByID(id.ID())
@@ -247,7 +247,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 				log.Printf("[INFO] Parsing Replication Partner Database ID: %s", *partnerDatabase.Id)
 				partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 				if err != nil {
-					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+					return err
 				}
 
 				// See: https://learn.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
@@ -301,7 +301,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
 
 		props.EncryptionProtector = pointer.To(keyId.ID())

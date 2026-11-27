@@ -33,7 +33,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			volumeID, err := volumes.ParseVolumeID(model.VolumeID)
 			if err != nil {
-				return fmt.Errorf("error parsing volume id %s: %+v", model.VolumeID, err)
+				return err
 			}
 
 			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)

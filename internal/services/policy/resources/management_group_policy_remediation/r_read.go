@@ -24,7 +24,7 @@ func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, met
 
 	id, err := remediations.ParseProviders2RemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("reading Policy Remediation: %+v", err)
+		return err
 	}
 
 	resp, err := client.GetAtManagementGroup(ctx, *id)

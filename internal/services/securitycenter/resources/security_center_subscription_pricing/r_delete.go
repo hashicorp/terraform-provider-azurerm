@@ -22,7 +22,7 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 
 	id, err := pricings.ParsePricingID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
+		return err
 	}
 
 	// Lock on subscription ID to prevent concurrent pricing updates across different resource types,

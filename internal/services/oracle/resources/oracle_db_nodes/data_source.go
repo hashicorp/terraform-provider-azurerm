@@ -234,7 +234,7 @@ func (d DataSource) Read() sdk.ResourceFunc {
 
 			parsedCloudVmClusterId, err := cloudvmclusters.ParseCloudVMClusterID(state.CloudVmClusterId)
 			if err != nil {
-				return fmt.Errorf("decoding id: %+v", err)
+				return err
 			}
 			id := dbnodes.NewCloudVMClusterID(subscriptionId, parsedCloudVmClusterId.ResourceGroupName, parsedCloudVmClusterId.CloudVmClusterName)
 

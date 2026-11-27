@@ -175,7 +175,7 @@ func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName 
 
 		storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(*item.Id)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", *item.Id, err)
+			return nil, err
 		}
 
 		account, err := populateAccountDetails(*storageAccountId, item)

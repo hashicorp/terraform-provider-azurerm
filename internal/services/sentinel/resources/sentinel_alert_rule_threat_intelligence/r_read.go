@@ -23,7 +23,7 @@ func (a Resource) Read() sdk.ResourceFunc {
 
 			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

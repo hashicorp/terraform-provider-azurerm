@@ -30,7 +30,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			keyVaultId, err := commonids.ParseKeyVaultID(state.KeyVaultId)
 			if err != nil {
-				return fmt.Errorf("parsing `key_vault_id`, %+v", err)
+				return err
 			}
 
 			keyVaultBaseUri, err := vaultClient.BaseUriForKeyVault(ctx, *keyVaultId)

@@ -130,7 +130,7 @@ func (DataSource) Read() sdk.ResourceFunc {
 
 			api_management_id, err := apimanagementservice.ParseServiceID(state.ApiManagementId)
 			if err != nil {
-				return fmt.Errorf("parsing: %+v", err)
+				return err
 			}
 
 			id := subscription.NewSubscriptions2ID(api_management_id.SubscriptionId, api_management_id.ResourceGroupName, api_management_id.ServiceName, state.SubscriptionId)

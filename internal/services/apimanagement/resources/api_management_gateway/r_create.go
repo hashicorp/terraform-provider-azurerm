@@ -23,7 +23,7 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta an
 
 	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `api_management_id`: %v", err)
+		return err
 	}
 
 	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))

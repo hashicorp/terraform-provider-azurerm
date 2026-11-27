@@ -46,7 +46,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	// get storage account name from id
 	parsedStorageAccountID, err := commonids.ParseStorageAccountID(storageAccountID)
 	if err != nil {
-		return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageAccountID, err)
+		return err
 	}
 
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)

@@ -58,7 +58,7 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta any) 
 	// Parse the dfs endpoint as a data plane account ID
 	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	id := paths.NewPathID(*accountId, filesystemName, path)

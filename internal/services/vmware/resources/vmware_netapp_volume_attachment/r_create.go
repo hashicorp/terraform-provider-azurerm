@@ -28,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			vmWareClusterId, err := clusters.ParseClusterID(state.VmwareClusterId)
 			if err != nil {
-				return fmt.Errorf("parsing vmware cluster id %s err: %+v", state.VmwareClusterId, err)
+				return err
 			}
 
 			id := datastores.NewDataStoreID(subscriptionId, vmWareClusterId.ResourceGroupName, vmWareClusterId.PrivateCloudName, vmWareClusterId.ClusterName, state.Name)

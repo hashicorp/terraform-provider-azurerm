@@ -21,7 +21,7 @@ func resourceResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta any
 
 	id, err := remediations.ParseScopedRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
+		return err
 	}
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance

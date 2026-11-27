@@ -586,7 +586,7 @@ func expandContainerGroupSubnets(input []any) (*[]containerinstance.ContainerGro
 	for _, item := range input {
 		id, err := commonids.ParseSubnetID(item.(string))
 		if err != nil {
-			return nil, fmt.Errorf(`parsing subnet id %q: %v`, item, err)
+			return nil, err
 		}
 
 		results = append(results, containerinstance.ContainerGroupSubnetId{

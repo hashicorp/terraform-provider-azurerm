@@ -42,7 +42,7 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 			for _, item := range *subnetIDs {
 				subnet, err := commonids.ParseSubnetID(item.Id)
 				if err != nil {
-					return fmt.Errorf(`parsing subnet id %q: %v`, item.Id, err)
+					return err
 				}
 
 				locks.ByID(subnet.ID())

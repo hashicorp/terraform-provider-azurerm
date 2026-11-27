@@ -21,12 +21,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			workspaceId, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Get("workspace_id").(string))
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.LogAnalytics.TablesClient

@@ -38,7 +38,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			vaultId, err := replicationprotecteditems.ParseVaultID(model.RecoveryVaultId)
 			if err != nil {
-				return fmt.Errorf("parsing vault id %q: %+v", model.RecoveryVaultId, err)
+				return err
 			}
 
 			containerId, err := fetchSiteRecoveryContainerId(ctx, containerClient, vaultId.ID())
@@ -48,7 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			parsedContainerId, err := replicationprotecteditems.ParseReplicationProtectionContainerID(containerId)
 			if err != nil {
-				return fmt.Errorf("parse %s: %+v", containerId, err)
+				return err
 			}
 
 			id := replicationprotecteditems.NewReplicationProtectedItemID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)

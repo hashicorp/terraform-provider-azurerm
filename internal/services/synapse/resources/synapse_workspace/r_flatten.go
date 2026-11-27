@@ -88,7 +88,7 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) ([]any, err
 	if encryption.Cmk.KekIdentity != nil && encryption.Cmk.KekIdentity.UserAssignedIdentity != nil {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encryption.Cmk.KekIdentity.UserAssignedIdentity))
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", pointer.From(encryption.Cmk.KekIdentity.UserAssignedIdentity), err)
+			return nil, err
 		}
 		resultMap["user_assigned_identity_id"] = parsed.ID()
 	}

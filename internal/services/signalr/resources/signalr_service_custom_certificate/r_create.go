@@ -30,12 +30,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			signalRServiceId, err := signalr.ParseSignalRID(metadata.ResourceData.Get("signalr_service_id").(string))
 			if err != nil {
-				return fmt.Errorf("parsing signalr service id error: %+v", err)
+				return err
 			}
 
 			keyVaultCertificateId, err := keyvault.ParseNestedItemID(metadata.ResourceData.Get("custom_certificate_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 			if err != nil {
-				return fmt.Errorf("parsing custom certificate id error: %+v", err)
+				return err
 			}
 
 			keyVaultUri := keyVaultCertificateId.KeyVaultBaseURL

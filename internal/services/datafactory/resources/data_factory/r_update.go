@@ -74,7 +74,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta any) error 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
 		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyID.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+			return err
 		}
 
 		payload.Properties.Encryption = &factories.EncryptionConfiguration{

@@ -24,7 +24,7 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 
 	signalrID, err := signalr.ParseSignalRID(d.Get("signalr_service_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing ID of %s: %+v", signalrID, err)
+		return err
 	}
 
 	id := signalr.NewSharedPrivateLinkResourceID(subscriptionId, signalrID.ResourceGroupName, signalrID.SignalRName, d.Get("name").(string))

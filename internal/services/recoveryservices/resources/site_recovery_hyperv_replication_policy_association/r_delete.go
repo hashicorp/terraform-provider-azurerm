@@ -20,7 +20,7 @@ func (h Resource) Delete() sdk.ResourceFunc {
 
 			id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id, replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{}); err != nil {

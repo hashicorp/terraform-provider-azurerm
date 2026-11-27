@@ -26,7 +26,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppPlatform.AppPlatformClient
 			springAcceleratorId, err := appplatform.ParseApplicationAcceleratorID(model.SpringCloudAcceleratorId)
 			if err != nil {
-				return fmt.Errorf("parsing spring service ID: %+v", err)
+				return err
 			}
 			id := appplatform.NewCustomizedAcceleratorID(springAcceleratorId.SubscriptionId, springAcceleratorId.ResourceGroupName, springAcceleratorId.SpringName, springAcceleratorId.ApplicationAcceleratorName, model.Name)
 

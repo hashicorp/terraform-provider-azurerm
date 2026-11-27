@@ -20,7 +20,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 
 			id, err := catalogs.ParseDevCenterCatalogID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing catalog id: %+v", err)
+				return err
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {

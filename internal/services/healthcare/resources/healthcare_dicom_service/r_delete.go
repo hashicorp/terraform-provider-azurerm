@@ -23,7 +23,7 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta an
 
 	id, err := dicomservices.ParseDicomServiceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Dicom service error: %+v", err)
+		return err
 	}
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {

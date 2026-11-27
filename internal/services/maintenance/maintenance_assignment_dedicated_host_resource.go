@@ -43,7 +43,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
 			}
 
 			if _, err := commonids.ParseDedicatedHostID(parsed.Scope); err != nil {
-				return fmt.Errorf("parsing %q as a Dedicated Host ID: %+v", parsed.Scope, err)
+				return err
 			}
 
 			return nil
@@ -157,7 +157,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData
 
 	dedicatedHostId, err := commonids.ParseDedicatedHostID(id.Scope)
 	if err != nil {
-		return fmt.Errorf("parsing %q as a dedicated host id: %+v", id.Scope, err)
+		return err
 	}
 	d.Set("dedicated_host_id", dedicatedHostId.ID())
 
@@ -174,7 +174,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData
 			if props.MaintenanceConfigurationId != nil {
 				parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
 				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+					return err
 				}
 				maintenanceConfigurationId = parsedId.ID()
 			}

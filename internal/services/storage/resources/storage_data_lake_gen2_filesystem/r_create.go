@@ -63,7 +63,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	// Parse the dfs endpoint as a data plane account ID
 	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	// Finally, build the data plane ID for this filesystem

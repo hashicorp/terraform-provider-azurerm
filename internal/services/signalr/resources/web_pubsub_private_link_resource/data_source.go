@@ -57,7 +57,7 @@ func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta 
 	webPubSubIdRaw := d.Get("web_pubsub_id").(string)
 	webPubSubId, err := webpubsub.ParseWebPubSubID(webPubSubIdRaw)
 	if err != nil {
-		return fmt.Errorf("parsing ID of %q: %+v", webPubSubIdRaw, err)
+		return err
 	}
 
 	resourceList, err := privateLinkResourceClient.PrivateLinkResourcesListComplete(ctx, *webPubSubId)

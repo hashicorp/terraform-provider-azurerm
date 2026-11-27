@@ -219,13 +219,13 @@ func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]a
 		case managementgroups.ManagementGroupChildTypeMicrosoftPointManagementManagementGroups:
 			id, err := commonids.ParseManagementGroupID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("unable to parse child Management Group ID %+v", err)
+				return err
 			}
 			*mgmtgroupIds = append(*mgmtgroupIds, id.ID())
 		case managementgroups.ManagementGroupChildTypeSubscriptions:
 			id, err := commonids.ParseSubscriptionID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("unable to parse child Subscription ID %+v", err)
+				return err
 			}
 			*subscriptionIds = append(*subscriptionIds, id.SubscriptionId)
 		default:

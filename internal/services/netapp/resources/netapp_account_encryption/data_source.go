@@ -96,7 +96,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 
 			id, err := netappaccounts.ParseNetAppAccountID(state.NetAppAccountID)
 			if err != nil {
-				return fmt.Errorf("error parsing netapp account id %s: %+v", state.NetAppAccountID, err)
+				return err
 			}
 
 			resp, err := client.AccountsGet(ctx, pointer.From(id))

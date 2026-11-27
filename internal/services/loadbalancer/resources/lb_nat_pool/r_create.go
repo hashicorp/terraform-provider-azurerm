@@ -27,7 +27,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
+		return err
 	}
 
 	id := parse.NewLoadBalancerInboundNatPoolID(subscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, d.Get("name").(string))

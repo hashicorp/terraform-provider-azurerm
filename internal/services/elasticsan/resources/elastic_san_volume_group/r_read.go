@@ -119,7 +119,7 @@ func FlattenVolumeGroupEncryption(input *volumegroups.EncryptionProperties) ([]E
 	if input.Identity != nil && input.Identity.UserAssignedIdentity != nil {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity.UserAssignedIdentity)
 		if err != nil {
-			return nil, fmt.Errorf("parsing Encryption User Assigned Identity ID: %+v", err)
+			return nil, err
 		}
 
 		userAssignedIdentityId = id.ID()

@@ -28,7 +28,7 @@ func (a Resource) Create() sdk.ResourceFunc {
 
 			parsedWorkspaceId, err := workspaces.ParseWorkspaceID(plan.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id: %+v", err)
+				return err
 			}
 
 			id := metadata.NewMetadataID(parsedWorkspaceId.SubscriptionId, parsedWorkspaceId.ResourceGroupName, parsedWorkspaceId.WorkspaceName, plan.Name)

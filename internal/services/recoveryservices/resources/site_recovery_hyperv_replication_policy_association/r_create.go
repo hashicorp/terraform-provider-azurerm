@@ -25,7 +25,7 @@ func (h Resource) Create() sdk.ResourceFunc {
 
 			parsedFabricId, err := replicationfabrics.ParseReplicationFabricID(plan.FabricId)
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", plan.FabricId, err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.ContainerMappingClient
@@ -38,7 +38,7 @@ func (h Resource) Create() sdk.ResourceFunc {
 
 			parsedContainerId, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerID(containerId)
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", containerId, err)
+				return err
 			}
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(subscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, plan.Name)

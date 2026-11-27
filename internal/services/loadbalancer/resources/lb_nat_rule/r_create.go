@@ -27,7 +27,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer Name and Group: %+v", err)
+		return err
 	}
 	id := loadbalancers.NewInboundNatRuleID(subscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, d.Get("name").(string))
 

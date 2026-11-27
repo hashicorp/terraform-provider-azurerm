@@ -19,7 +19,7 @@ func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta any) 
 
 	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
+		return err
 	}
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {

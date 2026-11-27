@@ -45,7 +45,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	// get VM name from id
 	parsedVmId, err := commonids.ParseVirtualMachineID(vmId)
 	if err != nil {
-		return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)
+		return err
 	}
 
 	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)

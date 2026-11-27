@@ -27,7 +27,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta an
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing healthcare workspace error: %+v", err)
+		return err
 	}
 
 	id := dicomservices.NewDicomServiceID(workspace.SubscriptionId, workspace.ResourceGroupName, workspace.WorkspaceName, d.Get("name").(string))

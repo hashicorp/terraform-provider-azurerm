@@ -25,12 +25,12 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta any) 
 
 	apiID, err := api.ParseApiID(d.Get("api_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `api_id`: %v", err)
+		return err
 	}
 
 	gatewayID, err := gateway.ParseGatewayID(d.Get("gateway_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `gateway_id`: %v", err)
+		return err
 	}
 
 	apiName := helpers.GetApiName(apiID.ApiId)

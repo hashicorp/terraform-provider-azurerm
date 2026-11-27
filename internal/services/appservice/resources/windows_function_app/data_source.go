@@ -341,7 +341,7 @@ func (d DataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
-						return fmt.Errorf("reading Service Plan Id for %s: %+v", id, err)
+						return err
 					}
 					functionApp.ServicePlanId = servicePlanId.ID()
 					functionApp.Enabled = pointer.From(props.Enabled)

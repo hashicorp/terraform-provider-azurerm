@@ -34,7 +34,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta an
 	// get network name from id
 	parsedSourceNetworkId, err := commonids.ParseVirtualNetworkID(sourceNetworkId)
 	if err != nil {
-		return fmt.Errorf("[ERROR] Unable to parse source_network_id '%s' (network mapping %s): %+v", sourceNetworkId, name, err)
+		return err
 	}
 
 	id := replicationnetworkmappings.NewReplicationNetworkMappingID(subscriptionId, resGroup, vaultName, fabricName, parsedSourceNetworkId.VirtualNetworkName, name)

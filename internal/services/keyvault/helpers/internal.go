@@ -146,7 +146,7 @@ func NestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
-		return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)
+		return []*pluginsdk.ResourceData{d}, err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)

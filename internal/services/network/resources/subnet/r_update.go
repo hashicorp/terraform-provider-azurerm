@@ -49,7 +49,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
 		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
 		if err != nil {
-			return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+			return err
 		}
 		nsgIds = append(nsgIds, nsgId.ID())
 	}
@@ -72,7 +72,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
 		rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
 		if err != nil {
-			return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+			return err
 		}
 		rtIds = append(rtIds, rtId.ID())
 	}

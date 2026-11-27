@@ -46,7 +46,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta any) error {
 		if props := model.Properties; props != nil {
 			cacheId, err := linkedserver.ParseRediIDInsensitively(props.LinkedRedisCacheId)
 			if err != nil {
-				return fmt.Errorf("parsing `linkedRedisCacheId` %q: %+v", props.LinkedRedisCacheId, err)
+				return err
 			}
 			d.Set("linked_redis_cache_id", cacheId.ID())
 
