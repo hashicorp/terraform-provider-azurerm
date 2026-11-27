@@ -41,6 +41,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 			importParameters := kv.CertificateImportParameters{
 				Base64EncodedCertificate: pointer.To(certificate.CertificateData),
 				Password:                 pointer.To(certificate.CertificatePassword),
+				Tags:                     tags.Expand(d.Get("tags").(map[string]any)),
 			}
 			resp, err := client.ImportCertificate(ctx, id.KeyVaultBaseURL, id.Name, importParameters)
 			if err != nil {

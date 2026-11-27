@@ -504,6 +504,10 @@ resource "azurerm_key_vault_certificate" "test" {
     contents = filebase64("testdata/keyvaultcert.pfx")
     password = ""
   }
+
+  tags = {
+    environment = "test"
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -543,6 +547,10 @@ resource "azurerm_key_vault_certificate" "test" {
   certificate {
     contents = filebase64("testdata/ecdsa.pfx")
     password = ""
+  }
+
+  tags = {
+    environment = "test"
   }
 }
 `, r.template(data), data.RandomString)
