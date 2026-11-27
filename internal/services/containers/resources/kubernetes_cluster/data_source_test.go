@@ -662,6 +662,9 @@ func TestAccDataSourceKubernetesCluster_bootstrapProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("bootstrap_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bootstrap_profile.0.artifact_source").HasValue("Cache"),
 				check.That(data.ResourceName).Key("bootstrap_profile.0.container_registry_id").Exists(),
+				check.That(data.ResourceName).Key("bootstrap_profile.0.container_registry_id").MatchesOtherKey(
+					check.That("azurerm_container_registry.registry").Key("id"),
+				),
 			),
 		},
 	})
