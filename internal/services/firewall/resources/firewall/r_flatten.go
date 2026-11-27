@@ -22,6 +22,7 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if props := model.Properties; props != nil {

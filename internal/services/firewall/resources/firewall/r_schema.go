@@ -28,6 +28,8 @@ func firewallSchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 		// lintignore:S013
 		"sku_name": {
 			Description:  "SKU name of the Firewall.",

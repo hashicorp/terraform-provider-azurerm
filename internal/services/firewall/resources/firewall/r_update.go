@@ -57,7 +57,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	parameters := azurefirewalls.AzureFirewall{
-		Location: &location,
+		Location:         &location,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Properties: &azurefirewalls.AzureFirewallPropertiesFormat{
 			IPConfigurations:     ipConfigs,
 			ThreatIntelMode:      pointer.ToEnum[azurefirewalls.AzureFirewallThreatIntelMode](d.Get("threat_intel_mode").(string)),
