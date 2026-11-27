@@ -49,6 +49,8 @@ func flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(input *[]protecti
 			}
 		}
 
+		result.TieringPolicy = flattenBackupProtectionPolicyVMWorkloadTieringPolicy(item.TieringPolicy)
+
 		results = append(results, result)
 	}
 
@@ -238,4 +240,28 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *protecti
 	}
 
 	return result
+}
+
+func flattenBackupProtectionPolicyVMWorkloadTieringPolicy(input *map[string]protectionpolicies.TieringPolicy) []TieringPolicy {
+	if input == nil || len(*input) == 0 {
+		return []TieringPolicy{}
+	}
+
+	tieringPolicies := *input
+	archivedRP, ok := tieringPolicies["ArchivedRP"]
+	if !ok {
+		return []TieringPolicy{}
+	}
+
+	return []TieringPolicy{
+		{
+			ArchivedRestorePoint: []ArchivedRestorePoint{
+				{
+					Mode:         pointer.FromEnum(archivedRP.TieringMode),
+					Duration:     pointer.From(archivedRP.Duration),
+					DurationType: pointer.FromEnum(archivedRP.DurationType),
+				},
+			},
+		},
+	}
 }

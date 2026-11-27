@@ -62,6 +62,7 @@ type ProtectionPolicy struct {
 	RetentionMonthly []RetentionMonthly `tfschema:"retention_monthly"`
 	RetentionYearly  []RetentionYearly  `tfschema:"retention_yearly"`
 	SimpleRetention  []SimpleRetention  `tfschema:"simple_retention"`
+	TieringPolicy    []TieringPolicy    `tfschema:"tiering_policy"`
 }
 
 type Backup struct {
@@ -99,6 +100,16 @@ type RetentionYearly struct {
 
 type SimpleRetention struct {
 	Count int64 `tfschema:"count"`
+}
+
+type TieringPolicy struct {
+	ArchivedRestorePoint []ArchivedRestorePoint `tfschema:"archived_restore_point"`
+}
+
+type ArchivedRestorePoint struct {
+	Mode         string `tfschema:"mode"`
+	Duration     int64  `tfschema:"duration"`
+	DurationType string `tfschema:"duration_type"`
 }
 
 type Settings struct {

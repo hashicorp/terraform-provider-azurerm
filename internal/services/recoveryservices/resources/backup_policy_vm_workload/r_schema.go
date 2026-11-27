@@ -288,6 +288,50 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
+					"tiering_policy": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"archived_restore_point": {
+									Type:     pluginsdk.TypeList,
+									MaxItems: 1,
+									Required: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"mode": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(protectionpolicies.TieringModeTierAfter),
+													string(protectionpolicies.TieringModeTierRecommended),
+												}, false),
+											},
+
+											"duration": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												ValidateFunc: validation.IntAtLeast(45),
+											},
+
+											"duration_type": {
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(protectionpolicies.RetentionDurationTypeDays),
+													string(protectionpolicies.RetentionDurationTypeWeeks),
+													string(protectionpolicies.RetentionDurationTypeMonths),
+													string(protectionpolicies.RetentionDurationTypeYears),
+												}, false),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},

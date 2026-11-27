@@ -134,6 +134,7 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 		result := protectionpolicies.SubProtectionPolicy{
 			PolicyType:     pointer.ToEnum[protectionpolicies.PolicyType](item.PolicyType),
 			SchedulePolicy: expandBackupProtectionPolicyVMWorkloadSchedulePolicy(item, times),
+			TieringPolicy:  expandBackupProtectionPolicyVMWorkloadTieringPolicy(item.TieringPolicy),
 		}
 
 		if v, err := expandBackupProtectionPolicyVMWorkloadRetentionPolicy(item, times); err != nil {
@@ -346,4 +347,32 @@ func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks
 	}
 
 	return &weekly
+}
+
+func expandBackupProtectionPolicyVMWorkloadTieringPolicy(input []TieringPolicy) *map[string]protectionpolicies.TieringPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make(map[string]protectionpolicies.TieringPolicy)
+
+	if len(input[0].ArchivedRestorePoint) > 0 {
+		arp := input[0].ArchivedRestorePoint[0]
+
+		tieringPolicy := protectionpolicies.TieringPolicy{
+			TieringMode: pointer.ToEnum[protectionpolicies.TieringMode](arp.Mode),
+		}
+
+		if arp.Duration != 0 {
+			tieringPolicy.Duration = pointer.To(arp.Duration)
+		}
+
+		if arp.DurationType != "" {
+			tieringPolicy.DurationType = pointer.ToEnum[protectionpolicies.RetentionDurationType](arp.DurationType)
+		}
+
+		result["ArchivedRP"] = tieringPolicy
+	}
+
+	return &result
 }
