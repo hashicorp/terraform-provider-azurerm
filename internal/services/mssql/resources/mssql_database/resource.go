@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_database/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +63,11 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 
 				return false
+			}),
+			pluginsdk.ForceNewIfChange("long_term_retention_policy.0.immutability_mode", func(ctx context.Context, old, new, _ any) bool {
+				// once immutability_mode is set to Locked it cannot be reverted — force replacement
+				return old.(string) == string(longtermretentionpolicies.TimeBasedImmutabilityModeLocked) &&
+					new.(string) != string(longtermretentionpolicies.TimeBasedImmutabilityModeLocked)
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
