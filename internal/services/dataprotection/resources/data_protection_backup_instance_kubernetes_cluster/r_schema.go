@@ -35,7 +35,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The ID of the Backup Policy.",
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 		},
 
@@ -52,7 +51,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -60,7 +58,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The namespaces to be excluded during backup.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -69,7 +66,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The resource types to be excluded during backup.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -78,14 +74,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Whether to include cluster scope resources during backup.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						ForceNew:    true,
 						Default:     false,
 					},
 					"included_namespaces": {
 						Description: "The namespaces to be included during backup.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -94,7 +88,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The resource types to be included during backup.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -103,7 +96,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The resources with such label selectors to be included during backup.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						ForceNew:    true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -112,7 +104,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Whether to take volume snapshots during backup.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						ForceNew:    true,
 						Default:     false,
 					},
 				},
