@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappsrevisions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/httprouteconfig"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
@@ -21,6 +22,7 @@ type Client struct {
 	ContainerAppClient         *containerapps.ContainerAppsClient
 	ContainerAppRevisionClient *containerappsrevisions.ContainerAppsRevisionsClient
 	DaprComponentsClient       *daprcomponents.DaprComponentsClient
+	HttpRouteConfigClient      *httprouteconfig.HTTPRouteConfigClient
 	ManagedEnvironmentClient   *managedenvironments.ManagedEnvironmentsClient
 	StorageClient              *managedenvironmentsstorages.ManagedEnvironmentsStoragesClient
 	JobClient                  *jobs.JobsClient
@@ -57,6 +59,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedEnvironmentStoragesClient.Client, o.Authorizers.ResourceManager)
 
+	httpRouteConfigClient, err := httprouteconfig.NewHTTPRouteConfigClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HTTP Route Config client : %+v", err)
+	}
+	o.Configure(httpRouteConfigClient.Client, o.Authorizers.ResourceManager)
+
 	daprComponentClient, err := daprcomponents.NewDaprComponentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Dapr Components client : %+v", err)
@@ -74,6 +82,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ContainerAppClient:         containerAppsClient,
 		ContainerAppRevisionClient: containerAppsRevisionsClient,
 		DaprComponentsClient:       daprComponentClient,
+		HttpRouteConfigClient:      httpRouteConfigClient,
 		ManagedEnvironmentClient:   managedEnvironmentClient,
 		StorageClient:              managedEnvironmentStoragesClient,
 		JobClient:                  jobsClient,

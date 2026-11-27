@@ -45,6 +45,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		container_app_environment_certificate.DataSource{},
 		container_app_environment.DataSource{},
 		container_app_environment_storage.DataSource{},
+		ContainerAppEnvironmentHttpRouteConfigDataSource{},
 	}
 }
 
@@ -59,6 +60,7 @@ func (r Registration) Resources() []sdk.Resource {
 		container_app_environment_storage.Resource{},
 		container_app_job.Resource{},
 		container_app.Resource{},
+		ContainerAppEnvironmentHttpRouteConfigResource{},
 	}
 }
 
