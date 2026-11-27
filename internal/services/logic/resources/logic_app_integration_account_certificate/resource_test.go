@@ -19,6 +19,17 @@ import (
 
 type LogicAppIntegrationAccountCertificateResource struct{}
 
+func TestAccLogicAppIntegrationAccountCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_certificate", "test")
+	r := LogicAppIntegrationAccountCertificateResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppIntegrationAccountCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_certificate", "test")
 	r := LogicAppIntegrationAccountCertificateResource{}

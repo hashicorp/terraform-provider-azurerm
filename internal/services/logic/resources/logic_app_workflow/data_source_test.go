@@ -13,6 +13,17 @@ import (
 
 type LogicAppWorkflowDataSource struct{}
 
+func TestAccLogicAppWorkflowDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppWorkflowDataSource_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowDataSource{}

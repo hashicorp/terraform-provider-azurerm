@@ -13,6 +13,17 @@ import (
 
 type IotHubDPSDataSource struct{}
 
+func TestAccDataSourceIotHubDPS_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps", "test")
+	r := IotHubDPSDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceIotHubDPS_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps", "test")
 	r := IotHubDPSDataSource{}

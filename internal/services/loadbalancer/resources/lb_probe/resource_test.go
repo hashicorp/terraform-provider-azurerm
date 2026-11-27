@@ -20,6 +20,17 @@ import (
 
 type LbProbeResource struct{}
 
+func TestAccAzureRMLoadBalancerProbe_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
+	r := LbProbeResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
 	r := LbProbeResource{}

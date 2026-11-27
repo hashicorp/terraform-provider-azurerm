@@ -20,6 +20,17 @@ import (
 
 type IotHubEnrichmentResource struct{}
 
+func TestAccIotHubEnrichment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
+	r := IotHubEnrichmentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubEnrichment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_enrichment", "test")
 	r := IotHubEnrichmentResource{}

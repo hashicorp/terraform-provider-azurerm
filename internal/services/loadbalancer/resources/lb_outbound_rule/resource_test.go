@@ -20,6 +20,17 @@ import (
 
 type LoadBalancerOutboundRule struct{}
 
+func TestAccAzureRMLoadBalancerOutboundRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}

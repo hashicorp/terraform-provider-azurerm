@@ -19,6 +19,17 @@ import (
 
 type IotHubEndpointEventHubResource struct{}
 
+func TestAccIotHubEndpointEventHub_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
+	r := IotHubEndpointEventHubResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubEndpointEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
 	r := IotHubEndpointEventHubResource{}

@@ -20,6 +20,17 @@ import (
 
 type KeyVaultAccessPolicyResource struct{}
 
+func TestAccKeyVaultAccessPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyResource{}

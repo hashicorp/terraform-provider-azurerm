@@ -21,6 +21,17 @@ import (
 
 type LogicAppActionCustomResource struct{}
 
+func TestAccLogicAppActionCustom_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
+	r := LogicAppActionCustomResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppActionCustom_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
 	r := LogicAppActionCustomResource{}

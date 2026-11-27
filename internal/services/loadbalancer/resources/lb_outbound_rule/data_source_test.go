@@ -11,6 +11,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
+func TestAccAzureRMDataSourceLoadBalancerOutboundRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.completeDataSource(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMDataSourceLoadBalancerOutboundRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}

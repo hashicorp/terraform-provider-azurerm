@@ -18,6 +18,17 @@ import (
 
 type KustoClusterResource struct{}
 
+func TestAccKustoCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}

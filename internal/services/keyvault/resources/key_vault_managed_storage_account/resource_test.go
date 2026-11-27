@@ -20,6 +20,17 @@ import (
 
 type KeyVaultManagedStorageAccountResource struct{}
 
+func TestAccKeyVaultManagedStorageAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
+	r := KeyVaultManagedStorageAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, true, "P1D"),
+		},
+	}, "")
+}
+
 func TestAccKeyVaultManagedStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
 	r := KeyVaultManagedStorageAccountResource{}

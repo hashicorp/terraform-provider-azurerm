@@ -18,6 +18,16 @@ import (
 
 type LogAnalyticsLinkedStorageAccountResource struct{}
 
+func TestAcclogAnalyticsLinkedStorageAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
+	r := LogAnalyticsLinkedStorageAccountResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAcclogAnalyticsLinkedStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
 	r := LogAnalyticsLinkedStorageAccountResource{}

@@ -20,6 +20,17 @@ import (
 
 type KeyVaultCertificateResource struct{}
 
+func TestAccKeyVaultCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicGenerate(data),
+		},
+	}, "")
+}
+
 func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateResource{}

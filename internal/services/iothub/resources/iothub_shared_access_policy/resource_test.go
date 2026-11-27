@@ -19,6 +19,17 @@ import (
 
 type IoTHubSharedAccessPolicyResource struct{}
 
+func TestAccIotHubSharedAccessPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
+	r := IoTHubSharedAccessPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 	r := IoTHubSharedAccessPolicyResource{}

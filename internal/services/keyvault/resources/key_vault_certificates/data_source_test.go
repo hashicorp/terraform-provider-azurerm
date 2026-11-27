@@ -13,6 +13,17 @@ import (
 
 type KeyVaultCertificatesDataSource struct{}
 
+func TestAccDataSourceKeyVaultCertificates_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificates", "test")
+	r := KeyVaultCertificatesDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceKeyVaultCertificates_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificates", "test")
 	r := KeyVaultCertificatesDataSource{}

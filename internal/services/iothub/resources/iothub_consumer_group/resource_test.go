@@ -18,6 +18,17 @@ import (
 
 type IotHubConsumerGroupResource struct{}
 
+func TestAccIotHubConsumerGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
+	r := IotHubConsumerGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "events"),
+		},
+	}, "")
+}
+
 func TestAccIotHubConsumerGroup_events(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 	r := IotHubConsumerGroupResource{}

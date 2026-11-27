@@ -21,6 +21,17 @@ import (
 
 type LogicAppActionHttpResource struct{}
 
+func TestAccLogicAppActionHttp_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 	r := LogicAppActionHttpResource{}

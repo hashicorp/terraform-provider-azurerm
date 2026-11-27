@@ -19,6 +19,17 @@ import (
 
 type LogicAppIntegrationAccountAssemblyResource struct{}
 
+func TestAccLogicAppIntegrationAccountAssembly_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_assembly", "test")
+	r := LogicAppIntegrationAccountAssemblyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppIntegrationAccountAssembly_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_assembly", "test")
 	r := LogicAppIntegrationAccountAssemblyResource{}

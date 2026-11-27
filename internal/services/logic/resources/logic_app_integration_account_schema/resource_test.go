@@ -18,6 +18,17 @@ import (
 
 type LogicAppIntegrationAccountSchemaResource struct{}
 
+func TestAccLogicAppIntegrationAccountSchema_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_schema", "test")
+	r := LogicAppIntegrationAccountSchemaResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppIntegrationAccountSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_schema", "test")
 	r := LogicAppIntegrationAccountSchemaResource{}

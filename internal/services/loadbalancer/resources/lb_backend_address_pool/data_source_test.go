@@ -11,6 +11,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
+func TestAccDataSourceBackendAddressPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
+	r := LbBackendAddressPoolResource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.dataSourceGatewaySkuComplete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceBackendAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
 	r := LbBackendAddressPoolResource{}

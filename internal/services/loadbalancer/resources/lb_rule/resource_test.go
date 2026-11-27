@@ -20,6 +20,17 @@ import (
 
 type LoadBalancerRule struct{}
 
+func TestAccAzureRMLoadBalancerRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}

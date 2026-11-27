@@ -19,6 +19,17 @@ import (
 
 type LogAnalyticsWorkspaceTableCustomLogResource struct{}
 
+func TestAccLogAnalyticsWorkspaceTableCustomLog_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_custom_log", "test")
+	r := LogAnalyticsWorkspaceTableCustomLogResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsWorkspaceTableCustomLog_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table_custom_log", "test")
 	r := LogAnalyticsWorkspaceTableCustomLogResource{}

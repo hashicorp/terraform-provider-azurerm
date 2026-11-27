@@ -20,6 +20,26 @@ import (
 
 type LighthouseAssignmentResource struct{}
 
+func TestAccLighthouseAssignment_regressionTest(t *testing.T) {
+	// Multiple tenants are needed to test this acceptance.
+	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
+	// ObjectId for user, usergroup or service principal from second Tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
+	if secondTenantID == "" || principalID == "" {
+		t.Skip("Skipping as ARM_TENANT_ID_ALT and/or ARM_PRINCIPAL_ID_ALT_TENANT are not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lighthouse_assignment", "test")
+	r := LighthouseAssignmentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(uuid.New().String(), secondTenantID, principalID, data),
+		},
+	}, "")
+}
+
 func TestAccLighthouseAssignment_basic(t *testing.T) {
 	// Multiple tenants are needed to test this acceptance.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.

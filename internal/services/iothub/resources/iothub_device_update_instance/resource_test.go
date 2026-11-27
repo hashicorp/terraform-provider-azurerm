@@ -23,6 +23,16 @@ import (
 
 type IotHubDeviceUpdateInstanceResource struct{}
 
+func TestAccIotHubDeviceUpdateInstance_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_instance", "test")
+	r := IotHubDeviceUpdateInstanceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccIotHubDeviceUpdateInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_instance", "test")
 	r := IotHubDeviceUpdateInstanceResource{}

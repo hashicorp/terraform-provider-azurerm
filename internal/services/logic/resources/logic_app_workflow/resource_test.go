@@ -18,6 +18,17 @@ import (
 
 type LogicAppWorkflowResource struct{}
 
+func TestAccLogicAppWorkflow_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.empty(data),
+		},
+	}, "")
+}
+
 func TestAccLogicAppWorkflow_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowResource{}

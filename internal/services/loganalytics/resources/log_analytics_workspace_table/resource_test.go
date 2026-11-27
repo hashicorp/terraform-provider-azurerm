@@ -18,6 +18,17 @@ import (
 
 type LogAnalyticsWorkspaceTableResource struct{}
 
+func TestAccLogAnalyticsWorkspaceTable_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
+	r := LogAnalyticsWorkspaceTableResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateRetention(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
 	r := LogAnalyticsWorkspaceTableResource{}

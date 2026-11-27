@@ -13,6 +13,17 @@ import (
 
 type LoadTestTestDataSource struct{}
 
+func TestAccLoadTestDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_load_test", "test")
+	d := LoadTestTestDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLoadTestDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_load_test", "test")
 	d := LoadTestTestDataSource{}

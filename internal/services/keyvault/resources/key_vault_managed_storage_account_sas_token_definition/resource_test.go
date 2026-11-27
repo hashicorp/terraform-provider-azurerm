@@ -20,6 +20,17 @@ import (
 
 type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct{}
 
+func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
+	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "P1D"),
+		},
+	}, "")
+}
+
 func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
 	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}

@@ -19,6 +19,17 @@ import (
 
 type KustoEventHubDataConnectionResource struct{}
 
+func TestAccKustoEventHubDataConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
+	r := KustoEventHubDataConnectionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKustoEventHubDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 	r := KustoEventHubDataConnectionResource{}

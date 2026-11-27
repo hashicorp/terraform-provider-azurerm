@@ -13,6 +13,17 @@ import (
 
 type LogAnalyticsWorkspaceTableDataSource struct{}
 
+func TestAccLogAnalyticsWorkspaceTableDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace_table", "test")
+	r := LogAnalyticsWorkspaceTableDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicWithDataSource(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace_table", "test")
 	r := LogAnalyticsWorkspaceTableDataSource{}

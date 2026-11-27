@@ -18,6 +18,16 @@ import (
 
 type KustoScriptResource struct{}
 
+func TestAccKustoScript_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_script", "test")
+	r := KustoScriptResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoScript_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_script", "test")
 	r := KustoScriptResource{}

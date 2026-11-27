@@ -19,6 +19,17 @@ import (
 
 type KustoIotHubDataConnectionResource struct{}
 
+func TestAccKustoIotHubDataConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_iothub_data_connection", "test")
+	r := KustoIotHubDataConnectionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKustoIotHubDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_iothub_data_connection", "test")
 	r := KustoIotHubDataConnectionResource{}

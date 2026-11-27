@@ -19,6 +19,17 @@ import (
 
 type LogAnalyticsWorkspaceResource struct{}
 
+func TestAccLogAnalyticsWorkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}

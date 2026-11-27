@@ -13,6 +13,18 @@ import (
 
 type EncryptedValueDataSource struct{}
 
+func TestAccEncryptedValueDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_encrypted_value", "decrypted")
+	r := EncryptedValueDataSource{}
+	plainText, plainText2 := "this is a test", "some-secret"
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.decrypt(data, plainText, plainText2),
+		},
+	}, "")
+}
+
 func TestAccEncryptedValueDataSource_encryptAndDecrypt(t *testing.T) {
 	// since this config includes both Encrypted and Decrypted we're testing both use-cases (and comparing the values below)
 	// so we only need a single test here

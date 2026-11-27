@@ -18,6 +18,17 @@ import (
 
 type LogAnalyticsDataSourceWindowsEventResource struct{}
 
+func TestAccLogAnalyticsDataSourceWindowsEvent_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	r := LogAnalyticsDataSourceWindowsEventResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLogAnalyticsDataSourceWindowsEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
 	r := LogAnalyticsDataSourceWindowsEventResource{}
