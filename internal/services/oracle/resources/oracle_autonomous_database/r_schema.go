@@ -20,8 +20,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this Autonomous Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -118,8 +118,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"long_term_backup_schedule": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"repeat_cadence": {

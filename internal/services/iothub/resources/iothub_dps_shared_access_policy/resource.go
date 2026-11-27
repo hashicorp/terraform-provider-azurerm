@@ -14,10 +14,11 @@ var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubDPSSharedAccessPolicyCreateUpdate,
-		Read:   resourceIotHubDPSSharedAccessPolicyRead,
-		Update: resourceIotHubDPSSharedAccessPolicyCreateUpdate,
-		Delete: resourceIotHubDPSSharedAccessPolicyDelete,
+		Description: "Manages an IotHub Device Provisioning Service Shared Access Policy.",
+		Create:      resourceIotHubDPSSharedAccessPolicyCreateUpdate,
+		Read:        resourceIotHubDPSSharedAccessPolicyRead,
+		Update:      resourceIotHubDPSSharedAccessPolicyCreateUpdate,
+		Delete:      resourceIotHubDPSSharedAccessPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := iotdpsresource.ParseKeyID(id)

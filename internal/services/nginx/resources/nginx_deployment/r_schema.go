@@ -47,8 +47,8 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:   "The number of NGINX capacity units for this NGINX deployment.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
-			ConflictsWith: []string{"auto_scale_profile"},
 			ValidateFunc:  validation.IntPositive,
+			ConflictsWith: []string{"auto_scale_profile"},
 		},
 
 		"auto_scale_profile": {

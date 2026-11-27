@@ -5,6 +5,7 @@ package log_analytics_cluster_customer_managed_key
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -16,7 +17,7 @@ import (
 func logAnalyticsClusterWaitForState(ctx context.Context, client *clusters.ClustersClient, clusterId clusters.ClusterId) (*pluginsdk.StateChangeConf, error) {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return nil, fmt.Errorf("context had no deadline")
+		return nil, errors.New("context had no deadline")
 	}
 	return &pluginsdk.StateChangeConf{
 		Pending:    []string{string(clusters.ClusterEntityStatusUpdating)},

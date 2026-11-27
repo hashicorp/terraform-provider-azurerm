@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorCreate,
-		Read:   resourceFrontDoorRead,
-		Update: resourceFrontDoorUpdate,
-		Delete: resourceFrontDoorDelete,
+		Description: "Manages an Azure Front Door (classic) instance.",
+		Create:      resourceFrontDoorCreate,
+		Read:        resourceFrontDoorRead,
+		Update:      resourceFrontDoorUpdate,
+		Delete:      resourceFrontDoorDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := frontdoors.ParseFrontDoorID(id)

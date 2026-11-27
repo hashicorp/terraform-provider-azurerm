@@ -24,8 +24,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this autonomous database clone from database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -58,8 +58,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The password for the SYS, SYSTEM, and PDB Admin users. The password must be at least 12 characters long, and contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (`\"`) or the username \"admin\", regardless of casing.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Sensitive:    true,
 			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -179,8 +179,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.",
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			MaxItems:     1024,
 			ForceNew:     true,
+			MaxItems:     1024,
 			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -204,8 +204,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 			RequiredWith: []string{"subnet_id"},
+			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 		},
 
 		"tags": commonschema.TagsForceNew(),

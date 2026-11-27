@@ -121,8 +121,8 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						Description:  "How the private IP address of the gateway's virtual interface is assigned.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPAllocationMethod(), false),
 						Default:      string(virtualnetworkgateways.IPAllocationMethodDynamic),
+						ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
@@ -350,6 +350,7 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						Description: "These root certificates are used to sign the client certificate used by the VPN clients to connect to the gateway.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
+						Set:         hashVirtualNetworkGatewayRootCert,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -364,12 +365,12 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						Set: hashVirtualNetworkGatewayRootCert,
 					},
 
 					"revoked_certificate": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						Set:      hashVirtualNetworkGatewayRevokedCert,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -384,7 +385,6 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						Set: hashVirtualNetworkGatewayRevokedCert,
 					},
 
 					"radius_server": {
@@ -403,8 +403,8 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									Description:  "The secret that is used to communicate with the Radius Server.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringLenBetween(1, 128),
 									Sensitive:    true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
 									// not returned by API - This prevents a diff, however, the state value will be nil so cannot be exported
 									// TODO - Convert this to an Write Only property?
 									DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
@@ -496,10 +496,13 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					"peering_addresses": {
 						Description: "Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.",
 						Type:        pluginsdk.TypeList,
-						Computed:    true, // azignore:AZS007 - pre-existing violation
 						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						MinItems:    1,
-						MaxItems:    2,
+						MaxItems:    2, AtLeastOneOf: []string{
+							"bgp_settings.0.asn",
+							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
+						},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"ip_configuration_name": {
@@ -537,10 +540,6 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									},
 								},
 							},
-						},
-						AtLeastOneOf: []string{
-							"bgp_settings.0.asn",
-							"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses",
 						},
 					},
 				},

@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_mongo_cluster_firewall_rule"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Mongo Cluster Firewall Rule."
+}

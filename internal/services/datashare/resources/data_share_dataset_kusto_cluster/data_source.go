@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDataShareDatasetKustoClusterRead,
+		Description: "Use this data source to access information about an existing Data Share Kusto Cluster Dataset.",
+		Read:        dataSourceDataShareDatasetKustoClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,30 +26,35 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Data Share Kusto Cluster Dataset.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DataSetName(),
 			},
 
 			"share_id": {
+				Description:  "The resource ID of the Data Share where this Data Share Kusto Cluster Dataset should be created.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: share.ValidateShareID,
 			},
 
 			"kusto_cluster_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The resource ID of the Kusto Cluster to be shared with the receiver.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the Data Share Dataset.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"kusto_cluster_location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The location of the Kusto Cluster.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

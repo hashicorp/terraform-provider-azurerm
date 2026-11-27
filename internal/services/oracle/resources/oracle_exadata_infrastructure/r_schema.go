@@ -19,8 +19,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -30,8 +30,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The number of compute servers for the Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(2, 32),
 			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(2, 32),
 		},
 
 		"database_server_type": {
@@ -47,8 +47,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.CloudVMClusterName,
 			ForceNew:     true,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 
 		"shape": {
@@ -62,8 +62,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The number of storage servers for the Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(3, 64),
 			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(3, 64),
 		},
 
 		// Optional

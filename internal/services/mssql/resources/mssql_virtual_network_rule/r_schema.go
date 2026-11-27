@@ -13,6 +13,7 @@ import (
 func mssqlVirtualNetworkRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the SQL Virtual Network rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func mssqlVirtualNetworkRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"server_id": {
+			Description:  "The resource ID of the SQL Server to which this SQL Virtual Network rule will be applied.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,15 +29,17 @@ func mssqlVirtualNetworkRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet_id": {
+			Description:  "The ID of the subnet from which the SQL server will accept communications.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"ignore_missing_vnet_service_endpoint": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false, // When not provided, Azure defaults to false
+			Description: "Create the Virtual Network rule before the subnet has the Virtual Network service endpoint enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false, // When not provided, Azure defaults to false
 		},
 	}
 }

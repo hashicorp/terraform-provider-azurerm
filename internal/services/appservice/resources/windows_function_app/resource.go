@@ -5,6 +5,7 @@ package windows_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -61,7 +62,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		if strings.Contains(strings.ToLower(*sp.Model.Kind), "Windows") {
-			return fmt.Errorf("specified Service Plan is not a Windows Functionapp plan")
+			return errors.New("specified Service Plan is not a Windows Functionapp plan")
 		}
 
 		return nil

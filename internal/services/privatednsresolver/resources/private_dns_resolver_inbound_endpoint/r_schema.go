@@ -31,8 +31,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"ip_configurations": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
@@ -45,9 +45,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						// Note: O+C because Azure assigns a private IP from the subnet when not specified
 						Computed: true,
+						ForceNew: true,
 					},
 
 					"private_ip_allocation_method": {

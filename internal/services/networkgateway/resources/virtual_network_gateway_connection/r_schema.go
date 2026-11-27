@@ -174,8 +174,8 @@ func virtualNetworkGatewayConnectionSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionMode(), false),
 			Default:      string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeDefault),
+			ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionMode(), false),
 		},
 
 		"traffic_selector_policy": {

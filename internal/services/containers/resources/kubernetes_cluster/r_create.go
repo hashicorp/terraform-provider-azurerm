@@ -4,6 +4,7 @@
 package kubernetes_cluster
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -112,7 +113,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
 	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
-		return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
+		return errors.New("`dns_prefix` should be set if it is not a private cluster")
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -149,7 +150,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 		workloadIdentity = v.(bool)
 
 		if workloadIdentity && !enableOidcIssuer {
-			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
+			return errors.New("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 		}
 
 		securityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
@@ -178,7 +179,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	// this check needs to be separate and gated since node_os_channel_upgrade is a preview feature
 	if nodeOsChannelUpgrade != "" && autoChannelUpgrade != "" {
 		if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			return fmt.Errorf("`node_os_upgrade_channel` cannot be set to a value other than `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
+			return errors.New("`node_os_upgrade_channel` cannot be set to a value other than `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
 		}
 	}
 
@@ -242,7 +243,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	servicePrincipalProfileRaw := d.Get("service_principal").([]any)
 
 	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
-		return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
+		return errors.New("either an `identity` or `service_principal` block must be specified for cluster authentication")
 	}
 
 	if len(managedClusterIdentityRaw) > 0 {
@@ -271,14 +272,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
 		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && v.(string) != "None" && (!servicePrincipalSet && parameters.Identity.Type != identity.TypeUserAssigned)) {
-			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
+			return errors.New("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("dns_prefix_private_cluster"); ok {
 		if !(*apiAccessProfile.EnablePrivateCluster) || apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
-			return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
+			return errors.New("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
 		}
 		parameters.Properties.FqdnSubdomain = pointer.To(v.(string))
 	}

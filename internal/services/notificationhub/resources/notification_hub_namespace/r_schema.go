@@ -51,8 +51,8 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 			Description: "Is Zone Redundancy Enabled for the Notification Hub Namespace?",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Default:     false,
 			ForceNew:    true,
+			Default:     false,
 		},
 
 		"replication_region": {

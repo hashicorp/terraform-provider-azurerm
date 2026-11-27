@@ -5,6 +5,7 @@ package app_service_environment_v3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -67,7 +68,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			// Updating Network Config returns quickly, but is actually async on some properties. e.g. `RemoteDebuggingEnabled`
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("the Network Configuration Update request context had no deadline")
+				return errors.New("the Network Configuration Update request context had no deadline")
 			}
 
 			updateWait := &pluginsdk.StateChangeConf{

@@ -18,10 +18,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBotWebAppCreate,
-		Read:   resourceBotWebAppRead,
-		Update: resourceBotWebAppUpdate,
-		Delete: resourceBotWebAppDelete,
+		Description: "Manages a Bot Web App.",
+		Create:      resourceBotWebAppCreate,
+		Read:        resourceBotWebAppRead,
+		Update:      resourceBotWebAppUpdate,
+		Delete:      resourceBotWebAppDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

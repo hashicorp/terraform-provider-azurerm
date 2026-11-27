@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceMonitorActionGroupRead,
+		Description: "Use this data source to access the properties of an Action Group.",
+		Read:        dataSourceMonitorActionGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,6 +27,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Action Group.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -34,13 +36,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"short_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The short name of the action group.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this action group is enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"email_receiver": {
@@ -49,16 +53,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the email receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"email_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The email address of this receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -70,24 +77,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the ITSM receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"workspace_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure Log Analytics Workspace ID where this connection is defined.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"connection_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The unique connection identifier of the ITSM connection.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"ticket_configuration": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"region": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The region of the workspace.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -99,12 +111,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Azure app push receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"email_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The email address of the user signed into the mobile app who will receive push notifications from this receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -116,16 +130,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the SMS receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"country_code": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The country code of the SMS receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"phone_number": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The phone number of the SMS receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -137,16 +154,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the webhook receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"service_uri": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The URI where webhooks should be sent.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"aad_auth": {
 							Type:     pluginsdk.TypeList,
@@ -180,32 +200,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Automation Runbook receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"automation_account_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Automation Account ID which holds this runbook and authenticates to Azure resources.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"runbook_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name for this runbook.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"webhook_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The resource ID for webhook linked to this runbook.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"is_global_runbook": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether this instance is global runbook.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"service_uri": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The URI where webhooks should be sent.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -217,16 +244,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the voice receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"country_code": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The country code of the voice receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"phone_number": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The phone number of the voice receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -238,20 +268,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Logic App receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure resource ID of the Logic App.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"callback_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The callback URL where HTTP request sent to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -263,24 +297,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Azure Function receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"function_app_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Azure resource ID of the Function App.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"function_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The function name in the Function App.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"http_trigger_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The HTTP trigger URL where HTTP request sent to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -292,16 +331,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the ARM role receiver.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"role_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The arm role ID.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
@@ -313,28 +355,34 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the EventHub Receiver, must be unique within action group.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"event_hub_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the specific Event Hub queue.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"event_hub_namespace": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The namespace name of the Event Hub.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Tenant ID for the subscription containing this Event Hub.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the common alert schema is used.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 						"subscription_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID for the subscription containing this Event Hub.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

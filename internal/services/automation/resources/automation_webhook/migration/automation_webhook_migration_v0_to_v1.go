@@ -63,11 +63,11 @@ func (s AutomationWebhookV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 		"uri": {
 			Type:       pluginsdk.TypeString,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Optional:   true,
-			ForceNew:   true,
 			Computed:   true,
+			ForceNew:   true,
 			Sensitive:  true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 		},
 	}
 }

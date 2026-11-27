@@ -28,6 +28,7 @@ func ProtectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"secret_url": {
+					Description:  "The URL to the Key Vault Secret which stores the protected settings.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),

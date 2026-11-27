@@ -54,7 +54,7 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"power_bi_service_enabled": {
-			Description: "Whether the Power BI service is allowed to access or not.",
+			Description: "Whether the Power BI service is allowed to access.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -62,6 +62,7 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 		"ipv4_firewall_rule": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
+			Set:          hashAnalysisServicesServerIPv4FirewallRule,
 			RequiredWith: []string{"power_bi_service_enabled"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -84,7 +85,6 @@ func analysisServicesServerSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: hashAnalysisServicesServerIPv4FirewallRule,
 		},
 
 		"querypool_connection_mode": {

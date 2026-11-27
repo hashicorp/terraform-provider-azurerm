@@ -5,6 +5,7 @@ package pim_active_role_assignment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -108,7 +109,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal error: context has no deadline")
+				return errors.New("internal error: context has no deadline")
 			}
 
 			// TODO: Remove this WaitForState workaround once eventual-consistency retries are added to the upstream SDK

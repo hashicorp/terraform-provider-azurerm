@@ -223,7 +223,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Description: "Is access to the Management API enabled (presumably \"for this Tenant\")?",
+							Description: "Whether access to the Management API is enabled for this Tenant.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -425,7 +425,7 @@ func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"negotiate_client_certificate": {
-			Description: "Is Client Certificate Negotiation enabled?",
+			Description: "Whether Client Certificate Negotiation is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

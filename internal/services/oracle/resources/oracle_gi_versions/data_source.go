@@ -33,15 +33,15 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"shape": {
+			Description:  "The model name of the Cloud Exadata Infrastructure resource. This is used to filter out the available GI versions compatible with the given model.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(giversions.PossibleValuesForSystemShapes(), false),
-			Description:  "The model name of the Cloud Exadata Infrastructure resource. This is used to filter out the available GI versions compatible with the given model.",
 		},
 		"zone": {
+			Description: "The Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "The Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.",
 		},
 	}
 }

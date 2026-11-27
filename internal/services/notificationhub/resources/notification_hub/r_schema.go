@@ -90,8 +90,8 @@ func notificationHubSchema() map[string]*pluginsdk.Schema {
 						Description:  "The Voluntary Application Server Identification (VAPID) private key.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"vapid_public_key": {
 						Description:  "The Voluntary Application Server Identification (VAPID) public key.",

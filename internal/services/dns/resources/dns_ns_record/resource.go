@@ -4,7 +4,7 @@
 package dns_ns_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsNsRecordCreate,
-		Read:   resourceDnsNsRecordRead,
-		Update: resourceDnsNsRecordUpdate,
-		Delete: resourceDnsNsRecordDelete,
+		Description: "Enables you to manage DNS NS Records within Azure DNS.",
+		Create:      resourceDnsNsRecordCreate,
+		Read:        resourceDnsNsRecordRead,
+		Update:      resourceDnsNsRecordUpdate,
+		Delete:      resourceDnsNsRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -31,7 +32,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeNS {
-				return fmt.Errorf("this resource only supports 'NS' records")
+				return errors.New("this resource only supports 'NS' records")
 			}
 			return nil
 		}),

@@ -11,10 +11,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorDiagnosticSettingCreate,
-		Read:   resourceMonitorDiagnosticSettingRead,
-		Update: resourceMonitorDiagnosticSettingUpdate,
-		Delete: resourceMonitorDiagnosticSettingDelete,
+		Description: "Manages a Diagnostic Setting for an existing Resource.",
+		Create:      resourceMonitorDiagnosticSettingCreate,
+		Read:        resourceMonitorDiagnosticSettingRead,
+		Update:      resourceMonitorDiagnosticSettingUpdate,
+		Delete:      resourceMonitorDiagnosticSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := ParseMonitorDiagnosticId(id)

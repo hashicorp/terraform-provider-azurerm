@@ -57,9 +57,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"zone": {
+			Description: "The Cloud Exadata Infrastructure Azure zone, used to filter out the available DB System Shapes in the specific zone.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "The Cloud Exadata Infrastructure Azure zone, used to filter out the available DB System Shapes in the specific zone.",
 		},
 	}
 }

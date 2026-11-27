@@ -36,6 +36,7 @@ type DevCenterDevBoxDefinitionDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Dev Box Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DevCenterDevBoxDefinitionName,
@@ -48,20 +49,23 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"image_reference_id": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The ID of the image for the Dev Center Dev Box Definition.",
+			Type:        schema.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"hibernate_support_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether Dev Boxes created with this definition are capable of hibernation.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the SKU for the Dev Center Dev Box Definition.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -74,6 +78,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_dev_box_definition"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Dev Box Definition."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

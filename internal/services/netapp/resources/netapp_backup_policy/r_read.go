@@ -5,6 +5,7 @@ package netapp_backup_policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -65,7 +66,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 func waitForBackupPolicyDeletion(ctx context.Context, client *backuppolicies.BackupPoliciesClient, id backuppolicies.BackupPolicyId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

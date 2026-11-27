@@ -21,8 +21,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this Cloud VM Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.CloudVMClusterName,
 			ForceNew:     true,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -157,8 +157,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"diagnostics_events_enabled": {
@@ -225,8 +225,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The TCP Single Client Access Name (SCAN) port.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      1521,
 			ForceNew:     true,
+			Default:      1521,
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 
@@ -234,8 +234,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The TCPS Single Client Access Name (SCAN) port.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Default:      2484,
 			ForceNew:     true,
+			Default:      2484,
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 

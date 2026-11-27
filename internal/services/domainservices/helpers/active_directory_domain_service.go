@@ -5,7 +5,7 @@ package helpers
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
 	"strings"
 
@@ -24,7 +24,7 @@ func DomainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 			return nil, "error", err
 		}
 		if model := resp.Model; model == nil || model.Properties == nil || model.Properties.ReplicaSets == nil || len(*model.Properties.ReplicaSets) == 0 {
-			return nil, "error", fmt.Errorf("API error: `replicaSets` was not returned")
+			return nil, "error", errors.New("API error: `replicaSets` was not returned")
 		}
 		// Loop through all replica sets and ensure they are running and each have two available domain controllers
 		for _, repl := range *resp.Model.Properties.ReplicaSets {
@@ -34,10 +34,10 @@ func DomainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 			switch {
 			case !deleting && strings.EqualFold(*repl.ServiceStatus, "TearingDown"):
 				// Sometimes a service error will cause the replica set, or resource, to self destruct
-				return resp, "error", fmt.Errorf("service error: a replica set is unexpectedly tearing down")
+				return resp, "error", errors.New("service error: a replica set is unexpectedly tearing down")
 			case strings.EqualFold(*repl.ServiceStatus, "Failed"):
 				// If a replica set enters a failed state, it needs manual intervention
-				return resp, "error", fmt.Errorf("service error: a replica set has entered a Failed state and must be recovered or deleted manually")
+				return resp, "error", errors.New("service error: a replica set has entered a Failed state and must be recovered or deleted manually")
 			case !strings.EqualFold(*repl.ServiceStatus, "Running"):
 				// If it's not yet running, it isn't ready
 				return resp, "pending", nil

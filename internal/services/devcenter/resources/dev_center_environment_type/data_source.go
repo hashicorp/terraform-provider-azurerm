@@ -31,6 +31,7 @@ type DevCenterEnvironmentTypeDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Environment Type.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.DevCenterEnvironmentTypeName,
@@ -52,6 +53,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_environment_type"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Environment Type."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

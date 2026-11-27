@@ -5,6 +5,7 @@ package source_control_token_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -84,7 +85,7 @@ func (r AppServiceGitHubTokenResource) Exists(ctx context.Context, client *clien
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), err
 		}
-		return nil, fmt.Errorf("retrieving Source Control GitHub Token")
+		return nil, errors.New("retrieving Source Control GitHub Token")
 	}
 	if resp.Model.Properties == nil || pointer.From(resp.Model.Properties.Token) == "" {
 		return pointer.To(false), nil

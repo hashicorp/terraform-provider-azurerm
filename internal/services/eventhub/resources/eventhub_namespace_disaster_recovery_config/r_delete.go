@@ -5,6 +5,7 @@ package eventhub_namespace_disaster_recovery_config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -76,7 +77,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	// this is mainly here	to enable updating the resource in place
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context has no deadline")
+		return errors.New("context has no deadline")
 	}
 	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
@@ -94,7 +95,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 				return resp, "Error", fmt.Errorf("waiting for the name of %s to become free: %v", *id, err)
 			}
 			if resp.Model == nil || resp.Model.Reason == nil {
-				return resp, "Error", fmt.Errorf("`model` or `model.Reason` was nil")
+				return resp, "Error", errors.New("`model` or `model.Reason` was nil")
 			}
 			return resp, string(*resp.Model.Reason), nil
 		},

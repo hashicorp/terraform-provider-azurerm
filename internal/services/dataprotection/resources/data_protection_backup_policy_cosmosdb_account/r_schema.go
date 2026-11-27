@@ -22,9 +22,10 @@ const (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Data Protection Backup Policy for Cosmos DB Database Accounts.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{2,149}$"),
 				"`name` must be 3 - 150 characters long, contain only letters, numbers and hyphens, and cannot start with a number or hyphen",
@@ -34,9 +35,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{}), "Data Protection Backup Vault"),
 
 		"backup_schedule": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The repeating time interval that specifies the weekday and time when the weekly Full backup runs.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validate.BackupPolicyCosmosdbAccountBackupSchedule(),
 				validation.ISO8601RepeatingTime,
@@ -44,6 +46,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"default_retention_duration": {
+			Description:  "The duration for which the default retention rule retains backups.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -51,10 +54,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"backup_frequency": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  backupPolicyCosmosdbAccountFrequencyDaily,
-			ForceNew: true,
+			Description: "The frequency at which backups are performed.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     backupPolicyCosmosdbAccountFrequencyDaily,
 			ValidateFunc: validation.StringInSlice([]string{
 				backupPolicyCosmosdbAccountFrequencyDaily,
 				backupPolicyCosmosdbAccountFrequencyWeekly,
@@ -69,6 +73,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"duration": {
+						Description:  "The duration for which backups matching this retention rule are retained.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -76,11 +81,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						MaxItems: 1,
+						Description: "A set containing exactly one day of the week whose scheduled backup is retained by this rule.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
+						MaxItems:    1,
 						RequiredWith: []string{
 							"monthly_retention_rule.0.days_of_week",
 							"monthly_retention_rule.0.weeks_of_month",
@@ -92,11 +98,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"weeks_of_month": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						MaxItems: 5,
+						Description: "A set of ordinal weeks within each month in which backups matching this rule are retained.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
+						MaxItems:    5,
 						RequiredWith: []string{
 							"monthly_retention_rule.0.days_of_week",
 							"monthly_retention_rule.0.weeks_of_month",
@@ -118,6 +125,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"duration": {
+						Description:  "The duration for which backups matching this retention rule are retained.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -125,11 +133,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						MaxItems: 1,
+						Description: "A set containing exactly one day of the week whose scheduled backup is retained by this rule.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
+						MaxItems:    1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForDayOfWeek(), false),
@@ -147,6 +156,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"duration": {
+						Description:  "The duration for which backups matching this retention rule are retained.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -154,11 +164,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"days_of_week": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						MaxItems: 1,
+						Description: "A set containing exactly one day of the week whose scheduled backup is retained by this rule.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
+						MaxItems:    1,
 						RequiredWith: []string{
 							"yearly_retention_rule.0.days_of_week",
 							"yearly_retention_rule.0.weeks_of_month",
@@ -171,11 +182,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"months_of_year": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						MaxItems: 12,
+						Description: "A set of calendar months in which backups matching this rule are retained.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
+						MaxItems:    12,
 						RequiredWith: []string{
 							"yearly_retention_rule.0.days_of_week",
 							"yearly_retention_rule.0.weeks_of_month",
@@ -188,11 +200,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"weeks_of_month": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						MaxItems: 5,
+						Description: "A set of ordinal weeks within each month in which backups matching this rule are retained.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
+						ForceNew:    true,
+						MinItems:    1,
+						MaxItems:    5,
 						RequiredWith: []string{
 							"yearly_retention_rule.0.days_of_week",
 							"yearly_retention_rule.0.weeks_of_month",
@@ -212,8 +225,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"incremental_backup_schedules": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of ISO 8601 repeating time intervals indicating the days of the week when Incremental backups are attempted.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

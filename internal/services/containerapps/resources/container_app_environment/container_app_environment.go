@@ -58,9 +58,8 @@ type WorkloadProfileModel struct {
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:                  pluginsdk.TypeSet,
-		Optional:              true,
-		DiffSuppressOnRefresh: true,
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
 		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
 			o, n := d.GetChange("workload_profile")
 
@@ -69,28 +68,33 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 
 			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
 		},
+		DiffSuppressOnRefresh: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
+					Description:  "The name of the workload profile.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"workload_profile_type": {
+					Description:  "Workload profile type for the workloads to run on.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(PossibleValuesForWorkloadProfileSku(), false),
 				},
 
 				"maximum_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The maximum number of instances of workload profile that can be deployed in the Container App Environment.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 
 				"minimum_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Description: "The minimum number of instances of workload profile that can be deployed in the Container App Environment.",
+					Type:        pluginsdk.TypeInt,
+					Optional:    true,
 				},
 			},
 		},

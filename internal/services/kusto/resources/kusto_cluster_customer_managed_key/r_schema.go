@@ -13,6 +13,7 @@ import (
 func kustoClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cluster_id": {
+			Description:  "The ID of the Kusto Cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func kustoClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_id": {
+			Description:  "The ID of the Key Vault for CMK encryption.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
@@ -27,6 +29,7 @@ func kustoClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_hsm_key_id": {
+			Description:  "The Managed HSM Key ID for CMK encryption.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
@@ -34,6 +37,7 @@ func kustoClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_name": {
+			Description:  "The name of Key Vault Key.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -41,12 +45,14 @@ func kustoClusterCustomerManagedKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_version": {
+			Description:  "The version of Key Vault Key.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"user_identity": {
+			Description:  "The User Assigned Identity that has access to the Key Vault Key. If not specified, System Assigned Identity will be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,

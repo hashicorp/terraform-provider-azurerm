@@ -12,6 +12,7 @@ import (
 func lbOutboundRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Outbound Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func lbOutboundRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"loadbalancer_id": {
+			Description:  "The ID of the Load Balancer in which to create the Outbound Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func lbOutboundRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the Frontend IP Configuration.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -46,13 +49,15 @@ func lbOutboundRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_address_pool_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"protocol": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The transport protocol for the external endpoint.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(loadbalancers.TransportProtocolAll),
 				string(loadbalancers.TransportProtocolTcp),
@@ -61,12 +66,14 @@ func lbOutboundRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tcp_reset_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Receive bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination. This element is only used when the protocol is set to TCP.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"allocated_outbound_ports": {
+			Description:  "The number of outbound ports to be used for NAT.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      1024,
@@ -74,9 +81,10 @@ func lbOutboundRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"idle_timeout_in_minutes": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  4,
+			Description: "The timeout for the TCP idle connection.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     4,
 		},
 	}
 }

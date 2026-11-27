@@ -1,0 +1,377 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package signalr_service
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func RegisterDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Read: dataSourceArmSignalRServiceRead,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"hostname": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"location": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"public_port": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"server_port": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"aad_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"tls_client_cert_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"connectivity_logs_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"messaging_logs_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"http_request_logs_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"live_trace": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"connectivity_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"messaging_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"http_request_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"service_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"serverless_connection_timeout_in_seconds": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"upstream_endpoint": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"category_pattern": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"event_pattern": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"hub_pattern": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"url_template": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"cors": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed_origins": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
+			"primary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
+		},
+	}
+}
+
+func dataSourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).SignalR.SignalRClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	keys, err := client.ListKeys(ctx, id)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	d.Set("name", id.SignalRName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if err := d.Set("sku", flattenSignalRServiceSku(model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("hostname", props.HostName)
+			d.Set("ip_address", props.ExternalIP)
+			d.Set("public_port", props.PublicPort)
+			d.Set("server_port", props.ServerPort)
+
+			connectivityLogsEnabled := false
+			messagingLogsEnabled := false
+			httpLogsEnabled := false
+			serviceMode := "Default"
+			if props.Features != nil {
+				for _, feature := range *props.Features {
+					if feature.Flag == signalr.FeatureFlagsServiceMode {
+						serviceMode = feature.Value
+					}
+				}
+			}
+
+			d.Set("service_mode", serviceMode)
+
+			aadAuthEnabled := true
+			if props.DisableAadAuth != nil {
+				aadAuthEnabled = !(*props.DisableAadAuth)
+			}
+			d.Set("aad_auth_enabled", aadAuthEnabled)
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !(*props.DisableLocalAuth)
+			}
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			tlsClientCertEnabled := false
+			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
+				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
+			}
+			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if props.Serverless != nil && props.Serverless.ConnectionTimeoutInSeconds != nil {
+				d.Set("serverless_connection_timeout_in_seconds", int(*props.Serverless.ConnectionTimeoutInSeconds))
+			}
+
+			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
+				return fmt.Errorf("setting `cors`: %+v", err)
+			}
+
+			if err := d.Set("upstream_endpoint", flattenUpstreamSettings(props.Upstream)); err != nil {
+				return fmt.Errorf("setting `upstream_endpoint`: %+v", err)
+			}
+
+			if err := d.Set("live_trace", flattenSignalRLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`: %+v", err)
+			}
+
+			if props.ResourceLogConfiguration != nil && props.ResourceLogConfiguration.Categories != nil {
+				for _, item := range *props.ResourceLogConfiguration.Categories {
+					name := pointer.From(item.Name)
+					enabled := pointer.From(item.Enabled)
+
+					switch name {
+					case "MessagingLogs":
+						messagingLogsEnabled = strings.EqualFold(enabled, "true")
+					case "ConnectivityLogs":
+						connectivityLogsEnabled = strings.EqualFold(enabled, "true")
+					case "HttpRequestLogs":
+						httpLogsEnabled = strings.EqualFold(enabled, "true")
+					}
+				}
+			}
+			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
+			d.Set("messaging_logs_enabled", messagingLogsEnabled)
+			d.Set("http_request_logs_enabled", httpLogsEnabled)
+		}
+
+		identityValue, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityValue); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.PrimaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_access_key", model.SecondaryKey)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+	}
+
+	return nil
+}

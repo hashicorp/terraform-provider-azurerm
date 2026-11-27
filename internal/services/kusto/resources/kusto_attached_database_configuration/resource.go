@@ -5,7 +5,7 @@ package kusto_attached_database_configuration
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
-		Read:   resourceKustoAttachedDatabaseConfigurationRead,
-		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
-		Delete: resourceKustoAttachedDatabaseConfigurationDelete,
+		Description: "Manages a Kusto (also known as Azure Data Explorer) Attached Database Configuration.",
+		Create:      resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Read:        resourceKustoAttachedDatabaseConfigurationRead,
+		Update:      resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Delete:      resourceKustoAttachedDatabaseConfigurationDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -35,7 +36,7 @@ func RegisterResource() *pluginsdk.Resource {
 			databaseNameOverride := diff.Get("database_name_override").(string)
 
 			if databaseName == "*" && databaseNameOverride != "" {
-				return fmt.Errorf("cannot set `database_name_override` when `database_name` is set to `*` (all databases)")
+				return errors.New("cannot set `database_name_override` when `database_name` is set to `*` (all databases)")
 			}
 			return nil
 		}),

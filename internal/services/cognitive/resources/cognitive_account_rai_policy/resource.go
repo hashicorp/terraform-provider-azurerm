@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_cognitive_account_rai_policy"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Cognitive Services Account RAI Policy."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return raipolicies.ValidateAccountRaiPolicyID
 }

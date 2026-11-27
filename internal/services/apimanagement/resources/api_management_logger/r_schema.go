@@ -30,9 +30,9 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 
 		"eventhub": {
 			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
 			Optional:      true,
 			ForceNew:      true,
+			MaxItems:      1,
 			ConflictsWith: []string{"application_insights"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -49,13 +49,13 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{
-							"eventhub.0.connection_string",
-							"eventhub.0.endpoint_uri",
-						},
 						ConflictsWith: []string{
 							"eventhub.0.endpoint_uri",
 							"eventhub.0.user_assigned_identity_client_id",
+						},
+						AtLeastOneOf: []string{
+							"eventhub.0.connection_string",
+							"eventhub.0.endpoint_uri",
 						},
 					},
 					"endpoint_uri": {
@@ -63,12 +63,12 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+						ConflictsWith: []string{
+							"eventhub.0.connection_string",
+						},
 						AtLeastOneOf: []string{
 							"eventhub.0.connection_string",
 							"eventhub.0.endpoint_uri",
-						},
-						ConflictsWith: []string{
-							"eventhub.0.connection_string",
 						},
 					},
 					"user_assigned_identity_client_id": {
@@ -86,9 +86,9 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 
 		"application_insights": {
 			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
 			Optional:      true,
 			ForceNew:      true,
+			MaxItems:      1,
 			ConflictsWith: []string{"eventhub"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -98,11 +98,11 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{
-							"application_insights.0.connection_string",
+						ConflictsWith: []string{
 							"application_insights.0.instrumentation_key",
 						},
-						ConflictsWith: []string{
+						AtLeastOneOf: []string{
+							"application_insights.0.connection_string",
 							"application_insights.0.instrumentation_key",
 						},
 					},
@@ -112,12 +112,12 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
+						ConflictsWith: []string{
+							"application_insights.0.connection_string",
+						},
 						AtLeastOneOf: []string{
 							"application_insights.0.connection_string",
 							"application_insights.0.instrumentation_key",
-						},
-						ConflictsWith: []string{
-							"application_insights.0.connection_string",
 						},
 					},
 					"identity_client_id": {
@@ -140,7 +140,7 @@ func apiManagementLoggerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"buffered": {
-			Description: "Whether records should be buffered in the Logger prior to publishing.",
+			Description: "Whether records should be buffered in the Logger before publishing.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

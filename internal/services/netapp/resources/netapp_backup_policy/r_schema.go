@@ -34,31 +34,31 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"daily_backups_to_keep": {
 			Type:         pluginsdk.TypeInt,
-			Default:      2,
 			Optional:     true,
+			Default:      2,
 			ValidateFunc: validation.IntBetween(2, 1019),
 		},
 
 		"weekly_backups_to_keep": {
-			Type: pluginsdk.TypeInt,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
 			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
-			Optional:     true,
 			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"monthly_backups_to_keep": {
-			Type: pluginsdk.TypeInt,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
 			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
-			Optional:     true,
 			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
 			Optional: true,
+			Default:  true,
 		},
 	}
 }

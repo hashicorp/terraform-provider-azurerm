@@ -5,6 +5,7 @@ package windows_function_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -183,7 +184,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
-							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
+							return errors.New("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
 						}
 						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
 					}

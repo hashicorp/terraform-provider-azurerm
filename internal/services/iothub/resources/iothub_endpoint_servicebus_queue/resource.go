@@ -17,10 +17,11 @@ var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubEndpointServiceBusQueueCreateUpdate,
-		Read:   resourceIotHubEndpointServiceBusQueueRead,
-		Update: resourceIotHubEndpointServiceBusQueueCreateUpdate,
-		Delete: resourceIotHubEndpointServiceBusQueueDelete,
+		Description: "Manages an IotHub ServiceBus Queue Endpoint.",
+		Create:      resourceIotHubEndpointServiceBusQueueCreateUpdate,
+		Read:        resourceIotHubEndpointServiceBusQueueRead,
+		Update:      resourceIotHubEndpointServiceBusQueueCreateUpdate,
+		Delete:      resourceIotHubEndpointServiceBusQueueDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

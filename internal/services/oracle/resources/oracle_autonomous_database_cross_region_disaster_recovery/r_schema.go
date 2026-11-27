@@ -17,8 +17,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name for this Cross Region Disaster Recovery Autonomous Database.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
