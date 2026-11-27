@@ -659,7 +659,7 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]mainte
 }
 
 func flattenKubernetesClusterHttpProxyConfig(props *managedclusters.ManagedClusterProperties) []any {
-	if props == nil || props.HTTPProxyConfig == nil {
+	if props == nil || props.HTTPProxyConfig == nil || props.HTTPProxyConfig.Enabled == nil || !*props.HTTPProxyConfig.Enabled {
 		return []any{}
 	}
 
