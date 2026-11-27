@@ -415,7 +415,7 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
 	})
 }
 
@@ -449,7 +449,7 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDiskUpdateSize(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
 	})
 }
 
