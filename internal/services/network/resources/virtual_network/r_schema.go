@@ -45,7 +45,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
 				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
 				rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
-				if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+				if !rawIpAddressPool.IsNull() && (!rawIpAddressPool.IsKnown() || len(rawIpAddressPool.AsValueSlice()) > 0) {
 					return true
 				}
 
