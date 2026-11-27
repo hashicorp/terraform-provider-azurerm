@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
@@ -42,6 +43,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
 			}
+			backendSaConStr, backendStorageUseMsi, deploymentSaConStr := FlattenStorageConnectionStrings(*appSettingsResp.Model)
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, *id)
 			if err != nil {
@@ -139,13 +141,18 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 				if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
 					if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
-						storageConfig := *faConfigDeployment.Storage
-						state.StorageContainerType = pointer.FromEnum(storageConfig.Type)
-						state.StorageContainerEndpoint = pointer.From(storageConfig.Value)
-						if storageConfig.Authentication != nil && storageConfig.Authentication.Type != nil {
-							state.StorageAuthType = pointer.FromEnum(storageConfig.Authentication.Type)
-							if storageConfig.Authentication.UserAssignedIdentityResourceId != nil {
-								state.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
+						deploymentStorage := FlattenDeploymentStorage(faConfigDeployment.Storage, deploymentSaConStr)
+						state.DeploymentStorage = []DeploymentStorage{deploymentStorage}
+						if !features.SixPointOh() {
+							state.StorageContainerType = pointer.FromEnum(faConfigDeployment.Storage.Type)
+							state.StorageContainerEndpoint = deploymentStorage.ContainerEndPoint
+							if faConfigDeployment.Storage.Authentication != nil {
+								storageAuthType := pointer.FromEnum(faConfigDeployment.Storage.Authentication.Type)
+								if storageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
+									_, state.StorageAccessKey = helpers.ParseWebJobsStorageString(deploymentSaConStr)
+								}
+								state.StorageAuthType = storageAuthType
+								state.StorageUserAssignedIdentityID = deploymentStorage.UserAssignedIdentityId
 							}
 						}
 					}
@@ -163,6 +170,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 							state.HttpConcurrency = pointer.From(faConfigScale.Triggers.HTTP.PerInstanceConcurrency)
 						}
 					}
+				}
+
+				state.BackendStorage = FlattenBackendStorage(backendSaConStr, backendStorageUseMsi)
+				if props.KeyVaultReferenceIdentity != nil && !strings.EqualFold(*props.KeyVaultReferenceIdentity, "SystemAssigned") {
+					state.KeyVaultReferenceIdentityId = pointer.From(props.KeyVaultReferenceIdentity)
 				}
 
 				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
@@ -190,7 +202,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 }
 
 const (
-	StorageStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmt         = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	BackendStorageConnStr    = "AzureWebJobsStorage"
+	BackendStorageName       = "AzureWebJobsStorage__accountName"
+	DeploymentStorageConnStr = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 )
 
 type FunctionAppAlwaysReady struct {
@@ -213,15 +228,18 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
 			m.SiteConfig[0].AppInsightsConnectionString = v
 
-		case "AzureWebJobsStorage":
-			_, m.StorageAccessKey = helpers.ParseWebJobsStorageString(v)
+		case BackendStorageConnStr:
+			continue
+
+		case BackendStorageName:
+			continue
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
-		case "DEPLOYMENT_STORAGE_CONNECTION_STRING":
-			// Filter out - not user faced
+		case DeploymentStorageConnStr:
+			continue
 
 		default:
 			appSettings[k] = v
@@ -266,4 +284,62 @@ func FlattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReady
 	}
 
 	return alwaysReadyList
+}
+
+func FlattenDeploymentStorage(input *webapps.FunctionsDeploymentStorage, deploymentSaString string) DeploymentStorage {
+	if input == nil {
+		return DeploymentStorage{}
+	}
+	ds := DeploymentStorage{
+		ContainerEndPoint: pointer.From(input.Value),
+	}
+	if input.Authentication != nil {
+		if pointer.From(input.Authentication.Type) == webapps.AuthenticationTypeStorageAccountConnectionString {
+			_, ds.AccessKey = helpers.ParseWebJobsStorageString(deploymentSaString)
+		}
+		if uai := input.Authentication.UserAssignedIdentityResourceId; uai != nil {
+			ds.UserAssignedIdentityId = pointer.From(uai)
+		}
+	}
+	return ds
+}
+
+func FlattenBackendStorage(input string, useMsi bool) []BackendStorage {
+	bs := BackendStorage{
+		Name: input,
+	}
+
+	if useMsi {
+		return []BackendStorage{bs}
+	}
+
+	if strings.HasPrefix(input, "@Microsoft.KeyVault") {
+		bs.Name = ""
+		bs.KeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(input, ")"), "@Microsoft.KeyVault(SecretUri=")
+	} else {
+		bs.Name, bs.AccessKey = helpers.ParseWebJobsStorageString(input)
+	}
+
+	return []BackendStorage{bs}
+}
+
+func FlattenStorageConnectionStrings(input webapps.StringDictionary) (backendSaConStr string, backendSaUseMsi bool, deploymentSaConStr string) {
+	if input.Properties == nil {
+		return
+	}
+
+	properties := *input.Properties
+	deploymentSaConStr = properties[DeploymentStorageConnStr]
+	backendSaConStr = properties[BackendStorageConnStr]
+
+	if backendStorageName, ok := properties[BackendStorageName]; ok {
+		return backendStorageName, true, deploymentSaConStr
+	}
+
+	if strings.Contains(backendSaConStr, "AccountKey=;") {
+		backendSaConStr, _ = helpers.ParseWebJobsStorageString(backendSaConStr)
+		backendSaUseMsi = true
+	}
+
+	return
 }

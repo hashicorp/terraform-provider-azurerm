@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -94,39 +96,43 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			storageDeployment := &webapps.FunctionsDeployment{
-				Storage: &webapps.FunctionsDeploymentStorage{
+			backendStorage := functionAppFlexConsumption.BackendStorage
+			backendSaConStr, backendStorageUseMsi := ExpandBackendStorage(backendStorage, storageDomainSuffix)
+			deploymentStorage, deploymentSaConStr := ExpandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
+			if !features.SixPointOh() && deploymentStorage == nil {
+				deploymentStorage = &webapps.FunctionsDeploymentStorage{
 					Type:  pointer.ToEnum[webapps.FunctionsDeploymentStorageType](functionAppFlexConsumption.StorageContainerType),
-					Value: &functionAppFlexConsumption.StorageContainerEndpoint,
-				},
-			}
-			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			var storageString string
-			if storageName, _, ok := strings.Cut(strings.TrimPrefix(functionAppFlexConsumption.StorageContainerEndpoint, "https://"), "."); ok {
-				storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
-			} else {
-				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
-			}
-			storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
-				Type: pointer.ToEnum[webapps.AuthenticationType](functionAppFlexConsumption.StorageAuthType),
-			}
-
-			if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
-				if functionAppFlexConsumption.StorageAccessKey == "" {
-					return errors.New("the storage account access key must be specified when using the storage key based access")
+					Value: pointer.To(functionAppFlexConsumption.StorageContainerEndpoint),
+					Authentication: &webapps.FunctionsDeploymentStorageAuthentication{
+						Type: pointer.ToEnum[webapps.AuthenticationType](functionAppFlexConsumption.StorageAuthType),
+					},
 				}
-			} else {
-				storageConnStringForFCApp = ""
-				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
-					if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
-						return errors.New("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
+				endpoint, _ := url.Parse(functionAppFlexConsumption.StorageContainerEndpoint)
+				deploymentStorageName, _, ok := strings.Cut(endpoint.Hostname(), ".")
+				if !ok {
+					return fmt.Errorf("extracting storage account name from endpoint `%s`", functionAppFlexConsumption.StorageContainerEndpoint)
+				}
+
+				if webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType) == webapps.AuthenticationTypeStorageAccountConnectionString {
+					deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(DeploymentStorageConnStr)
+					if functionAppFlexConsumption.StorageAccessKey == "" {
+						return errors.New("the storage account access key must be specified when using the storage key based access")
 					}
-					storageAuth.UserAssignedIdentityResourceId = &functionAppFlexConsumption.StorageUserAssignedIdentityID
+					deploymentSaConStr = fmt.Sprintf(StorageStringFmt, deploymentStorageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
+					backendSaConStr = deploymentSaConStr
+				} else {
+					if webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType) == webapps.AuthenticationTypeUserAssignedIdentity {
+						if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
+							return errors.New("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
+						}
+						deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(functionAppFlexConsumption.StorageUserAssignedIdentityID)
+					}
+					backendStorageUseMsi = true
+					backendSaConStr = deploymentStorageName
+					deploymentSaConStr = ""
 				}
 			}
 
-			storageAuth.StorageAccountConnectionStringName = &storageConnStringForFCApp
-			storageDeployment.Storage.Authentication = &storageAuth
 			runtime := webapps.FunctionsRuntime{
 				Name:    pointer.ToEnum[webapps.RuntimeName](functionAppFlexConsumption.RuntimeName),
 				Version: &functionAppFlexConsumption.RuntimeVersion,
@@ -152,12 +158,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			flexFunctionAppConfig := &webapps.FunctionAppConfig{
-				Deployment:          storageDeployment,
+				Deployment: &webapps.FunctionsDeployment{
+					Storage: deploymentStorage,
+				},
 				Runtime:             &runtime,
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, backendStorageUseMsi, backendSaConStr, deploymentSaConStr)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
@@ -178,6 +186,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.ToEnum[webapps.ClientCertMode](functionAppFlexConsumption.ClientCertMode),
 				},
+			}
+
+			if functionAppFlexConsumption.KeyVaultReferenceIdentityId != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionAppFlexConsumption.KeyVaultReferenceIdentityId)
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -253,4 +265,47 @@ func (r Resource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func ExpandBackendStorage(input []BackendStorage, storageDomainSuffix *string) (string, bool) {
+	if len(input) == 0 {
+		return "", false
+	}
+
+	if input[0].KeyVaultSecretID != "" {
+		saConnStr := fmt.Sprintf(helpers.StorageStringFmtKV, input[0].KeyVaultSecretID)
+		return saConnStr, false
+	} else if input[0].AccessKey != "" {
+		saConnStr := fmt.Sprintf(helpers.StorageStringFmt, input[0].Name, input[0].AccessKey, *storageDomainSuffix)
+		return saConnStr, false
+	}
+
+	return input[0].Name, true
+}
+
+func ExpandDeploymentStorage(input []DeploymentStorage, connectionStrName string, storageDomainSuffix *string) (*webapps.FunctionsDeploymentStorage, string) {
+	if len(input) == 0 {
+		return nil, ""
+	}
+	result := webapps.FunctionsDeploymentStorage{
+		Type:  pointer.To(webapps.FunctionsDeploymentStorageTypeBlobContainer),
+		Value: pointer.To(input[0].ContainerEndPoint),
+		Authentication: &webapps.FunctionsDeploymentStorageAuthentication{
+			Type: pointer.To(webapps.AuthenticationTypeSystemAssignedIdentity),
+		},
+	}
+
+	var saStr string
+	if input[0].AccessKey != "" {
+		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeStorageAccountConnectionString)
+		result.Authentication.StorageAccountConnectionStringName = pointer.To(connectionStrName)
+		endpoint, _ := url.Parse(input[0].ContainerEndPoint)
+		deploymentSaName, _, _ := strings.Cut(endpoint.Hostname(), ".")
+		saStr = fmt.Sprintf(StorageStringFmt, deploymentSaName, input[0].AccessKey, *storageDomainSuffix)
+	} else if input[0].UserAssignedIdentityId != "" {
+		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeUserAssignedIdentity)
+		result.Authentication.UserAssignedIdentityResourceId = pointer.To(input[0].UserAssignedIdentityId)
+	}
+
+	return &result, saStr
 }

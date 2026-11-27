@@ -6,16 +6,19 @@ package function_app_flex_consumption
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the Function App.",
 			Type:         pluginsdk.TypeString,
@@ -36,35 +39,79 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
-		"storage_container_type": {
-			Description:  "The type of the Storage Container where the Function App's code is hosted.",
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
+		"backend_storage": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Description:  "The backend Storage Account name which will be used by this Function App.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: storageValidate.StorageAccountName,
+						ExactlyOneOf: []string{
+							"backend_storage.0.name",
+							"backend_storage.0.key_vault_secret_id",
+						},
+					},
+					"access_key": {
+						Description:  "The access key which will be used to access the Storage Account for the Function App.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.NoZeroValues,
+						ConflictsWith: []string{
+							"backend_storage.0.key_vault_secret_id",
+						},
+					},
+					"key_vault_secret_id": {
+						Description:  "The Key Vault Secret ID, including version, that contains the Connection String to connect to the Storage Account for this Function App.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+						ExactlyOneOf: []string{
+							"backend_storage.0.name",
+							"backend_storage.0.key_vault_secret_id",
+						},
+					},
+				},
+			},
 		},
 
-		"storage_container_endpoint": {
-			Description: "The endpoint of the Storage Container where the Function App's code is hosted.",
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-		},
+		"deployment_storage": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"container_endpoint": {
+						Description:  "The endpoint of the Storage Container where the Function App's code is hosted.",
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
 
-		"storage_authentication_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthenticationType(), false),
-		},
+					"access_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						ConflictsWith: []string{
+							"deployment_storage.0.user_assigned_identity_id",
+						},
+					},
 
-		"storage_access_key": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"storage_user_assigned_identity_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						ConflictsWith: []string{
+							"deployment_storage.0.access_key",
+						},
+					},
+				},
+			},
 		},
 
 		"runtime_name": {
@@ -169,6 +216,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+		"key_vault_reference_identity_id": {
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -204,6 +258,80 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		schema["backend_storage"].Computed = true
+		schema["backend_storage"].Optional = true
+		schema["backend_storage"].Required = false
+		schema["backend_storage"].RequiredWith = []string{"deployment_storage"}
+
+		schema["deployment_storage"].Computed = true
+		schema["deployment_storage"].Optional = true
+		schema["deployment_storage"].Required = false
+		schema["deployment_storage"].RequiredWith = []string{"backend_storage"}
+
+		schema["storage_container_type"] = &pluginsdk.Schema{
+			Description: "The type of the Storage Container where the Function App's code is hosted.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			// Note: O+C because these are deprecated storage settings
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
+			ExactlyOneOf: []string{"storage_container_type", "deployment_storage"},
+			Deprecated:   "`storage_container_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
+		}
+
+		schema["storage_container_endpoint"] = &pluginsdk.Schema{
+			Description: "The endpoint of the Storage Container where the Function App's code is hosted.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			// Note: O+C because these are deprecated storage settings
+			Computed: true,
+			RequiredWith: []string{
+				"storage_container_type",
+			},
+			Deprecated: "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
+		}
+
+		schema["storage_authentication_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because these are deprecated storage settings
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthenticationType(), false),
+			RequiredWith: []string{
+				"storage_container_type",
+			},
+			Deprecated: "`storage_authentication_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
+		}
+
+		schema["storage_access_key"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because these are deprecated storage settings
+			Computed:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{
+				"storage_container_type",
+			},
+			Deprecated: "`storage_access_key` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
+		}
+
+		schema["storage_user_assigned_identity_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because these are deprecated storage settings
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			RequiredWith: []string{
+				"storage_container_type",
+			},
+			Deprecated: "`storage_user_assigned_identity_id` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
+		}
+	}
+
+	return schema
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {

@@ -29,11 +29,13 @@ type FunctionAppFlexConsumptionModel struct {
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 
-	StorageContainerType          string                                         `tfschema:"storage_container_type"`
-	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint"`
-	StorageAuthType               string                                         `tfschema:"storage_authentication_type"`
-	StorageAccessKey              string                                         `tfschema:"storage_access_key"`
-	StorageUserAssignedIdentityID string                                         `tfschema:"storage_user_assigned_identity_id"`
+	StorageContainerType          string                                         `tfschema:"storage_container_type,removedInNextMajorVersion"`
+	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint,removedInNextMajorVersion"`
+	StorageAuthType               string                                         `tfschema:"storage_authentication_type,removedInNextMajorVersion"`
+	StorageAccessKey              string                                         `tfschema:"storage_access_key,removedInNextMajorVersion"`
+	StorageUserAssignedIdentityID string                                         `tfschema:"storage_user_assigned_identity_id,removedInNextMajorVersion"`
+	BackendStorage                []BackendStorage                               `tfschema:"backend_storage"`
+	DeploymentStorage             []DeploymentStorage                            `tfschema:"deployment_storage"`
 	RuntimeName                   string                                         `tfschema:"runtime_name"`
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
@@ -42,6 +44,7 @@ type FunctionAppFlexConsumptionModel struct {
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
+	KeyVaultReferenceIdentityId   string                                         `tfschema:"key_vault_reference_identity_id"`
 	Tags                          map[string]string                              `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -54,6 +57,18 @@ type FunctionAppFlexConsumptionModel struct {
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+}
+
+type DeploymentStorage struct {
+	ContainerEndPoint      string `tfschema:"container_endpoint"`
+	AccessKey              string `tfschema:"access_key"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
+}
+
+type BackendStorage struct {
+	Name             string `tfschema:"name"`
+	AccessKey        string `tfschema:"access_key"`
+	KeyVaultSecretID string `tfschema:"key_vault_secret_id"`
 }
 
 func (r Resource) ModelObject() any {

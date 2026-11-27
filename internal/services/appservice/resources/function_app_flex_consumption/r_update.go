@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -97,44 +99,88 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
-			var storageString string
-			if state.StorageContainerEndpoint != "" || metadata.ResourceData.HasChange("storage_container_endpoint") {
-				model.Properties.FunctionAppConfig.Deployment.Storage.Value = pointer.To(state.StorageContainerEndpoint)
-				if storageName, _, ok := strings.Cut(strings.TrimPrefix(state.StorageContainerEndpoint, "https://"), "."); ok {
-					storageString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
-				} else {
-					return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
-				}
+			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
 			}
 
-			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			if metadata.ResourceData.HasChange("storage_authentication_type") {
-				storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
-					Type: pointer.ToEnum[webapps.AuthenticationType](state.StorageAuthType),
+			backendSaConStr, backendStorageUseMsi, deploymentSaConStrVal := FlattenStorageConnectionStrings(*appSettingsResp.Model)
+			_, deploymentStorageKey := helpers.ParseWebJobsStorageString(deploymentSaConStrVal)
+			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage
+
+			if !features.SixPointOh() {
+				endpoint, err := url.Parse(state.StorageContainerEndpoint)
+				if err != nil {
+					return fmt.Errorf("parsing storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
 				}
-				if state.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
-					if state.StorageAccessKey == "" {
-						return errors.New("the storage account access key must be specified when using the storage key based access")
-					}
-					storageAuth.StorageAccountConnectionStringName = pointer.To(storageConnStringForFCApp)
-				} else {
-					storageConnStringForFCApp = ""
-					if state.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
+				deploymentStorageName, _, ok := strings.Cut(endpoint.Hostname(), ".")
+				if !ok {
+					return fmt.Errorf("extracting storage account name from endpoint `%s`", state.StorageContainerEndpoint)
+				}
+
+				if metadata.ResourceData.HasChange("storage_container_endpoint") {
+					deploymentStorage.Value = &state.StorageContainerEndpoint
+				}
+
+				if metadata.ResourceData.HasChange("storage_container_type") {
+					deploymentStorage.Type = pointer.ToEnum[webapps.FunctionsDeploymentStorageType](state.StorageContainerType)
+				}
+
+				if metadata.ResourceData.HasChange("storage_access_key") {
+					deploymentStorageKey = state.StorageAccessKey
+					state.AppSettings[DeploymentStorageConnStr] = fmt.Sprintf(helpers.StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
+				}
+
+				if metadata.ResourceData.HasChange("storage_authentication_type") {
+					deploymentStorage.Authentication = &webapps.FunctionsDeploymentStorageAuthentication{}
+					storageAuthType := webapps.AuthenticationType(state.StorageAuthType)
+					switch storageAuthType {
+					case webapps.AuthenticationTypeStorageAccountConnectionString:
+						if deploymentStorageKey == "" {
+							return errors.New("the storage account access key must be specified when using the storage key based access")
+						}
+						backendStorageUseMsi = false
+						backendSaConStr = fmt.Sprintf(StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
+						deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(string(DeploymentStorageConnStr))
+					case webapps.AuthenticationTypeUserAssignedIdentity:
 						if state.StorageUserAssignedIdentityID == "" {
 							return errors.New("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 						}
-						storageAuth.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
+						backendStorageUseMsi = true
+						backendSaConStr = deploymentStorageName
+						deploymentSaConStrVal = ""
+						deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(state.StorageUserAssignedIdentityID)
+					case webapps.AuthenticationTypeSystemAssignedIdentity:
+						backendStorageUseMsi = true
+						backendSaConStr = deploymentStorageName
+						deploymentSaConStrVal = ""
 					}
+					deploymentStorage.Authentication.Type = &storageAuthType
 				}
-				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication = &storageAuth
+
+				if metadata.ResourceData.HasChange("storage_user_assigned_identity_id") {
+					deploymentStorage.Authentication.UserAssignedIdentityResourceId = pointer.To(state.StorageUserAssignedIdentityID)
+				}
 			}
 
-			if metadata.ResourceData.HasChange("storage_user_assigned_identity_id") {
-				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
+			if metadata.ResourceData.HasChange("backend_storage") {
+				backendSaConStr, backendStorageUseMsi = ExpandBackendStorage(state.BackendStorage, storageDomainSuffix)
+			}
+
+			if metadata.ResourceData.HasChange("deployment_storage") {
+				deploymentStorage, deploymentSaConStrVal = ExpandDeploymentStorage(state.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
+				model.Properties.FunctionAppConfig.Deployment.Storage = deploymentStorage
+				if deploymentSaConStrVal != "" {
+					state.AppSettings[DeploymentStorageConnStr] = deploymentSaConStrVal
+				}
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityId)
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, backendStorageUseMsi, backendSaConStr, deploymentSaConStrVal)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}
