@@ -21,6 +21,7 @@ type MsSqlManagedInstanceModel struct {
 	MaintenanceConfigurationName      string                              `tfschema:"maintenance_configuration_name"`
 	MinimumTlsVersion                 string                              `tfschema:"minimum_tls_version"`
 	Name                              string                              `tfschema:"name"`
+	PricingModel                      string                              `tfschema:"pricing_model"`
 	ProxyOverride                     string                              `tfschema:"proxy_override"`
 	PublicDataEndpointEnabled         bool                                `tfschema:"public_data_endpoint_enabled"`
 	ResourceGroupName                 string                              `tfschema:"resource_group_name"`

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +23,7 @@ import (
 )
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the SQL Managed Instance. This needs to be globally unique within Azure.",
 			Type:         schema.TypeString,
@@ -230,6 +231,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"pricing_model": {
+			Description:  "The pricing model for the SQL Managed Instance.",
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      string(managedinstances.PricingModelRegular),
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPricingModel(), false),
+		},
+
 		"proxy_override": {
 			Description: "How the SQL Managed Instance will be accessed.",
 			Type:        schema.TypeString,
@@ -297,6 +306,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		arguments["pricing_model"] = &pluginsdk.Schema{
+			Description: "The pricing model for the SQL Managed Instance.",
+			Type:        schema.TypeString,
+			Optional:    true,
+			// NOTE: O+C to preserve existing free instances when omitted, avoiding an unintended upgrade to paid pricing in 5.x.
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPricingModel(), false),
+		}
+	}
+
+	return arguments
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
@@ -372,6 +394,38 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
 			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
 				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
+			}
+
+			oldPricingModel, newPricingModel := rd.GetChange("pricing_model")
+			if rd.NewValueKnown("pricing_model") && oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
+				if err := rd.ForceNew("pricing_model"); err != nil {
+					return err
+				}
+			}
+
+			if newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
+				if sku := rd.Get("sku_name").(string); rd.NewValueKnown("sku_name") && sku != "GP_Gen5" {
+					return fmt.Errorf("`sku_name` must be `GP_Gen5` when `pricing_model` is `Freemium`, got `%s`", sku)
+				}
+
+				vcores := rd.Get("vcores").(int)
+				if rd.NewValueKnown("vcores") && vcores != 4 && vcores != 8 {
+					return fmt.Errorf("`vcores` must be `4` or `8` when `pricing_model` is `Freemium`, got `%d`", vcores)
+				}
+
+				storageSizeInGb := rd.Get("storage_size_in_gb").(int)
+				if rd.NewValueKnown("storage_size_in_gb") && storageSizeInGb != 64 {
+					return fmt.Errorf("`storage_size_in_gb` must be `64` when `pricing_model` is `Freemium`, got `%d`", storageSizeInGb)
+				}
+
+				storageAccountType := rd.Get("storage_account_type").(string)
+				if rd.NewValueKnown("storage_account_type") && storageAccountType != StorageAccountTypeLRS {
+					return fmt.Errorf("`storage_account_type` must be `LRS` when `pricing_model` is `Freemium`, got `%s`", storageAccountType)
+				}
+
+				if rd.NewValueKnown("zone_redundant_enabled") && rd.Get("zone_redundant_enabled").(bool) {
+					return errors.New("`zone_redundant_enabled` must be `false` when `pricing_model` is `Freemium`")
+				}
 			}
 
 			return nil

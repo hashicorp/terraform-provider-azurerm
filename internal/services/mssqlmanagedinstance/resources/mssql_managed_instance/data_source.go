@@ -33,6 +33,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	Location                  string                              `tfschema:"location"`
 	MinimumTlsVersion         string                              `tfschema:"minimum_tls_version"`
 	Name                      string                              `tfschema:"name"`
+	PricingModel              string                              `tfschema:"pricing_model"`
 	ProxyOverride             string                              `tfschema:"proxy_override"`
 	PublicDataEndpointEnabled bool                                `tfschema:"public_data_endpoint_enabled"`
 	ResourceGroupName         string                              `tfschema:"resource_group_name"`
@@ -133,6 +134,12 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:    true,
 		},
 
+		"pricing_model": {
+			Description: "The pricing model for the SQL Managed Instance.",
+			Type:        schema.TypeString,
+			Computed:    true,
+		},
+
 		"proxy_override": {
 			Description: "How the SQL Managed Instance will be accessed.",
 			Type:        schema.TypeString,
@@ -228,6 +235,7 @@ func (d DataSource) Read() sdk.ResourceFunc {
 
 			if props := resp.Model.Properties; props != nil {
 				model.LicenseType = pointer.FromEnum(props.LicenseType)
+				model.PricingModel = pointer.FromEnum(props.PricingModel)
 				model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 				model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 				model.AdministratorLogin = pointer.From(props.AdministratorLogin)

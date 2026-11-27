@@ -70,6 +70,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				props.LicenseType = pointer.ToEnum[managedinstances.ManagedInstanceLicenseType](state.LicenseType)
 			}
 
+			if metadata.ResourceData.HasChange("pricing_model") {
+				props.PricingModel = pointer.ToEnum[managedinstances.PricingModel](state.PricingModel)
+			}
+
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
 				props.StorageSizeInGB = pointer.To(state.StorageSizeInGb)
 			}

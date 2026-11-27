@@ -101,6 +101,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if model.PricingModel != "" {
+				parameters.Properties.PricingModel = pointer.ToEnum[managedinstances.PricingModel](model.PricingModel)
+			}
+
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}

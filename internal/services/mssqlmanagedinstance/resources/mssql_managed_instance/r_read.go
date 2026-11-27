@@ -63,6 +63,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 				if props := existing.Model.Properties; props != nil {
 					model.LicenseType = pointer.FromEnum(props.LicenseType)
+					model.PricingModel = pointer.FromEnum(props.PricingModel)
 					model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 					model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 
