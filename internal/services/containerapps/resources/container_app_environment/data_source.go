@@ -28,11 +28,12 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	Name          string `tfschema:"name"`
 	ResourceGroup string `tfschema:"resource_group_name"`
 
-	Location                    string         `tfschema:"location"`
-	LogAnalyticsWorkspaceName   string         `tfschema:"log_analytics_workspace_name"`
-	InfrastructureSubnetId      string         `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled bool           `tfschema:"internal_load_balancer_enabled"`
-	Tags                        map[string]any `tfschema:"tags"`
+	Location                    string                      `tfschema:"location"`
+	LogAnalyticsWorkspaceName   string                      `tfschema:"log_analytics_workspace_name"`
+	InfrastructureSubnetId      string                      `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled bool                        `tfschema:"internal_load_balancer_enabled"`
+	Tags                        map[string]any              `tfschema:"tags"`
+	IngressConfiguration        []IngressConfigurationModel `tfschema:"ingress_configuration"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -136,6 +137,8 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
+
+		"ingress_configuration": IngressConfigurationSchemaComputed(),
 	}
 }
 
@@ -189,6 +192,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
 					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					environment.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
+					environment.IngressConfiguration = FlattenIngressConfiguration(props.IngressConfiguration, props.WorkloadProfiles)
 				}
 			}
 

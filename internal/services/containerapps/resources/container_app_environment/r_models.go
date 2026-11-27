@@ -21,6 +21,7 @@ type ContainerAppEnvironmentModel struct {
 	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]any                             `tfschema:"tags"`
 	WorkloadProfiles                        []WorkloadProfileModel                     `tfschema:"workload_profile"`
+	IngressConfiguration                    []IngressConfigurationModel                `tfschema:"ingress_configuration"`
 	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
 	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
 

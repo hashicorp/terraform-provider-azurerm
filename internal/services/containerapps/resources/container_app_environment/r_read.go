@@ -88,6 +88,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = FlattenWorkloadProfiles(props.WorkloadProfiles)
+					state.IngressConfiguration = FlattenIngressConfiguration(props.IngressConfiguration, props.WorkloadProfiles)
+					if props.IngressConfiguration != nil && props.IngressConfiguration.WorkloadProfileName != nil {
+						state.WorkloadProfiles = FilterIngressWorkloadProfile(state.WorkloadProfiles, *props.IngressConfiguration.WorkloadProfileName)
+					}
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 
 					if props.CustomDomainConfiguration != nil {

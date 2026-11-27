@@ -63,6 +63,41 @@ func (r Resource) Update() sdk.ResourceFunc {
 				payload.Properties.WorkloadProfiles = ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
 
+			if metadata.ResourceData.HasChange("ingress_configuration") {
+				ingressConfig, ingressProfile := ExpandIngressConfiguration(state.IngressConfiguration)
+				payload.Properties.IngressConfiguration = ingressConfig
+				if ingressProfile != nil {
+					if payload.Properties.WorkloadProfiles == nil {
+						// Need to get the current workload profiles if they weren't being changed
+						if existing.Model != nil && existing.Model.Properties != nil {
+							payload.Properties.WorkloadProfiles = existing.Model.Properties.WorkloadProfiles
+						}
+					}
+					payload.Properties.WorkloadProfiles = MergeIngressWorkloadProfile(payload.Properties.WorkloadProfiles, ingressProfile)
+				} else {
+					// ingress_configuration was removed: remove the dedicated workload profile
+					o, _ := metadata.ResourceData.GetChange("ingress_configuration")
+					if oldList, ok := o.([]any); ok && len(oldList) > 0 {
+						if oldMap, ok := oldList[0].(map[string]any); ok {
+							if oldName, ok := oldMap["workload_profile_name"].(string); ok && oldName != "" {
+								if payload.Properties.WorkloadProfiles == nil && existing.Model != nil && existing.Model.Properties != nil {
+									payload.Properties.WorkloadProfiles = existing.Model.Properties.WorkloadProfiles
+								}
+								if payload.Properties.WorkloadProfiles != nil {
+									filtered := make([]managedenvironments.WorkloadProfile, 0)
+									for _, p := range *payload.Properties.WorkloadProfiles {
+										if p.Name != oldName {
+											filtered = append(filtered, p)
+										}
+									}
+									payload.Properties.WorkloadProfiles = &filtered
+								}
+							}
+						}
+					}
+				}
+			}
+
 			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
 				payload.Properties.PeerAuthentication = &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
 					Mtls: &managedenvironments.Mtls{

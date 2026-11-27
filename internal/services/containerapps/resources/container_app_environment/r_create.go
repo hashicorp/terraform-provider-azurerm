@@ -106,6 +106,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			managedEnvironment.Properties.WorkloadProfiles = ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
+			ingressConfig, ingressProfile := ExpandIngressConfiguration(containerAppEnvironment.IngressConfiguration)
+			if ingressConfig != nil {
+				managedEnvironment.Properties.IngressConfiguration = ingressConfig
+				managedEnvironment.Properties.WorkloadProfiles = MergeIngressWorkloadProfile(managedEnvironment.Properties.WorkloadProfiles, ingressProfile)
+			}
+
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, managedEnvironment, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}

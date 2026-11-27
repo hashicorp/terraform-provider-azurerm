@@ -104,6 +104,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"workload_profile": WorkloadProfileSchema(),
 
+		"ingress_configuration": IngressConfigurationSchema(),
+
 		"zone_redundancy_enabled": {
 			Description:  "Whether the Container App Environment should be created with Zone Redundancy enabled.",
 			Type:         pluginsdk.TypeBool,
@@ -224,6 +226,18 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 			if model.InternalLoadBalancerEnabled && model.PublicNetworkAccess == string(managedenvironments.PublicNetworkAccessEnabled) {
 				return errors.New("`public_network_access` cannot be `Enabled` when `internal_load_balancer_enabled` is set to `true`")
+			}
+
+			if len(model.IngressConfiguration) > 0 {
+				ic := model.IngressConfiguration[0]
+				if ic.MaximumNodeCount < ic.MinimumNodeCount {
+					return errors.New("`maximum_node_count` in `ingress_configuration` must be greater than or equal to `minimum_node_count`")
+				}
+				for _, wp := range model.WorkloadProfiles {
+					if wp.Name == ic.WorkloadProfileName {
+						return fmt.Errorf("`ingress_configuration.workload_profile_name` %q conflicts with a user-defined `workload_profile` block with the same name. The dedicated ingress workload profile is auto-managed by `ingress_configuration` and must not be duplicated in `workload_profile`", ic.WorkloadProfileName)
+					}
+				}
 			}
 
 			return nil
