@@ -68,7 +68,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"visibility_subscription_ids": {
-				Description: "The list of subscription(s) globally unique identifiers(GUID) that will be able to see the Private Link Service.",
+				Description: "The list of subscription(s) globally unique identifiers (GUID) that will be able to see the Private Link Service.",
 				Type:        pluginsdk.TypeList,
 				Computed:    true,
 				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
@@ -100,7 +100,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"primary": {
-							Description: "Value that indicates if the IP configuration is the primary configuration or not.",
+							Description: "Value that indicates if the IP configuration is the primary configuration.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -109,7 +109,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"load_balancer_frontend_ip_configuration_ids": {
-				Description: "The list of Standard Load Balancer(SLB) resource IDs. The Private Link Service is tied to the frontend IP address of an SLB. All traffic destined for the Private Link Service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.",
+				Description: "The list of Standard Load Balancer (SLB) resource IDs. The Private Link Service is tied to the frontend IP address of an SLB. All traffic destined for the Private Link Service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.",
 				Type:        pluginsdk.TypeList,
 				Computed:    true,
 				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},

@@ -37,13 +37,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"copy_paste_enabled": {
-				Description: "Is Copy/Paste feature enabled for the Bastion Host?",
+				Description: "Whether the copy/paste feature is enabled for the Bastion Host.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"file_copy_enabled": {
-				Description: "Is File Copy feature enabled for the Bastion Host?",
+				Description: "Whether the file copy feature is enabled for the Bastion Host.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -73,7 +73,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"ip_connect_enabled": {
-				Description: "Is IP Connect feature enabled for the Bastion Host?",
+				Description: "Whether the IP connect feature is enabled for the Bastion Host.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -91,7 +91,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"shareable_link_enabled": {
-				Description: "Is Shareable Link feature enabled for the Bastion Host?",
+				Description: "Whether the shareable link feature is enabled for the Bastion Host.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -103,13 +103,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"tunneling_enabled": {
-				Description: "Is Tunneling feature enabled for the Bastion Host?",
+				Description: "Whether the tunneling feature is enabled for the Bastion Host.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
 
 			"session_recording_enabled": {
-				Description: "Is Session Recording feature enabled for the Bastion Host?",
+				Description: "Whether the session recording feature is enabled for the Bastion Host.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

@@ -13,6 +13,7 @@ import (
 func networkInterfaceNatRuleAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"network_interface_id": {
+			Description:  "The ID of the Network Interface.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func networkInterfaceNatRuleAssociationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_configuration_name": {
+			Description:  "The Name of the IP Configuration within the Network Interface which should be connected to the NAT Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func networkInterfaceNatRuleAssociationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"nat_rule_id": {
+			Description:  "The ID of the Load Balancer NAT Rule which this Network Interface which should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

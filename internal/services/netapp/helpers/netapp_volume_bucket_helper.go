@@ -92,7 +92,7 @@ func NetAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsURLWithHTTPS,
 					},
 					"credentials_secret_name": {
-						Description:  "The name of the secret in `credentials_key_vault_uri` that stores the generated bucket credentials. The Key Vault Secret value is a JSON document with `access_key_id` and `secret_access_key` properties.",
+						Description:  "The name of the secret in `credentials_key_vault_uri` that stores the generated bucket credentials. The Key Vault Secret value is a JSON document with `access_key_id` and `secret_access_key` properties.", // azignore:AZS020 - This describes expected JSON object fields rather than provider fields
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,

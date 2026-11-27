@@ -32,7 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"quota_type": {
-			Description:  "Quota type. Please note that `IndividualGroupQuota` and `DefaultGroupQuota` are not applicable to SMB and dual-protocol volumes.",
+			Description:  "Quota type. `IndividualGroupQuota` and `DefaultGroupQuota` are not applicable to SMB and dual-protocol volumes.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

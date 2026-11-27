@@ -12,6 +12,7 @@ import (
 func networkInterfaceApplicationSecurityGroupAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"network_interface_id": {
+			Description:  "The ID of the Network Interface.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func networkInterfaceApplicationSecurityGroupAssociationSchema() map[string]*plu
 		},
 
 		"application_security_group_id": {
+			Description:  "The ID of the Application Security Group which this Network Interface which should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

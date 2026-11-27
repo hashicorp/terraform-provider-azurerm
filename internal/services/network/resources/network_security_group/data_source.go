@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetworkSecurityGroupRead,
+		Description: "Use this data source to access information about an existing Network Security Group.",
+		Read:        dataSourceNetworkSecurityGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,8 +28,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The Name of the Network Security Group.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -41,23 +43,27 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the security rule.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description for this rule.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The network protocol this rule applies to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"source_port_range": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Source Port or Range.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"source_port_ranges": {
@@ -68,8 +74,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"destination_port_range": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Destination Port or Range.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"destination_port_ranges": {
@@ -80,56 +87,65 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"source_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "CIDR or source IP range or * to match any IP.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"source_address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Set:      pluginsdk.HashString,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "A list of CIDRs or source IP ranges.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
+							Set:         pluginsdk.HashString,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"source_application_security_group_ids": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Set:      pluginsdk.HashString,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "A List of source Application Security Group IDs.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
+							Set:         pluginsdk.HashString,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "CIDR or destination IP range or * to match any IP.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"destination_address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Set:      pluginsdk.HashString,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "A list of CIDRs or destination IP ranges.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
+							Set:         pluginsdk.HashString,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"destination_application_security_group_ids": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Set:      pluginsdk.HashString,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Description: "A List of destination Application Security Group IDs.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
+							Set:         pluginsdk.HashString,
+							Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"access": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The network traffic access type.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"priority": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The priority of the rule.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"direction": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The direction specifies if rule will be evaluated on incoming or outgoing traffic.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

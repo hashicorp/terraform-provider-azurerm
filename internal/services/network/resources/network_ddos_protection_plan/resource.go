@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkDDoSProtectionPlanCreate,
-		Read:   resourceNetworkDDoSProtectionPlanRead,
-		Update: resourceNetworkDDoSProtectionPlanUpdate,
-		Delete: resourceNetworkDDoSProtectionPlanDelete,
+		Description: "Manages an AzureNetwork DDoS Protection Plan.",
+		Create:      resourceNetworkDDoSProtectionPlanCreate,
+		Read:        resourceNetworkDDoSProtectionPlanRead,
+		Update:      resourceNetworkDDoSProtectionPlanUpdate,
+		Delete:      resourceNetworkDDoSProtectionPlanDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&ddosprotectionplans.DdosProtectionPlanId{}),
 

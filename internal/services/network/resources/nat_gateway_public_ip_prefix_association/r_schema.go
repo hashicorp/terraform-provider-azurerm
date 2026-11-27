@@ -12,6 +12,7 @@ import (
 func natGatewayPublicIpPrefixAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"nat_gateway_id": {
+			Description:  "The ID of the NAT Gateway.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func natGatewayPublicIpPrefixAssociationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_ip_prefix_id": {
+			Description:  "The ID of the Public IP Prefix which this NAT Gateway should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

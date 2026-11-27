@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteCreate,
-		Read:   resourceRouteRead,
-		Update: resourceRouteUpdate,
-		Delete: resourceRouteDelete,
+		Description: "Manages a Route within a Route Table.",
+		Create:      resourceRouteCreate,
+		Read:        resourceRouteRead,
+		Update:      resourceRouteUpdate,
+		Delete:      resourceRouteDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&routes.RouteId{}),
 

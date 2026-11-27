@@ -19,10 +19,11 @@ var natGatewayResourceName = "azurerm_nat_gateway"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNatGatewayCreate,
-		Read:   resourceNatGatewayRead,
-		Update: resourceNatGatewayUpdate,
-		Delete: resourceNatGatewayDelete,
+		Description: "Manages an Azure NAT Gateway.",
+		Create:      resourceNatGatewayCreate,
+		Read:        resourceNatGatewayRead,
+		Update:      resourceNatGatewayUpdate,
+		Delete:      resourceNatGatewayDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

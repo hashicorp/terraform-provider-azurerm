@@ -191,33 +191,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"nfsv3_enabled": {
-									Description: "Enables NFSv3. Please note that this cannot be enabled if volume has NFSv4.1 as its protocol.",
+									Description: "Enables NFSv3. This cannot be enabled if volume has NFSv4.1 as its protocol.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
 
 								"nfsv41_enabled": {
-									Description: "Enables NFSv4.1. Please note that this cannot be enabled if volume has NFSv3 as its protocol.",
+									Description: "Enables NFSv4.1. This cannot be enabled if volume has NFSv3 as its protocol.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
 
 								"unix_read_only": {
-									Description: "Is the file system on unix read only?",
+									Description: "Whether the unix filesystem is read-only.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
 								},
 
 								"unix_read_write": {
-									Description: "Is the file system on unix read and write?",
+									Description: "Whether the unix filesystem is read-write.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     true,
 								},
 
 								"root_access_enabled": {
-									Description: "Is root access permitted to this volume?",
+									Description: "Whether root access is permitted to this volume.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     true,
@@ -236,7 +236,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"network_features": {
-						Description: "Which network feature to use. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://learn.microsoft.com/azure/azure-netapp-files/configure-network-features).",
+						Description: "Which network feature to use. This is a feature in public preview and for more information about it and how to register, refer to [Configure network features for an Azure NetApp Files volume](https://learn.microsoft.com/azure/azure-netapp-files/configure-network-features).",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid

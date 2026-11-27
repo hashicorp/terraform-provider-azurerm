@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetNatGatewayAssociationCreate,
-		Read:   resourceSubnetNatGatewayAssociationRead,
-		Delete: resourceSubnetNatGatewayAssociationDelete,
+		Description: "Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).",
+		Create:      resourceSubnetNatGatewayAssociationCreate,
+		Read:        resourceSubnetNatGatewayAssociationRead,
+		Delete:      resourceSubnetNatGatewayAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

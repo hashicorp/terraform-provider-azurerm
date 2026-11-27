@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIpGroupCreate,
-		Read:   resourceIpGroupRead,
-		Update: resourceIpGroupUpdate,
-		Delete: resourceIpGroupDelete,
+		Description: "Manages an IP group that contains a list of CIDRs and/or IP addresses.",
+		Create:      resourceIpGroupCreate,
+		Read:        resourceIpGroupRead,
+		Update:      resourceIpGroupUpdate,
+		Delete:      resourceIpGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&ipgroups.IPGroupId{}),
 

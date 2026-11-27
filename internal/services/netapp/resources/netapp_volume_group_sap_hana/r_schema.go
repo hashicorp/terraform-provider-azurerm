@@ -86,7 +86,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"proximity_placement_group_id": {
-						Description:  "The ID of the Proximity Placement Group. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.",
+						Description:  "The ID of the Proximity Placement Group. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -133,7 +133,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"protocols": {
-						Description: "The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume group, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Please check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.",
+						Description: "The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume group, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.",
 						Type:        pluginsdk.TypeList,
 						Required:    true,
 						MinItems:    1,
@@ -188,33 +188,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"nfsv3_enabled": {
-									Description: "Enables NFSv3. Please note that this cannot be enabled if volume has NFSv4.1 as its protocol.",
+									Description: "Enables NFSv3. This cannot be enabled if volume has NFSv4.1 as its protocol.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
 
 								"nfsv41_enabled": {
-									Description: "Enables NFSv4.1. Please note that this cannot be enabled if volume has NFSv3 as its protocol.",
+									Description: "Enables NFSv4.1. This cannot be enabled if volume has NFSv3 as its protocol.",
 									Type:        pluginsdk.TypeBool,
 									Required:    true,
 								},
 
 								"unix_read_only": {
-									Description: "Is the file system on unix read only?",
+									Description: "Whether the unix filesystem is read-only.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     false,
 								},
 
 								"unix_read_write": {
-									Description: "Is the file system on unix read and write?",
+									Description: "Whether the unix filesystem is read-write.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     true,
 								},
 
 								"root_access_enabled": {
-									Description: "Is root access permitted to this volume?",
+									Description: "Whether root access is permitted to this volume.",
 									Type:        pluginsdk.TypeBool,
 									Optional:    true,
 									Default:     true,

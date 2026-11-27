@@ -13,6 +13,7 @@ import (
 func networkProfileSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Network Profile.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +31,7 @@ func networkProfileSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the IP Configuration.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -40,11 +42,13 @@ func networkProfileSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The name of the IP Configuration.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"subnet_id": {
+									Description:  "Reference to the subnet associated with the IP Configuration.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: commonids.ValidateSubnetID,
@@ -57,8 +61,9 @@ func networkProfileSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"container_network_interface_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Container Network Interface IDs.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

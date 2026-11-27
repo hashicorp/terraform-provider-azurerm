@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBastionHostCreate,
-		Read:   resourceBastionHostRead,
-		Update: resourceBastionHostUpdate,
-		Delete: resourceBastionHostDelete,
+		Description: "Manages a Bastion Host.",
+		Create:      resourceBastionHostCreate,
+		Read:        resourceBastionHostRead,
+		Update:      resourceBastionHostUpdate,
+		Delete:      resourceBastionHostDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&bastionhosts.BastionHostId{}),
 

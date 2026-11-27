@@ -15,6 +15,7 @@ import (
 func virtualMachineScaleSetPacketCaptureSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name to use for this Network Packet Capture.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func virtualMachineScaleSetPacketCaptureSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_watcher_id": {
+			Description:  "The resource ID of the Network Watcher.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,29 +31,33 @@ func virtualMachineScaleSetPacketCaptureSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_machine_scale_set_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The resource ID of the Virtual Machine Scale Set to capture packets from.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				commonids.ValidateVirtualMachineScaleSetID,
 			),
 		},
 
 		"maximum_bytes_per_packet": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			Default:  0,
+			Description: "The number of bytes captured per packet. The remaining bytes are truncated.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     0,
 		},
 
 		"maximum_bytes_per_session": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			Default:  1073741824,
+			Description: "Maximum size of the capture in Bytes.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     1073741824,
 		},
 
 		"maximum_capture_duration_in_seconds": {
+			Description:  "The maximum duration of the capture session in seconds.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,

@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetServiceEndpointStoragePolicyCreate,
-		Read:   resourceSubnetServiceEndpointStoragePolicyRead,
-		Update: resourceSubnetServiceEndpointStoragePolicyUpdate,
-		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
+		Description: "Manages a Subnet Service Endpoint Storage Policy.",
+		Create:      resourceSubnetServiceEndpointStoragePolicyCreate,
+		Read:        resourceSubnetServiceEndpointStoragePolicyRead,
+		Update:      resourceSubnetServiceEndpointStoragePolicyUpdate,
+		Delete:      resourceSubnetServiceEndpointStoragePolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&serviceendpointpolicies.ServiceEndpointPolicyId{}),
 

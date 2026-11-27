@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceNetworkInterfaceRead,
+		Description: "Use this data source to access information about an existing Network Interface.",
+		Read:        dataSourceNetworkInterfaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,42 +31,49 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The location of the specified Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"auxiliary_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"auxiliary_sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU used for the network high-performance feature on Network Virtual Appliances (NVAs).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"edge_zone": commonschema.EdgeZoneComputed(),
 
 			"network_security_group_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Network Security Group associated to the specified Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"mac_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The MAC address used by the specified Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"virtual_machine_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Virtual Machine that the specified Network Interface is attached to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_configuration": {
@@ -145,47 +153,55 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"internal_domain_name_suffix": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Even if `internal_dns_name_label` is not specified, a DNS entry is created for the primary NIC of the VM.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dns_servers": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Set:      pluginsdk.HashString,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The list of DNS servers used by the specified Network Interface.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
+				Set:         pluginsdk.HashString,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"internal_dns_name_label": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The internal DNS name label of the specified Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"applied_dns_servers": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Set:      pluginsdk.HashString,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "List of DNS servers applied to the specified Network Interface.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
+				Set:         pluginsdk.HashString,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"accelerated_networking_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether accelerated networking is set on the specified Network Interface.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"ip_forwarding_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Indicate if IP forwarding is set on the specified Network Interface.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The primary private IP address associated to the specified Network Interface.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of private IP addresses associates to the specified Network Interface.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

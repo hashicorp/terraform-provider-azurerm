@@ -16,11 +16,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourcePrivateLinkServiceCreate,
-		Read:     resourcePrivateLinkServiceRead,
-		Update:   resourcePrivateLinkServiceUpdate,
-		Delete:   resourcePrivateLinkServiceDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&privatelinkservices.PrivateLinkServiceId{}),
+		Description: "Manages a Private Link Service.",
+		Create:      resourcePrivateLinkServiceCreate,
+		Read:        resourcePrivateLinkServiceRead,
+		Update:      resourcePrivateLinkServiceUpdate,
+		Delete:      resourcePrivateLinkServiceDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&privatelinkservices.PrivateLinkServiceId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatelinkservices.PrivateLinkServiceId{}),

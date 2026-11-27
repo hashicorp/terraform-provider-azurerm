@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePublicIpCreate,
-		Read:   resourcePublicIpRead,
-		Update: resourcePublicIpUpdate,
-		Delete: resourcePublicIpDelete,
+		Description: "Manages a Public IP Address.",
+		Create:      resourcePublicIpCreate,
+		Read:        resourcePublicIpRead,
+		Update:      resourcePublicIpUpdate,
+		Delete:      resourcePublicIpDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.PublicIPAddressId{}),
 

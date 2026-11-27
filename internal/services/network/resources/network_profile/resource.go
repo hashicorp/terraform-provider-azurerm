@@ -17,11 +17,12 @@ const azureNetworkProfileResourceName = "azurerm_network_profile"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceNetworkProfileCreate,
-		Read:     resourceNetworkProfileRead,
-		Update:   resourceNetworkProfileUpdate,
-		Delete:   resourceNetworkProfileDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&networkprofiles.NetworkProfileId{}),
+		Description: "Manages a Network Profile.",
+		Create:      resourceNetworkProfileCreate,
+		Read:        resourceNetworkProfileRead,
+		Update:      resourceNetworkProfileUpdate,
+		Delete:      resourceNetworkProfileDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&networkprofiles.NetworkProfileId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&networkprofiles.NetworkProfileId{}),

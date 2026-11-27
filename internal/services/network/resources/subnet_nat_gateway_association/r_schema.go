@@ -12,6 +12,7 @@ import (
 func subnetNatGatewayAssociationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subnet_id": {
+			Description:  "The ID of the Subnet.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func subnetNatGatewayAssociationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"nat_gateway_id": {
+			Description:  "The ID of the NAT Gateway which should be associated with the Subnet.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

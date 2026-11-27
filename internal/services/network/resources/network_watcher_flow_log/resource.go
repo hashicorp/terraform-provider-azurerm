@@ -21,10 +21,11 @@ const azureNetworkWatcherFlowLogResourceName = "azurerm_network_watcher_flow_log
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkWatcherFlowLogCreate,
-		Read:   resourceNetworkWatcherFlowLogRead,
-		Update: resourceNetworkWatcherFlowLogUpdate,
-		Delete: resourceNetworkWatcherFlowLogDelete,
+		Description: "Manages a Network Watcher Flow Log.",
+		Create:      resourceNetworkWatcherFlowLogCreate,
+		Read:        resourceNetworkWatcherFlowLogRead,
+		Update:      resourceNetworkWatcherFlowLogUpdate,
+		Delete:      resourceNetworkWatcherFlowLogDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

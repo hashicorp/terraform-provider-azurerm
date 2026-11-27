@@ -175,31 +175,31 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 								},
 
 								"nfsv3_enabled": {
-									Description: "Is the NFSv3 protocol enabled?",
+									Description: "Whether the NFSv3 protocol is enabled.",
 									Type:        pluginsdk.TypeBool,
 									Computed:    true,
 								},
 
 								"nfsv41_enabled": {
-									Description: "Is the NFSv4.1 enabled?",
+									Description: "Whether the NFSv4.1 is enabled.",
 									Type:        pluginsdk.TypeBool,
 									Computed:    true,
 								},
 
 								"unix_read_only": {
-									Description: "Is the file system on unix read only?",
+									Description: "Whether the unix filesystem is read-only.",
 									Type:        pluginsdk.TypeBool,
 									Computed:    true,
 								},
 
 								"unix_read_write": {
-									Description: "Is the file system on unix read and write?",
+									Description: "Whether the unix filesystem is read-write.",
 									Type:        pluginsdk.TypeBool,
 									Computed:    true,
 								},
 
 								"root_access_enabled": {
-									Description: "Is root access permitted to this volume?",
+									Description: "Whether root access is permitted to this volume.",
 									Type:        pluginsdk.TypeBool,
 									Computed:    true,
 								},
@@ -210,7 +210,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 					"tags": commonschema.TagsDataSource(),
 
 					"snapshot_directory_visible": {
-						Description: "Is the .snapshot (NFS clients) path of a volume visible?",
+						Description: "Whether the .snapshot (NFS clients) path of a volume is visible.",
 						Type:        pluginsdk.TypeBool,
 						Computed:    true,
 					},

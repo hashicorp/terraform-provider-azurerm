@@ -90,7 +90,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_features": {
-			Description: "Which network feature to use. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://learn.microsoft.com/azure/azure-netapp-files/configure-network-features).",
+			Description: "Which network feature to use. This is a feature in public preview and for more information about it and how to register, refer to [Configure network features for an Azure NetApp Files volume](https://learn.microsoft.com/azure/azure-netapp-files/configure-network-features).",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
@@ -102,7 +102,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"protocols": {
-			Description: "The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://learn.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.",
+			Description: "The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Dual protocol scenario is supported for CIFS and NFSv3, for more information, refer to [Create a dual-protocol volume for Azure NetApp Files](https://learn.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -205,50 +205,50 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"unix_read_only": {
-						Description: "Is the file system on unix read only?",
+						Description: "Whether the unix filesystem is read-only.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"unix_read_write": {
-						Description: "Is the file system on unix read and write?",
+						Description: "Whether the unix filesystem is read-write.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"root_access_enabled": {
-						Description: "Is root access permitted to this volume?",
+						Description: "Whether root access is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 
 					"kerberos_5_read_only_enabled": {
-						Description: "Is Kerberos 5 read-only access permitted to this volume?",
+						Description: "Whether Kerberos 5 read-only access is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"kerberos_5_read_write_enabled": {
-						Description: "Is Kerberos 5 read/write permitted to this volume?",
+						Description: "Whether Kerberos 5 read/write is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"kerberos_5i_read_only_enabled": {
-						Description: "Is Kerberos 5i read-only permitted to this volume?",
+						Description: "Whether Kerberos 5i read-only is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"kerberos_5i_read_write_enabled": {
-						Description: "Is Kerberos 5i read/write permitted to this volume?",
+						Description: "Whether Kerberos 5i read/write is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"kerberos_5p_read_only_enabled": {
-						Description: "Is Kerberos 5p read-only permitted to this volume?",
+						Description: "Whether Kerberos 5p read-only is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
 					"kerberos_5p_read_write_enabled": {
-						Description: "Is Kerberos 5p read/write permitted to this volume?",
+						Description: "Whether Kerberos 5p read/write is permitted to this volume.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 					},
@@ -387,7 +387,7 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"azure_vmware_data_store_enabled": {
-			Description: "Is the NetApp Volume enabled for Azure VMware Solution (AVS) datastore purpose?",
+			Description: "Whether the NetApp Volume is enabled for Azure VMware Solution (AVS) datastore purpose.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

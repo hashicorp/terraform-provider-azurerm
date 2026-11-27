@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkDnsServersCreate,
-		Read:   resourceVirtualNetworkDnsServersRead,
-		Update: resourceVirtualNetworkDnsServersUpdate,
-		Delete: resourceVirtualNetworkDnsServersDelete,
+		Description: "Manages the DNS servers associated with a Virtual Network.",
+		Create:      resourceVirtualNetworkDnsServersCreate,
+		Read:        resourceVirtualNetworkDnsServersRead,
+		Update:      resourceVirtualNetworkDnsServersUpdate,
+		Delete:      resourceVirtualNetworkDnsServersDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

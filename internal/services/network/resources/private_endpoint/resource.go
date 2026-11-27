@@ -18,11 +18,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourcePrivateEndpointCreate,
-		Read:     resourcePrivateEndpointRead,
-		Update:   resourcePrivateEndpointUpdate,
-		Delete:   resourcePrivateEndpointDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&privateendpoints.PrivateEndpointId{}),
+		Description: "Manages a Private Endpoint.",
+		Create:      resourcePrivateEndpointCreate,
+		Read:        resourcePrivateEndpointRead,
+		Update:      resourcePrivateEndpointUpdate,
+		Delete:      resourcePrivateEndpointDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&privateendpoints.PrivateEndpointId{}),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privateendpoints.PrivateEndpointId{}),

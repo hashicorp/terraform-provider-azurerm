@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceRouteTableRead,
+		Description: "Use this data source to access information about an existing Route Table.",
+		Read:        dataSourceRouteTableRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Route Table.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -37,8 +39,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"bgp_route_propagation_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls propagation of routes learned by BGP on that Route Table.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"location": commonschema.LocationComputed(),
@@ -49,33 +52,38 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the Route.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The destination CIDR to which the route applies.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"next_hop_type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The type of Azure hop the packet should be sent to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"next_hop_in_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Contains the IP address packets should be forwarded to.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"subnets": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Set:      pluginsdk.HashString,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Description: "The collection of Subnets associated with this Route Table.",
+				Type:        pluginsdk.TypeSet,
+				Computed:    true,
+				Set:         pluginsdk.HashString,
+				Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": commonschema.TagsDataSource(),

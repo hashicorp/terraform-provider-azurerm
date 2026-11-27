@@ -12,12 +12,14 @@ import (
 func (p Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"private_endpoint_id": {
+			Description:  "The ID of Private Endpoint to associate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 		},
 		"application_security_group_id": {
+			Description:  "The ID of Application Security Group to associate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

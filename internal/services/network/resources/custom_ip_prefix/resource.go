@@ -19,6 +19,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_custom_ip_prefix"
 }
 
+func (Resource) Description() string {
+	return "Manages a custom IPv4 prefix or custom IPv6 prefix."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return customipprefixes.ValidateCustomIPPrefixID
 }

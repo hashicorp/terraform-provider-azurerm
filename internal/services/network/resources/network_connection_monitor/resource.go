@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkConnectionMonitorCreate,
-		Read:   resourceNetworkConnectionMonitorRead,
-		Update: resourceNetworkConnectionMonitorUpdate,
-		Delete: resourceNetworkConnectionMonitorDelete,
+		Description: "Manages a Network Connection Monitor.",
+		Create:      resourceNetworkConnectionMonitorCreate,
+		Read:        resourceNetworkConnectionMonitorRead,
+		Update:      resourceNetworkConnectionMonitorUpdate,
+		Delete:      resourceNetworkConnectionMonitorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := connectionmonitors.ParseConnectionMonitorID(id)
 			return err

@@ -11,9 +11,10 @@ import (
 func networkDdosProtectionPlanSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Network DDoS Protection Plan.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -21,8 +22,9 @@ func networkDdosProtectionPlanSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"virtual_network_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of Virtual Network IDs associated with the DDoS Protection Plan.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

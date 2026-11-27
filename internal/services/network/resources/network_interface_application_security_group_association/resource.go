@@ -14,9 +14,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
-		Read:   resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
-		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
+		Description: "Manages the association between a Network Interface and an Application Security Group.",
+		Create:      resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
+		Read:        resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
+		Delete:      resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
 			return err

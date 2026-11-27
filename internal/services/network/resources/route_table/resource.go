@@ -17,10 +17,11 @@ var routeTableResourceName = "azurerm_route_table"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteTableCreate,
-		Read:   resourceRouteTableRead,
-		Update: resourceRouteTableUpdate,
-		Delete: resourceRouteTableDelete,
+		Description: "Manages a Route Table.",
+		Create:      resourceRouteTableCreate,
+		Read:        resourceRouteTableRead,
+		Update:      resourceRouteTableUpdate,
+		Delete:      resourceRouteTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&routetables.RouteTableId{}),
 

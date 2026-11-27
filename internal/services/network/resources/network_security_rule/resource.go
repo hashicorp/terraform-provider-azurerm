@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkSecurityRuleCreate,
-		Read:   resourceNetworkSecurityRuleRead,
-		Update: resourceNetworkSecurityRuleUpdate,
-		Delete: resourceNetworkSecurityRuleDelete,
+		Description: "Manages a Network Security Rule.",
+		Create:      resourceNetworkSecurityRuleCreate,
+		Read:        resourceNetworkSecurityRuleRead,
+		Update:      resourceNetworkSecurityRuleUpdate,
+		Delete:      resourceNetworkSecurityRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&securityrules.SecurityRuleId{}),
 

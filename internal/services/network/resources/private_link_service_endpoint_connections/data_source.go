@@ -69,7 +69,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"action_required": {
-							Description: "A message indicating if changes on the service provider require any updates or not.",
+							Description: "A message indicating if changes on the service provider require any updates.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},

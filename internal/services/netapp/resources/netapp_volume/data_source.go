@@ -161,7 +161,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"policy_enabled": {
-							Description: "Backup policy is enabled or not.",
+							Description: "Backup policy is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},

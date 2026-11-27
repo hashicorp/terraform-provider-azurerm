@@ -60,7 +60,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Description: "Is geo redundant backup enabled?",
+				Description: "Whether geo redundant backup is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -140,7 +140,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"auto_grow_enabled": {
-							Description: "Is Storage Auto Grow enabled?",
+							Description: "Whether Storage Auto Grow is enabled.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -157,7 +157,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"io_scaling_enabled": {
-							Description: "Should IOPS be scaled automatically?",
+							Description: "Whether IOPS is scaled automatically.",
 							Type:        pluginsdk.TypeBool,
 							Computed:    true,
 						},
@@ -180,7 +180,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Description: "Is the public network access enabled?",
+				Description: "Whether the public network access is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

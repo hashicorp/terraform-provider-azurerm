@@ -12,9 +12,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualMachineScaleSetPacketCaptureCreate,
-		Read:   resourceVirtualMachineScaleSetPacketCaptureRead,
-		Delete: resourceVirtualMachineScaleSetPacketCaptureDelete,
+		Description: "Configures Network Packet Capturing against a Virtual Machine Scale Set using a Network Watcher.",
+		Create:      resourceVirtualMachineScaleSetPacketCaptureCreate,
+		Read:        resourceVirtualMachineScaleSetPacketCaptureRead,
+		Delete:      resourceVirtualMachineScaleSetPacketCaptureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := packetcaptures.ParsePacketCaptureID(id)

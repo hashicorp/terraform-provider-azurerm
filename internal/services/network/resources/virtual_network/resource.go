@@ -15,11 +15,12 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceVirtualNetworkCreate,
-		Read:     resourceVirtualNetworkRead,
-		Update:   resourceVirtualNetworkUpdate,
-		Delete:   resourceVirtualNetworkDelete,
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
+		Description: "Manages a Virtual Network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.",
+		Create:      resourceVirtualNetworkCreate,
+		Read:        resourceVirtualNetworkRead,
+		Update:      resourceVirtualNetworkUpdate,
+		Delete:      resourceVirtualNetworkDelete,
+		Importer:    pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -17,6 +17,10 @@ func (p Resource) ResourceType() string {
 	return "azurerm_private_endpoint_application_security_group_association"
 }
 
+func (p Resource) Description() string {
+	return "Manages an association between Private Endpoint and Application Security Group."
+}
+
 func (p Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return parse.PrivateEndpointApplicationSecurityGroupAssociationIDValidation
 }

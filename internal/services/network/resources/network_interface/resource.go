@@ -20,10 +20,11 @@ var networkInterfaceResourceName = "azurerm_network_interface"
 
 func RegisterResource() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceNetworkInterfaceCreate,
-		Read:   resourceNetworkInterfaceRead,
-		Update: resourceNetworkInterfaceUpdate,
-		Delete: resourceNetworkInterfaceDelete,
+		Description: "Manages a Network Interface.",
+		Create:      resourceNetworkInterfaceCreate,
+		Read:        resourceNetworkInterfaceRead,
+		Update:      resourceNetworkInterfaceUpdate,
+		Delete:      resourceNetworkInterfaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.NetworkInterfaceId{}),
 

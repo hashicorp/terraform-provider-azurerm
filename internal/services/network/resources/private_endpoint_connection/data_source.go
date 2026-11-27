@@ -73,12 +73,12 @@ func RegisterDataSource() *pluginsdk.Resource {
 							Computed:    true,
 						},
 						"status": {
-							Description: "The current status of the Private Endpoint request, possible values will be `Pending`, `Approved`, `Rejected`, or `Disconnected`.",
+							Description: "The current status of the Private Endpoint request.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},
 						"private_ip_address": {
-							Description: "The private IP address associated with the Private Endpoint, note that you will have a private IP address assigned to the Private Endpoint even if the connection request was `Rejected`.",
+							Description: "The private IP address associated with the Private Endpoint, you will have a private IP address assigned to the Private Endpoint even if the connection request was `Rejected`.",
 							Type:        pluginsdk.TypeString,
 							Computed:    true,
 						},

@@ -12,6 +12,7 @@ import (
 func virtualNetworkDnsServersSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"virtual_network_id": {
+			Description:  "The ID of the Virtual Network that should be linked to the DNS Zone.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,8 +20,9 @@ func virtualNetworkDnsServersSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_servers": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "List of IP addresses of DNS servers.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

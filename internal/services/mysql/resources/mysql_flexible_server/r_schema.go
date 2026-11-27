@@ -130,7 +130,7 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_redundant_backup_enabled": {
-			Description: "Should geo redundant backup be enabled?",
+			Description: "Whether geo redundant backup should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
@@ -194,7 +194,7 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"point_in_time_restore_time_in_utc": {
-			Description:  "The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`.",
+			Description:  "The point in time to restore from the `source_server_id` when `create_mode` is `PointInTimeRestore`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -252,7 +252,7 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"auto_grow_enabled": {
-						Description: "Should Storage Auto Grow be enabled?",
+						Description: "Whether Storage Auto Grow should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -267,7 +267,7 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"log_on_disk_enabled": {
-						Description: "Should Storage Log On Disk be enabled?",
+						Description: "Whether Storage Log On Disk should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -281,7 +281,7 @@ func mysqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(20, 16384),
 					},
 					"io_scaling_enabled": {
-						Description: "Should IOPS be scaled automatically? If `true`, `iops` can not be set.",
+						Description: "Whether IOPS should be scaled automatically. If `true`, `iops` can not be set.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
