@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccApiCenterService_listBySubscriptionAndRG(t *testing.T) {
+func TestAccApiCenterService_listByResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "list")
 	r := ApiCenterServiceResource{}
 
@@ -30,21 +30,6 @@ func TestAccApiCenterService_listBySubscriptionAndRG(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: r.basicList(data),
-			},
-			{
-				Query:  true,
-				Config: r.basicQuery(),
-				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_api_center_service.list", 3),
-					querycheck.ExpectIdentity(
-						"azurerm_api_center_service.list",
-						map[string]knownvalue.Check{
-							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
-						},
-					),
-				},
 			},
 			{
 				Query:  true,
@@ -86,21 +71,12 @@ resource "azurerm_api_center_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiCenterServiceResource) basicQuery() string {
-	return `
-list "azurerm_api_center_service" "list" {
-  provider = azurerm
-  config {}
-}
-`
-}
-
 func (r ApiCenterServiceResource) basicQueryByResourceGroupName() string {
 	return `
 list "azurerm_api_center_service" "list" {
   provider = azurerm
   config {
-    resource_group_name = azurerm_resource_group.test.name
+    resource_group_id = azurerm_resource_group.test.id
   }
 }
 `

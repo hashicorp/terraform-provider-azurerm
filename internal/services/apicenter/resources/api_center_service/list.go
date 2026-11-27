@@ -7,11 +7,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -24,14 +28,34 @@ func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp
 	response.TypeName = Resource{}.ResourceType()
 }
 
+type ApiCenterServiceListModel struct {
+	ResourceGroupID types.String `tfsdk:"resource_group_id"`
+}
+
 func (ListResource) ResourceFunc() *pluginsdk.Resource {
 	return sdk.WrappedResource(Resource{})
+}
+
+// the listcomplete function using the subscription id is currently broken and will always return a 404, so we will only support listing by resource group for now.
+func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"resource_group_id": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{
+						Func: commonids.ValidateResourceGroupID,
+					},
+				},
+			},
+		},
+	}
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.ApiCenter.ServicesClient
 
-	var data sdk.DefaultListModel
+	var data ApiCenterServiceListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -39,29 +63,21 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 	}
 
 	var results []services.Service
-	subscriptionID := metadata.SubscriptionId
-	if !data.SubscriptionId.IsNull() {
-		subscriptionID = data.SubscriptionId.ValueString()
-	}
 
 	resource := Resource{}
 
-	switch {
-	case !data.ResourceGroupName.IsNull():
-		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
-			return
-		}
-		results = resp.Items
-	default:
-		resp, err := client.ListBySubscriptionComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
-			return
-		}
-		results = resp.Items
+	parentID, err := commonids.ParseResourceGroupID(data.ResourceGroupID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Resource Group ID for `%s`", resource.ResourceType()), err)
+		return
 	}
+
+	resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(parentID.SubscriptionId, parentID.ResourceGroupName))
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
+		return
+	}
+	results = resp.Items
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range results {
