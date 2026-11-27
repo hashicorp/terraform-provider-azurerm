@@ -34,7 +34,7 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
+				return tf.ImportAsExistsError(azureApiManagementApiOperationResourceName, id.ID())
 			}
 		}
 	}
@@ -76,6 +76,9 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementApiOperationRead(d, meta)
 }

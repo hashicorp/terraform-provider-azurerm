@@ -41,12 +41,16 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta any) 
 		return fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
+	return resourceApiManagementApiOperationFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementApiOperationFlatten(d *pluginsdk.ResourceData, id *apioperation.OperationId, model *apioperation.OperationContract) error {
 	d.Set("operation_id", id.OperationId)
-	d.Set("api_name", apiName)
+	d.Set("api_name", helpers.GetApiName(id.ApiId))
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", props.DisplayName)
@@ -79,7 +83,7 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta any) 
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func flattenApiManagementOperationRequestContract(input *apioperation.RequestContract) ([]any, error) {
