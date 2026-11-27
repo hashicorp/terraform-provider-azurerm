@@ -30,6 +30,7 @@ func TestAccManagementGroupSubscriptionAssociation_sequential(t *testing.T) {
 		"Resource": {
 			"basic":          testAccManagementGroupSubscriptionAssociation_basic,
 			"requiresImport": testAccManagementGroupSubscriptionAssociation_requiresImport,
+			"regression":     testAccManagementGroupSubscriptionAssociation_regressionTest,
 		},
 	}
 
@@ -42,6 +43,18 @@ func TestAccManagementGroupSubscriptionAssociation_sequential(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testAccManagementGroupSubscriptionAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
+
+	r := ManagementGroupSubscriptionAssociation{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(),
+		},
+	}, "")
 }
 
 func testAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {

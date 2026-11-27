@@ -19,6 +19,17 @@ import (
 
 type MsSqlVirtualNetworkRuleResource struct{}
 
+func TestAccMsSqlVirtualNetworkRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_network_rule", "test")
+	r := MsSqlVirtualNetworkRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_network_rule", "test")
 	r := MsSqlVirtualNetworkRuleResource{}

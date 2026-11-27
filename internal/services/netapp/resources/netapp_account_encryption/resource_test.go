@@ -20,6 +20,19 @@ import (
 
 type NetAppAccountEncryptionResource struct{}
 
+func TestAccNetAppAccountEncryption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account_encryption", "test")
+	r := NetAppAccountEncryptionResource{}
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkSystemAssigned(data, tenantID),
+		},
+	}, "")
+}
+
 func TestAccNetAppAccountEncryption_cmkSystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account_encryption", "test")
 	r := NetAppAccountEncryptionResource{}

@@ -18,6 +18,17 @@ import (
 
 type MysqlFlexibleServerFirewallRuleResource struct{}
 
+func TestAccMySQLFlexibleServerFirewallRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_firewall_rule", "test")
+	r := MysqlFlexibleServerFirewallRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMySQLFlexibleServerFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_firewall_rule", "test")
 	r := MysqlFlexibleServerFirewallRuleResource{}

@@ -21,6 +21,17 @@ import (
 
 type MsSqlManagedInstanceResource struct{}
 
+func TestAccMsSqlManagedInstance_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}

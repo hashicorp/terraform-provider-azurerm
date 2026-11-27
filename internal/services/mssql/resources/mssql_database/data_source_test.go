@@ -13,6 +13,16 @@ import (
 
 type MsSqlDatabaseDataSource struct{}
 
+func TestAccDataSourceMsSqlDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: MsSqlDatabaseDataSource{}.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMsSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
 

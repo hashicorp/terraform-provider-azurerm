@@ -18,6 +18,17 @@ import (
 
 type MonitorActionGroupResource struct{}
 
+func TestAccMonitorActionGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+	r := MonitorActionGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupResource{}

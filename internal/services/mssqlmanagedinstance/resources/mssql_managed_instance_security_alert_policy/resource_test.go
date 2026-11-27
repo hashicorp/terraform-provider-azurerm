@@ -20,6 +20,17 @@ import (
 
 type MsSqlManagedInstanceSecurityAlertPolicyResource struct{}
 
+func TestAccMssqlManagedInstanceSecurityAlertPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_security_alert_policy", "test")
+	r := MsSqlManagedInstanceSecurityAlertPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMssqlManagedInstanceSecurityAlertPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_security_alert_policy", "test")
 	r := MsSqlManagedInstanceSecurityAlertPolicyResource{}

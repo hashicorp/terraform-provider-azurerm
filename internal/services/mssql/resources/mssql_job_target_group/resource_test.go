@@ -18,6 +18,17 @@ import (
 
 type MsSqlJobTargetGroupResource struct{}
 
+func TestAccMsSqlJobTargetGroupTest_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
+	r := MsSqlJobTargetGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlJobTargetGroupTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
 	r := MsSqlJobTargetGroupResource{}

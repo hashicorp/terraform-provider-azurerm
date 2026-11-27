@@ -42,6 +42,17 @@ func getBreakthroughModeTestLocation() string {
 
 type NetAppVolumeResource struct{}
 
+func TestAccNetAppVolume_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}

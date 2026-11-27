@@ -18,6 +18,17 @@ import (
 
 type MonitorAlertProcessingRuleSuppressionResource struct{}
 
+func TestAccMonitorAlertProcessingRuleSuppression_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_suppression", "test")
+	r := MonitorAlertProcessingRuleSuppressionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorAlertProcessingRuleSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_alert_processing_rule_suppression", "test")
 	r := MonitorAlertProcessingRuleSuppressionResource{}

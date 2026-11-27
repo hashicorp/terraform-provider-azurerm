@@ -13,6 +13,17 @@ import (
 
 type NetAppAccountDataSource struct{}
 
+func TestAccDataSourceNetAppAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account", "test")
+	r := NetAppAccountDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceNetAppAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account", "test")
 	r := NetAppAccountDataSource{}

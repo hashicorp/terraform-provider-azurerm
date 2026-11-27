@@ -19,6 +19,17 @@ import (
 
 type NetAppVolumeBucketWithServerResource struct{}
 
+func TestAccNetAppVolumeBucketWithServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket_with_server", "test")
+	r := NetAppVolumeBucketWithServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeBucketWithServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket_with_server", "test")
 	r := NetAppVolumeBucketWithServerResource{}

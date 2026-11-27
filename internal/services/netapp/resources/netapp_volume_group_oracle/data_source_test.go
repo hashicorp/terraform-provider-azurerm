@@ -13,6 +13,17 @@ import (
 
 type NetAppVolumeGroupOracleDataSource struct{}
 
+func TestAccNetAppVolumeGroupOracleDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_group_oracle", "test")
+	d := NetAppVolumeGroupOracleDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeGroupOracleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume_group_oracle", "test")
 	d := NetAppVolumeGroupOracleDataSource{}

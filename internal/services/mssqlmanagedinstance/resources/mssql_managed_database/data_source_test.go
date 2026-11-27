@@ -13,6 +13,16 @@ import (
 
 type MsSqlManagedDatabaseDataSource struct{}
 
+func TestAccDataSourceMsSqlManagedDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_database", "test")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: MsSqlManagedDatabaseDataSource{}.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMsSqlManagedDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_database", "test")
 

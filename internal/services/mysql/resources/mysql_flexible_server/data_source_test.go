@@ -13,6 +13,17 @@ import (
 
 type MySQLFlexibleServerDataSource struct{}
 
+func TestAccDataSourceMySqlFlexibleServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mysql_flexible_server", "test")
+	r := MySQLFlexibleServerDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMySqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_flexible_server", "test")
 	r := MySQLFlexibleServerDataSource{}

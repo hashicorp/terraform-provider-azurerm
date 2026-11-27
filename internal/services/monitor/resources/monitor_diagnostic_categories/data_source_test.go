@@ -13,6 +13,17 @@ import (
 
 type MonitorDiagnosticCategoriesDataSource struct{}
 
+func TestAccDataSourceMonitorDiagnosticCategories_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
+	r := MonitorDiagnosticCategoriesDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.appService(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMonitorDiagnosticCategories_appService(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
 	r := MonitorDiagnosticCategoriesDataSource{}

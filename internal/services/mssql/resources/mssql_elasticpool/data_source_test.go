@@ -14,6 +14,16 @@ import (
 
 type MsSqlElasticPoolDataSource struct{}
 
+func TestAccDataSourceMsSqlElasticPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: MsSqlElasticPoolDataSource{}.basic(data, ""),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMsSqlElasticPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
 

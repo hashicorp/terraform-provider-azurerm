@@ -20,6 +20,17 @@ import (
 
 type NetAppVolumeGroupOracleResource struct{}
 
+func TestAccNetAppVolumeGroupOracle_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_oracle", "test")
+	r := NetAppVolumeGroupOracleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAvailabilityZone(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeGroupOracle_basicAvailabilityZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_oracle", "test")
 	r := NetAppVolumeGroupOracleResource{}

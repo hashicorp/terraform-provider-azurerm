@@ -20,6 +20,17 @@ import (
 
 type NetAppVolumeGroupSAPHanaResource struct{}
 
+func TestAccNetAppVolumeGroupSAPHana_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
+	r := NetAppVolumeGroupSAPHanaResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppVolumeGroupSAPHana_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
 	r := NetAppVolumeGroupSAPHanaResource{}

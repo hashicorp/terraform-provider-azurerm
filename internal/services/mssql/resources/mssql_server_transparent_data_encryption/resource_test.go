@@ -21,6 +21,17 @@ import (
 
 type MsSqlServerTransparentDataEncryptionResource struct{}
 
+func TestAccMsSqlServerTransparentDataEncryption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
+	r := MsSqlServerTransparentDataEncryptionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVault(data, "test"),
+		},
+	}, "")
+}
+
 func TestAccMsSqlServerTransparentDataEncryption_keyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}

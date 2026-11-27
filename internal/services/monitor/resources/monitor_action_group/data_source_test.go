@@ -14,6 +14,17 @@ import (
 
 type MonitorActionGroupDataSource struct{}
 
+func TestAccDataSourceMonitorActionGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
+	r := MonitorActionGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceMonitorActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupDataSource{}

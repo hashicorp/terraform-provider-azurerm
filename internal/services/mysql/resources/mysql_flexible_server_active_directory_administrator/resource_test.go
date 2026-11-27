@@ -20,6 +20,17 @@ import (
 
 type MySQLFlexibleServerAdministratorResource struct{}
 
+func TestAccMySQLFlexibleServerAdministrator_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_active_directory_administrator", "test")
+	r := MySQLFlexibleServerAdministratorResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMySQLFlexibleServerAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_active_directory_administrator", "test")
 	r := MySQLFlexibleServerAdministratorResource{}

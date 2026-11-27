@@ -18,6 +18,17 @@ import (
 
 type MonitorScheduledQueryRulesLogResource struct{}
 
+func TestAccMonitorScheduledQueryRules_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+	r := MonitorScheduledQueryRulesLogResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.LogToMetricActionConfigComplete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorScheduledQueryRules_LogToMetricActionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
 	r := MonitorScheduledQueryRulesLogResource{}

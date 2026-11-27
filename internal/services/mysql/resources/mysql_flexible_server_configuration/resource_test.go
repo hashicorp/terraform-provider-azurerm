@@ -21,6 +21,17 @@ import (
 
 type MysqlFlexibleServerConfigurationResource struct{}
 
+func TestAccMySQLFlexibleServerConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
+	r := MysqlFlexibleServerConfigurationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.characterSetServer(data),
+		},
+	}, "")
+}
+
 func TestAccMySQLFlexibleServerConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
 	r := MysqlFlexibleServerConfigurationResource{}

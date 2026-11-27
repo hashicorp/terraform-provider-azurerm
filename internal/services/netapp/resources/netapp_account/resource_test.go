@@ -28,6 +28,7 @@ func TestAccNetAppAccount_sequential(t *testing.T) {
 			"requiresImport": testAccNetAppAccount_requiresImport,
 			"complete":       testAccNetAppAccount_complete,
 			"update":         testAccNetAppAccount_update,
+			"regression":     testAccNetAppAccount_regressionTest,
 		},
 	}
 
@@ -40,6 +41,17 @@ func TestAccNetAppAccount_sequential(t *testing.T) {
 			})
 		}
 	}
+}
+
+func testAccNetAppAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
+	r := NetAppAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeConfig(data),
+		},
+	}, "")
 }
 
 func testAccNetAppAccount_basic(t *testing.T) {

@@ -20,6 +20,17 @@ import (
 
 type ManagementGroupResource struct{}
 
+func TestAccManagementGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
+	r := ManagementGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(),
+		},
+	}, "")
+}
+
 func TestAccManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}

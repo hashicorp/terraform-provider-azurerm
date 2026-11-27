@@ -18,6 +18,17 @@ import (
 
 type MonitorMetricAlertResource struct{}
 
+func TestAccMonitorMetricAlert_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorMetricAlert_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
 	r := MonitorMetricAlertResource{}

@@ -18,6 +18,17 @@ import (
 
 type MonitorAutoScaleSettingResource struct{}
 
+func TestAccMonitorAutoScaleSetting_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorAutoScaleSetting_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}

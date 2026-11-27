@@ -32,6 +32,17 @@ func (r NetAppBackupPolicyResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccNetAppBackupPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_backup_policy", "test")
+	r := NetAppBackupPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccNetAppBackupPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_backup_policy", "test")
 	r := NetAppBackupPolicyResource{}

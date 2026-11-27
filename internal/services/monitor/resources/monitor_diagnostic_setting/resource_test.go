@@ -18,6 +18,16 @@ import (
 
 type MonitorDiagnosticSettingResource struct{}
 
+func TestAccMonitorDiagnosticSetting_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventhub(data),
+		},
+	}, "")
+}
+
 func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}

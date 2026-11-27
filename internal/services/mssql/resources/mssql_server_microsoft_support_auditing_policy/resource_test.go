@@ -20,6 +20,17 @@ import (
 
 type MsSqlServerMicrosoftSupportAuditingPolicyResource struct{}
 
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
+	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
 	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}

@@ -13,6 +13,17 @@ import (
 
 type NetAppSnapshotPolicyDataSource struct{}
 
+func TestAccDataSourceNetAppSnapshotPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_snapshot_policy", "test")
+	r := NetAppSnapshotPolicyDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceNetAppSnapshotPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_snapshot_policy", "test")
 	r := NetAppSnapshotPolicyDataSource{}

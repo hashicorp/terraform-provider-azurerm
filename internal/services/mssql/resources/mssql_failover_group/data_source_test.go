@@ -13,6 +13,17 @@ import (
 
 type MsSqlFailoverGroupDataSource struct{}
 
+func TestAccMsSqlFailoverGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_failover_group", "test")
+	r := MsSqlFailoverGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.automaticFailover(data),
+		},
+	}, "")
+}
+
 func TestAccMsSqlFailoverGroupDataSource_automaticFailover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupDataSource{}

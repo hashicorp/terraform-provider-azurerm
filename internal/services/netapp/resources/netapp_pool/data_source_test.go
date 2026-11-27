@@ -13,6 +13,17 @@ import (
 
 type NetAppPoolDataSource struct{}
 
+func TestAccDataSourceNetAppPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_pool", "test")
+	r := NetAppPoolDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceNetAppPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_pool", "test")
 	r := NetAppPoolDataSource{}
