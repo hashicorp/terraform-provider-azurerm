@@ -76,6 +76,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return old == new
+			},
 		},
 
 		"hostname": {
