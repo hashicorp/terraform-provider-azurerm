@@ -120,5 +120,8 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta any) err
 	}
 
 	d.SetId(id.ID())
+	if err := setKeyVaultAccessPolicyIdentityData(d, &id); err != nil {
+		return err
+	}
 	return nil
 }

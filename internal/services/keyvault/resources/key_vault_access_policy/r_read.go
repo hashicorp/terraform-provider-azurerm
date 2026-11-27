@@ -52,27 +52,51 @@ func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error
 		return nil
 	}
 
+	return resourceKeyVaultAccessPolicyFlatten(d, id, accessPolicy)
+}
+
+func resourceKeyVaultAccessPolicyFlatten(d *pluginsdk.ResourceData, id *parse.AccessPolicyId, accessPolicy *vaults.AccessPolicyEntry) error {
 	d.Set("key_vault_id", id.KeyVaultId().ID())
 	d.Set("application_id", id.ApplicationId())
 	d.Set("object_id", id.ObjectID())
-	d.Set("tenant_id", accessPolicy.TenantId)
 
-	if err := d.Set("certificate_permissions", helpers.FlattenCertificatePermissions(accessPolicy.Permissions.Certificates)); err != nil {
-		return fmt.Errorf("setting `certificate_permissions`: %+v", err)
+	if accessPolicy != nil {
+		d.Set("tenant_id", accessPolicy.TenantId)
+
+		if err := d.Set("certificate_permissions", helpers.FlattenCertificatePermissions(accessPolicy.Permissions.Certificates)); err != nil {
+			return fmt.Errorf("setting `certificate_permissions`: %+v", err)
+		}
+
+		if err := d.Set("key_permissions", helpers.FlattenKeyPermissions(accessPolicy.Permissions.Keys)); err != nil {
+			return fmt.Errorf("setting `key_permissions`: %+v", err)
+		}
+
+		if err := d.Set("secret_permissions", helpers.FlattenSecretPermissions(accessPolicy.Permissions.Secrets)); err != nil {
+			return fmt.Errorf("setting `secret_permissions`: %+v", err)
+		}
+
+		if err := d.Set("storage_permissions", helpers.FlattenStoragePermissions(accessPolicy.Permissions.Storage)); err != nil {
+			return fmt.Errorf("setting `storage_permissions`: %+v", err)
+		}
 	}
 
-	if err := d.Set("key_permissions", helpers.FlattenKeyPermissions(accessPolicy.Permissions.Keys)); err != nil {
-		return fmt.Errorf("setting `key_permissions`: %+v", err)
-	}
+	return setKeyVaultAccessPolicyIdentityData(d, id)
+}
 
-	if err := d.Set("secret_permissions", helpers.FlattenSecretPermissions(accessPolicy.Permissions.Secrets)); err != nil {
-		return fmt.Errorf("setting `secret_permissions`: %+v", err)
+func setKeyVaultAccessPolicyIdentityData(d *pluginsdk.ResourceData, id *parse.AccessPolicyId) error {
+	identity, err := d.Identity()
+	if err != nil {
+		return fmt.Errorf("getting identity: %+v", err)
 	}
-
-	if err := d.Set("storage_permissions", helpers.FlattenStoragePermissions(accessPolicy.Permissions.Storage)); err != nil {
-		return fmt.Errorf("setting `storage_permissions`: %+v", err)
+	if err := identity.Set("key_vault_id", id.KeyVaultId().ID()); err != nil {
+		return fmt.Errorf("setting `key_vault_id` in resource identity: %+v", err)
 	}
-
+	if err := identity.Set("object_id", id.ObjectID()); err != nil {
+		return fmt.Errorf("setting `object_id` in resource identity: %+v", err)
+	}
+	if err := identity.Set("application_id", id.ApplicationId()); err != nil {
+		return fmt.Errorf("setting `application_id` in resource identity: %+v", err)
+	}
 	return nil
 }
 
