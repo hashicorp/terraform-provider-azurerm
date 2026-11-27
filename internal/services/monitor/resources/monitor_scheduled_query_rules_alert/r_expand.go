@@ -8,14 +8,20 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *scheduledqueryrules.AlertingAction {
 	alertActionRaw := d.Get("action").([]any)
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
-	severityRaw := d.Get("severity").(int)
-	severity := strconv.Itoa(severityRaw)
+	severityRaw := d.Get("severity").(string)
+	severityValue, err := helpers.NormalizeMonitorSeverity(severityRaw)
+	if err != nil {
+		// This should be prevented by schema validation, but we keep a safe fallback.
+		severityValue = 0
+	}
+	severity := strconv.Itoa(severityValue)
 
 	triggerRaw := d.Get("trigger").([]any)
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)

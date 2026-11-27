@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -174,10 +175,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"severity": {
-			Description:  "Severity of the alert. Severity decreases as the value increases.",
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(0, 4),
+			Description:      "Severity of the alert. Severity decreases as the value increases.",
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     helpers.ValidateMonitorSeverity,
+			StateFunc:        helpers.NormalizeMonitorSeverityState,
+			DiffSuppressFunc: helpers.SuppressMonitorSeverityDiff,
 		},
 
 		"window_duration": {

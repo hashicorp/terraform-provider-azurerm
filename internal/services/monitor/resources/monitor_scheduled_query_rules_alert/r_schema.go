@@ -6,6 +6,7 @@ package monitor_scheduled_query_rules_alert
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -114,10 +115,13 @@ func monitorScheduledQueryRulesAlertSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 		"severity": {
-			Description:  "Severity of the alert.",
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 4),
+			Description:      "Severity of the alert.",
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Default:          "0",
+			ValidateFunc:     helpers.ValidateMonitorSeverity,
+			StateFunc:        helpers.NormalizeMonitorSeverityState,
+			DiffSuppressFunc: helpers.SuppressMonitorSeverityDiff,
 		},
 		"throttling": {
 			Description:   "Time (in minutes) for which Alerts should be throttled or suppressed.",

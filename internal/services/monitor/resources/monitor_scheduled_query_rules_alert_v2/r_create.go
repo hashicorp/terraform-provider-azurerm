@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,6 +27,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+
+			severityLevel, err := helpers.NormalizeMonitorSeverity(model.Severity)
+			if err != nil {
+				return fmt.Errorf("invalid severity %q: %s", model.Severity, err)
+			}
+			severity := scheduledqueryrules.AlertSeverity(severityLevel)
 
 			client := metadata.Client.Monitor.ScheduledQueryRulesV2Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -50,7 +57,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					CheckWorkspaceAlertsStorageConfigured: &model.CheckWorkspaceAlertsStorageConfigured,
 					Enabled:                               &model.Enabled,
 					Scopes:                                &model.Scopes,
-					Severity:                              &model.Severity,
+					Severity:                              &severity,
 					SkipQueryValidation:                   &model.SkipQueryValidation,
 					TargetResourceTypes:                   &model.TargetResourceTypes,
 				},

@@ -23,7 +23,7 @@ type ScheduledQueryRulesAlertV2Model struct {
 	MuteActionsDuration                   string                                     `tfschema:"mute_actions_after_alert_duration"`
 	OverrideQueryTimeRange                string                                     `tfschema:"query_time_range_override"`
 	Scopes                                []string                                   `tfschema:"scopes"`
-	Severity                              scheduledqueryrules.AlertSeverity          `tfschema:"severity"`
+	Severity                              string                                     `tfschema:"severity"`
 	SkipQueryValidation                   bool                                       `tfschema:"skip_query_validation"`
 	Tags                                  map[string]string                          `tfschema:"tags"`
 	TargetResourceTypes                   []string                                   `tfschema:"target_resource_types"`

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -96,7 +97,12 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("severity") {
-				model.Properties.Severity = &resourceModel.Severity
+				severityLevel, err := helpers.NormalizeMonitorSeverity(resourceModel.Severity)
+				if err != nil {
+					return fmt.Errorf("invalid severity %q: %s", resourceModel.Severity, err)
+				}
+				severity := scheduledqueryrules.AlertSeverity(severityLevel)
+				model.Properties.Severity = &severity
 			}
 
 			if metadata.ResourceData.HasChange("skip_query_validation") {

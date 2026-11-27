@@ -49,7 +49,11 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta any)
 	autoMitigate := d.Get("auto_mitigate").(bool)
 	description := d.Get("description").(string)
 	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
-	severity := d.Get("severity").(int)
+	severityRaw := d.Get("severity").(string)
+	severity, err := helpers.NormalizeMonitorSeverity(severityRaw)
+	if err != nil {
+		return fmt.Errorf("invalid severity %q: %s", severityRaw, err)
+	}
 	frequency := d.Get("frequency").(string)
 	windowSize := d.Get("window_size").(string)
 	actionRaw := d.Get("action").(*pluginsdk.Set).List()

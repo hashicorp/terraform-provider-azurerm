@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,11 +37,11 @@ func resourceMonitorScheduledQueryRulesAlertFlatten(d *pluginsdk.ResourceData, i
 		if err := d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 			return fmt.Errorf("setting `action`: %+v", err)
 		}
-		severity, err := strconv.Atoi(string(action.Severity))
+		severity, err := helpers.NormalizeMonitorSeverity(string(action.Severity))
 		if err != nil {
 			return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, *id, err)
 		}
-		d.Set("severity", severity)
+		d.Set("severity", strconv.Itoa(severity))
 		d.Set("throttling", action.ThrottlingInMin)
 		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
 			return fmt.Errorf("setting `trigger`: %+v", err)

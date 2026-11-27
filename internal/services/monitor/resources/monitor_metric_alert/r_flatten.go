@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
@@ -22,7 +23,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		d.Set("enabled", props.Enabled)
 		d.Set("auto_mitigate", props.AutoMitigate)
 		d.Set("description", props.Description)
-		d.Set("severity", props.Severity)
+		d.Set("severity", strconv.FormatInt(props.Severity, 10))
 		d.Set("frequency", props.EvaluationFrequency)
 		d.Set("window_size", props.WindowSize)
 		if err := d.Set("scopes", props.Scopes); err != nil {

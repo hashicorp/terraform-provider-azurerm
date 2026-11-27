@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -340,11 +341,13 @@ func monitorMetricAlertSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"severity": {
-			Description:  "The severity of this Metric Alert.",
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      3,
-			ValidateFunc: validation.IntBetween(0, 4),
+			Description:      "The severity of this Metric Alert.",
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Default:          "3",
+			ValidateFunc:     helpers.ValidateMonitorSeverity,
+			StateFunc:        helpers.NormalizeMonitorSeverityState,
+			DiffSuppressFunc: helpers.SuppressMonitorSeverityDiff,
 		},
 
 		"window_size": {

@@ -44,7 +44,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *scheduledqueryrules
 		state.MuteActionsDuration = pointer.From(properties.MuteActionsDuration)
 		state.OverrideQueryTimeRange = pointer.From(properties.OverrideQueryTimeRange)
 		state.Scopes = pointer.From(properties.Scopes)
-		state.Severity = pointer.From(properties.Severity)
+		state.Severity = fmt.Sprintf("%d", pointer.From(properties.Severity))
 		state.SkipQueryValidation = pointer.From(properties.SkipQueryValidation)
 		state.TargetResourceTypes = pointer.From(properties.TargetResourceTypes)
 		state.WindowSize = pointer.From(properties.WindowSize)
