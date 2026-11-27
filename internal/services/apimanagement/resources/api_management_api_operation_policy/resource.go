@@ -7,9 +7,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_operation_policy/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "resource_group_name,service_name:api_management_name,api_id:api_name,operation_id" -test-name rawXml
+
+const azureApiManagementApiOperationPolicyResourceName = "azurerm_api_management_api_operation_policy"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -18,10 +23,11 @@ func RegisterResource() *pluginsdk.Resource {
 		Read:        resourceApiManagementAPIOperationPolicyRead,
 		Update:      resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Delete:      resourceApiManagementAPIOperationPolicyDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apioperationpolicy.ParseOperationID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apioperationpolicy.OperationId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apioperationpolicy.OperationId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

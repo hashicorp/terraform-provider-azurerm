@@ -38,12 +38,16 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
+	return resourceApiManagementAPIOperationPolicyFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementAPIOperationPolicyFlatten(d *pluginsdk.ResourceData, id *apioperationpolicy.OperationId, model *apioperationpolicy.PolicyContract) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("api_name", helpers.GetApiName(id.ApiId))
 	d.Set("operation_id", id.OperationId)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 			// as such there is no way to set `xml_link` and we'll let Terraform handle it
@@ -51,5 +55,5 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }

@@ -34,7 +34,7 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_api_management_api_operation_policy", id.ID())
+				return tf.ImportAsExistsError(azureApiManagementApiOperationPolicyResourceName, id.ID())
 			}
 		}
 	}
@@ -67,6 +67,9 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementAPIOperationPolicyRead(d, meta)
 }
