@@ -8,4 +8,4 @@ SERVICE_PATH="%SERVICE_PATH%"
 # answers from the cache rather than run tests which it has already seen pass
 #
 # the reporter is told when `go test` started so that it can say how long the tests took to compile
-go test -v "$SERVICE_PATH/..." -count=1 -timeout="%TIMEOUT%h" -test.parallel="%PARALLELISM%" -run="%TEST_PREFIX%" -json | go run ./internal/tools/teamcity-test-reporter -started-at="$(date +%s)"
+go test -v "$SERVICE_PATH/..." -ldflags="-w" -count=1 -timeout="%TIMEOUT%h" -test.parallel="%PARALLELISM%" -run="%TEST_PREFIX%" -json | go run ./internal/tools/teamcity-test-reporter -started-at="$(date +%s)"

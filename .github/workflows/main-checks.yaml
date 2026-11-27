@@ -59,7 +59,7 @@ jobs:
           go-version-file: ./.go-version
           cache: false
       - name: Build Provider
-        run: go build -v -o /dev/null main.go
+        run: go build -v -ldflags="-w" -o /dev/null main.go
 
   depscheck:
     runs-on: ubuntu-latest
@@ -128,6 +128,7 @@ jobs:
           .tools/bin/gotestsum \
            --format pkgname-and-test-fails \
            --format-hide-empty-pkg -- \
+           -ldflags="-w" \
            -timeout=30s \
            -parallel=32 \
            -run='^Test[^A]|^TestA[^c]|^TestAc[^c]' \

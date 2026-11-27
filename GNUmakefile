@@ -114,7 +114,7 @@ golangci-fix: ## renamed to lint-fix
 tools: $(ACTIONLINT) $(CHANGELOGGY) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) $(ZIZMOR) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
-	go install
+	go install -ldflags="-w"
 
 # Generated files are deleted first, so one that has lost its go:generate line shows up as a deleted file in gencheck.
 generate: $(GOFUMPT) $(GOIMPORTS) $(TERRAFMT) ## Regenerate auto-generated code
@@ -254,10 +254,10 @@ test: ## Run the unit tests
 	@TEST=$(TEST) ./scripts/checks/test.sh
 
 testacc: ## Run acceptance tests for a package (TEST=./internal/services/<service>)
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-w -X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: ## Run acceptance tests for a service (SERVICE=<service>)
-	TF_ACC=1 go test -v ./internal/services/$(SERVICE)/... $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./internal/services/$(SERVICE)/... $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-w -X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: ## Run acceptance tests under the delve debugger (TEST=./internal/services/<service>)
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)

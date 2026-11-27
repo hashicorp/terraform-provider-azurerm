@@ -427,7 +427,7 @@ jobs:
         with:
           go-version-file: ./.go-version
       - name: Build Provider
-        run: go build -v -o /dev/null main.go
+        run: go build -v -ldflags="-w" -o /dev/null main.go
       - name: Guidance on failure
         if: failure()
         run: |
@@ -610,6 +610,7 @@ jobs:
           .tools/bin/gotestsum \
            --format pkgname-and-test-fails \
            --format-hide-empty-pkg -- \
+           -ldflags="-w" \
            -timeout=30s \
            -parallel=32 \
            -run='^Test[^A]|^TestA[^c]|^TestAc[^c]' \
