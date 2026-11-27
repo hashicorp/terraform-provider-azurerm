@@ -74,16 +74,16 @@ Things worth noting here:
 
 - The call to `o.Configure` configures the authorization token which should be used for this SDK Client - in most cases `ResourceManager` is the authorizer you want to use.
 
-At this point, this SDK Client should be usable within the Resource via:
+At this point, this SDK Client will be usable within the Resource via the generated `From` helper in the service's `client` package (aliased as `{service}client` to avoid shadowing the local `client` variable):
 
 ```go
-client := metadata.Client.{ServicePackage}.{ClientField}
+client := {service}client.From(metadata.Client).{ClientField}
 ```
 
 For example, in this case:
 
 ```go
-client := metadata.Client.Resource.ResourceGroupsClient
+client := resourceclient.From(metadata.Client).ResourceGroupsClient
 ```
 
 ### Step 3: Define the Resource ID
@@ -94,14 +94,14 @@ See [Resource IDs](guide-resource-ids.md) for the details.
 
 ### Step 4: Scaffold an empty/new Resource
 
-Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resource`.
+Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create a new resource package under `./internal/services/resource/resources/resource_group_example/`.
 
-In this case, this would be a file called `resource_group_example_resource.go`, which we'll start out with the following:
+In this case, we'll start with `resource.go` (splitting `r_schema.go`, `r_models.go`, `r_create.go`, `r_read.go`, `r_update.go`, `r_delete.go`, and `resource_test.go` as the resource grows):
 
-> **Note:** We'd normally name this file `resource_group_resource.go` - but there's an existing Resource for Resource Groups, so we're appending `example` to the name throughout this guide.
+> **Note:** We'd normally name this package `resource_group` - but there's an existing Resource for Resource Groups, so we're appending `example` to the name throughout this guide.
 
 ```go
-package resource
+package resource_group_example
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
@@ -200,12 +200,12 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 
         // the Func returns a function which retrieves the current state of the Resource Group into the state
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             // retrieve the Name for this Resource Group from the Terraform Config
             // and then create a Resource ID for this Resource Group
             // using the Subscription ID & name
-            subscriptionId := metadata.Client.Account.SubscriptionId
+            subscriptionId := metadata.Account.SubscriptionId
 
             var config ResourceGroupExampleResourceModel
             if err := metadata.Decode(&config); err != nil {
@@ -217,7 +217,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
             // this is because the Azure API uses the `name` as a unique identifier and Upserts
             // so we don't want to unintentionally adopt this resource by using the same name
             // unless the user has opted into doing so by setting the `skip_import_check_on_create_and_allow_overwriting_existing_resources` flag
-            if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+            if !metadata.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
                 existing, err := client.Get(ctx, id)
                 if err != nil && !response.WasNotFound(existing.HttpResponse) {
                     return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -266,7 +266,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 
         // the Func returns a function which retrieves the current state of the Resource Group into the state
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             // parse the existing Resource ID from the State
             id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
@@ -335,7 +335,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 
         // the Func returns a function which looks up the state of the Resource Group and sets it into the state
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             // parse the Resource Group ID from the `id` field
             id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
@@ -408,7 +408,7 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
 
         // the Func returns a function which deletes the Resource Group
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
@@ -455,8 +455,10 @@ import (
     "github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
     "github.com/hashicorp/go-azure-helpers/resourcemanager/location"
     "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -500,8 +502,8 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
-            subscriptionId := metadata.Client.Account.SubscriptionId
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
+            subscriptionId := metadata.Account.SubscriptionId
 
             var config ResourceGroupExampleResourceModel
             if err := metadata.Decode(&config); err != nil {
@@ -535,7 +537,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
@@ -563,7 +565,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
@@ -599,7 +601,7 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.ResourceGroupsClient
+            client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
             id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
@@ -798,10 +800,10 @@ output "id" {
 
 We're going to test the Resource that we've just built by dynamically provisioning a Resource Group using the new `azurerm_resource_group_example` Resource.
 
-In Go tests are expected to be in a file name in the format `{original_file_name}_test.go` - in our case that'd be `resource_group_example_resource_test.go`, into which we'll want to add:
+Tests live alongside the resource implementation in `resource_test.go` inside `./internal/services/resource/resources/resource_group_example/`, using a `_test` package suffix:
 
 ```go
-package resource_test
+package resource_group_example_test
 
 import (
     "context"
@@ -948,17 +950,19 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 3. When one config helper is only used once inside `fmt.Sprintf`, pass it directly as the argument (for example `r.basic(data)`) instead of assigning a temporary variable first.
 4. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
 5. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
-6. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+6. We append `_test` to the Go package name (e.g. `resource_group_example_test`) since we need to be able to access both the `resource_group_example` package and the `acceptance` package (which would be a circular reference otherwise).
 
 At this point we should be able to run this test.
 
 ### Step 9: Run the Acceptance Test(s)
 
-Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the test above using:
+Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the tests for just this resource package using:
 
 ```sh
-make acctests SERVICE='resource' TESTARGS='-run=TestAccResourceGroupExample_' TESTTIMEOUT='60m'
+make testacc TEST=./internal/services/resource/resources/resource_group_example TESTARGS='-run=TestAccResourceGroupExample_' TESTTIMEOUT='60m'
 ```
+
+*(Or run across the whole service with `make acctests SERVICE='resource' TESTARGS='-run=TestAccResourceGroupExample_' TESTTIMEOUT='60m'`.)*
 
 > **Note:** We're using the test prefix `TestAccResourceGroupExample_` and not the name of an individual test, but you can do that too by specifying `"(TestName1|TestName2)"` etc
 
@@ -968,7 +972,7 @@ Which should output:
 ==> Checking that code complies with gofmt requirements...
 ==> Checking that Custom Timeouts are used...
 ==> Checking that acceptance test packages are used...
-TF_ACC=1 go test -v ./internal/services/resource -run=TestAccResourceGroupExample_ -timeout 60m -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+TF_ACC=1 go test ./internal/services/resource/resources/resource_group_example -v -run=TestAccResourceGroupExample_ -timeout 60m -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 === RUN   TestAccResourceGroupExample_basic
 === PAUSE TestAccResourceGroupExample_basic
 === CONT  TestAccResourceGroupExample_basic
@@ -982,7 +986,7 @@ TF_ACC=1 go test -v ./internal/services/resource -run=TestAccResourceGroupExampl
 === CONT  TestAccResourceGroupExample_requiresImport
 --- PASS: TestAccResourceGroupExample_requiresImport (116.15s)
 PASS
-ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource	324.753s
+ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/resources/resource_group_example	324.753s
 ```
 
 ### Step 10: Add Documentation for this Resource

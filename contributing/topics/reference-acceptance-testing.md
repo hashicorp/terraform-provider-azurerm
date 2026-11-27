@@ -64,10 +64,10 @@ Next to the tests that call it, after the `TestAcc...` functions and before `Exi
 
 ### Test Package
 
-While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aadb2c/aadb2c_directory_data_source_test.go` the package should be:
+While tests live in the same folder as the resource or data source `.go` files, they belong in a separate `_test` package to prevent circular dependencies. For example, inside `./internal/services/aadb2c/resources/aadb2c_directory/data_source_test.go`, the package should be:
 
 ```go
-package aadb2c_test
+package aadb2c_directory_test
 
 import ...
 ```
@@ -419,3 +419,28 @@ An empty version means the release in `version/VERSION`.
 When a change adds a resource, data source or property that the config uses, the released version cannot read the config yet, so the test skips until a release includes it and then runs again by itself. Keep using the shared config rather than a copy in the test, as a copy would never cover the new property. Tests are only skipped when a resource, data source or property is added. A misspelt or removed property, or any other error, does not cause the test to be skipped.
 
 A test that pins a version, such as a state migration test, is never skipped, as that version will never gain what is missing. If a shared config it uses gains a new property the test fails; give it a config of its own.
+
+### Sequential / Serialized Tests (`RunTestsInSequence`)
+
+By default, `go test` runs packages—and `t.Parallel()` acceptance tests within them—concurrently. That breaks when Azure imposes a hard constraint on the resource being tested: subscription- or tenant-wide singletons (like portal tenant configuration or security center settings), tight quota limits, shared parent resource contention, or rate-limited APIs.
+
+In those cases, wrap the affected tests in `acceptance.RunTestsInSequence` under a single `TestAcc..._sequential` entry point:
+
+```go
+func TestAccExampleResource_sequential(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"example": {
+			"basic":          testAccExampleResource_basic,
+			"requiresImport": testAccExampleResource_requiresImport,
+			"update":         testAccExampleResource_update,
+			"regression":     testAccExampleResource_regressionTest,
+		},
+	})
+}
+```
+
+A few things to keep in mind:
+
+* **Keep individual test functions unexported (`testAcc...`)** (or let `RunTestsInSequence` invoke them as subtests without a top-level `TestAcc` prefix) so `go test` doesn't run them a second time in parallel outside the sequence.
+* **Use `data.ResourceSequentialRegressionTest`** for regression tests inside a sequential suite instead of `data.ResourceRegressionTest`.
+* **Where serialized tests live in the resource-per-folder layout:** Go runs separate `./resources/{resource_name}` packages in parallel. If a constraint only affects one resource, its `TestAcc..._sequential` runner lives in that resource's `resource_test.go`. When multiple resources share a constrained parent, singleton, or quota, **keep the serialized test suite with the "constrained" resource involved in the test**—the resource that owns or imposes the bottleneck—rather than splitting competing `RunTestsInSequence` runners across sibling resource folders (if a child resource in that suite also uses generated Resource Identity tests, pass `-test-sequential -parent-resource {parent_resource}` as covered in [Resource Identity](guide-resource-identity.md#resource-identity-tests)).

@@ -48,9 +48,9 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
         return sdk.ResourceFunc{
             Timeout: 30 * time.Minute,
             Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-                client := metadata.Client.Service.ExampleClient
+                client := exampleclient.From(metadata.Client).ExampleClient
 
-                id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+                id := examplepackage.NewExampleResourceID(metadata.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
                 ...
 
@@ -75,7 +75,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
         return sdk.ResourceFunc{
             Timeout: 5 * time.Minute,
             Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-                client := metadata.Client.Service.ExampleClient
+                client := exampleclient.From(metadata.Client).ExampleClient
                 id, err := examplepackage.ParseExampleResourceID(metadata.ResourceData.Id())
                 if err != nil {
                     return err
@@ -162,11 +162,11 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
     func resourceExampleCreate(d *pluginsdk.ResourceData, meta any) error {
-        client := meta.(*clients.Client).Service.ExampleClient
-        ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+        client := exampleclient.From(meta).ExampleClient
+        ctx, cancel := timeouts.ForCreate(account.StopContext(meta), d)
         defer cancel()
 
-        id := examplepackage.NewExampleResourceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+        id := examplepackage.NewExampleResourceID(account.From(meta).SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
         ...
 
@@ -190,8 +190,8 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
         func resourceExampleRead(d *pluginsdk.ResourceData, meta any) error {
-            client := meta.(*clients.Client).Service.ExampleClient
-            ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+            client := exampleclient.From(meta).ExampleClient
+            ctx, cancel := timeouts.ForRead(account.StopContext(meta), d)
             defer cancel()
 
             id, err := examplepackage.ParseExampleResourceID(d.Id())
@@ -217,13 +217,13 @@ The schema is generated for us by taking different parts of the ID and convertin
 For most resources no flags are needed. The tool reads the ID struct from the file, from `Identity()` on a typed resource or the `GenerateIdentitySchema` call on an untyped one, and maps each field to its snake_case name, with the last segment becoming `name`:
 
 ```go
-//go:generate go run ../../tools/generator-tests resourceidentity
+//go:generate go run ../../../../tools/generator-tests resourceidentity
 ```
 
 If your resource uses a **Virtual Identity** (a sub-resource that inherits its ID entirely from a parent resource), you will need to specify the `-parent-id` flag with the name of the parent ID property in the schema (e.g. `-parent-id workspace_id`). The tool will automatically expand this to map all ID fields to that parent ID.
 
 ```go
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id parent_resource_id
+//go:generate go run ../../../../tools/generator-tests resourceidentity -parent-id parent_resource_id
 ```
 
 > **Note:** If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
@@ -277,16 +277,17 @@ import (
     "time"
 
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	exampleclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/example/client"
 )
 
 // A basic example where the tool infers everything
-//go:generate go run ../../tools/generator-tests resourceidentity
+//go:generate go run ../../../../tools/generator-tests resourceidentity
 
 // An example where the resource is a sub-resource utilizing a Virtual Identity
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id parent_resource_id
+//go:generate go run ../../../../tools/generator-tests resourceidentity -parent-id parent_resource_id
 
 // An example of a resource ID that doesn't contain the `subscription_id` segment, e.g. management groups
-//go:generate go run ../../tools/generator-tests resourceidentity -no-subscription-id
+//go:generate go run ../../../../tools/generator-tests resourceidentity -no-subscription-id
 
 // An example of a resource running in a parent sequential suite
 //go:generate go run ../../../../tools/generator-tests resourceidentity -test-sequential -parent-resource parent_resource
@@ -303,7 +304,7 @@ func (r ExampleResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Service.ExampleClient
+            client := exampleclient.From(metadata.Client).ExampleClient
             id, err := examplepackage.ParseExampleResourceID(metadata.ResourceData.Id())
             if err != nil {
                 return err

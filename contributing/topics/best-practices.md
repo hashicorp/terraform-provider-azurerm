@@ -397,3 +397,15 @@ return &managedclusters.ManagedClusterBootstrapProfile{
     ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
 }
 ```
+
+## Client & Package Dependencies
+
+Code under `internal/sdk`, `internal/preflight`, and `internal/services/*` must **never** import the monolithic `internal/clients` package directly (enforced by `make depscheck`). Importing `internal/clients` pulls all 135+ service clients and over 1,500 Azure SDK packages into every resource package's compile unit.
+
+Instead:
+
+- **Service clients:** Use the generated `From(...)` helper in the service's `client` package (e.g. `computeclient.From(metadata.Client)` for typed resources, or `computeclient.From(meta)` for untyped resources).
+- **Account & StopContext:** Use `metadata.Account` on typed `sdk.ResourceMetaData`, or `account.From(meta)` / `account.StopContext(meta)` from `internal/clients/account` in untyped resources.
+- **Features:** Use `metadata.Features` on typed `sdk.ResourceMetaData`, or `features.From(meta)` from `internal/features` in untyped resources.
+
+Acceptance test files (`*_test.go`) may still accept `*clients.Client` in `Exists(...)` helpers.

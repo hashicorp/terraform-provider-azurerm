@@ -145,7 +145,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     ```go
     func (NetworkProfileListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 
-        client := metadata.Client.Network.NetworkProfiles
+        client := networkclient.From(metadata.Client).NetworkProfiles
 
         // Read the list config data into the model
         var data sdk.DefaultListModel
@@ -229,7 +229,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
     ```go
     func (ExampleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-        client := metadata.Client.Example.ExampleResourceClient
+        client := exampleclient.From(metadata.Client).ExampleResourceClient
 
         var data sdk.DefaultListModel
         diags := request.Config.Get(ctx, &data)

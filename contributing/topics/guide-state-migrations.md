@@ -19,7 +19,9 @@ State migrations are service specific and are thus kept under a `migration` fold
 │   ├── client
 │   ├── migration
 │   │   ├── managed_disk_v0_to_v1.go
-│   ├── managed_disk_resource.go
+│   ├── resources
+│   │   ├── managed_disk
+│   │   │   ├── resource.go
 ...
 ```
 
@@ -27,7 +29,7 @@ The migration file follows the naming convention of `[resourceName]_[initialVers
 
 ## Walkthrough for adding a state migration
 
-We will step through an example on how to add a state migration for a made up resource, `capybara_resource.go` in the `animals` service, where one of the Resource ID segments has been cased incorrectly. The state migration will make the following modification:
+We will step through an example on how to add a state migration for a made up resource, `animals/resources/capybara/resource.go` (with its schema in `r_schema.go`) in the `animals` service, where one of the Resource ID segments has been cased incorrectly. The state migration will make the following modification:
 `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/Capybaras/capybara1` -> `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/capybaras/capybara1`
 
 1. Create an empty file under the service's migration folder called `capybara_v0_to_v1.go` e.g. (e.g. `./internal/services/animals/migration/capybara_v0_to_v1.go`)
@@ -59,7 +61,7 @@ We will step through an example on how to add a state migration for a made up re
    }
    ```
 
-3. Copy over the schema for `capybara_resource.go`. If nothing in the schema is changing then this can be copied over 1:1, however you will want to go through and remove some property attributes that are not required.
+3. Copy over the schema from `resources/capybara/r_schema.go` (or `resource.go`). If nothing in the schema is changing then this can be copied over 1:1, however you will want to go through and remove some property attributes that are not required.
    The `Schema()` is a point-in-time reference to the Terraform Schema for this Resource at this point - and is used by Terraform to deserialize/serialize the object from the Terraform State. For this reason only a subset of attributes should be defined here (including `Type`, `Required`, `Optional`, `Computed` and `Elem` [for maps/lists/sets, including any custom hash functions]) - and the following attributes can be removed from the Schema:
 
    * Default

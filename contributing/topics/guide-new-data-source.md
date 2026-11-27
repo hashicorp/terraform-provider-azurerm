@@ -72,16 +72,16 @@ Things worth noting here:
 
 - The call to `o.Configure` configures the authorization token which should be used for this SDK Client - in most cases `ResourceManager` is the authorizer you want to use.
 
-At this point, this SDK Client should be usable within the Data Sources via:
+At this point, this SDK Client should be usable within the Data Sources via the generated `From` helper in the service's `client` package (aliased as `{service}client` to avoid shadowing the local `client` variable):
 
 ```go
-client := metadata.Client.{ServicePackage}.{ClientField}
+client := {service}client.From(metadata.Client).{ClientField}
 ```
 
 For example, in this case:
 
 ```go
-client := metadata.Client.Resource.ResourceGroupsClient
+client := resourceclient.From(metadata.Client).ResourceGroupsClient
 ```
 
 ### Step 3: Define the Resource ID
@@ -92,14 +92,12 @@ See [Resource IDs](guide-resource-ids.md) for the details.
 
 ### Step 4: Scaffold an empty/new Data Source
 
-Since we're creating a Data Source for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resource`.
+Since we're creating a Data Source for a Resource Group, which is a part of the Resources API - we need a `data_source.go` file inside `./internal/services/resource/resources/resource_group/` (alongside `resource.go` if a resource exists, or on its own for a data-source-only package):
 
-In this case, this would be a file called `resource_group_example_data_source.go`, which we'll start out with the following:
-
-> **Note:** We'd normally name this file `resource_group_data_source.go` - but there's an existing Data Source for Resource Groups, so we're appending `example` to the name throughout this guide.
+> **Note:** there's an existing Data Source for Resource Groups, so we're appending `example` to the name throughout this guide.
 
 ```go
-package resource
+package resource_group
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
@@ -193,12 +191,12 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 
 		// the Func returns a function which retrieves the current state of the Resource Group into the state
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.ResourceGroupsClient
+			client := resourceclient.From(metadata.Client).ResourceGroupsClient
 
 			// retrieve the Name for this Resource Group from the Terraform Config
 			// and then create a Resource ID for this Resource Group
 			// using the Subscription ID & name
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			subscriptionId := metadata.Account.SubscriptionId
 
 			// declare a variable called state which we use to decode and encode values into
 			// this simultaneously gets values that have been set in the config for us
@@ -260,7 +258,7 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 At this point the finished Data Source should look like (including imports):
 
 ```go
-package resource
+package resource_group
 
 import (
 	"context"
@@ -273,7 +271,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -316,8 +316,8 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.ResourceGroupsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := resourceclient.From(metadata.Client).ResourceGroupsClient
+			subscriptionId := metadata.Account.SubscriptionId
 
 			var state ResourceGroupExampleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -435,10 +435,10 @@ output "location" {
 
 We're going to test the Data Source that we've just built by dynamically provisioning a Resource Group using the Azure Provider, then asserting that we can look up that Resource Group using the new `azurerm_resource_group_example` Data Source.
 
-In Go tests are expected to be in a file name in the format `{original_file_name}_test.go` - in our case that'd be `resource_group_example_data_source_test.go`, into which we'll want to add:
+Tests live alongside the data source implementation in `data_source_test.go` inside `./internal/services/resource/resources/resource_group_example/`, using a `_test` package suffix:
 
 ```go
-package resource_test
+package resource_group_example_test
 
 import (
 	"fmt"
@@ -494,17 +494,19 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 1. Test Terraform Configurations are defined as methods on the struct `ResourceGroupExampleDataSource` so that they're easily accessible (this helps to avoid them being unintentionally used in other resources).
 2. The `acceptance.TestData` object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.
 3. We're asserting on the Computed (e.g. read-only) fields returned from the Resource - we don't check the user-specified fields (`name` in this case) as if it's missing, the test will fail to find the Resource Group.
-4. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+4. We append `_test` to the Go package name (e.g. `resource_group_example_test`) since we need to be able to access both the `resource_group_example` package and the `acceptance` package (which would be a circular reference).
 
 At this point we should be able to run this test.
 
 ### Step 7: Run the Acceptance Test(s)
 
-Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the test above using:
+Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the test for just this resource package using:
 
 ```sh
-make acctests SERVICE='resource' TESTARGS='-run=TestAccResourceGroupExampleDataSource_basic' TESTTIMEOUT='60m'
+make testacc TEST=./internal/services/resource/resources/resource_group_example TESTARGS='-run=TestAccResourceGroupExampleDataSource_basic' TESTTIMEOUT='60m'
 ```
+
+*(Or run across the whole service with `make acctests SERVICE='resource' TESTARGS='-run=TestAccResourceGroupExampleDataSource_basic' TESTTIMEOUT='60m'`.)*
 
 Which should output:
 
@@ -512,13 +514,13 @@ Which should output:
 ==> Checking that code complies with gofmt requirements...
 ==> Checking that Custom Timeouts are used...
 ==> Checking that acceptance test packages are used...
-TF_ACC=1 go test -v ./internal/services/resource -run=TestAccResourceGroupExampleDataSource_basic -timeout 60m -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+TF_ACC=1 go test ./internal/services/resource/resources/resource_group_example -v -run=TestAccResourceGroupExampleDataSource_basic -timeout 60m -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 === RUN   TestAccResourceGroupExampleDataSource_basic
 === PAUSE TestAccResourceGroupExampleDataSource_basic
 === CONT  TestAccResourceGroupExampleDataSource_basic
 --- PASS: TestAccResourceGroupExampleDataSource_basic (88.15s)
 PASS
-ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource	88.735s
+ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/resources/resource_group_example	88.735s
 ```
 
 ### Step 8: Add Documentation for this Data Source

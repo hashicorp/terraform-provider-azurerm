@@ -14,6 +14,12 @@ However as many Service Packages contain multiple resources, you can opt to only
 make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
 ```
 
+Since each resource lives in its own package under `internal/services/<service>/resources/<resource>`, you can also target a single resource package directly to avoid compiling and linking every other resource in the service:
+
+```sh
+make testacc TEST=./internal/services/<service>/resources/<resource> TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
+```
+
 * `<service>` is the name of the folder which contains the file with the test(s) you want to run. The available folders are found in `internal/services/`. So examples are `mssql`, `compute` or `storage`
 * `<nameOfTheTest>` should be self-explanatory as it is the name of the test you want to run. An example could be `TestAccMsSqlServerExtendedAuditingPolicy_basic`. Since `-run` can be used with regular expressions you can use it to specify multiple tests like in `TestAccMsSqlServerExtendedAuditingPolicy_` to run all tests that match that expression
 

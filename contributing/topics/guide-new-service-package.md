@@ -61,6 +61,6 @@ There's a few steps involved in adding a new Service Package.
 5. Define and Register the Client for this Service Package.
     * [Add this to the Client struct](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/clients/client.go#L118-L120).
     * [Call the Register function](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/clients/client.go#L221-L234).
-6. Re-run the generation to ensure the generated files are up to date (`make generate`).
+6. Re-run the generation to ensure the generated files are up to date (`make generate`). This also runs `go generate ./internal/clients/`, which creates `internal/services/{name}/client/provider_gen.go` and updates `internal/clients/provider_gen.go` so resources can resolve this service's client without importing `internal/clients`.
 
 At this point the Service Package should be registered, and you can [build a new Data Source](guide-new-data-source.md) or [a new Resource](guide-new-resource.md) as required.

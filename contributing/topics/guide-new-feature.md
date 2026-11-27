@@ -322,19 +322,21 @@ func defaultFeaturesList() types.List {
 
 ### Update the resource
 
-1. Update `internal/services/serviceName/resourceName.go` in this case `internal/services/keyvault/key_vault_resource.go` to include the functionality of the added feature.
+1. Update the resource implementation (for example, `internal/services/keyvault/resources/key_vault/r_delete.go`) to include the functionality of the added feature.
 
     ```go
     func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
         ...
-        if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
+        if features.From(meta).KeyVault.PurgeSoftDeleteOnDestroy {
             // Purge the Keyvault
         }
         ...
     }
     ```
 
-2. Update `internal/services/serviceName/resourceName_test.go` in this case `internal/services/keyvault/key_vault_resource_test.go` to test the new feature.
+> **Note:** (For typed resources, read `metadata.Features.KeyVault...` directly instead of `features.From(meta)`.)
+
+2. Update the resource tests (in this case `internal/services/keyvault/resources/key_vault/resource_test.go`) to test the new feature.
 
 ```go
 func TestAccKeyVault_purgeSoftDeleteOnDestroyDisabled(t *testing.T) {
