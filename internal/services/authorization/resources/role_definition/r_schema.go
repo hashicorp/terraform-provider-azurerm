@@ -68,19 +68,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "One or more Allowed Data Actions, such as `*`, `Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read`. See ['Azure Resource Manager Resource Provider operations'](https://learn.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 					"not_data_actions": {
 						Description: "One or more Disallowed Data Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager Resource Provider operations'](https://learn.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
+						Set:         pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 				},
 			},

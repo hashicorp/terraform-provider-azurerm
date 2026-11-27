@@ -31,9 +31,9 @@ func dnsARecordSchema() map[string]*pluginsdk.Schema {
 			Description:   "List of IPv4 Addresses.",
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
-			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:           pluginsdk.HashString,
 			ConflictsWith: []string{"target_resource_id"},
+			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {

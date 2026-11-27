@@ -37,8 +37,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsBase64,
-			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			RequiredWith: []string{"certificate_password"},
+			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 		},
 
 		"certificate_password": {
@@ -87,33 +87,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"subject_name": {
+			Description: "The Subject Name for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Subject Name for the Certificate.",
 		},
 
 		"issuer": {
+			Description: "The Certificate Issuer.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Certificate Issuer.",
 		},
 
 		"issue_date": {
+			Description: "The date of issue for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The date of issue for the Certificate.",
 		},
 
 		"expiration_date": {
+			Description: "The expiration date for the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The expiration date for the Certificate.",
 		},
 
 		"thumbprint": {
+			Description: "The Thumbprint of the Certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Thumbprint of the Certificate.",
 		},
 	}
 }

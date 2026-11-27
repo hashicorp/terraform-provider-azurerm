@@ -195,6 +195,7 @@ func cognitiveAccountSchema() map[string]*pluginsdk.Schema {
 						Description: "One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.",
 						Type:        pluginsdk.TypeSet,
 						Optional:    true,
+						Set:         set.HashIPv4AddressOrCIDR,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
@@ -202,7 +203,6 @@ func cognitiveAccountSchema() map[string]*pluginsdk.Schema {
 								validation.IsCIDRIPv4,
 							),
 						},
-						Set: set.HashIPv4AddressOrCIDR,
 					},
 
 					"virtual_network_rules": {
@@ -298,8 +298,8 @@ func cognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			Description:  "If `kind` is `TextAnalytics` this specifies the key of the Search Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"storage": {

@@ -34,8 +34,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
-				ExactlyOneOf: []string{"name", "display_name"},
 				ValidateFunc: validate.ManagementGroupName,
+				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
 			"display_name": {

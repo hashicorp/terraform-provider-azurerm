@@ -5,6 +5,7 @@ package check
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -125,7 +126,7 @@ func (t thatWithKeyType) IsEmpty() pluginsdk.TestCheckFunc {
 func (t thatWithKeyType) IsNotEmpty() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttrWith(t.resourceName, t.key, func(value string) error {
 		if value == "" {
-			return fmt.Errorf("value is empty")
+			return errors.New("value is empty")
 		}
 		return nil
 	})

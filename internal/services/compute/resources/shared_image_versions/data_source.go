@@ -4,6 +4,7 @@
 package shared_image_versions
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -144,7 +145,7 @@ func dataSourceSharedImageVersionsRead(d *pluginsdk.ResourceData, meta any) erro
 
 	flattenedImages := flattenSharedImageVersions(resp.Items, filterTags)
 	if len(flattenedImages) == 0 {
-		return fmt.Errorf("unable to find any images")
+		return errors.New("unable to find any images")
 	}
 
 	d.SetId(fmt.Sprintf("%s-%s-%s", id.ImageName, id.GalleryName, id.ResourceGroupName))

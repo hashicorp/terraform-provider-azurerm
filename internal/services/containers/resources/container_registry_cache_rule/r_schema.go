@@ -17,10 +17,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Registry Cache Rule. Only Alphanumeric characters allowed.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "The name of the Container Registry Cache Rule. Only Alphanumeric characters allowed.",
 			ValidateFunc: validate.ContainerRegistryCacheRuleName,
 		},
 		"container_registry_id": {
@@ -31,23 +31,23 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: registries.ValidateRegistryID,
 		},
 		"credential_set_id": {
+			Description:  "The ARM resource ID of the Credential Store which is associated with the Cache Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Description:  "The ARM resource ID of the Credential Store which is associated with the Cache Rule.",
 			ValidateFunc: credentialsets.ValidateCredentialSetID,
 		},
 		"source_repo": {
+			Description: "The name of the source repository path.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The name of the source repository path.",
 		},
 
 		"target_repo": {
+			Description: "The name of the new repository path to store artifacts.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The name of the new repository path to store artifacts.",
 		},
 	}
 }

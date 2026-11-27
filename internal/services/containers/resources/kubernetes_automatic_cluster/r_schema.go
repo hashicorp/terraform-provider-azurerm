@@ -5,7 +5,7 @@ package kubernetes_automatic_cluster
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -62,20 +62,20 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if len(hostedSystem) == 0 {
 					if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
-						return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
+						return errors.New("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
 					}
 
 					if apiServerSubnetIDIsSet {
-						return fmt.Errorf("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
+						return errors.New("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
 					}
 				}
 				if len(hostedSystem) > 0 && hostedSystem[0] != nil {
 					if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
-						return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
+						return errors.New("`hosted_system` requires `identity.type` to be `UserAssigned`")
 					}
 
 					if !apiServerSubnetIDIsSet {
-						return fmt.Errorf("`hosted_system` requires `api_server_access.subnet_id` to be set")
+						return errors.New("`hosted_system` requires `api_server_access.subnet_id` to be set")
 					}
 				}
 			}
@@ -87,7 +87,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 				if privateDNSZoneID != "" {
 					if privateDNSZoneID != "System" && privateDNSZoneID != "None" && !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
-						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+						return errors.New("a user assigned identity must be used when using a custom private dns zone")
 					}
 				}
 			}
@@ -120,9 +120,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorized_ip_ranges": {
-						Description: "Set of authorized IP ranges to allow access to API server, e.g. `[\"198.51.100.0/24\"]`.",
-						Type:        pluginsdk.TypeSet,
-						Optional:    true,
+						Description:   "Set of authorized IP ranges to allow access to API server, e.g. `[\"198.51.100.0/24\"]`.",
+						Type:          pluginsdk.TypeSet,
+						Optional:      true,
+						ConflictsWith: []string{"private_cluster"},
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
@@ -131,18 +132,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsCIDRIPv4,
 						},
-						ConflictsWith: []string{"private_cluster"},
 					},
 
 					"subnet_id": {
-						Description: "The ID of the Subnet where the API server endpoint is delegated to. Is required for bring your own networking.",
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
+						Description:  "The ID of the Subnet where the API server endpoint is delegated to. Is required for bring your own networking.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
 						},
-						ValidateFunc: commonids.ValidateSubnetID,
 					},
 				},
 			},

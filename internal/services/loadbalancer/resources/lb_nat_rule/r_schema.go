@@ -81,8 +81,8 @@ func lbNatRuleSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
-			ConflictsWith: []string{"frontend_port"},
 			RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
+			ConflictsWith: []string{"frontend_port"},
 		},
 
 		"frontend_port_start": {

@@ -26,19 +26,19 @@ func (e expectStateContainsIdentityValueAtPath) CheckState(ctx context.Context, 
 	var resource *tfjson.StateResource
 
 	if req.State == nil {
-		resp.Error = fmt.Errorf("state is nil")
+		resp.Error = errors.New("state is nil")
 
 		return
 	}
 
 	if req.State.Values == nil {
-		resp.Error = fmt.Errorf("state does not contain any state values")
+		resp.Error = errors.New("state does not contain any state values")
 
 		return
 	}
 
 	if req.State.Values.RootModule == nil {
-		resp.Error = fmt.Errorf("state does not contain a root module")
+		resp.Error = errors.New("state does not contain a root module")
 
 		return
 	}

@@ -13,38 +13,39 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the function.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.FunctionAppFunctionName,
-			Description:  "The name of the function.",
 		},
 
 		"function_app_id": {
+			Description:  "The ID of the Function App in which this function should reside.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: commonids.ValidateFunctionAppID,
 			ForceNew:     true,
-			Description:  "The ID of the Function App in which this function should reside.",
+			ValidateFunc: commonids.ValidateFunctionAppID,
 		},
 
 		"config_json": {
+			Description:  "The config for this Function in JSON format.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsJSON,
-			Description:  "The config for this Function in JSON format.",
 		},
 
 		"enabled": {
+			Description: "Whether this function should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Whether this function should be enabled.",
 		},
 
 		"language": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The language the Function is written in.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"CSharp",
 				"Custom",
@@ -54,39 +55,38 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"PowerShell",
 				"TypeScript",
 			}, false), // TODO - find the valida list of strings
-			Description: "The language the Function is written in.",
 		},
 
 		"file": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MinItems: 1,
 			ForceNew: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The filename of the file to be uploaded.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						Description:  "The filename of the file to be uploaded.",
 					},
 					"content": {
+						Description:  "The content of the file.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						Description:  "The content of the file.",
 					},
 				},
 			},
 		},
 
 		"test_data": {
+			Description:  "The test data for the function.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The test data for the function.",
 		},
 	}
 }
@@ -94,45 +94,45 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"config_url": {
+			Description: "The URL of the configuration JSON.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The URL of the configuration JSON.",
 		},
 
 		"url": {
+			Description: "The function URL.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The function URL.",
 		},
 
 		"invocation_url": {
+			Description: "The invocation URL.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The invocation URL.",
 		},
 
 		"script_url": {
+			Description: "The script URL.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The script URL.",
 		},
 
 		"script_root_path_url": {
+			Description: "The Script root path URL.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Script root path URL.",
 		},
 
 		"test_data_url": {
+			Description: "The Test data URL.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Test data URL.",
 		},
 
 		"secrets_file_url": {
+			Description: "The URL for the Secrets File.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The URL for the Secrets File.",
 		},
 	}
 }

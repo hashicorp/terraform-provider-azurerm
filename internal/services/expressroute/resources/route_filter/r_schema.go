@@ -27,8 +27,8 @@ func routeFilterSchema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

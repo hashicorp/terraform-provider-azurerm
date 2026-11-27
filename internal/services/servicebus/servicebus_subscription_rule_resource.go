@@ -4,6 +4,7 @@
 package servicebus
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -165,13 +166,13 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 					"properties": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
 							"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+						},
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -328,11 +329,11 @@ func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta an
 func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules.CorrelationFilter, error) {
 	configs := d.Get("correlation_filter").([]any)
 	if len(configs) == 0 {
-		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
+		return nil, errors.New("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
 	if configs[0] == nil {
-		return nil, fmt.Errorf("at least one property must not be empty in the `correlation_filter` block")
+		return nil, errors.New("at least one property must not be empty in the `correlation_filter` block")
 	}
 	config := configs[0].(map[string]any)
 
@@ -348,7 +349,7 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	properties := expandProperties(config["properties"].(map[string]any))
 
 	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(*properties) == 0 {
-		return nil, fmt.Errorf("at least one property must be set in the `correlation_filter` block")
+		return nil, errors.New("at least one property must be set in the `correlation_filter` block")
 	}
 
 	correlationFilter := rules.CorrelationFilter{}

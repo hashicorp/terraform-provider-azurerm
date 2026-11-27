@@ -4,7 +4,7 @@
 package provider
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"reflect"
 	"strings"
@@ -120,17 +120,17 @@ func TestResourcesAreNamedConsistently(t *testing.T) {
 
 func validateResourceTypeName(resourceType string) error {
 	if strings.ToLower(resourceType) != resourceType {
-		return fmt.Errorf("the resource type must be all lower-case")
+		return errors.New("the resource type must be all lower-case")
 	}
 
 	// Role Assignments should be named `azurerm_{type}_role_assignment` for consistency
 	if strings.Contains(resourceType, "role_assignment") && (!strings.HasSuffix(resourceType, "role_assignment") && !strings.HasSuffix(resourceType, "role_assignments")) {
-		return fmt.Errorf("role assignment resources should be named `azurerm_{type}_role_assignment`")
+		return errors.New("role assignment resources should be named `azurerm_{type}_role_assignment`")
 	}
 
 	// Role Definitions should be named `azurerm_{type}_role_definition` for consistency
 	if strings.Contains(resourceType, "role_definition") && !strings.HasSuffix(resourceType, "role_definition") {
-		return fmt.Errorf("role assignment resources should be named `azurerm_{type}_role_definition`")
+		return errors.New("role assignment resources should be named `azurerm_{type}_role_definition`")
 	}
 
 	return nil

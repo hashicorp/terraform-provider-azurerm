@@ -6,6 +6,7 @@ package container_registry_task_schedule_run_now
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -77,7 +78,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			runName := pointer.From(scheduleResp.Model.Name)
 			if runName == "" {
-				return fmt.Errorf("unexpected nil scheduled run name")
+				return errors.New("unexpected nil scheduled run name")
 			}
 
 			runId := runs.NewRunID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, runName)

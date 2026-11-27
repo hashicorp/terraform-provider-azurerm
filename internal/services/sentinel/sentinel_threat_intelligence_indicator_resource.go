@@ -5,6 +5,7 @@ package sentinel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"regexp"
@@ -119,8 +120,8 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"confidence": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 100),
 			Default:      -1, // set the default value to -1 to split `nil` and `0`.
+			ValidateFunc: validation.IntBetween(0, 100),
 		},
 
 		"created_by": {
@@ -430,7 +431,7 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 							if indicatorId := pointer.From(v.Id); indicatorId != "" {
 								return tf.ImportAsExistsError("azurerm_sentinel_threat_intelligence_indicator", indicatorId)
 							}
-							return fmt.Errorf("checking for presence of existing indicator: `id` was nil")
+							return errors.New("checking for presence of existing indicator: `id` was nil")
 						}
 					}
 				}
@@ -913,7 +914,7 @@ func expandIndicatorPattern(patternType string, pattern string) (string, error) 
 		reg := regexp.MustCompile(`(MD5|SHA-1|SHA-256|SHA-512|MD6|RIPEMD-160|SHA-224|SHA3-224|SHA3-256|SHA3-384|SHA3-512|SHA-384|SSDEEPWHIRLPOOL):`)
 		hashTypes := reg.FindStringSubmatch(pattern)
 		if len(hashTypes) != 2 {
-			return "", fmt.Errorf("when `pattern_type` set to `file`, `pattern` must combine a hash type with the hash code with a colon, an example is `MD5:78ecc5c05cd8b79af480df2f8fba0b9d`")
+			return "", errors.New("when `pattern_type` set to `file`, `pattern` must combine a hash type with the hash code with a colon, an example is `MD5:78ecc5c05cd8b79af480df2f8fba0b9d`")
 		}
 		hashType := hashTypes[1]
 		return fmt.Sprintf(`[file:hashes.'%s' = '%s']`, hashType, pattern), nil

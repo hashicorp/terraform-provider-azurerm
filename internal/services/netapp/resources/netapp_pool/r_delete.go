@@ -4,6 +4,7 @@
 package netapp_pool
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -36,7 +37,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context has no deadline")
+		return errors.New("context has no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

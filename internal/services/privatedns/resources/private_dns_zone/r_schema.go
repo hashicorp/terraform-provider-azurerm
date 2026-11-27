@@ -46,10 +46,10 @@ func privateDnsZoneSchema() map[string]*pluginsdk.Schema {
 
 		"soa_record": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {

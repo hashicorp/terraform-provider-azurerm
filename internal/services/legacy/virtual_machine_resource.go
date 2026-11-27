@@ -172,6 +172,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				MaxItems: 1,
+				Set:      resourceVirtualMachineStorageImageReferenceHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -207,7 +208,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineStorageImageReferenceHash,
 			},
 
 			"storage_os_disk": {
@@ -241,21 +241,21 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"managed_disk_id": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
-							ForceNew:      true,
 							Computed:      true, // azignore:AZS007 - pre-existing violation
+							ForceNew:      true,
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 						},
 
 						"managed_disk_type": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true, // azignore:AZS007 - pre-existing violation
-							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachines.StorageAccountTypesPremiumLRS),
 								string(virtualmachines.StorageAccountTypesStandardLRS),
 								string(virtualmachines.StorageAccountTypesStandardSSDLRS),
 							}, false),
+							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 						},
 
 						"image_uri": {
@@ -412,12 +412,13 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
+				Set:      resourceVirtualMachineStorageOsProfileHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"computer_name": {
 							Type:     pluginsdk.TypeString,
-							ForceNew: true,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"admin_username": {
@@ -433,21 +434,22 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 
 						"custom_data": {
 							Type:      pluginsdk.TypeString,
-							ForceNew:  true,
 							Optional:  true,
 							Computed:  true, // azignore:AZS007 - pre-existing violation
+							ForceNew:  true,
 							StateFunc: userDataStateFunc,
 						},
 					},
 				},
-				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
 			// lintignore:S018
 			"os_profile_windows_config": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeSet,
+				Optional:      true,
+				MaxItems:      1,
+				Set:           resourceVirtualMachineStorageOsProfileWindowsConfigHash,
+				ConflictsWith: []string{"os_profile_linux_config"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"provision_vm_agent": {
@@ -464,8 +466,8 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validate.VirtualMachineTimeZoneCaseInsensitive(),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"winrm": {
 							Type:     pluginsdk.TypeList,
@@ -524,15 +526,15 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set:           resourceVirtualMachineStorageOsProfileWindowsConfigHash,
-				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
 			// lintignore:S018
 			"os_profile_linux_config": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeSet,
+				Optional:      true,
+				MaxItems:      1,
+				Set:           resourceVirtualMachineStorageOsProfileLinuxConfigHash,
+				ConflictsWith: []string{"os_profile_windows_config"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disable_password_authentication": {
@@ -557,8 +559,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set:           resourceVirtualMachineStorageOsProfileLinuxConfigHash,
-				ConflictsWith: []string{"os_profile_windows_config"},
 			},
 
 			"os_profile_secrets": {
@@ -1004,10 +1004,10 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 
 func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, subscriptionId string, vhd *virtualmachines.VirtualHardDisk) error {
 	if vhd == nil {
-		return fmt.Errorf("`vhd` was nil`")
+		return errors.New("`vhd` was nil`")
 	}
 	if vhd.Uri == nil {
-		return fmt.Errorf("`vhd.Uri` was nil`")
+		return errors.New("`vhd.Uri` was nil`")
 	}
 
 	uri := *vhd.Uri
@@ -1039,10 +1039,10 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 
 func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *virtualmachines.ManagedDiskParameters, meta any) error {
 	if disk == nil {
-		return fmt.Errorf("`disk` was nil`")
+		return errors.New("`disk` was nil`")
 	}
 	if disk.Id == nil {
-		return fmt.Errorf("`disk.Id` was nil`")
+		return errors.New("`disk.Id` was nil`")
 	}
 	managedDiskID := *disk.Id
 
@@ -1399,7 +1399,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if profile.LinuxConfiguration == nil && profile.WindowsConfiguration == nil {
-		return nil, fmt.Errorf("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified")
+		return nil, errors.New("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified")
 	}
 
 	if _, ok := d.GetOk("os_profile_secrets"); ok {
@@ -1601,13 +1601,13 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if vhdURI != "" && managedDiskID != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+			return nil, errors.New("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 		}
 		if vhdURI != "" && managedDiskType != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+			return nil, errors.New("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
 		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(virtualmachines.DiskCreateOptionTypesAttach)) {
-			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
+			return nil, errors.New("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
 		if v := config["caching"].(string); v != "" {
@@ -1668,7 +1668,7 @@ func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*virt
 	imageReference := virtualmachines.ImageReference{}
 
 	if imageID != "" && publisher != "" {
-		return nil, fmt.Errorf("conflict between `id` and `publisher` (only one or the other can be used)")
+		return nil, errors.New("conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
 	if imageID != "" {
@@ -1746,14 +1746,14 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 
 	// BEGIN: code to be removed after GH-13016 is merged
 	if vhdURI != "" && managedDiskID != "" {
-		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+		return nil, errors.New("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 	}
 	if vhdURI != "" && managedDiskType != "" {
-		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+		return nil, errors.New("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
 	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(virtualmachines.DiskCreateOptionTypesAttach)) {
-		return nil, fmt.Errorf("must specify `vhd_uri` or `managed_disk_id` to attach")
+		return nil, errors.New("must specify `vhd_uri` or `managed_disk_id` to attach")
 	}
 
 	if v := config["image_uri"].(string); v != "" {
@@ -1938,5 +1938,5 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta any, props *virt
 		}
 	}
 
-	return "", fmt.Errorf("no Public or Private IP Address found on the Primary Network Interface")
+	return "", errors.New("no Public or Private IP Address found on the Primary Network Interface")
 }

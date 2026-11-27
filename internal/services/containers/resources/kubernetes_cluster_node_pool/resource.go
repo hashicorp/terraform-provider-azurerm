@@ -5,7 +5,7 @@ package kubernetes_cluster_node_pool
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -85,13 +85,13 @@ func RegisterResource() *pluginsdk.Resource {
 
 				if isSpot {
 					if maxSurgeRaw != "" {
-						return fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
+						return errors.New("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
 					}
 					if maxUnavailableRaw != "" {
-						return fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
+						return errors.New("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
 					}
 				} else if maxSurgeRaw == "" && maxUnavailableRaw == "" {
-					return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
+					return errors.New("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
 				}
 
 				return nil

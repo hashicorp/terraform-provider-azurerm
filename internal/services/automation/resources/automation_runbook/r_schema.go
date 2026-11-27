@@ -67,8 +67,8 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// NOTE: O+C the API returns some defaults for this if `publish_content_link` is specified
 			Computed:     true,
-			AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 		},
 
 		"job_schedule": {
@@ -76,6 +76,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 			Optional:   true,
 			Computed:   true, // azignore:AZS007 - pre-existing violation
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Set:        helpers.ResourceAutomationJobScheduleHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"schedule_name": {
@@ -86,13 +87,13 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"parameters": {
-						Description: "A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.",
-						Type:        pluginsdk.TypeMap,
-						Optional:    true,
+						Description:  "A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.",
+						Type:         pluginsdk.TypeMap,
+						Optional:     true,
+						ValidateFunc: validate.ParameterNames,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						ValidateFunc: validate.ParameterNames,
 					},
 
 					"run_on": {
@@ -108,15 +109,14 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: helpers.ResourceAutomationJobScheduleHash,
 		},
 
 		"publish_content_link": contentLinkSchema(false),
 
 		"draft": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"creation_time": {
@@ -169,8 +169,8 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 								"mandatory": {
 									Description: "Whether this parameter is mandatory.",
 									Type:        pluginsdk.TypeBool,
-									Default:     false,
 									Optional:    true,
+									Default:     false,
 								},
 
 								"position": {

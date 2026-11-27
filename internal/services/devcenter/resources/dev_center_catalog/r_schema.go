@@ -15,8 +15,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of this Dev Center Catalog.",
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -25,8 +25,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"dev_center_id": {
 			Description:  "The Dev Center ID within which this Dev Center Catalog should exist.",
-			Required:     true,
 			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: catalogs.ValidateDevCenterID,
 		},

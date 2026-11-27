@@ -5,6 +5,7 @@ package cosmos
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -104,8 +105,8 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Description:  "The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than `3`.",
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
+				ValidateFunc: validation.IntAtLeast(3),
 			},
 
 			"disk_count": {
@@ -330,7 +331,7 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 				return res, string(*model.Properties.ProvisioningState), nil
 			}
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }
 

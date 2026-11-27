@@ -4,6 +4,7 @@
 package signalr
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -166,21 +167,21 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta any
 	}
 
 	if defaultAction == webpubsub.ACLActionAllow && networkACL.PublicNetwork.Allow != nil && len(*networkACL.PublicNetwork.Allow) != 0 {
-		return fmt.Errorf("when `default_action` is `Allow` for `public_network`, `allowed_request_types` cannot be specified")
+		return errors.New("when `default_action` is `Allow` for `public_network`, `allowed_request_types` cannot be specified")
 	} else if defaultAction == webpubsub.ACLActionDeny && networkACL.PublicNetwork.Deny != nil && len(*networkACL.PublicNetwork.Deny) != 0 {
-		return fmt.Errorf("when `default_action` is `Deny` for `public_network`, `denied_request_types` cannot be specified")
+		return errors.New("when `default_action` is `Deny` for `public_network`, `denied_request_types` cannot be specified")
 	}
 
 	if networkACL.PrivateEndpoints != nil {
 		for _, privateEndpoint := range *networkACL.PrivateEndpoints {
 			if privateEndpoint.Allow != nil && privateEndpoint.Deny != nil && len(*privateEndpoint.Allow) != 0 && len(*privateEndpoint.Deny) != 0 {
-				return fmt.Errorf("`allowed_request_types` and `denied_request_types` cannot be set together for `private_endpoint`")
+				return errors.New("`allowed_request_types` and `denied_request_types` cannot be set together for `private_endpoint`")
 			}
 
 			if defaultAction == webpubsub.ACLActionAllow && privateEndpoint.Allow != nil && len(*privateEndpoint.Allow) != 0 {
-				return fmt.Errorf("when `default_action` is `Allow` for `private_endpoint`, `allowed_request_types` cannot be specified")
+				return errors.New("when `default_action` is `Allow` for `private_endpoint`, `allowed_request_types` cannot be specified")
 			} else if defaultAction == webpubsub.ACLActionDeny && privateEndpoint.Deny != nil && len(*privateEndpoint.Deny) != 0 {
-				return fmt.Errorf("when `default_action` is `Deny` for `private_endpoint`, `denied_request_types` cannot be specified")
+				return errors.New("when `default_action` is `Deny` for `private_endpoint`, `denied_request_types` cannot be specified")
 			}
 		}
 	}

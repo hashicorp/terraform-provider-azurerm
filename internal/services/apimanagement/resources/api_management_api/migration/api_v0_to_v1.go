@@ -242,14 +242,14 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"soap_pass_through": {
 			Type:     pluginsdk.TypeBool,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"version": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 
 		"version_description": {
@@ -259,8 +259,8 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"version_set_id": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
 			Optional: true,
+			Computed: true,
 		},
 	}
 }

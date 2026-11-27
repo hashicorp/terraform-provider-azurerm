@@ -52,8 +52,8 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ForceNew:         true,
-			ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 			DiffSuppressFunc: suppress.CaseDifference,
+			ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 		},
 
 		"role_definition_name": {
@@ -62,9 +62,9 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ForceNew:         true,
-			ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
 		},
 
 		"principal_id": {

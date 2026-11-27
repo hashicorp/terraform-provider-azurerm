@@ -44,6 +44,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Description: "A list of values that make up the SRV record.",
 				Type:        pluginsdk.TypeSet,
 				Computed:    true,
+				Set:         resourceDnsSrvRecordHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"priority": {
@@ -71,7 +72,6 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceDnsSrvRecordHash,
 			},
 
 			"ttl": {

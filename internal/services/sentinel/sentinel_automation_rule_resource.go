@@ -5,6 +5,7 @@ package sentinel
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -74,19 +75,19 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 		"expiration": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
+			DiffSuppressFunc: suppress.RFC3339Time,
 		},
 
 		"condition_json": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsJSON,
 			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
 			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 				return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 			},
-			ValidateFunc: validation.StringIsJSON,
 		},
 
 		"action_incident_task": {
@@ -116,8 +117,9 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 		},
 
 		"action_incident": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"order": {
@@ -171,12 +173,12 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 					},
 				},
 			},
-			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 
 		"action_playbook": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"order": {
@@ -200,7 +202,6 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 					},
 				},
 			},
-			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 	}
 	return &pluginsdk.Resource{
@@ -445,14 +446,14 @@ func expandAutomationRuleActionIncident(input []any) ([]automationrules.Automati
 
 		// sanity check on classification
 		if status == automationrules.IncidentStatusClosed && classification == "" {
-			return nil, fmt.Errorf("`classification` is required when `status` is set to `Closed`")
+			return nil, errors.New("`classification` is required when `status` is set to `Closed`")
 		}
 		if status != automationrules.IncidentStatusClosed {
 			if classification != "" {
-				return nil, fmt.Errorf("`classification` can't be set when `status` is not set to `Closed`")
+				return nil, errors.New("`classification` can't be set when `status` is not set to `Closed`")
 			}
 			if classificationComment != "" {
-				return nil, fmt.Errorf("`classification_comment` can't be set when `status` is not set to `Closed`")
+				return nil, errors.New("`classification_comment` can't be set when `status` is not set to `Closed`")
 			}
 		}
 
@@ -478,7 +479,7 @@ func expandAutomationRuleActionIncident(input []any) ([]automationrules.Automati
 
 		// sanity check on the whole incident action
 		if severity == "" && ownerPtr == nil && labelsPtr == nil && status == "" {
-			return nil, fmt.Errorf("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
+			return nil, errors.New("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
 		}
 
 		out = append(out, automationrules.AutomationRuleModifyPropertiesAction{

@@ -40,8 +40,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"records": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"ttl": {

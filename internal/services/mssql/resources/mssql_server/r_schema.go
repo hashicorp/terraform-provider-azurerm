@@ -44,8 +44,8 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
-			AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
 		},
 
 		"administrator_login_password": {
@@ -53,8 +53,8 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Sensitive:     true,
-			AtLeastOneOf:  []string{"administrator_login_password", "administrator_login_password_wo", "azuread_administrator.0.azuread_authentication_only"},
 			ConflictsWith: []string{"administrator_login_password_wo"},
+			AtLeastOneOf:  []string{"administrator_login_password", "administrator_login_password_wo", "azuread_administrator.0.azuread_authentication_only"},
 		},
 
 		"administrator_login_password_wo": {
@@ -63,9 +63,9 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			Sensitive:     true,
 			WriteOnly:     true,
-			AtLeastOneOf:  []string{"administrator_login_password_wo", "administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
-			ConflictsWith: []string{"administrator_login_password"},
 			RequiredWith:  []string{"administrator_login_password_wo_version"},
+			ConflictsWith: []string{"administrator_login_password"},
+			AtLeastOneOf:  []string{"administrator_login_password_wo", "administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
 		},
 
 		"administrator_login_password_wo_version": {
@@ -78,8 +78,8 @@ func mssqlServerSchema() map[string]*pluginsdk.Schema {
 		"azuread_administrator": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"login_username": {

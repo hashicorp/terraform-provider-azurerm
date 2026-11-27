@@ -33,8 +33,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 			ValidateFunc: validation.StringIsBase64,
+			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 		},
 
 		"key_vault_secret_id": {
@@ -50,8 +50,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			RequiredWith: []string{"certificate_data_base64"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"certificate_data_base64"},
 		},
 
 		"user_assigned_identity_client_id": {

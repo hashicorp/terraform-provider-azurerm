@@ -5,7 +5,7 @@ package static_web_app
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -133,11 +133,11 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			if strings.EqualFold(skuTier, string(resourceproviders.SkuNameFree)) && strings.EqualFold(skuSize, string(resourceproviders.SkuNameFree)) {
 				basicAuth, authOk := rd.GetOk("basic_auth")
 				if authOk && len(basicAuth.([]any)) > 0 {
-					return fmt.Errorf("basic_auth cannot be used with the Free tier of Static Web Apps")
+					return errors.New("basic_auth cannot be used with the Free tier of Static Web Apps")
 				}
 				ident, identOk := rd.GetOk("identity")
 				if identOk && len(ident.([]any)) > 0 {
-					return fmt.Errorf("identities cannot be used with the Free tier of Static Web Apps")
+					return errors.New("identities cannot be used with the Free tier of Static Web Apps")
 				}
 			}
 

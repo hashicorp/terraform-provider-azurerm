@@ -71,8 +71,8 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"key": {
 				Description: "The Key Vault Certificate Key.",
 				Type:        pluginsdk.TypeString,
-				Sensitive:   true,
 				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"expires": {

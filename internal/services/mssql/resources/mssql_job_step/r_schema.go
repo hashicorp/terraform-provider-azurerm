@@ -5,6 +5,7 @@ package mssql_job_step
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -24,15 +25,15 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The name which should be used for this Elastic Job Step.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"job_id": {
 			Description:  "The ID of the Elastic Job.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: jobsteps.ValidateJobID,
 			ForceNew:     true,
+			ValidateFunc: jobsteps.ValidateJobID,
 		},
 		"job_credential_id": {
 			Description:  "The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's Managed Identity (user-assigned).",
@@ -144,7 +145,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if model.MaximumRetryIntervalSeconds <= model.InitialRetryIntervalSeconds {
-				return fmt.Errorf("`maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`")
+				return errors.New("`maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`")
 			}
 
 			// Once set, `job_credential_id` cannot be removed

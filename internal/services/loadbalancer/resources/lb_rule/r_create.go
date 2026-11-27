@@ -4,6 +4,7 @@
 package lb_rule
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -137,7 +138,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 			properties.BackendAddressPools = &baps
 		} else {
 			if len(l) > 1 {
-				return nil, fmt.Errorf(`only Gateway SKU Load Balancer can have more than one "backend_address_pool_ids"`)
+				return nil, errors.New(`only Gateway SKU Load Balancer can have more than one "backend_address_pool_ids"`)
 			}
 			properties.BackendAddressPool = &loadbalancers.SubResource{
 				Id: pointer.To(l[0].(string)),

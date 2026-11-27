@@ -66,8 +66,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						WriteOnly:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						ExactlyOneOf: []string{"diagnostic_storage_account.0.connection_string"},
 						RequiredWith: []string{"diagnostic_storage_account.0.connection_string_wo_version"},
+						ExactlyOneOf: []string{"diagnostic_storage_account.0.connection_string"},
 					},
 
 					"connection_string_wo_version": {

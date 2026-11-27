@@ -96,9 +96,9 @@ func expressRouteCircuitSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
+			ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 			RequiredWith:  []string{"bandwidth_in_gbps"},
 			ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
-			ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 		},
 
 		"rate_limiting_enabled": {

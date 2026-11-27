@@ -45,12 +45,12 @@ func iothubEnrichmentSchema() map[string]*pluginsdk.Schema {
 		"endpoint_names": {
 			Description: "The list of endpoints which will be enriched.",
 			Type:        pluginsdk.TypeList,
+			Required:    true,
 			MaxItems:    100,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			Required: true,
 		},
 	}
 }

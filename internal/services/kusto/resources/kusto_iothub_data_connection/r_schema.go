@@ -69,24 +69,24 @@ func kustoIothubDataConnectionSchema() map[string]*pluginsdk.Schema {
 		"table_name": {
 			Description:  "The target table name used for the message ingestion. Table must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.EntityName,
 		},
 
 		"mapping_rule_name": {
 			Description:  "The mapping rule used for the message ingestion. Mapping rule must exist before resource is created.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.EntityName,
 		},
 
 		"data_format": {
 			Description:  "The data format of the IoTHub messages.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForIotHubDataFormat(), false),
 		},
 

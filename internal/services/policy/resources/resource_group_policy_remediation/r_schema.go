@@ -30,11 +30,11 @@ func resourceGroupPolicyRemediationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_assignment_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.PolicyAssignmentID,
 			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.PolicyAssignmentID,
 		},
 
 		"failure_percentage": {

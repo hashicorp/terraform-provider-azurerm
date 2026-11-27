@@ -5,6 +5,7 @@ package streamanalytics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -149,7 +150,7 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model.Properties.ManualPrivateLinkServiceConnections == nil {
-				return fmt.Errorf("no private link service connections available")
+				return errors.New("no private link service connections available")
 			}
 
 			state := ManagedPrivateEndpointModel{

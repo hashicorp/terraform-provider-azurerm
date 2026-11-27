@@ -17,17 +17,17 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
 		"persist_id_on_create_before_polling_for_completion": {
+			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion.",
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Whether to set the resource ID into state before polling asynchronous operations for completion.",
 		},
 
 		"skip_import_check_on_create_and_allow_overwriting_existing_resources": {
+			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present.",
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present.",
 		},
 
 		// lintignore:XS003
@@ -38,28 +38,28 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"locations": {
+						Description: "Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
-						Description: "Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
 					},
 					"resource_providers": {
+						Description: "Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
-						Description: "Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid Resource Providers are caught at plan time; when disabled, they are caught at apply time.",
 					},
 					"preflight_enabled": {
+						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
-						Description: "Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 					},
 					"preflight_location_fallback": {
+						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_preflight_location_fallback", nil),
-						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 					},
 				},
 			},
@@ -502,8 +502,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
@@ -513,8 +513,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: featuresMap,
 		},

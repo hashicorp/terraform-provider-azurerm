@@ -57,8 +57,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The frequency at which backups are performed.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Default:     backupPolicyCosmosdbAccountFrequencyDaily,
 			ForceNew:    true,
+			Default:     backupPolicyCosmosdbAccountFrequencyDaily,
 			ValidateFunc: validation.StringInSlice([]string{
 				backupPolicyCosmosdbAccountFrequencyDaily,
 				backupPolicyCosmosdbAccountFrequencyWeekly,

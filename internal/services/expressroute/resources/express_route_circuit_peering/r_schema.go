@@ -125,8 +125,8 @@ func expressRouteCircuitPeeringSchema() map[string]*pluginsdk.Schema {
 							Schema: map[string]*pluginsdk.Schema{
 								"advertised_public_prefixes": {
 									Type:     pluginsdk.TypeList,
-									MinItems: 1,
 									Optional: true,
+									MinItems: 1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.IsCIDR,

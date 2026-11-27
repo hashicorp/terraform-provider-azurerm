@@ -5,6 +5,7 @@ package role_definition
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -43,27 +44,27 @@ type PermissionDataSourceModel struct {
 func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Description: "The Name of either a built-in or custom Role Definition.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Computed:    true, // azignore:AZS007 - pre-existing violation
+			Description:  "The Name of either a built-in or custom Role Definition.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
 			},
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"role_definition_id": {
-			Description: "The ID of the Role Definition as a UUID/GUID.",
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Computed:    true, // azignore:AZS007 - pre-existing violation
+			Description:  "The ID of the Role Definition as a UUID/GUID.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ValidateFunc: validation.IsUUID,
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
 			},
-			ValidateFunc: validation.IsUUID,
 		},
 
 		"scope": {
@@ -113,19 +114,19 @@ func (a DataSource) Attributes() map[string]*pluginsdk.Schema {
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
+						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Set: pluginsdk.HashString,
 					},
 
 					"condition": {
@@ -190,7 +191,7 @@ func (a DataSource) Read() sdk.ResourceFunc {
 				// Accounting for eventual consistency
 				deadline, ok := ctx.Deadline()
 				if !ok {
-					return fmt.Errorf("internal error: context had no deadline")
+					return errors.New("internal error: context had no deadline")
 				}
 				if err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
@@ -200,7 +201,7 @@ func (a DataSource) Read() sdk.ResourceFunc {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: %+v", err))
 					}
 					if roleDefinitions.Model == nil {
-						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: model was nil"))
+						return pluginsdk.RetryableError(errors.New("loading Role Definition List: model was nil"))
 					}
 					if len(*roleDefinitions.Model) != 1 {
 						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: could not find role '%s'", config.Name))

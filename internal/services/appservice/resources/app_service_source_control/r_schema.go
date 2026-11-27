@@ -13,14 +13,15 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"app_id": {
+			Description:  "The ID of the Windows or Linux Web App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateWebAppID,
-			Description:  "The ID of the Windows or Linux Web App.",
 		},
 
 		"repo_url": {
+			Description:  "The URL for the repository.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -29,10 +30,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{
 				"branch",
 			},
-			Description: "The URL for the repository.",
 		},
 
 		"branch": {
+			Description:  "The branch name to use for deployments.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -41,14 +42,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{
 				"repo_url",
 			},
-			Description: "The branch name to use for deployments.",
 		},
 
 		"use_local_git": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Description: "Whether the App should use local Git configuration.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 			ConflictsWith: []string{
 				"repo_url",
 				"branch",
@@ -58,33 +59,32 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"use_mercurial",
 				"rollback_enabled",
 			},
-			Description: "Whether the App should use local Git configuration.",
 		},
 
 		"use_manual_integration": {
+			Description: "Whether code should be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Whether code should be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub.",
 		},
 
 		"github_action_configuration": helpers.GithubActionConfigSchema(),
 
 		"use_mercurial": {
+			Description: "The repository specified is Mercurial.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "The repository specified is Mercurial.",
 		},
 
 		"rollback_enabled": {
+			Description: "Whether the Deployment Rollback should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
 			Default:     false,
-			Description: "Whether the Deployment Rollback should be enabled.",
 		},
 	}
 }
@@ -92,15 +92,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scm_type": {
+			Description: "The SCM Type in use. This value is decoded by the service from the repository information supplied.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The SCM Type in use. This value is decoded by the service from the repository information supplied.",
 		},
 
 		"uses_github_action": {
+			Description: "Whether the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
-			Description: "Whether the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.",
 		},
 	}
 }

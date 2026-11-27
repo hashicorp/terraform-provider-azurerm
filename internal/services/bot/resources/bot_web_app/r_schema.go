@@ -36,8 +36,8 @@ func botWebAppSchema() map[string]*pluginsdk.Schema {
 		"microsoft_app_id": {
 			Description:  "The Microsoft Application ID for the Web App Bot.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 

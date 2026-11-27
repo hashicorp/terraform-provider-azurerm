@@ -4,6 +4,7 @@
 package mssql_server
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -67,7 +68,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if adminLogin != "" {
 		if adminLoginPassword == "" && woAdminLoginPassword.IsNull() {
-			return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+			return errors.New("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
 		}
 
 		props.Properties.AdministratorLogin = pointer.To(adminLogin)

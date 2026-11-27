@@ -32,6 +32,7 @@ func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
+			RequiredWith: []string{"secret"},
 			ExactlyOneOf: []string{"value", "value_from_key_vault"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -49,7 +50,6 @@ func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			RequiredWith: []string{"secret"},
 		},
 
 		"value": {

@@ -25,9 +25,9 @@ func apiManagementPolicySchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 			Computed:         true,
+			DiffSuppressFunc: helpers.XmlWithDotNetInterpolationsDiffSuppress,
 			ConflictsWith:    []string{"xml_link"},
 			ExactlyOneOf:     []string{"xml_link", "xml_content"},
-			DiffSuppressFunc: helpers.XmlWithDotNetInterpolationsDiffSuppress,
 		},
 
 		"xml_link": {

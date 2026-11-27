@@ -48,8 +48,8 @@ func apiManagementGatewayHostNameConfigurationSchema() map[string]*pluginsdk.Sch
 		"http2_enabled": {
 			Description: "Whether HTTP/2.0 is supported.",
 			Type:        pluginsdk.TypeBool,
-			Default:     true,
 			Optional:    true,
+			Default:     true,
 		},
 
 		"tls10_enabled": {

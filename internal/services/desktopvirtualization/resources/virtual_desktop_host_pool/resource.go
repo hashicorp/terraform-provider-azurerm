@@ -5,7 +5,7 @@ package virtual_desktop_host_pool
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
@@ -41,7 +41,7 @@ func RegisterResource() *pluginsdk.Resource {
 			if d.Get("type").(string) == string(hostpool.HostPoolTypePooled) {
 				loadBalancerType := d.Get("load_balancer_type").(string)
 				if loadBalancerType == string(hostpool.LoadBalancerTypePersistent) || loadBalancerType == string(hostpool.LoadBalancerTypeMultiplePersistent) {
-					return fmt.Errorf("`type` must be \"Personal\" when `load_balancer_type` is \"Persistent\" or \"MultiplePersistent\"")
+					return errors.New("`type` must be \"Personal\" when `load_balancer_type` is \"Persistent\" or \"MultiplePersistent\"")
 				}
 			}
 			return nil

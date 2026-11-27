@@ -33,8 +33,8 @@ func dataFactoryLinkedServiceSnowflakeSchema() map[string]*pluginsdk.Schema {
 			Description:      "The connection string in which to authenticate with Snowflake.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
-			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: helpers.AzureRmDataFactoryLinkedServiceConnectionStringDiff,
 		},
 
 		"key_vault_password": {
