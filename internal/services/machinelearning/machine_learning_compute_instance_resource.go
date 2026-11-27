@@ -4,6 +4,7 @@
 package machinelearning
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -110,8 +111,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"ssh": {
@@ -149,8 +150,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"node_public_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.TagsForceNew(),
@@ -218,7 +219,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
 	}
 	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && !hasManagedNetwork(model) {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is NOT using a managed network (isolation_mode = \"Disabled\")")
+		return errors.New("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is NOT using a managed network (isolation_mode = \"Disabled\")")
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{

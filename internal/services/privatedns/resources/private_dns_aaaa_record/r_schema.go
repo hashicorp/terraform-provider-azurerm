@@ -30,8 +30,7 @@ func privateDnsAaaaRecordSchema() map[string]*pluginsdk.Schema {
 			Description: "A list of IPv6 Addresses.",
 			Type:        pluginsdk.TypeSet,
 			Required:    true,
-			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:         pluginsdk.HashString,
+			Set:         pluginsdk.HashString, Elem: &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {

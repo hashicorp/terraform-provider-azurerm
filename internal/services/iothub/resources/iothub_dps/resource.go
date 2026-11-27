@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubDPSCreate,
-		Read:   resourceIotHubDPSRead,
-		Update: resourceIotHubDPSUpdate,
-		Delete: resourceIotHubDPSDelete,
+		Description: "Manages an IotHub Device Provisioning Service.",
+		Create:      resourceIotHubDPSCreate,
+		Read:        resourceIotHubDPSRead,
+		Update:      resourceIotHubDPSUpdate,
+		Delete:      resourceIotHubDPSDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseProvisioningServiceID(id)

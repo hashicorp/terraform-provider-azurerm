@@ -29,6 +29,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_managed_redis_geo_replication"
 }
 
+func (r Resource) Description() string {
+	return "Manages Managed Redis Geo-Replication by linking and unlinking databases in a geo-replication group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return redisenterprise.ValidateRedisEnterpriseID
 }

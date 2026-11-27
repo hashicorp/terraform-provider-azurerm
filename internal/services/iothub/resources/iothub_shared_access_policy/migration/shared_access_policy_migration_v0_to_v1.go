@@ -60,26 +60,26 @@ func (s IoTHubSharedAccessPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"primary_key": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"primary_connection_string": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_key": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_connection_string": {
 			Type:      pluginsdk.TypeString,
-			Sensitive: true,
 			Computed:  true,
+			Sensitive: true,
 		},
 	}
 }

@@ -15,6 +15,7 @@ import (
 func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that the Saved Search will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,19 +23,22 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Log Analytics Saved Search.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"category": {
+			Description:  "The category that the Saved Search will be listed under.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
+			Description:  "The name that Saved Search will be displayed as.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +46,7 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"query": {
+			Description:  "The query expression for the saved search.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -49,6 +54,7 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"function_alias": {
+			Description:  "The function alias if the query serves as a function.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -56,9 +62,10 @@ func logAnalyticsSavedSearchSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"function_parameters": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+			Description: "The function parameters if the query serves as a function. For more examples and proper syntax refer to [this document](https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions).",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				// https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions

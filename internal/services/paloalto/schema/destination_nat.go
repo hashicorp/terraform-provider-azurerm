@@ -63,8 +63,8 @@ func DestinationNATSchema() *pluginsdk.Schema {
 func FrontendEndpointSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_ip_address_id": {
@@ -88,8 +88,8 @@ func FrontendEndpointSchema() *pluginsdk.Schema {
 func BackendEndpointSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"public_ip_address": {

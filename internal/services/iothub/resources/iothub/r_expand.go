@@ -4,6 +4,7 @@
 package iothub
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -83,7 +84,7 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 
 		if identityId != "" {
 			if authenticationType != devices.AuthenticationTypeIdentityBased {
-				return nil, nil, false, fmt.Errorf("`identity_id` can only be specified when `authentication_type` is `identityBased`")
+				return nil, nil, false, errors.New("`identity_id` can only be specified when `authentication_type` is `identityBased`")
 			}
 			storageEndpointProperties["$default"].Identity = &devices.ManagedIdentity{
 				UserAssignedIdentity: &identityId,
@@ -147,14 +148,14 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 
 		if authenticationType == devices.AuthenticationTypeKeyBased {
 			if connectionStr == nil {
-				return nil, fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+				return nil, errors.New("`connection_string` must be specified when `authentication_type` is `keyBased`")
 			}
 			if identity != nil || endpointUri != nil || entityPath != nil {
-				return nil, fmt.Errorf("`identity_id`, `endpoint_uri` or `entity_path` cannot be specified when `authentication_type` is `keyBased`")
+				return nil, errors.New("`identity_id`, `endpoint_uri` or `entity_path` cannot be specified when `authentication_type` is `keyBased`")
 			}
 		} else {
 			if endpointUri == nil {
-				return nil, fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
+				return nil, errors.New("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
 			}
 
 			if entityPath == nil && t != "AzureIotHub.StorageContainer" {
@@ -162,7 +163,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 			}
 
 			if connectionStr != nil {
-				return nil, fmt.Errorf("`connection_string` cannot be specified when `authentication_type` is `identityBased`")
+				return nil, errors.New("`connection_string` cannot be specified when `authentication_type` is `identityBased`")
 			}
 		}
 
@@ -170,7 +171,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 		case "AzureIotHub.StorageContainer":
 			containerName := endpoint["container_name"].(string)
 			if containerName == "" {
-				return nil, fmt.Errorf("`container_name` must be specified when `type` is `AzureIotHub.StorageContainer`")
+				return nil, errors.New("`container_name` must be specified when `type` is `AzureIotHub.StorageContainer`")
 			}
 
 			encoding := endpoint["encoding"].(string)

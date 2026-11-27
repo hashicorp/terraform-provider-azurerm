@@ -23,14 +23,20 @@ func SourceSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		MaxItems: 1,
 		MinItems: 1,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cidrs": {
 					Description: "A list of CIDRs.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
+					AtLeastOneOf: []string{
+						"source.0.cidrs",
+						"source.0.countries",
+						"source.0.feeds",
+						"source.0.local_rulestack_prefix_list_ids",
+					},
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
@@ -38,27 +44,21 @@ func SourceSchema() *pluginsdk.Schema {
 							validation.StringInSlice([]string{"any"}, false),
 						),
 					},
-					AtLeastOneOf: []string{
-						"source.0.cidrs",
-						"source.0.countries",
-						"source.0.feeds",
-						"source.0.local_rulestack_prefix_list_ids",
-					},
 				},
 
 				"countries": {
 					Description: "A list of ISO3361-1 Alpha-2 Country codes.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.ISO3361CountryCode,
-					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
 						"source.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validate.ISO3361CountryCode,
 					},
 				},
 
@@ -66,15 +66,15 @@ func SourceSchema() *pluginsdk.Schema {
 					Description: "A list of Feeds.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
 						"source.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
@@ -82,15 +82,15 @@ func SourceSchema() *pluginsdk.Schema {
 					Description: "A list of Prefix Lists.",
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
-					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
 						"source.0.local_rulestack_prefix_list_ids",
+					},
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
 					},
 				},
 			},

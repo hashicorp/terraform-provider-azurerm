@@ -13,9 +13,9 @@ func ResourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		MaxItems: 1,
 		Optional: true,
 		Computed: true, // azignore:AZS007 - pre-existing violation
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"body_bytes": {
@@ -28,10 +28,10 @@ func ResourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 					Description: "A list of headers to log.",
 					Type:        pluginsdk.TypeSet,
 					Optional:    true,
+					Set:         pluginsdk.HashString,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Set: pluginsdk.HashString,
 				},
 				"data_masking": {
 					Type:     pluginsdk.TypeList,

@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_automation_source_control"
 }
 
+func (m Resource) Description() string {
+	return "Manages an Automation Source Control."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sourcecontrol.ValidateSourceControlID
 }

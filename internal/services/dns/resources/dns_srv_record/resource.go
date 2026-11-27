@@ -4,7 +4,7 @@
 package dns_srv_record
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsSrvRecordCreate,
-		Read:   resourceDnsSrvRecordRead,
-		Update: resourceDnsSrvRecordUpdate,
-		Delete: resourceDnsSrvRecordDelete,
+		Description: "Enables you to manage DNS SRV Records within Azure DNS.",
+		Create:      resourceDnsSrvRecordCreate,
+		Read:        resourceDnsSrvRecordRead,
+		Update:      resourceDnsSrvRecordUpdate,
+		Delete:      resourceDnsSrvRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -32,7 +33,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return err
 			}
 			if parsed.RecordType != recordsets.RecordTypeSRV {
-				return fmt.Errorf("this resource only supports 'SRV' records")
+				return errors.New("this resource only supports 'SRV' records")
 			}
 			return nil
 		}),

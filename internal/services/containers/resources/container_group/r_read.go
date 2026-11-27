@@ -5,6 +5,7 @@ package container_group
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 
@@ -135,12 +136,12 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta any) error {
 			if kvProps.VaultBaseURL != "" {
 				keyVaultUri = kvProps.VaultBaseURL
 			} else {
-				return fmt.Errorf("empty value returned for Key Vault URI")
+				return errors.New("empty value returned for Key Vault URI")
 			}
 			if kvProps.KeyName != "" {
 				keyName = kvProps.KeyName
 			} else {
-				return fmt.Errorf("empty value returned for Key Vault Key Name")
+				return errors.New("empty value returned for Key Vault Key Name")
 			}
 			keyVersion = kvProps.KeyVersion
 			keyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)

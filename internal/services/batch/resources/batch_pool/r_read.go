@@ -286,18 +286,18 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 					sourceCount++
 				}
 				if sourceCount != 1 {
-					return fmt.Errorf("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
+					return errors.New("exactly one of auto_storage_container_name, storage_container_url and http_url must be specified")
 				}
 
 				if referenceFile.BlobPrefix != nil {
 					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerURL == nil {
-						return fmt.Errorf("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
+						return errors.New("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
 					}
 				}
 
 				if referenceFile.HTTPURL != nil {
 					if referenceFile.FilePath == nil {
-						return fmt.Errorf("file_path must be specified when using http_url")
+						return errors.New("file_path must be specified when using http_url")
 					}
 				}
 			}
@@ -310,25 +310,28 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 func containerRegistry() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"registry_server": {
+			Description:  "The container registry URL.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"user_assigned_identity_id": {
+			Description:  "The reference to the User Assigned Identity to use to access an Azure Container Registry instead of username and password.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Description:  "The User Assigned Identity to use for Container Registry access.",
 		},
 		"user_name": {
+			Description:  "The user name to log into the registry server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"password": {
+			Description:  "The password to log into the registry server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

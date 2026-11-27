@@ -126,15 +126,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol_ports": {
-			Description: "A list of Protocol:Port entries. E.g. `[ \"TCP:80\", \"UDP:5431\" ]`. Each entry may also be a port range in the form `[protocol]:[start_port]-[end_port]` e.g. `TCP:1024-1206`.",
-			Type:        pluginsdk.TypeList,
-			Optional:    true,
-			MinItems:    1,
+			Description:  "A list of Protocol:Port entries. E.g. `[ \"TCP:80\", \"UDP:5431\" ]`. Each entry may also be a port range in the form `[protocol]:[start_port]-[end_port]` e.g. `TCP:1024-1206`.",
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MinItems:     1,
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.ProtocolWithPort,
 			},
-			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
 		"source": schema.SourceSchema(),

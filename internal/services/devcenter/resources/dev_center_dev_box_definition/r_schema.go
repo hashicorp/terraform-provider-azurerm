@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Dev Box Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,14 +27,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}, "Dev Center"),
 
 		"hibernate_support_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Dev Boxes created with this definition are capable of hibernation.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}, "Dev Center Gallery Image"),
 
 		"sku_name": {
+			Description:  "The name of the SKU for the Dev Center Dev Box Definition.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,

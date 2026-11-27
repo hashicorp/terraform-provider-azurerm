@@ -6,6 +6,7 @@ package site_recovery_hyperv_replication_policy_association_test
 import (
 	"context"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -117,7 +118,7 @@ func (HyperVHostTestResource) generateHyperVHostRegistrationCert(callbackFunc fu
 
 		detail, ok := resp.Model.Properties.(vaultcertificates.ResourceCertificateAndAadDetails)
 		if !ok {
-			return fmt.Errorf("unexpected response type")
+			return errors.New("unexpected response type")
 		}
 
 		vaultId := vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
@@ -587,11 +588,11 @@ func fetchRecoveryServicesVaultDetails(ctx context.Context, client *vaults.Vault
 
 func flattenHostRegistrationKeyXMLModel(id vaultcertificates.CertificateId, vaultDetail *vaults.Vault, fabricDetails *replicationfabrics.Fabric, certDetails vaultcertificates.ResourceCertificateAndAadDetails) (string, error) {
 	if vaultDetail == nil {
-		return "", fmt.Errorf("vault was nil")
+		return "", errors.New("vault was nil")
 	}
 
 	if fabricDetails == nil {
-		return "", fmt.Errorf("fabric was nil")
+		return "", errors.New("fabric was nil")
 	}
 
 	xmlModel := hyperVHostRegistrationKeyXMLModel{

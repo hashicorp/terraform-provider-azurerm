@@ -1,0 +1,40 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package advanced_threat_protection
+
+import (
+	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/resources/advanced_threat_protection/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+func RegisterResource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceAdvancedThreatProtectionCreateUpdate,
+		Read:   resourceAdvancedThreatProtectionRead,
+		Update: resourceAdvancedThreatProtectionCreateUpdate,
+		Delete: resourceAdvancedThreatProtectionDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AdvancedThreatProtectionID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AdvancedThreatProtectionV0ToV1{},
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Schema: advancedThreatProtectionSchema(),
+	}
+}

@@ -55,8 +55,8 @@ func powerbiEmbeddedSchema() map[string]*pluginsdk.Schema {
 			Description:  "Sets the PowerBI Embedded's mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(capacities.ModeGenTwo),
 			ForceNew:     true,
+			Default:      string(capacities.ModeGenTwo),
 			ValidateFunc: validation.StringInSlice(capacities.PossibleValuesForMode(), false),
 		},
 

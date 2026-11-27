@@ -33,9 +33,9 @@ func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.DatabaseCharset,
 			Default:          "UTF8",
+			ValidateFunc:     validate.DatabaseCharset,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"collation": {
@@ -43,8 +43,8 @@ func postgresqlFlexibleServerDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.PostgresqlFlexibleServerDatabaseCollation,
 			Default:      "en_US.utf8",
+			ValidateFunc: validate.PostgresqlFlexibleServerDatabaseCollation,
 		},
 	}
 }

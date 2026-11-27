@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
-		Read:   resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead,
-		Update: resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
-		Delete: resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
+		Description: "Manages a Log Analytics (formally Operational Insights) Windows Performance Counter DataSource.",
+		Create:      resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
+		Read:        resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead,
+		Update:      resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
+		Delete:      resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := datasources.ParseDataSourceID(id)

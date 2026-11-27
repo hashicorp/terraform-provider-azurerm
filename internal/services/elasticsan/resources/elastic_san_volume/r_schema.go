@@ -5,7 +5,7 @@ package elastic_san_volume
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -23,6 +23,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Elastic SAN Volume.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +33,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"volume_group_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumes.VolumeGroupId{}, "Volume Group"),
 
 		"size_in_gib": {
+			Description:  "The size of the Elastic SAN Volume in GiB. The size should be within the remaining capacity of the parent Elastic SAN.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 65536),
@@ -45,9 +47,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"source_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The ID of the source to create the Elastic SAN Volume from.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.Any(
 							commonids.ValidateManagedDiskID,
 							restorepoints.ValidateRestorePointID,
@@ -56,9 +59,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						),
 					},
 					"source_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The type of the source to create the Elastic SAN Volume from.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							// None is not exposed
 							string(volumes.VolumeCreateOptionDisk),
@@ -77,23 +81,27 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_iqn": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The iSCSI Target IQN of the Elastic SAN Volume.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_portal_hostname": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The iSCSI Target Portal Host Name of the Elastic SAN Volume.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"target_portal_port": {
-			Computed: true,
-			Type:     pluginsdk.TypeInt,
+			Description: "The iSCSI Target Portal Port of the Elastic SAN Volume.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"volume_id": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
+			Description: "The UUID of the Elastic SAN Volume.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -103,7 +111,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("size_in_gib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("new size_in_gib should be greater than the existing one")
+				return errors.New("new size_in_gib should be greater than the existing one")
 			}
 
 			return nil

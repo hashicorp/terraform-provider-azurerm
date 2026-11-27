@@ -14,6 +14,7 @@ import (
 func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Front Door Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_rule_set_id": {
+			Description:  "The resource ID of the Front Door Rule Set for this Front Door Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"behaviour_on_match": {
+			Description:  "The behaviour on a condition match.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(rules.MatchProcessingBehaviorContinue),
@@ -35,6 +38,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"order": {
+			Description:  "The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1` (e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(0),
@@ -53,12 +57,14 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"redirect_type": {
+									Description:  "The response type to return to the requestor.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRedirectType(), false),
 								},
 
 								"redirect_protocol": {
+									Description:  "The protocol the request is redirected as.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      string(rules.DestinationProtocolMatchRequest),
@@ -67,6 +73,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 
 								// Omit to preserve the incoming path. Issue #18249
 								"destination_path": {
+									Description:  "The path to use in the redirect. Leave this unset to preserve the incoming path.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringStartsWithOneOf("/"),
@@ -74,6 +81,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 
 								// Omit to preserve the incoming host. Issue #18249
 								"destination_host_name": {
+									Description:  "The host name you want the request to be redirected to. Leave this unset to preserve the incoming host.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringLenBetween(1, 2048),
@@ -81,8 +89,9 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 
 								// Omit to preserve the incoming query string. Issue #18249 & #19682
 								"query_string": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "The query string used in the redirect URL. Leave this unset to preserve the incoming query string. The maximum allowed length for this field is `2048` characters.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 									// Update validation logic to match RP. Issue #19097
 									ValidateFunc: helpers.ValidateCdnFrontDoorUrlRedirectActionQueryString,
 								},
@@ -90,8 +99,9 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 								// NOTE: it is valid for the destination fragment to be an empty string.
 								// Leave blank to preserve the incoming fragment. Issue #18249
 								"destination_fragment": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Description: "The fragment to use in the redirect. Leave this unset to preserve the incoming fragment.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
 									ValidateFunc: validation.All(
 										validation.StringLenBetween(1, 1024),
 										validation.StringDoesNotStartWithOneOf("#"),
@@ -108,21 +118,24 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"source_pattern": {
+									Description:  "The source pattern in the URL path to replace.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringStartsWithOneOf("/"),
 								},
 
 								"destination_path": {
+									Description:  "The destination path to use in the rewrite.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringStartsWithOneOf("/"),
 								},
 
 								"preserve_unmatched_path_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
+									Description: "Whether to append the remaining path after the source pattern to the new destination path.",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     false,
 								},
 							},
 						},
@@ -145,11 +158,13 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"cdn_frontdoor_origin_group_id": {
+												Description:  "The Front Door Origin Group resource ID that the request should be routed to.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: afdorigingroups.ValidateOriginGroupID,
 											},
 											"forwarding_protocol": {
+												Description:  "The forwarding protocol the request is redirected as.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringInSlice(rules.PossibleValuesForForwardingProtocol(), false),
@@ -165,29 +180,34 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"behaviour": {
+												Description:  "Controls how Front Door handles cache behaviour for the response.",
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForRuleCacheBehavior(), false),
 											},
 											"duration": {
+												Description:  "When `behaviour` is set to `OverrideAlways` or `OverrideIfOriginMissing`, this field specifies the cache duration to use and is required. The maximum. If the desired maximum cache duration is less than `1` day, specify it in the `HH:MM:SS` format, for example `23:59:59`.",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: helpers.ValidateCdnFrontDoorCacheDuration,
 											},
 											"compression_enabled": {
-												Type:     pluginsdk.TypeBool,
-												Optional: true,
-												Default:  false,
+												Description: "Whether compression is enabled.",
+												Type:        pluginsdk.TypeBool,
+												Optional:    true,
+												Default:     false,
 											},
 											"query_string_behaviour": {
+												Description:  "Controls how query strings contribute to the cache key.",
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRuleQueryStringCachingBehavior(), false),
 											},
 											"query_string_parameters": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												MaxItems: 100,
+												Description: "A list of query string parameter names. A maximum of `100` parameters may be defined.",
+												Type:        pluginsdk.TypeList,
+												Optional:    true,
+												MaxItems:    100,
 												Elem: &pluginsdk.Schema{
 													Type: pluginsdk.TypeString,
 												},
@@ -214,6 +234,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "The type of remote address to match.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues([]string{string(rules.RemoteAddressOperatorGeoMatch), string(rules.RemoteAddressOperatorIPMatch)}), false),
@@ -229,15 +250,17 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestMethodOperator()), false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									MinItems: 1,
-									MaxItems: 7,
+									Description: "A list of one or more HTTP methods. If multiple values are specified, they are evaluated using `OR` logic.",
+									Type:        pluginsdk.TypeSet,
+									Required:    true,
+									MinItems:    1,
+									MaxItems:    7,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodMatchValue(), false),
@@ -253,6 +276,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForQueryStringOperator()), false),
@@ -268,8 +292,9 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"name": helpers.CdnFrontDoorRuleConditionNameSchema(),
+								"name": helpers.CdnFrontDoorRuleConditionNameSchema("A string value representing the name of the `POST` argument."),
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForPostArgsOperator()), false),
@@ -286,6 +311,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestUriOperator()), false),
@@ -301,8 +327,9 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"name": helpers.CdnFrontDoorRuleConditionNameSchema(),
+								"name": helpers.CdnFrontDoorRuleConditionNameSchema("The name of the request header."),
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestHeaderOperator()), false),
@@ -319,6 +346,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestBodyOperator()), false),
@@ -335,14 +363,16 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestSchemeMatchConditionParametersOperator()), false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MinItems: 1,
+									Description: "The request protocol to match.",
+									Type:        pluginsdk.TypeList,
+									Required:    true,
+									MinItems:    1,
 									// This uses a List instead of a String to stay consistent with the other conditions, even though only 1 item can be defined
 									MaxItems: 1,
 									Elem: &pluginsdk.Schema{
@@ -360,14 +390,16 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForURLPathOperator()), false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 25,
+									Description: "One or more values representing the request path to match. Do not include the leading slash (`/`). If multiple values are specified, they are evaluated using `OR` logic.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
+									MaxItems:    25,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -384,14 +416,16 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForURLFileExtensionOperator()), false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 25,
+									Description: "One or more values representing the request file extension to match. If multiple values are specified, they are evaluated using `OR` logic.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
+									MaxItems:    25,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -408,6 +442,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForURLFileNameOperator()), false),
@@ -425,6 +460,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForHTTPVersionOperator()), false),
@@ -439,8 +475,9 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"name": helpers.CdnFrontDoorRuleConditionNameSchema(),
+								"name": helpers.CdnFrontDoorRuleConditionNameSchema("The name of the cookie."),
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForCookiesOperator()), false),
@@ -457,14 +494,16 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForIsDeviceOperator()), false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MinItems: 1,
+									Description: "The device type to match.",
+									Type:        pluginsdk.TypeList,
+									Required:    true,
+									MinItems:    1,
 									// This uses a List instead of a String to stay consistent with the other conditions, even though only 1 item can be defined
 									MaxItems: 1,
 									Elem: &pluginsdk.Schema{
@@ -482,6 +521,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "The type of match.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues([]string{string(rules.SocketAddrOperatorIPMatch)}), false),
@@ -497,6 +537,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForClientPortOperator()), false),
@@ -512,6 +553,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForQueryStringOperator()), false),
@@ -527,6 +569,7 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"operator": {
+									Description:  "A condition operator.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(helpers.CdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForHostNameOperator()), false),
@@ -569,8 +612,9 @@ func (c Resource) Arguments() map[string]*pluginsdk.Schema {
 func (c Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cdn_frontdoor_rule_set_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The name of the Front Door Rule Set containing this Front Door Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

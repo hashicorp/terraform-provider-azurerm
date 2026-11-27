@@ -15,6 +15,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for the Microsoft SQL Virtual Machine Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sql_image_offer": {
+			Description:  "The offer type of the marketplace image cluster to be used by the SQL Virtual Machine Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sql_image_sku": {
+			Description:  "The SKU type of the marketplace image cluster to be used by the SQL Virtual Machine Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForSqlVMGroupImageSku(), false),
@@ -45,6 +48,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cluster_subnet_type": {
+						Description:  "The subnet type of the SQL Virtual Machine cluster.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -52,6 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"fqdn": {
+						Description:  "The fully qualified name of the domain.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -59,6 +64,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"organizational_unit_path": {
+						Description:  "The organizational Unit path in which the nodes and cluster will be present.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -66,6 +72,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"cluster_bootstrap_account_name": {
+						Description:  "The account name used for creating cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -73,6 +80,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"cluster_operator_account_name": {
+						Description:  "The account name used for operating cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -80,6 +88,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"sql_service_account_name": {
+						Description:  "The account name under which SQL service will run on all participating SQL Virtual Machines in the cluster.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -87,6 +96,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_account_url": {
+						Description:  "The SAS URL to the Storage Container of the witness Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -94,6 +104,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_account_primary_key": {
+						Description:  "The primary key of the Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Sensitive:    true,

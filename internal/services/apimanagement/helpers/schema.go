@@ -16,8 +16,8 @@ func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Description:      "The host name to use.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validation.StringIsNotEmpty,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"key_vault_certificate_id": {
@@ -44,7 +44,7 @@ func ApiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"negotiate_client_certificate": {
-			Description: "Should Client Certificate Negotiation be enabled for this Hostname?",
+			Description: "Whether Client Certificate Negotiation should be enabled for this Hostname.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

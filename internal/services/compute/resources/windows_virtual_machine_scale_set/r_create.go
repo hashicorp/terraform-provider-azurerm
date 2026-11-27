@@ -4,6 +4,7 @@
 package windows_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -104,7 +105,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	canHaveAutomaticOsUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
 	if !canHaveAutomaticOsUpgradePolicy && len(automaticOSUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic` or `Rolling`")
+		return errors.New("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic` or `Rolling`")
 	}
 
 	shouldHaveRollingUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
@@ -194,7 +195,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.Get("extension_operations_enabled").(bool); ok {
 		if v && !provisionVMAgent {
-			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+			return errors.New("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 		}
 
 		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
@@ -218,7 +219,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return errors.New("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		virtualMachineProfile.BillingProfile = &virtualmachinescalesets.BillingProfile{
@@ -241,10 +242,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
 		if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			return errors.New("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+			return errors.New("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
 		}
 
 		if virtualMachineProfile.SecurityProfile == nil {
@@ -284,11 +285,11 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return errors.New("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return errors.New("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if len(additionalUnattendContentRaw) > 0 {
@@ -315,7 +316,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	automaticRepairsPolicy := helpers.ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	if automaticRepairsPolicy != nil && healthProbeId == "" && !hasHealthExtension {
-		return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+		return errors.New("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
 	}
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
@@ -380,7 +381,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
 		if props.Zones == nil || len(*props.Zones) == 0 {
-			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
+			return errors.New("`zone_balance` can only be set to `true` when zones are specified")
 		}
 
 		props.Properties.ZoneBalance = pointer.To(v.(bool))

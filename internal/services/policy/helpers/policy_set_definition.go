@@ -92,6 +92,7 @@ func PolicyDefinitionGroupSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
+		Set:      PolicySetDefinitionPolicyDefinitionGroupHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -130,7 +131,6 @@ func PolicyDefinitionGroupSchema() *pluginsdk.Schema {
 				},
 			},
 		},
-		Set: PolicySetDefinitionPolicyDefinitionGroupHash,
 	}
 }
 

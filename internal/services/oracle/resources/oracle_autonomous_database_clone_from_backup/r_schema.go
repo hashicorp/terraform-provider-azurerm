@@ -17,8 +17,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -39,8 +39,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Sensitive:    true,
 			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -136,8 +136,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"allowed_ip_addresses": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
-			MaxItems:     1024,
 			ForceNew:     true,
+			MaxItems:     1024,
 			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -174,8 +174,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 			RequiredWith: []string{"subnet_id"},
+			ExactlyOneOf: []string{"allowed_ip_addresses", "virtual_network_id"},
 		},
 	}
 }

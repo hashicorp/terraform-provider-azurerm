@@ -17,9 +17,10 @@ func privateDnsMxRecordSchema() map[string]*pluginsdk.Schema {
 		"name": {
 			Description: "The name of the DNS MX Record.",
 			Type:        pluginsdk.TypeString,
-			ForceNew:    true,
+
 			// name is optional and defaults to root zone (@) if not set
 			Optional:     true,
+			ForceNew:     true,
 			Default:      "@",
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},

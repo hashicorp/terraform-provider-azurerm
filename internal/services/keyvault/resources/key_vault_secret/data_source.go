@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultSecretRead,
+		Description: "Use this data source to access information about an existing Key Vault Secret.",
+		Read:        dataSourceKeyVaultSecretRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
@@ -31,6 +32,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Key Vault Secret.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyvault.ValidateNestedItemName,
@@ -39,44 +41,52 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"value": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The value of the Key Vault Secret.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"content_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The content type for the Key Vault Secret.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"not_before_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The earliest date at which the Key Vault Secret can be used.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"expiration_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The date and time at which the Key Vault Secret expires and is no longer valid.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Description: "The version of the Key Vault Secret.",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
 			},
 
 			"versionless_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Versionless ID of the Key Vault Secret. This can be used to always get latest secret value, and enable fetching automatically rotating secrets.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"resource_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The (Versioned) ID for this Key Vault Secret. This property points to a specific version of a Key Vault Secret, as such using this won't auto-rotate values if used in other Azure Services.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"resource_versionless_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Versionless ID of the Key Vault Secret. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Secret is updated.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

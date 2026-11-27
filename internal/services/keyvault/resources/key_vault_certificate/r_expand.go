@@ -4,6 +4,7 @@
 package key_vault_certificate
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -42,7 +43,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 
 	if keyType == string(keyvault.JSONWebKeyTypeEC) || keyType == string(keyvault.JSONWebKeyTypeECHSM) {
 		if curve == "" {
-			return nil, fmt.Errorf("`curve` is required when creating an EC key")
+			return nil, errors.New("`curve` is required when creating an EC key")
 		}
 		// determine key_size if not specified
 		if keySize == 0 {
@@ -57,7 +58,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 		}
 	} else if keyType == string(keyvault.JSONWebKeyTypeRSA) || keyType == string(keyvault.JSONWebKeyTypeRSAHSM) {
 		if keySize == 0 {
-			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
+			return nil, errors.New("`key_size` is required when creating an RSA key")
 		}
 	}
 

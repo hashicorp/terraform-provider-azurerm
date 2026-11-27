@@ -34,10 +34,9 @@ func subscriptionPolicyRemediationSchema() map[string]*pluginsdk.Schema {
 		"policy_assignment_id": {
 			Description: "The ID of the Policy Assignment that should be remediated.",
 			Type:        pluginsdk.TypeString,
-			Required:    true,
+			Required:    true, ValidateFunc: validate.PolicyAssignmentID,
 			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.PolicyAssignmentID,
 		},
 
 		"failure_percentage": {

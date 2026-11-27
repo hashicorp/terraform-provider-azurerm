@@ -47,7 +47,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta any) error 
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]any))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
+		return errors.New("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))

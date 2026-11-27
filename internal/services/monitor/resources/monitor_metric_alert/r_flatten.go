@@ -4,6 +4,7 @@
 package monitor_metric_alert
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 
@@ -35,7 +36,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 			criteriaSchema = "criteria"
 		case metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria:
 			if c.AllOf == nil || len(*c.AllOf) == 0 {
-				return fmt.Errorf("nil or empty contained criteria of MultipleResourceMultipleMetricCriteria")
+				return errors.New("nil or empty contained criteria of MultipleResourceMultipleMetricCriteria")
 			}
 			// `MinItems` defined in schema guaranteed there is at least one element.
 			switch (*c.AllOf)[0].(type) {
@@ -47,7 +48,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		case metricalerts.WebtestLocationAvailabilityCriteria:
 			criteriaSchema = "application_insights_web_test_location_availability_criteria"
 		default:
-			return fmt.Errorf("unknown criteria type")
+			return errors.New("unknown criteria type")
 		}
 
 		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(props.Criteria)

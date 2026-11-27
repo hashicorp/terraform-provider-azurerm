@@ -36,8 +36,8 @@ func purviewAccountSchema() map[string]*pluginsdk.Schema {
 		"managed_event_hub_enabled": {
 			Description: "Whether the Purview Account should create a managed Event Hub Namespace.",
 			Type:        pluginsdk.TypeBool,
-			Default:     true,
 			Optional:    true,
+			Default:     true,
 		},
 
 		"managed_resource_group_name": {

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -178,7 +179,7 @@ func (DataSource) Read() sdk.ResourceFunc {
 			}
 			respModel := resp.Model
 			if respModel == nil {
-				return fmt.Errorf("reading a nil model")
+				return errors.New("reading a nil model")
 			}
 
 			model := AssignmentDataSourceModel{

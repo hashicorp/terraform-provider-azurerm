@@ -36,3 +36,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return dataProtectionBackupVaultResourceGuardAssociationResourceType
 }
+
+func (r Resource) Description() string {
+	return "Manages a Backup Vault Resource Guard Association."
+}

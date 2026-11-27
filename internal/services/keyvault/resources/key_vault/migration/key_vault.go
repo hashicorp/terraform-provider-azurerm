@@ -267,10 +267,10 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 		"access_policy": {
 			Type:       pluginsdk.TypeList,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true,
 			MaxItems:   1024,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
@@ -355,14 +355,14 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 					"ip_rules": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      pluginsdk.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 					"virtual_network_subnet_ids": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      set.HashStringIgnoreCase,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 				},
 			},

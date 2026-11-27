@@ -4,7 +4,7 @@
 package data_protection_backup_policy_blob_storage
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
@@ -45,7 +45,7 @@ func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []any) (*[]baseback
 
 func expandBackupPolicyBlobStorageCriteriaArray(input []any) (*[]basebackuppolicyresources.BackupCriteria, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil, fmt.Errorf("criteria is a required field, cannot leave blank")
+		return nil, errors.New("criteria is a required field, cannot leave blank")
 	}
 	results := make([]basebackuppolicyresources.BackupCriteria, 0)
 

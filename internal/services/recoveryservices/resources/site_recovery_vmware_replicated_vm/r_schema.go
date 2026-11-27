@@ -79,8 +79,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"default_recovery_disk_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
+			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 		},
 
 		"default_target_disk_encryption_set_id": {

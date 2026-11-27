@@ -1,0 +1,95 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package storage_data_lake_gen2_filesystem
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths"
+)
+
+func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta any) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := filesystems.ParseFileSystemID(d.Id(), storageClient.StorageDomainSuffix)
+	if err != nil {
+		return err
+	}
+
+	// Retrieve the storage account properties
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
+	}
+	if account == nil {
+		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
+	}
+
+	// Build the data plane clients
+	dataPlaneFilesystemsClient, err := storageClient.DataLakeFilesystemsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Data Lake Gen2 Filesystems Client: %v", err)
+	}
+	dataPlanePathsClient, err := storageClient.DataLakePathsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Data Lake Gen2 Paths Client: %v", err)
+	}
+
+	aceRaw := d.Get("ace").(*pluginsdk.Set).List()
+	acl, err := helpers.ExpandDataLakeGen2AceList(aceRaw)
+	if err != nil {
+		return fmt.Errorf("parsing ace list: %v", err)
+	}
+
+	if acl != nil && !account.IsHnsEnabled {
+		return errors.New("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
+	}
+
+	propertiesRaw := d.Get("properties").(map[string]any)
+	properties := helpers.ExpandMetaData(propertiesRaw)
+
+	input := filesystems.SetPropertiesInput{
+		Properties: properties,
+	}
+	if _, err = dataPlaneFilesystemsClient.SetProperties(ctx, id.FileSystemName, input); err != nil {
+		return fmt.Errorf("updating Properties for %s: %v", id, err)
+	}
+
+	var owner *string
+	if v, ok := d.GetOk("owner"); ok {
+		owner = pointer.To(v.(string))
+	}
+	var group *string
+	if v, ok := d.GetOk("group"); ok {
+		group = pointer.To(v.(string))
+	}
+
+	if acl != nil || owner != nil || group != nil {
+		var aclString *string
+		if acl != nil {
+			v := acl.String()
+			aclString = &v
+		}
+		accessControlInput := paths.SetAccessControlInput{
+			ACL:   aclString,
+			Owner: owner,
+			Group: group,
+		}
+		if _, err = dataPlanePathsClient.SetAccessControl(ctx, id.FileSystemName, "/", accessControlInput); err != nil {
+			return fmt.Errorf("setting access control for root path in File System %q in Storage Account %q: %v", id.FileSystemName, id.AccountId.AccountName, err)
+		}
+	}
+
+	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
+}

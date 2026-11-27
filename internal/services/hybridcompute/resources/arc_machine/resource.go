@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_arc_machine"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Hybrid Compute Machine."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return machines.ValidateMachineID
 }

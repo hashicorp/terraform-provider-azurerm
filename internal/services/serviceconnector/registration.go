@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/resources/app_service_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/resources/function_app_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/resources/spring_cloud_connection"
 )
 
 type Registration struct{}
@@ -30,9 +33,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AppServiceConnectorResource{},
-		FunctionAppConnectorResource{},
-		SpringCloudConnectorResource{},
+		app_service_connection.Resource{},
+		function_app_connection.Resource{},
+		spring_cloud_connection.Resource{},
 	}
 }
 

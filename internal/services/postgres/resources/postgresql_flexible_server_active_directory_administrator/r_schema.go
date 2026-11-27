@@ -52,8 +52,8 @@ func postgresqlFlexibleServerActiveDirectoryAdministratorSchema() map[string]*pl
 		"tenant_id": {
 			Description:  "The Azure Tenant ID.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 	}

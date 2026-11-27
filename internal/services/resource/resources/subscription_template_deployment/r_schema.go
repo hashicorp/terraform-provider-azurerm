@@ -24,24 +24,24 @@ func subscriptionTemplateDeploymentSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"template_content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
+			Computed:  true, // azignore:AZS007 - pre-existing violation
+			StateFunc: pluginsdk.NormalizeJson,
 			ExactlyOneOf: []string{
 				"template_content",
 				"template_spec_version_id",
 			},
-			StateFunc: pluginsdk.NormalizeJson,
 		},
 
 		"template_spec_version_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 			ExactlyOneOf: []string{
 				"template_content",
 				"template_spec_version_id",
 			},
-			ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 		},
 
 		// Optional

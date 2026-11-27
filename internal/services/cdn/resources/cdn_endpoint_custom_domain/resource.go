@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmCdnEndpointCustomDomainCreate,
-		Read:   resourceArmCdnEndpointCustomDomainRead,
-		Update: resourceArmCdnEndpointCustomDomainUpdate,
-		Delete: resourceArmCdnEndpointCustomDomainDelete,
+		Description: "Manages a Custom Domain for a CDN (classic) Endpoint.",
+		Create:      resourceArmCdnEndpointCustomDomainCreate,
+		Read:        resourceArmCdnEndpointCustomDomainRead,
+		Update:      resourceArmCdnEndpointCustomDomainUpdate,
+		Delete:      resourceArmCdnEndpointCustomDomainDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := customdomains.ParseEndpointCustomDomainID(id)

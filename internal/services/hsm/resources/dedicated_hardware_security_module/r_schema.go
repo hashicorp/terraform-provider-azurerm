@@ -15,6 +15,7 @@ import (
 func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Dedicated Hardware Security Module.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku_name": {
+			Description:  "The SKU name of the Dedicated Hardware Security Module.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,9 +41,10 @@ func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"network_interface_private_ip_addresses": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						ForceNew: true,
+						Description: "The private IPv4 address of the network interface.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsIPv4Address,
@@ -49,6 +52,7 @@ func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the subnet.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -65,9 +69,10 @@ func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"network_interface_private_ip_addresses": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						ForceNew: true,
+						Description: "The private IPv4 address of the network interface.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsIPv4Address,
@@ -75,6 +80,7 @@ func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"subnet_id": {
+						Description:  "The ID of the subnet.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -85,9 +91,10 @@ func dedicatedHardwareSecurityModuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"stamp_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The ID of the stamp.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"stamp1",
 				"stamp2",

@@ -4,6 +4,7 @@
 package iothub_endpoint_eventhub
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -68,14 +69,14 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if v, ok := d.GetOk("connection_string"); ok {
 			eventhubEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
-			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+			return errors.New("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
 			eventhubEndpoint.EndpointURI = pointer.To(v.(string))
 			eventhubEndpoint.EntityPath = pointer.To(d.Get("entity_path").(string))
 		} else {
-			return fmt.Errorf("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
+			return errors.New("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {

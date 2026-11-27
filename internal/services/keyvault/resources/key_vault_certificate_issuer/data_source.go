@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceKeyVaultCertificateIssuerRead,
+		Description: "Use this data source to access information about an existing Key Vault Certificate Issuer.",
+		Read:        dataSourceKeyVaultCertificateIssuerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,24 +30,28 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}, "Key Vault"),
 
 			"name": {
+				Description:  "The name of the Key Vault Certificate Issuer.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CertificateIssuerName,
 			},
 
 			"provider_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of the third-party Certificate Issuer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The account number with the third-party Certificate Issuer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"org_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The organization ID with the third-party Certificate Issuer.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"admin": {
@@ -55,20 +60,24 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"email_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "E-mail address of the admin.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"first_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "First name of the admin.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"last_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Last name of the admin.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"phone": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "Phone number of the admin.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

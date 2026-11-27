@@ -4,6 +4,7 @@
 package dev_test_windows_virtual_machine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -59,7 +60,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 	natRules := helpers.ExpandDevTestLabVirtualMachineNatRules(natRulesRaw)
 
 	if len(natRules) > 0 && !disallowPublicIPAddress {
-		return fmt.Errorf("if `inbound_nat_rule` is specified then `disallow_public_ip_address` must be set to true")
+		return errors.New("if `inbound_nat_rule` is specified then `disallow_public_ip_address` must be set to true")
 	}
 
 	nic := virtualmachines.NetworkInterfaceProperties{}

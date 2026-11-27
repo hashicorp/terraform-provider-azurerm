@@ -29,12 +29,12 @@ func DNSSettingsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeList,
 					Optional:    true,
 					MaxItems:    2,
+					ConflictsWith: []string{
+						"dns_settings.0.use_azure_dns",
+					},
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.IsIPv4Address,
-					},
-					ConflictsWith: []string{
-						"dns_settings.0.use_azure_dns",
 					},
 				},
 

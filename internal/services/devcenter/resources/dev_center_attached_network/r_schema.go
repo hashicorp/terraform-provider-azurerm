@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Attached Network.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

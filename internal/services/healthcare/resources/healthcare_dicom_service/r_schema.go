@@ -15,6 +15,7 @@ import (
 func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Healthcare DICOM Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workspace_id": {
+			Description:  "The ID of the Healthcare Workspace where the Healthcare DICOM Service should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,14 +40,16 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authority": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The Azure Active Directory (tenant) that serves as the authentication authority to access the service. Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id}.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"audience": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Description: "The intended audience to receive authentication tokens for the service.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
+						Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					},
 				},
 			},
@@ -70,14 +74,16 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the Healthcare DICOM Services.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable public networks when data plane traffic coming from public networks while Private Endpoint is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"cors": {
@@ -89,8 +95,9 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of allowed origins for CORS.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -98,8 +105,9 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"allowed_headers": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of allowed headers for CORS.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -107,8 +115,9 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"allowed_methods": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of allowed methods for CORS.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -116,28 +125,32 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"max_age_in_seconds": {
+						Description:  "The maximum age in seconds for the CORS configuration (must be between 0 and 99998 inclusive).",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 99998),
 					},
 
 					"allow_credentials": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether to allow credentials in CORS.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
 		},
 
 		"data_partitions_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Description: "If data partitions are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 
 		"encryption_key_url": {
+			Description:  "The URL of the key to use for encryption as part of the customer-managed key encryption settings. For more details, refer to the [Azure Customer-Managed Keys Overview](https://learn.microsoft.com/azure/storage/common/customer-managed-keys-overview).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPS,
@@ -153,6 +166,7 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"file_system_name": {
+						Description:  "The filesystem name of connected Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -160,6 +174,7 @@ func healthcareDicomServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"storage_account_id": {
+						Description:  "The resource ID of connected Storage Account.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,

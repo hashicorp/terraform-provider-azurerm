@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -44,7 +45,7 @@ func (id ObjectReplicationId) ID() string {
 func ObjectReplicationID(input string) (*ObjectReplicationId, error) {
 	ids := strings.Split(input, ";")
 	if len(ids) != 2 {
-		return nil, fmt.Errorf("storage Object Replication Id is composed as format `sourceId;destinationId`")
+		return nil, errors.New("storage Object Replication Id is composed as format `sourceId;destinationId`")
 	}
 	srcId, err := objectreplicationpolicyoperationgroup.ParseObjectReplicationPolicyID(ids[0])
 	if err != nil {

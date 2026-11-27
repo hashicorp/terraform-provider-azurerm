@@ -63,7 +63,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			// the API returns 'done' but it's not actually finished provisioning yet

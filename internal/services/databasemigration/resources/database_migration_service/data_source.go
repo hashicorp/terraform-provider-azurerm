@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceDatabaseMigrationServiceRead,
+		Description: "Use this data source to access information about an existing Database Migration Service.",
+		Read:        dataSourceDatabaseMigrationServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,6 +29,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the database migration service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ServiceName,
@@ -38,13 +40,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the virtual subnet resource to which the database migration service exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The SKU name of database migration service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

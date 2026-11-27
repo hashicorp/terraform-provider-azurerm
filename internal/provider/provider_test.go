@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -849,27 +850,27 @@ func testCheckProvider(provider *schema.Provider) (errs []error) {
 	client := provider.Meta().(*clients.Client)
 
 	if endpoint, ok := client.Account.Environment.MicrosoftGraph.Endpoint(); !ok || *endpoint == "" {
-		errs = append(errs, fmt.Errorf("client.Account.Environment returned blank endpoint for Microsoft Graph"))
+		errs = append(errs, errors.New("client.Account.Environment returned blank endpoint for Microsoft Graph"))
 	}
 
 	if endpoint, ok := client.Account.Environment.ResourceManager.Endpoint(); !ok || *endpoint == "" {
-		errs = append(errs, fmt.Errorf("client.Account.Environment returned blank endpoint for Microsoft Graph"))
+		errs = append(errs, errors.New("client.Account.Environment returned blank endpoint for Microsoft Graph"))
 	}
 
 	if client.Account.ClientId == "" {
-		errs = append(errs, fmt.Errorf("client.Account.ClientId was empty"))
+		errs = append(errs, errors.New("client.Account.ClientId was empty"))
 	}
 
 	if client.Account.ObjectId == "" {
-		errs = append(errs, fmt.Errorf("client.Account.ObjectId was empty"))
+		errs = append(errs, errors.New("client.Account.ObjectId was empty"))
 	}
 
 	if client.Account.SubscriptionId == "" {
-		errs = append(errs, fmt.Errorf("client.Account.SubscriptionId was empty"))
+		errs = append(errs, errors.New("client.Account.SubscriptionId was empty"))
 	}
 
 	if client.Account.TenantId == "" {
-		errs = append(errs, fmt.Errorf("client.Account.TenantId was empty"))
+		errs = append(errs, errors.New("client.Account.TenantId was empty"))
 	}
 
 	return

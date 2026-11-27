@@ -14,34 +14,35 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Container Apps Environment Managed Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.CertificateName,
-			Description:  "The name of the Container Apps Managed Certificate.",
 		},
 
 		"container_app_environment_id": {
+			Description:  "The Container App Managed Environment ID to configure this Managed Certificate on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Managed Certificate on.",
 		},
 
 		"subject_name": {
+			Description:  "The Subject Name of the Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The Subject Name of the Certificate. Must be a valid domain name.",
 		},
 
 		"domain_control_validation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(managedenvironments.ManagedCertificateDomainControlValidationHTTP),
+			Description: "The domain control validation type for the managed certificate.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(managedenvironments.ManagedCertificateDomainControlValidationHTTP),
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					string(managedenvironments.ManagedCertificateDomainControlValidationCNAME),
@@ -49,7 +50,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 				false,
 			),
-			Description: "The domain control validation type for the managed certificate.",
 		},
 
 		"tags": commonschema.Tags(),
@@ -59,9 +59,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"validation_token": {
+			Description: "The validation token for the managed certificate.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The validation token for the managed certificate.",
 		},
 	}
 }

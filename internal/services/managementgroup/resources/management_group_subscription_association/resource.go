@@ -15,9 +15,10 @@ var managementGroupCacheControl = "no-cache"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagementGroupSubscriptionAssociationCreate,
-		Read:   resourceManagementGroupSubscriptionAssociationRead,
-		Delete: resourceManagementGroupSubscriptionAssociationDelete,
+		Description: "Manages a Management Group Subscription Association.",
+		Create:      resourceManagementGroupSubscriptionAssociationCreate,
+		Read:        resourceManagementGroupSubscriptionAssociationRead,
+		Delete:      resourceManagementGroupSubscriptionAssociationDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

@@ -16,9 +16,10 @@ import (
 func (Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Event Grid Partner Namespace.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
@@ -37,11 +38,13 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {
+						Description:  "The IP mask (CIDR) to match on.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsCIDR,
 					},
 					"action": {
+						Description:  "The action to take when the rule is matched.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(partnernamespaces.IPActionTypeAllow),
@@ -51,22 +54,25 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether local authentication methods are enabled for the Event Grid Partner Namespace.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 		"partner_topic_routing_mode": {
+			Description:  "The partner topic routing mode.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPartnerTopicRoutingMode(), false),
 			Default:      string(partnernamespaces.PartnerTopicRoutingModeChannelNameHeader),
+			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPartnerTopicRoutingMode(), false),
 		},
 		"public_network_access": {
+			Description:  "Whether public network access is allowed for this server.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPublicNetworkAccess(), false),
 			Default:      string(partnernamespaces.PublicNetworkAccessEnabled),
+			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPublicNetworkAccess(), false),
 		},
 		"tags": commonschema.Tags(),
 	}
@@ -75,8 +81,9 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 func (Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint for the Event Grid Partner Namespace.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
