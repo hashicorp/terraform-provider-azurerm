@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SiteRecoveryReplicationPolicyHyperVResource struct{}
+type SiteRecoveryHypervReplicationPolicyResource struct{}
 
 func TestAccSiteRecoveryReplicationPolicyHyperV_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy", "test")
-	r := SiteRecoveryReplicationPolicyHyperVResource{}
+	r := SiteRecoveryHypervReplicationPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccSiteRecoveryReplicationPolicyHyperV_basic(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationPolicyHyperV_noSnapshots(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy", "test")
-	r := SiteRecoveryReplicationPolicyHyperVResource{}
+	r := SiteRecoveryHypervReplicationPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccSiteRecoveryReplicationPolicyHyperV_noSnapshots(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryReplicationPolicyHyperVResource) basic(data acceptance.TestData, retentionInHours int, snapshotFrequencyInHours int, replicationInterval int) string {
+func (SiteRecoveryHypervReplicationPolicyResource) basic(data acceptance.TestData, retentionInHours int, snapshotFrequencyInHours int, replicationInterval int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -79,7 +79,7 @@ resource "azurerm_site_recovery_hyperv_replication_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, retentionInHours, snapshotFrequencyInHours, replicationInterval)
 }
 
-func (t SiteRecoveryReplicationPolicyHyperVResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SiteRecoveryHypervReplicationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationpolicies.ParseReplicationPolicyID(state.ID)
 	if err != nil {
 		return nil, err

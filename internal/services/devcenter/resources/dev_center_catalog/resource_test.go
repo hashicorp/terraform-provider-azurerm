@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterCatalogsResource struct{}
+type DevCenterCatalogResource struct{}
 
-func (r DevCenterCatalogsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterCatalogResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := catalogs.ParseDevCenterCatalogID(state.ID)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (r DevCenterCatalogsResource) Exists(ctx context.Context, client *clients.C
 
 func TestAccDevCenterCatalogs_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
-	r := DevCenterCatalogsResource{}
+	r := DevCenterCatalogResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccDevCenterCatalogs_basic(t *testing.T) {
 
 func TestAccDevCenterCatalogs_adoGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
-	r := DevCenterCatalogsResource{}
+	r := DevCenterCatalogResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccDevCenterCatalogs_adoGit(t *testing.T) {
 
 func TestAccDevCenterCatalogs_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
-	r := DevCenterCatalogsResource{}
+	r := DevCenterCatalogResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccDevCenterCatalogs_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterCatalogsResource) basic(data acceptance.TestData) string {
+func (r DevCenterCatalogResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,7 +106,7 @@ resource "azurerm_dev_center_catalog" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterCatalogsResource) adoGit(data acceptance.TestData) string {
+func (r DevCenterCatalogResource) adoGit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_dev_center_catalog" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterCatalogsResource) update(data acceptance.TestData) string {
+func (r DevCenterCatalogResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +150,7 @@ resource "azurerm_dev_center_catalog" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterCatalogsResource) template(data acceptance.TestData) string {
+func (r DevCenterCatalogResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"

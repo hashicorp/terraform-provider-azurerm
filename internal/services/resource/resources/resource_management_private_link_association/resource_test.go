@@ -17,14 +17,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ResourceManagementPrivateLinkAssociationTestResource struct {
+type ResourceManagementPrivateLinkAssociationResource struct {
 	uuid string
 }
 
 func TestAccResourceManagementPrivateLinkAssociation_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
 	randomUUID, _ := uuid.GenerateUUID()
-	r := ResourceManagementPrivateLinkAssociationTestResource{
+	r := ResourceManagementPrivateLinkAssociationResource{
 		uuid: randomUUID,
 	}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
@@ -37,7 +37,7 @@ func TestAccResourceManagementPrivateLinkAssociation_regressionTest(t *testing.T
 func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
 	randomUUID, _ := uuid.GenerateUUID()
-	r := ResourceManagementPrivateLinkAssociationTestResource{
+	r := ResourceManagementPrivateLinkAssociationResource{
 		uuid: randomUUID,
 	}
 
@@ -55,7 +55,7 @@ func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
 	randomUUID, _ := uuid.GenerateUUID()
-	r := ResourceManagementPrivateLinkAssociationTestResource{
+	r := ResourceManagementPrivateLinkAssociationResource{
 		uuid: randomUUID,
 	}
 
@@ -72,7 +72,7 @@ func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T
 
 func TestAccResourceManagementPrivateLinkAssociation_generateName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	r := ResourceManagementPrivateLinkAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccResourceManagementPrivateLinkAssociation_generateName(t *testing.T) 
 	})
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ResourceManagementPrivateLinkAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatelinkassociation.ParsePrivateLinkAssociationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) basic(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -116,7 +116,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
 `, r.template(data), r.uuid)
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) generateName(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkAssociationResource) generateName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,7 +135,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
 `, r.template(data))
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -148,7 +148,7 @@ resource "azurerm_resource_management_private_link_association" "import" {
 `, r.basic(data))
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) template(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "test" {}
 

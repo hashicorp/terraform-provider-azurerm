@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SentinelAlertRuleMLBehaviorAnalyticsResource struct{}
+type SentinelAlertRuleMachineLearningBehaviorAnalyticsResource struct{}
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
-	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
+	r := SentinelAlertRuleMachineLearningBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_basic(t *testing.T) {
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
-	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
+	r := SentinelAlertRuleMachineLearningBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_complete(t *testing.T) {
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
-	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
+	r := SentinelAlertRuleMachineLearningBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_update(t *testing.T) {
 
 func TestAccSentinelAlertRuleMLBehaviorAnalytics_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics", "test")
-	r := SentinelAlertRuleMLBehaviorAnalyticsResource{}
+	r := SentinelAlertRuleMachineLearningBehaviorAnalyticsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_requiresImport(t *testing.T) {
 	})
 }
 
-func (r SentinelAlertRuleMLBehaviorAnalyticsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelAlertRuleMachineLearningBehaviorAnalyticsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	alertRuleClient := client.Sentinel.AlertRulesClient
 	id, err := alertrules.ParseAlertRuleID(state.ID)
 	if err != nil {
@@ -120,7 +120,7 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) Exists(ctx context.Context
 	return pointer.To(false), nil
 }
 
-func (r SentinelAlertRuleMLBehaviorAnalyticsResource) basic(data acceptance.TestData) string {
+func (r SentinelAlertRuleMachineLearningBehaviorAnalyticsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -138,7 +138,7 @@ resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SentinelAlertRuleMLBehaviorAnalyticsResource) complete(data acceptance.TestData) string {
+func (r SentinelAlertRuleMachineLearningBehaviorAnalyticsResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +168,7 @@ resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r SentinelAlertRuleMLBehaviorAnalyticsResource) requiresImport(data acceptance.TestData) string {
+func (r SentinelAlertRuleMachineLearningBehaviorAnalyticsResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -180,7 +180,7 @@ resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "impo
 `, r.basic(data))
 }
 
-func (r SentinelAlertRuleMLBehaviorAnalyticsResource) template(data acceptance.TestData) string {
+func (r SentinelAlertRuleMachineLearningBehaviorAnalyticsResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

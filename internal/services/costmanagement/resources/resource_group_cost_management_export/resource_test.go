@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ResourceGroupCostManagementExport struct{}
+type ResourceGroupCostManagementExportResource struct{}
 
 func TestAccResourceGroupCostManagementExport_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
-	r := ResourceGroupCostManagementExport{}
+	r := ResourceGroupCostManagementExportResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccResourceGroupCostManagementExport_regressionTest(t *testing.T) {
 
 func TestAccResourceGroupCostManagementExport_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
-	r := ResourceGroupCostManagementExport{}
+	r := ResourceGroupCostManagementExportResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccResourceGroupCostManagementExport_basic(t *testing.T) {
 
 func TestAccResourceGroupCostManagementExport_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
-	r := ResourceGroupCostManagementExport{}
+	r := ResourceGroupCostManagementExportResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccResourceGroupCostManagementExport_update(t *testing.T) {
 
 func TestAccResourceGroupCostManagementExport_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
-	r := ResourceGroupCostManagementExport{}
+	r := ResourceGroupCostManagementExportResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccResourceGroupCostManagementExport_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ResourceGroupCostManagementExport) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ResourceGroupCostManagementExportResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exports.ParseScopedExportID(state.ID)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (t ResourceGroupCostManagementExport) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupCostManagementExport) basic(data acceptance.TestData) string {
+func (ResourceGroupCostManagementExportResource) basic(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
 
@@ -151,7 +151,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
-func (ResourceGroupCostManagementExport) update(data acceptance.TestData) string {
+func (ResourceGroupCostManagementExportResource) update(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
 	end := time.Now().AddDate(0, 4, 0).Format("2006-01-02")
 
@@ -196,8 +196,8 @@ resource "azurerm_resource_group_cost_management_export" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
-func (ResourceGroupCostManagementExport) requiresImport(data acceptance.TestData) string {
-	template := ResourceGroupCostManagementExport{}.basic(data)
+func (ResourceGroupCostManagementExportResource) requiresImport(data acceptance.TestData) string {
+	template := ResourceGroupCostManagementExportResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

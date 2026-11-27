@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ResourceGroupCostManagementView struct{}
+type ResourceGroupCostManagementViewResource struct{}
 
 func TestAccResourceGroupCostManagementView_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
-	r := ResourceGroupCostManagementView{}
+	r := ResourceGroupCostManagementViewResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccResourceGroupCostManagementView_regressionTest(t *testing.T) {
 
 func TestAccResourceGroupCostManagementView_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
-	r := ResourceGroupCostManagementView{}
+	r := ResourceGroupCostManagementViewResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccResourceGroupCostManagementView_basic(t *testing.T) {
 
 func TestAccResourceGroupCostManagementView_table(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
-	r := ResourceGroupCostManagementView{}
+	r := ResourceGroupCostManagementViewResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccResourceGroupCostManagementView_table(t *testing.T) {
 
 func TestAccResourceGroupCostManagementView_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
-	r := ResourceGroupCostManagementView{}
+	r := ResourceGroupCostManagementViewResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccResourceGroupCostManagementView_update(t *testing.T) {
 
 func TestAccResourceGroupCostManagementView_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
-	r := ResourceGroupCostManagementView{}
+	r := ResourceGroupCostManagementViewResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccResourceGroupCostManagementView_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ResourceGroupCostManagementView) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ResourceGroupCostManagementViewResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := viewoperationgroup.ParseScopedViewID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (t ResourceGroupCostManagementView) Exists(ctx context.Context, clients *cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupCostManagementView) basic(data acceptance.TestData) string {
+func (ResourceGroupCostManagementViewResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,7 +180,7 @@ resource "azurerm_resource_group_cost_management_view" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (ResourceGroupCostManagementView) update(data acceptance.TestData) string {
+func (ResourceGroupCostManagementViewResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -232,8 +232,8 @@ resource "azurerm_resource_group_cost_management_view" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (ResourceGroupCostManagementView) requiresImport(data acceptance.TestData) string {
-	template := ResourceGroupCostManagementView{}.basic(data)
+func (ResourceGroupCostManagementViewResource) requiresImport(data acceptance.TestData) string {
+	template := ResourceGroupCostManagementViewResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -287,7 +287,7 @@ resource "azurerm_resource_group_cost_management_view" "import" {
 `, template)
 }
 
-func (ResourceGroupCostManagementView) table(data acceptance.TestData) string {
+func (ResourceGroupCostManagementViewResource) table(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

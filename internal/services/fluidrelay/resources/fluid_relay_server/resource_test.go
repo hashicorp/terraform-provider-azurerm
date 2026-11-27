@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FluidRelayResource struct{}
+type FluidRelayServerResource struct{}
 
 func TestAccFluidRelayServer_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	f := FluidRelayResource{}
+	f := FluidRelayServerResource{}
 
 	data.ResourceRegressionTest(t, f, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccFluidRelayServer_regressionTest(t *testing.T) {
 
 func TestAccFluidRelayServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	f := FluidRelayResource{}
+	f := FluidRelayServerResource{}
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccFluidRelayServer_basic(t *testing.T) {
 
 func TestAccFluidRelayServer_storageBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	f := FluidRelayResource{}
+	f := FluidRelayServerResource{}
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccFluidRelayServer_storageBasic(t *testing.T) {
 
 func TestAccFluidRelayServer_ami(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	f := FluidRelayResource{}
+	f := FluidRelayServerResource{}
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccFluidRelayServer_ami(t *testing.T) {
 
 func TestAccFluidRelayServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	var f FluidRelayResource
+	var f FluidRelayServerResource
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -117,7 +117,7 @@ func TestAccFluidRelayServer_requiresImport(t *testing.T) {
 
 func TestAccFluidRelayServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	var f FluidRelayResource
+	var f FluidRelayServerResource
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -145,7 +145,7 @@ func TestAccFluidRelayServer_update(t *testing.T) {
 
 func TestAccFluidRelayServer_customerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	var f FluidRelayResource
+	var f FluidRelayServerResource
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -167,7 +167,7 @@ func TestAccFluidRelayServer_customerManagedKey(t *testing.T) {
 
 func TestAccFluidRelayServer_customerManagedKeyVersionless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
-	var f FluidRelayResource
+	var f FluidRelayServerResource
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
 		{
@@ -187,7 +187,7 @@ func TestAccFluidRelayServer_customerManagedKeyVersionless(t *testing.T) {
 	})
 }
 
-func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (f FluidRelayServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fluidrelayservers.ParseFluidRelayServerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (f FluidRelayResource) template(data acceptance.TestData) string {
+func (f FluidRelayServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -217,7 +217,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) templateWithIdentity(data acceptance.TestData) string {
+func (f FluidRelayServerResource) templateWithIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
@@ -230,7 +230,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, f.template(data), data.RandomInteger)
 }
 
-func (f FluidRelayResource) templateWithCMK(data acceptance.TestData) string {
+func (f FluidRelayServerResource) templateWithCMK(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
@@ -294,7 +294,7 @@ resource "azurerm_key_vault_key" "test2" {
 `, f.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (f FluidRelayResource) basic(data acceptance.TestData) string {
+func (f FluidRelayServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
@@ -311,7 +311,7 @@ resource "azurerm_fluid_relay_server" "test" {
 }
 
 // basic storage sku only work with east asia and south-ease-asia
-func (f FluidRelayResource) storageBasic(data acceptance.TestData) string {
+func (f FluidRelayServerResource) storageBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -329,7 +329,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.template(data), data.RandomInteger)
 }
 
-func (f FluidRelayResource) userAssigned(data acceptance.TestData) string {
+func (f FluidRelayServerResource) userAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -347,7 +347,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithIdentity(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) systemAssigned(data acceptance.TestData) string {
+func (f FluidRelayServerResource) systemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -367,7 +367,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithIdentity(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) systemAndUserAssigned(data acceptance.TestData) string {
+func (f FluidRelayServerResource) systemAndUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -388,7 +388,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithIdentity(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) requiresImport(data acceptance.TestData) string {
+func (f FluidRelayServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -401,7 +401,7 @@ resource "azurerm_fluid_relay_server" "import" {
 `, f.basic(data))
 }
 
-func (f FluidRelayResource) update(data acceptance.TestData) string {
+func (f FluidRelayServerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
@@ -417,7 +417,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) customerManagedKey(data acceptance.TestData) string {
+func (f FluidRelayServerResource) customerManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -439,7 +439,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) customerManagedKeyVersionless(data acceptance.TestData) string {
+func (f FluidRelayServerResource) customerManagedKeyVersionless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -461,7 +461,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) customerManagedKeyVersionlessUpdated(data acceptance.TestData) string {
+func (f FluidRelayServerResource) customerManagedKeyVersionlessUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -483,7 +483,7 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (f FluidRelayResource) customerManagedKeyUpdated(data acceptance.TestData) string {
+func (f FluidRelayServerResource) customerManagedKeyUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 

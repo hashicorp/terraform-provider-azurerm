@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VirtualMachineRunCommandTestResource struct{}
+type VirtualMachineRunCommandResource struct{}
 
 func TestAccVirtualMachineRunCommand_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -31,7 +31,7 @@ func TestAccVirtualMachineRunCommand_regressionTest(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccVirtualMachineRunCommand_basic(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccVirtualMachineRunCommand_requiresImport(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_sourceCommandId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccVirtualMachineRunCommand_sourceCommandId(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_storageBlobSAS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccVirtualMachineRunCommand_storageBlobSAS(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_storageBlobSystemIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -125,7 +125,7 @@ func TestAccVirtualMachineRunCommand_storageBlobSystemIdentity(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccVirtualMachineRunCommand_complete(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_updateParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -162,7 +162,7 @@ func TestAccVirtualMachineRunCommand_updateParameters(t *testing.T) {
 
 func TestAccVirtualMachineRunCommand_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
-	r := VirtualMachineRunCommandTestResource{}
+	r := VirtualMachineRunCommandResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -189,7 +189,7 @@ func TestAccVirtualMachineRunCommand_update(t *testing.T) {
 	})
 }
 
-func (r VirtualMachineRunCommandTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VirtualMachineRunCommandResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachineruncommands.ParseVirtualMachineRunCommandID(state.ID)
 	if err != nil {
 		return nil, err
@@ -203,7 +203,7 @@ func (r VirtualMachineRunCommandTestResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r VirtualMachineRunCommandTestResource) basic(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -222,7 +222,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -237,7 +237,7 @@ resource "azurerm_virtual_machine_run_command" "import" {
 `, r.basic(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) basicWithSkipImportCheck(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) basicWithSkipImportCheck(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -258,7 +258,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) basicWithParameters(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) basicWithParameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -287,7 +287,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) basicWithScriptError(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) basicWithScriptError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -306,7 +306,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) sourceCommandId(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) sourceCommandId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -337,7 +337,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) complete(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -431,7 +431,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) storageBlobSystemIdentity(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) storageBlobSystemIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
@@ -517,7 +517,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) storageBlobSAS(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) storageBlobSAS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -619,7 +619,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 }
 
-func (r VirtualMachineRunCommandTestResource) template(data acceptance.TestData) string {
+func (r VirtualMachineRunCommandResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

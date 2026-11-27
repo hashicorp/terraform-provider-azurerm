@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ResourceManagementPrivateLinkTestResource struct{}
+type ResourceManagementPrivateLinkResource struct{}
 
 func TestAccResourceManagementPrivateLink_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link", "test")
-	r := ResourceManagementPrivateLinkTestResource{}
+	r := ResourceManagementPrivateLinkResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -30,7 +30,7 @@ func TestAccResourceManagementPrivateLink_regressionTest(t *testing.T) {
 
 func TestAccResourceManagementPrivateLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link", "test")
-	r := ResourceManagementPrivateLinkTestResource{}
+	r := ResourceManagementPrivateLinkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccResourceManagementPrivateLink_basic(t *testing.T) {
 
 func TestAccResourceManagementPrivateLink_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link", "test")
-	r := ResourceManagementPrivateLinkTestResource{}
+	r := ResourceManagementPrivateLinkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,7 +58,7 @@ func TestAccResourceManagementPrivateLink_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ResourceManagementPrivateLinkTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ResourceManagementPrivateLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := resourcemanagementprivatelink.ParseResourceManagementPrivateLinkID(state.ID)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (r ResourceManagementPrivateLinkTestResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ResourceManagementPrivateLinkTestResource) basic(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -88,7 +88,7 @@ resource "azurerm_resource_management_private_link" "test" {
 `, r.template(data))
 }
 
-func (r ResourceManagementPrivateLinkTestResource) requiresImport(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -101,7 +101,7 @@ resource "azurerm_resource_management_private_link" "import" {
 `, r.basic(data))
 }
 
-func (r ResourceManagementPrivateLinkTestResource) template(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type InferenceClusterResource struct{}
+type MachineLearningInferenceClusterResource struct{}
 
 func TestAccInferenceCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccInferenceCluster_basic(t *testing.T) {
 
 func TestAccInferenceCluster_privateBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccInferenceCluster_privateBasic(t *testing.T) {
 
 func TestAccInferenceCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccInferenceCluster_requiresImport(t *testing.T) {
 
 func TestAccInferenceCluster_completeCustomSSL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccInferenceCluster_completeCustomSSL(t *testing.T) {
 
 func TestAccInferenceCluster_completeMicrosoftSSL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +96,7 @@ func TestAccInferenceCluster_completeMicrosoftSSL(t *testing.T) {
 
 func TestAccInferenceCluster_completeProduction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +111,7 @@ func TestAccInferenceCluster_completeProduction(t *testing.T) {
 
 func TestAccInferenceCluster_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_inference_cluster", "test")
-	r := InferenceClusterResource{}
+	r := MachineLearningInferenceClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -149,7 +149,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 	})
 }
 
-func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningInferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	inferenceClusterClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
@@ -167,7 +167,7 @@ func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Cl
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r InferenceClusterResource) basic(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,7 +185,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) privateBasic(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) privateBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +204,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templatePrivateDevTest(data), data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) completeCustomSSL(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) completeCustomSSL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -228,7 +228,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) completeMicrosoftSSL(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) completeMicrosoftSSL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -251,7 +251,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templateDevTest(data), data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) completeProduction(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) completeProduction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -275,7 +275,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, r.templateFastProd(data), data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -291,19 +291,19 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
 `, r.basic(data))
 }
 
-func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) templateFastProd(data acceptance.TestData) string {
 	return r.template(data, "Standard_D3_v2", 3)
 }
 
-func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) templateDevTest(data acceptance.TestData) string {
 	return r.template(data, "Standard_DS2_v2", 1)
 }
 
-func (r InferenceClusterResource) templatePrivateDevTest(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) templatePrivateDevTest(data acceptance.TestData) string {
 	return r.privateTemplate(data, "Standard_DS2_v2", 1)
 }
 
-func (r InferenceClusterResource) identitySystemAssigned(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) identitySystemAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
 	return fmt.Sprintf(`
 %s
@@ -321,7 +321,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) identityUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) identityUserAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
 	return fmt.Sprintf(`
 %s
@@ -348,7 +348,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningInferenceClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
 	return fmt.Sprintf(`
 %s
@@ -375,7 +375,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r InferenceClusterResource) template(data acceptance.TestData, vmSize string, nodeCount int) string {
+func (r MachineLearningInferenceClusterResource) template(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -479,7 +479,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
 }
 
-func (r InferenceClusterResource) privateTemplate(data acceptance.TestData, vmSize string, nodeCount int) string {
+func (r MachineLearningInferenceClusterResource) privateTemplate(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

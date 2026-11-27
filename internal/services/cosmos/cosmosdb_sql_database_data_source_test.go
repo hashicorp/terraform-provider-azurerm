@@ -64,7 +64,7 @@ data "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_sql_database.test.account_name
 }
-`, CosmosSqlDatabaseResource{}.basic(data))
+`, CosmosdbSqlDatabaseResource{}.basic(data))
 }
 
 func (CosmosDBSqlDatabaseDataSource) throughput(data acceptance.TestData) string {
@@ -76,7 +76,7 @@ data "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_sql_database.test.account_name
 }
-`, CosmosSqlDatabaseResource{}.throughput(data, 4000))
+`, CosmosdbSqlDatabaseResource{}.throughput(data, 4000))
 }
 
 func (CosmosDBSqlDatabaseDataSource) serverless(data acceptance.TestData) string {
@@ -88,5 +88,5 @@ data "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_sql_database.test.account_name
 }
-`, CosmosSqlDatabaseResource{}.serverless(data))
+`, CosmosdbSqlDatabaseResource{}.serverless(data))
 }

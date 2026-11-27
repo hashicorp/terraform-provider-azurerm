@@ -39,5 +39,5 @@ data "azurerm_dev_center_dev_box_definition" "test" {
   name          = azurerm_dev_center_dev_box_definition.test.name
   dev_center_id = azurerm_dev_center_dev_box_definition.test.dev_center_id
 }
-`, DevCenterDevBoxDefinitionTestResource{}.basic(data))
+`, DevCenterDevBoxDefinitionResource{}.basic(data))
 }

@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ChaosStudioTargetTestResource struct{}
+type ChaosStudioTargetResource struct{}
 
 func TestAccChaosStudioTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_target", "test")
-	r := ChaosStudioTargetTestResource{}
+	r := ChaosStudioTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccChaosStudioTarget_basic(t *testing.T) {
 
 func TestAccChaosStudioTarget_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_target", "test")
-	r := ChaosStudioTargetTestResource{}
+	r := ChaosStudioTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccChaosStudioTarget_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ChaosStudioTargetTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ChaosStudioTargetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseChaosStudioTargetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (r ChaosStudioTargetTestResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ChaosStudioTargetTestResource) basic(data acceptance.TestData) string {
+func (r ChaosStudioTargetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -81,7 +81,7 @@ resource "azurerm_chaos_studio_target" "test" {
 `, r.template(data))
 }
 
-func (r ChaosStudioTargetTestResource) requiresImport(data acceptance.TestData) string {
+func (r ChaosStudioTargetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -93,7 +93,7 @@ resource "azurerm_chaos_studio_target" "import" {
 `, r.basic(data))
 }
 
-func (r ChaosStudioTargetTestResource) template(data acceptance.TestData) string {
+func (r ChaosStudioTargetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

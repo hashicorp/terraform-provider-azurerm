@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerRoutingRuleCollectionResource struct{}
+type NetworkManagerRoutingRuleCollectionResource struct{}
 
 func testAccNetworkManagerRoutingRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule_collection", "test")
-	r := ManagerRoutingRuleCollectionResource{}
+	r := NetworkManagerRoutingRuleCollectionResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func testAccNetworkManagerRoutingRuleCollection_basic(t *testing.T) {
 
 func testAccNetworkManagerRoutingRuleCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule_collection", "test")
-	r := ManagerRoutingRuleCollectionResource{}
+	r := NetworkManagerRoutingRuleCollectionResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func testAccNetworkManagerRoutingRuleCollection_update(t *testing.T) {
 
 func testAccNetworkManagerRoutingRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule_collection", "test")
-	r := ManagerRoutingRuleCollectionResource{}
+	r := NetworkManagerRoutingRuleCollectionResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func testAccNetworkManagerRoutingRuleCollection_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerRoutingRuleCollection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule_collection", "test")
-	r := ManagerRoutingRuleCollectionResource{}
+	r := NetworkManagerRoutingRuleCollectionResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func testAccNetworkManagerRoutingRuleCollection_complete(t *testing.T) {
 	})
 }
 
-func (r ManagerRoutingRuleCollectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerRoutingRuleCollectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routingrulecollections.ParseRuleCollectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (r ManagerRoutingRuleCollectionResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerRoutingRuleCollectionResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleCollectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -122,7 +122,7 @@ resource "azurerm_network_manager_routing_rule_collection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerRoutingRuleCollectionResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleCollectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_network_manager_routing_rule_collection" "import" {
 `, r.basic(data))
 }
 
-func (r ManagerRoutingRuleCollectionResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleCollectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,7 +152,7 @@ resource "azurerm_network_manager_routing_rule_collection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerRoutingRuleCollectionResource) template(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleCollectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-rc-%d"

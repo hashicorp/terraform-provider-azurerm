@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DNSResolverOutboundEndpointResource struct{}
+type PrivateDnsResolverOutboundEndpointResource struct{}
 
 func TestAccDNSResolverOutboundEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_outbound_endpoint", "test")
-	r := DNSResolverOutboundEndpointResource{}
+	r := PrivateDnsResolverOutboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccDNSResolverOutboundEndpoint_basic(t *testing.T) {
 
 func TestAccDNSResolverOutboundEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_outbound_endpoint", "test")
-	r := DNSResolverOutboundEndpointResource{}
+	r := PrivateDnsResolverOutboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccDNSResolverOutboundEndpoint_requiresImport(t *testing.T) {
 
 func TestAccDNSResolverOutboundEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_outbound_endpoint", "test")
-	r := DNSResolverOutboundEndpointResource{}
+	r := PrivateDnsResolverOutboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccDNSResolverOutboundEndpoint_complete(t *testing.T) {
 
 func TestAccDNSResolverOutboundEndpoint_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_outbound_endpoint", "test")
-	r := DNSResolverOutboundEndpointResource{}
+	r := PrivateDnsResolverOutboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccDNSResolverOutboundEndpoint_update(t *testing.T) {
 	})
 }
 
-func (r DNSResolverOutboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsResolverOutboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := outboundendpoints.ParseOutboundEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r DNSResolverOutboundEndpointResource) Exists(ctx context.Context, clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DNSResolverOutboundEndpointResource) template(data acceptance.TestData) string {
+func (r PrivateDnsResolverOutboundEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,7 +141,7 @@ resource "azurerm_private_dns_resolver" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DNSResolverOutboundEndpointResource) basic(data acceptance.TestData) string {
+func (r PrivateDnsResolverOutboundEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -155,7 +155,7 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DNSResolverOutboundEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r PrivateDnsResolverOutboundEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -169,7 +169,7 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "import" {
 `, config)
 }
 
-func (r DNSResolverOutboundEndpointResource) complete(data acceptance.TestData) string {
+func (r PrivateDnsResolverOutboundEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -186,7 +186,7 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DNSResolverOutboundEndpointResource) update(data acceptance.TestData) string {
+func (r PrivateDnsResolverOutboundEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceAzureTableStorageResource struct{}
+type DataFactoryLinkedServiceAzureTableStorageResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureTableStorage_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_table_storage", "test")
-	r := LinkedServiceAzureTableStorageResource{}
+	r := DataFactoryLinkedServiceAzureTableStorageResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceAzureTableStorage_regressionTest(t *testing.
 
 func TestAccDataFactoryLinkedServiceAzureTableStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_table_storage", "test")
-	r := LinkedServiceAzureTableStorageResource{}
+	r := DataFactoryLinkedServiceAzureTableStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceAzureTableStorage_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureTableStorage_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_table_storage", "test")
-	r := LinkedServiceAzureTableStorageResource{}
+	r := DataFactoryLinkedServiceAzureTableStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestAccDataFactoryLinkedServiceAzureTableStorage_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceAzureTableStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureTableStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (t LinkedServiceAzureTableStorageResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceAzureTableStorageResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureTableStorageResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,7 +113,7 @@ resource "azurerm_data_factory_linked_service_azure_table_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureTableStorageResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureTableStorageResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +150,7 @@ resource "azurerm_data_factory_linked_service_azure_table_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureTableStorageResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureTableStorageResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

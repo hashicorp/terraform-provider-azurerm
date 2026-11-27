@@ -58,7 +58,7 @@ data azurerm_load_test test {
   name                = azurerm_load_test.test.name
   resource_group_name = azurerm_load_test.test.resource_group_name
 }
-`, LoadTestTestResource{}.complete(data))
+`, LoadTestResource{}.complete(data))
 }
 
 func (d LoadTestTestDataSource) encryption(data acceptance.TestData) string {
@@ -69,5 +69,5 @@ data azurerm_load_test test {
   name                = azurerm_load_test.test.name
   resource_group_name = azurerm_load_test.test.resource_group_name
 }
-`, LoadTestTestResource{}.encryption(data))
+`, LoadTestResource{}.encryption(data))
 }

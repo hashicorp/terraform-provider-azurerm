@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AzureEndpointResource struct{}
+type TrafficManagerAzureEndpointResource struct{}
 
 func TestAccAzureEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
-	r := AzureEndpointResource{}
+	r := TrafficManagerAzureEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccAzureEndpoint_basic(t *testing.T) {
 
 func TestAccAzureEndpoint_priority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
-	r := AzureEndpointResource{}
+	r := TrafficManagerAzureEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccAzureEndpoint_priority(t *testing.T) {
 
 func TestAccAzureEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
-	r := AzureEndpointResource{}
+	r := TrafficManagerAzureEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccAzureEndpoint_requiresImport(t *testing.T) {
 
 func TestAccAzureEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
-	r := AzureEndpointResource{}
+	r := TrafficManagerAzureEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccAzureEndpoint_complete(t *testing.T) {
 
 func TestAccAzureEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test2")
-	r := AzureEndpointResource{}
+	r := TrafficManagerAzureEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccAzureEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
 
 func TestAccAzureEndpoint_subnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
-	r := AzureEndpointResource{}
+	r := TrafficManagerAzureEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,7 +123,7 @@ func TestAccAzureEndpoint_subnets(t *testing.T) {
 	})
 }
 
-func (r AzureEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r TrafficManagerAzureEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trafficmanagers.ParseEndpointTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (r AzureEndpointResource) Exists(ctx context.Context, client *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AzureEndpointResource) basic(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -165,7 +165,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r AzureEndpointResource) priority(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -209,7 +209,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AzureEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -223,7 +223,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "import" {
 `, template)
 }
 
-func (r AzureEndpointResource) complete(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -259,7 +259,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r AzureEndpointResource) multiple(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) multiple(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -300,7 +300,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test2" {
 `, template, data.RandomInteger)
 }
 
-func (r AzureEndpointResource) subnets(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -354,7 +354,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AzureEndpointResource) template(data acceptance.TestData) string {
+func (r TrafficManagerAzureEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%[1]d"

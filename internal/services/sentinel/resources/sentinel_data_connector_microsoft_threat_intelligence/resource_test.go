@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SentinelDataConnectorMicrosoftThreatIntelligence struct{}
+type SentinelDataConnectorMicrosoftThreatIntelligenceResource struct{}
 
 func TestAccSentinelDataConnectorMicrosoftThreatIntelligence_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_microsoft_threat_intelligence", "test")
-	r := SentinelDataConnectorMicrosoftThreatIntelligence{}
+	r := SentinelDataConnectorMicrosoftThreatIntelligenceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccSentinelDataConnectorMicrosoftThreatIntelligence_basic(t *testing.T)
 
 func TestAccSentinelDataConnectorMicrosoftThreatIntelligence_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_microsoft_threat_intelligence", "test")
-	r := SentinelDataConnectorMicrosoftThreatIntelligence{}
+	r := SentinelDataConnectorMicrosoftThreatIntelligenceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccSentinelDataConnectorMicrosoftThreatIntelligence_complete(t *testing
 	})
 }
 
-func (r SentinelDataConnectorMicrosoftThreatIntelligence) basic(data acceptance.TestData) string {
+func (r SentinelDataConnectorMicrosoftThreatIntelligenceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -61,7 +61,7 @@ resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" 
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SentinelDataConnectorMicrosoftThreatIntelligence) complete(data acceptance.TestData) string {
+func (r SentinelDataConnectorMicrosoftThreatIntelligenceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -76,7 +76,7 @@ resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" 
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SentinelDataConnectorMicrosoftThreatIntelligence) template(data acceptance.TestData) string {
+func (r SentinelDataConnectorMicrosoftThreatIntelligenceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,7 +100,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SentinelDataConnectorMicrosoftThreatIntelligence) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SentinelDataConnectorMicrosoftThreatIntelligenceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.DataConnectorsClient
 
 	id, err := dataconnectors.ParseDataConnectorID(state.ID)

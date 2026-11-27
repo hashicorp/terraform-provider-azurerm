@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerDeploymentResource struct{}
+type NetworkManagerDeploymentResource struct{}
 
 func testAccNetworkManagerDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
-	r := ManagerDeploymentResource{}
+	r := NetworkManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -37,7 +37,7 @@ func testAccNetworkManagerDeployment_basic(t *testing.T) {
 
 func testAccNetworkManagerDeployment_basicAdmin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
-	r := ManagerDeploymentResource{}
+	r := NetworkManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAdmin(data),
@@ -51,7 +51,7 @@ func testAccNetworkManagerDeployment_basicAdmin(t *testing.T) {
 
 func testAccNetworkManagerDeployment_withTriggers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
-	r := ManagerDeploymentResource{}
+	r := NetworkManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTriggers(data),
@@ -67,7 +67,7 @@ func testAccNetworkManagerDeployment_withTriggers(t *testing.T) {
 
 func testAccNetworkManagerDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
-	r := ManagerDeploymentResource{}
+	r := NetworkManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -81,7 +81,7 @@ func testAccNetworkManagerDeployment_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerDeployment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
-	r := ManagerDeploymentResource{}
+	r := NetworkManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -95,7 +95,7 @@ func testAccNetworkManagerDeployment_complete(t *testing.T) {
 
 func testAccNetworkManagerDeployment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
-	r := ManagerDeploymentResource{}
+	r := NetworkManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -114,7 +114,7 @@ func testAccNetworkManagerDeployment_update(t *testing.T) {
 	})
 }
 
-func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NetworkManagerDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0), nil
 }
 
-func (r ManagerDeploymentResource) template(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -195,7 +195,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ManagerDeploymentResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -209,7 +209,7 @@ resource "azurerm_network_manager_deployment" "test" {
 `, template)
 }
 
-func (r ManagerDeploymentResource) basicAdmin(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) basicAdmin(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -255,7 +255,7 @@ resource "azurerm_network_manager_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerDeploymentResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -269,7 +269,7 @@ resource "azurerm_network_manager_deployment" "import" {
 `, config)
 }
 
-func (r ManagerDeploymentResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -300,7 +300,7 @@ resource "azurerm_network_manager_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerDeploymentResource) withTriggers(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) withTriggers(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -350,7 +350,7 @@ resource "azurerm_network_manager_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerDeploymentResource) update(data acceptance.TestData) string {
+func (r NetworkManagerDeploymentResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

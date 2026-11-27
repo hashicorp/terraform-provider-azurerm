@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerIpamPoolResource struct{}
+type NetworkManagerIpamPoolResource struct{}
 
 func testAccNetworkManagerIpamPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
-	r := ManagerIpamPoolResource{}
+	r := NetworkManagerIpamPoolResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func testAccNetworkManagerIpamPool_basic(t *testing.T) {
 
 func testAccNetworkManagerIpamPool_basicIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
-	r := ManagerIpamPoolResource{}
+	r := NetworkManagerIpamPoolResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func testAccNetworkManagerIpamPool_basicIPv6(t *testing.T) {
 
 func testAccNetworkManagerIpamPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
-	r := ManagerIpamPoolResource{}
+	r := NetworkManagerIpamPoolResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func testAccNetworkManagerIpamPool_update(t *testing.T) {
 
 func testAccNetworkManagerIpamPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
-	r := ManagerIpamPoolResource{}
+	r := NetworkManagerIpamPoolResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func testAccNetworkManagerIpamPool_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerIpamPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
-	r := ManagerIpamPoolResource{}
+	r := NetworkManagerIpamPoolResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func testAccNetworkManagerIpamPool_complete(t *testing.T) {
 	})
 }
 
-func (r ManagerIpamPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerIpamPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := ipampools.ParseIPamPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (r ManagerIpamPoolResource) Exists(ctx context.Context, client *clients.Cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerIpamPoolResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -138,7 +138,7 @@ resource "azurerm_network_manager_ipam_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolResource) basicIpv6(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolResource) basicIpv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -155,7 +155,7 @@ resource "azurerm_network_manager_ipam_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +168,7 @@ resource "azurerm_network_manager_ipam_pool" "import" {
 `, r.basic(data))
 }
 
-func (r ManagerIpamPoolResource) update(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -191,7 +191,7 @@ resource "azurerm_network_manager_ipam_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +224,7 @@ resource "azurerm_network_manager_ipam_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolResource) template(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-ipampool-%d"

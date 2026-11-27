@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KubernetesFleetManagerTestResource struct{}
+type KubernetesFleetManagerResource struct{}
 
 func TestAccKubernetesFleetManager_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
-	r := KubernetesFleetManagerTestResource{}
+	r := KubernetesFleetManagerResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccKubernetesFleetManager_regressionTest(t *testing.T) {
 
 func TestAccKubernetesFleetManager_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
-	r := KubernetesFleetManagerTestResource{}
+	r := KubernetesFleetManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccKubernetesFleetManager_basic(t *testing.T) {
 
 func TestAccKubernetesFleetManager_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
-	r := KubernetesFleetManagerTestResource{}
+	r := KubernetesFleetManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccKubernetesFleetManager_requiresImport(t *testing.T) {
 
 func TestAccKubernetesFleetManager_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
-	r := KubernetesFleetManagerTestResource{}
+	r := KubernetesFleetManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 
 func TestAccKubernetesFleetManager_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
-	r := KubernetesFleetManagerTestResource{}
+	r := KubernetesFleetManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 	})
 }
 
-func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesFleetManagerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r KubernetesFleetManagerTestResource) basic(data acceptance.TestData) string {
+func (r KubernetesFleetManagerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -136,7 +136,7 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
 `, r.template(data))
 }
 
-func (r KubernetesFleetManagerTestResource) requiresImport(data acceptance.TestData) string {
+func (r KubernetesFleetManagerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -148,7 +148,7 @@ resource "azurerm_kubernetes_fleet_manager" "import" {
 `, r.basic(data))
 }
 
-func (r KubernetesFleetManagerTestResource) complete(data acceptance.TestData) string {
+func (r KubernetesFleetManagerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +168,7 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
 `, r.template(data))
 }
 
-func (r KubernetesFleetManagerTestResource) template(data acceptance.TestData) string {
+func (r KubernetesFleetManagerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

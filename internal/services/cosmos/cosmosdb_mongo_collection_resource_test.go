@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosMongoCollectionResource struct{}
+type CosmosdbMongoCollectionResource struct{}
 
 func TestAccCosmosDbMongoCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccCosmosDbMongoCollection_basic(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccCosmosDbMongoCollection_complete(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_neverExpires(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccCosmosDbMongoCollection_neverExpires(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_throughput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccCosmosDbMongoCollection_throughput(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_withIndex(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccCosmosDbMongoCollection_withIndex(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_analyticalStorageTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -156,7 +156,7 @@ func TestAccCosmosDbMongoCollection_analyticalStorageTTL(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -188,7 +188,7 @@ func TestAccCosmosDbMongoCollection_autoscale(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_ver36(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -203,7 +203,7 @@ func TestAccCosmosDbMongoCollection_ver36(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -218,7 +218,7 @@ func TestAccCosmosDbMongoCollection_serverless(t *testing.T) {
 
 func TestAccCosmosDbMongoCollection_autoscaleWithoutShareKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
-	r := CosmosMongoCollectionResource{}
+	r := CosmosdbMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -231,7 +231,7 @@ func TestAccCosmosDbMongoCollection_autoscaleWithoutShareKey(t *testing.T) {
 	})
 }
 
-func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbMongoCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseMongodbDatabaseCollectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosMongoCollectionResource) basic(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -260,10 +260,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) complete(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -281,10 +281,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   shard_key           = "seven"
   default_ttl_seconds = 707
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) updated(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -302,10 +302,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   shard_key           = "seven"
   default_ttl_seconds = 70707
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) throughput(data acceptance.TestData, throughput int) string {
+func (CosmosdbMongoCollectionResource) throughput(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -322,10 +322,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   throughput = %[3]d
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger, throughput)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger, throughput)
 }
 
-func (CosmosMongoCollectionResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+func (CosmosdbMongoCollectionResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -345,10 +345,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
 }
 
-func (CosmosMongoCollectionResource) withIndex(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) withIndex(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -379,10 +379,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) ver36(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) ver36(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -406,7 +406,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 `, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"}), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) serverless(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -430,7 +430,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 `, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) analyticalStorageTTL(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) analyticalStorageTTL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -456,7 +456,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 `, CosmosDBAccountResource{}.mongoAnalyticalStorage(data, cosmosdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) autoscaleWithoutShareKey(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) autoscaleWithoutShareKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_mongo_collection" "test" {
@@ -472,10 +472,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     max_throughput = "4000"
   }
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosMongoCollectionResource) neverExpires(data acceptance.TestData) string {
+func (CosmosdbMongoCollectionResource) neverExpires(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -492,5 +492,5 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   default_ttl_seconds = -1
 }
-`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }

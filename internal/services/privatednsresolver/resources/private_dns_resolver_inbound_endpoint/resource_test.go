@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DNSResolverInboundEndpointResource struct{}
+type PrivateDnsResolverInboundEndpointResource struct{}
 
 func TestAccDNSResolverInboundEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
-	r := DNSResolverInboundEndpointResource{}
+	r := PrivateDnsResolverInboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccDNSResolverInboundEndpoint_basic(t *testing.T) {
 
 func TestAccDNSResolverInboundEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
-	r := DNSResolverInboundEndpointResource{}
+	r := PrivateDnsResolverInboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccDNSResolverInboundEndpoint_requiresImport(t *testing.T) {
 
 func TestAccDNSResolverInboundEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
-	r := DNSResolverInboundEndpointResource{}
+	r := PrivateDnsResolverInboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccDNSResolverInboundEndpoint_complete(t *testing.T) {
 
 func TestAccDNSResolverInboundEndpoint_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
-	r := DNSResolverInboundEndpointResource{}
+	r := PrivateDnsResolverInboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -84,7 +84,7 @@ func TestAccDNSResolverInboundEndpoint_update(t *testing.T) {
 
 func TestAccDNSResolverInboundEndpoint_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
-	r := DNSResolverInboundEndpointResource{}
+	r := PrivateDnsResolverInboundEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static(data),
@@ -96,7 +96,7 @@ func TestAccDNSResolverInboundEndpoint_static(t *testing.T) {
 	})
 }
 
-func (r DNSResolverInboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsResolverInboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := inboundendpoints.ParseInboundEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r DNSResolverInboundEndpointResource) Exists(ctx context.Context, clients 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DNSResolverInboundEndpointResource) template(data acceptance.TestData) string {
+func (r PrivateDnsResolverInboundEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -156,7 +156,7 @@ resource "azurerm_private_dns_resolver" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DNSResolverInboundEndpointResource) basic(data acceptance.TestData) string {
+func (r PrivateDnsResolverInboundEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -172,7 +172,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DNSResolverInboundEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r PrivateDnsResolverInboundEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -188,7 +188,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "import" {
 `, config)
 }
 
-func (r DNSResolverInboundEndpointResource) complete(data acceptance.TestData) string {
+func (r PrivateDnsResolverInboundEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -208,7 +208,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DNSResolverInboundEndpointResource) update(data acceptance.TestData) string {
+func (r PrivateDnsResolverInboundEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 	%s
@@ -227,7 +227,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DNSResolverInboundEndpointResource) static(data acceptance.TestData) string {
+func (r PrivateDnsResolverInboundEndpointResource) static(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type IntegrationRuntimeAzureResource struct{}
+type DataFactoryIntegrationRuntimeAzureResource struct{}
 
 func TestAccDataFactoryIntegrationRuntimeAzure_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeAzure_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_basic(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeAzure_computeType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_computeType(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeAzure_coreCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_coreCount(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeAzure_timeToLive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_timeToLive(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeAzure_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,7 +134,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_virtualNetwork(t *testing.T) {
 
 func TestAccDataFactoryIntegrationRuntimeAzure_interactiveAuthoringWithoutVirtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -146,7 +146,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_interactiveAuthoringWithoutVirtua
 
 func TestAccDataFactoryIntegrationRuntimeAzure_cleanup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := DataFactoryIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -173,7 +173,7 @@ func TestAccDataFactoryIntegrationRuntimeAzure_cleanup(t *testing.T) {
 	})
 }
 
-func (IntegrationRuntimeAzureResource) basic(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -198,7 +198,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeAzureResource) computeType(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureResource) computeType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +224,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeAzureResource) coreCount(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureResource) coreCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -250,7 +250,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeAzureResource) timeToLive(data acceptance.TestData) string {
+func (DataFactoryIntegrationRuntimeAzureResource) timeToLive(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -276,7 +276,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (IntegrationRuntimeAzureResource) cleanup(data acceptance.TestData, enabled bool) string {
+func (DataFactoryIntegrationRuntimeAzureResource) cleanup(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -302,7 +302,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
-func (IntegrationRuntimeAzureResource) virtualNetwork(data acceptance.TestData, iaTTL string, vnetEnabled bool) string {
+func (DataFactoryIntegrationRuntimeAzureResource) virtualNetwork(data acceptance.TestData, iaTTL string, vnetEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -330,7 +330,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, iaTTL, vnetEnabled)
 }
 
-func (t IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryIntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err

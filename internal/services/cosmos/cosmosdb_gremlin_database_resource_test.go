@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosGremlinDatabaseResource struct{}
+type CosmosdbGremlinDatabaseResource struct{}
 
 func TestAccCosmosGremlinDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
-	r := CosmosGremlinDatabaseResource{}
+	r := CosmosdbGremlinDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccCosmosGremlinDatabase_basic(t *testing.T) {
 
 func TestAccCosmosGremlinDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
-	r := CosmosGremlinDatabaseResource{}
+	r := CosmosdbGremlinDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccCosmosGremlinDatabase_requiresImport(t *testing.T) {
 
 func TestAccCosmosGremlinDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
-	r := CosmosGremlinDatabaseResource{}
+	r := CosmosdbGremlinDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccCosmosGremlinDatabase_complete(t *testing.T) {
 
 func TestAccCosmosGremlinDatabase_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
-	r := CosmosGremlinDatabaseResource{}
+	r := CosmosdbGremlinDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccCosmosGremlinDatabase_autoscale(t *testing.T) {
 
 func TestAccCosmosGremlinDatabase_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
-	r := CosmosGremlinDatabaseResource{}
+	r := CosmosdbGremlinDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,7 +123,7 @@ func TestAccCosmosGremlinDatabase_serverless(t *testing.T) {
 	})
 }
 
-func (t CosmosGremlinDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbGremlinDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseGremlinDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (t CosmosGremlinDatabaseResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosGremlinDatabaseResource) basic(data acceptance.TestData) string {
+func (r CosmosdbGremlinDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -149,7 +149,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 `, r.template(data, []string{"EnableGremlin"}), data.RandomInteger)
 }
 
-func (r CosmosGremlinDatabaseResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbGremlinDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,7 +161,7 @@ resource "azurerm_cosmosdb_gremlin_database" "import" {
 `, r.basic(data))
 }
 
-func (r CosmosGremlinDatabaseResource) complete(data acceptance.TestData, throughput int) string {
+func (r CosmosdbGremlinDatabaseResource) complete(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -174,7 +174,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 `, r.template(data, []string{"EnableGremlin"}), data.RandomInteger, throughput)
 }
 
-func (r CosmosGremlinDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+func (r CosmosdbGremlinDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -189,7 +189,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 `, r.template(data, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
 }
 
-func (r CosmosGremlinDatabaseResource) serverless(data acceptance.TestData) string {
+func (r CosmosdbGremlinDatabaseResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -201,7 +201,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
 `, r.template(data, []string{"EnableGremlin", "EnableServerless"}), data.RandomInteger)
 }
 
-func (r CosmosGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
+func (r CosmosdbGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
 	var capeTfBuilder strings.Builder
 	for _, c := range capabilities {
 		fmt.Fprintf(&capeTfBuilder, "capabilities {name = \"%s\"}\n", c)

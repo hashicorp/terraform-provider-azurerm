@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SynapseWorkspaceKeysResource struct{}
+type SynapseWorkspaceKeyResource struct{}
 
 func TestAccSynapseWorkspaceKeys_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_key", "test")
-	r := SynapseWorkspaceKeysResource{}
+	r := SynapseWorkspaceKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccSynapseWorkspaceKeys_basic(t *testing.T) {
 
 func TestAccSynapseWorkspaceKeys_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_key", "test")
-	r := SynapseWorkspaceKeysResource{}
+	r := SynapseWorkspaceKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -56,7 +56,7 @@ func TestAccSynapseWorkspaceKeys_basicUpdate(t *testing.T) {
 	})
 }
 
-func (r SynapseWorkspaceKeysResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SynapseWorkspaceKeyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceKeysID(state.ID)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (r SynapseWorkspaceKeysResource) Exists(ctx context.Context, client *client
 	return pointer.To(true), nil
 }
 
-func (r SynapseWorkspaceKeysResource) basic(data acceptance.TestData) string {
+func (r SynapseWorkspaceKeyResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -122,7 +122,7 @@ resource "azurerm_synapse_workspace_key" "test2" {
 `, template, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceKeysResource) basicUpdate(data acceptance.TestData) string {
+func (r SynapseWorkspaceKeyResource) basicUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -171,7 +171,7 @@ resource "azurerm_synapse_workspace_key" "test2" {
 `, template, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceKeysResource) template(data acceptance.TestData) string {
+func (r SynapseWorkspaceKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

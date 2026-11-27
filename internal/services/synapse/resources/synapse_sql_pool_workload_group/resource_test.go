@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SynapseWorkloadGroupResource struct{}
+type SynapseSqlPoolWorkloadGroupResource struct{}
 
 func TestAccSynapseWorkloadGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_group", "test")
-	r := SynapseWorkloadGroupResource{}
+	r := SynapseSqlPoolWorkloadGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccSynapseWorkloadGroup_basic(t *testing.T) {
 
 func TestAccSynapseWorkloadGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_group", "test")
-	r := SynapseWorkloadGroupResource{}
+	r := SynapseSqlPoolWorkloadGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccSynapseWorkloadGroup_complete(t *testing.T) {
 
 func TestAccSynapseWorkloadGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_group", "test")
-	r := SynapseWorkloadGroupResource{}
+	r := SynapseSqlPoolWorkloadGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccSynapseWorkloadGroup_requiresImport(t *testing.T) {
 
 func TestAccSynapseWorkloadGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_workload_group", "test")
-	r := SynapseWorkloadGroupResource{}
+	r := SynapseSqlPoolWorkloadGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccSynapseWorkloadGroup_update(t *testing.T) {
 	})
 }
 
-func (r SynapseWorkloadGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SynapseSqlPoolWorkloadGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SqlPoolWorkloadGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (r SynapseWorkloadGroupResource) Exists(ctx context.Context, client *client
 	return pointer.To(true), nil
 }
 
-func (r SynapseWorkloadGroupResource) basic(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadGroupResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -125,7 +125,7 @@ resource "azurerm_synapse_sql_pool_workload_group" "test" {
 `, template, data.RandomString)
 }
 
-func (r SynapseWorkloadGroupResource) requiresImport(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadGroupResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -140,7 +140,7 @@ resource "azurerm_synapse_sql_pool_workload_group" "import" {
 `, config)
 }
 
-func (r SynapseWorkloadGroupResource) complete(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadGroupResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -158,7 +158,7 @@ resource "azurerm_synapse_sql_pool_workload_group" "test" {
 `, template, data.RandomString)
 }
 
-func (r SynapseWorkloadGroupResource) template(data acceptance.TestData) string {
+func (r SynapseSqlPoolWorkloadGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

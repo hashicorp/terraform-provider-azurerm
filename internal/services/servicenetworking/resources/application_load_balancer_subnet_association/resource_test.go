@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SubnetAssociationResource struct{}
+type ApplicationLoadBalancerSubnetAssociationResource struct{}
 
-func (r SubnetAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApplicationLoadBalancerSubnetAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := associationsinterface.ParseAssociationID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
@@ -38,7 +38,7 @@ func (r SubnetAssociationResource) Exists(ctx context.Context, clients *clients.
 func TestAccApplicationLoadBalancerSubnetAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
-	r := SubnetAssociationResource{}
+	r := ApplicationLoadBalancerSubnetAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -53,7 +53,7 @@ func TestAccApplicationLoadBalancerSubnetAssociation_basic(t *testing.T) {
 func TestAccApplicationLoadBalancerSubnetAssociation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
-	r := SubnetAssociationResource{}
+	r := ApplicationLoadBalancerSubnetAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -82,7 +82,7 @@ func TestAccApplicationLoadBalancerSubnetAssociation_update(t *testing.T) {
 func TestAccApplicationLoadBalancerSubnetAssociation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
-	r := SubnetAssociationResource{}
+	r := ApplicationLoadBalancerSubnetAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -97,7 +97,7 @@ func TestAccApplicationLoadBalancerSubnetAssociation_complete(t *testing.T) {
 func TestAccApplicationLoadBalancerSubnetAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
-	r := SubnetAssociationResource{}
+	r := ApplicationLoadBalancerSubnetAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -109,7 +109,7 @@ func TestAccApplicationLoadBalancerSubnetAssociation_requiresImport(t *testing.T
 	})
 }
 
-func (r SubnetAssociationResource) template(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSubnetAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-alb-%[1]d"
@@ -148,7 +148,7 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SubnetAssociationResource) basic(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSubnetAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -165,7 +165,7 @@ resource "azurerm_application_load_balancer_subnet_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SubnetAssociationResource) complete(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSubnetAssociationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -185,7 +185,7 @@ resource "azurerm_application_load_balancer_subnet_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SubnetAssociationResource) requiresImport(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSubnetAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 

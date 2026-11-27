@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetAzureBlobResource struct{}
+type DataFactoryDatasetAzureBlobResource struct{}
 
 func TestAccDataFactoryDatasetAzureBlob_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
-	r := DatasetAzureBlobResource{}
+	r := DataFactoryDatasetAzureBlobResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryDatasetAzureBlob_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureBlob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
-	r := DatasetAzureBlobResource{}
+	r := DataFactoryDatasetAzureBlobResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryDatasetAzureBlob_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureBlob_dynamicPathAndFileName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
-	r := DatasetAzureBlobResource{}
+	r := DataFactoryDatasetAzureBlobResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryDatasetAzureBlob_dynamicPathAndFileName(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureBlob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
-	r := DatasetAzureBlobResource{}
+	r := DataFactoryDatasetAzureBlobResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccDataFactoryDatasetAzureBlob_update(t *testing.T) {
 	})
 }
 
-func (t DatasetAzureBlobResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetAzureBlobResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (t DatasetAzureBlobResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetAzureBlobResource) basic(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureBlobResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,7 +139,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetAzureBlobResource) update1(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureBlobResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -193,7 +193,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetAzureBlobResource) update2(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureBlobResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -253,7 +253,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetAzureBlobResource) dynamicPathAndFileName(data acceptance.TestData) string {
+func (DataFactoryDatasetAzureBlobResource) dynamicPathAndFileName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

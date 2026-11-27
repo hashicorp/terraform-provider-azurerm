@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatasetDelimitedTextResource struct{}
+type DataFactoryDatasetDelimitedTextResource struct{}
 
 func TestAccDataFactoryDatasetDelimitedText_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -39,7 +39,7 @@ func TestAccDataFactoryDatasetDelimitedText_http(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDataFactoryDatasetDelimitedText_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_blob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -105,7 +105,7 @@ func TestAccDataFactoryDatasetDelimitedText_blob_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -120,7 +120,7 @@ func TestAccDataFactoryDatasetDelimitedText_blob(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_blob_empty_path(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,7 +135,7 @@ func TestAccDataFactoryDatasetDelimitedText_blob_empty_path(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_blobFS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -157,7 +157,7 @@ func TestAccDataFactoryDatasetDelimitedText_blobFS(t *testing.T) {
 
 func TestAccDataFactoryDatasetDelimitedText_blobDynamicContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
-	r := DatasetDelimitedTextResource{}
+	r := DataFactoryDatasetDelimitedTextResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -184,7 +184,7 @@ func TestAccDataFactoryDatasetDelimitedText_blobDynamicContainer(t *testing.T) {
 	})
 }
 
-func (t DatasetDelimitedTextResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryDatasetDelimitedTextResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (t DatasetDelimitedTextResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (DatasetDelimitedTextResource) http(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) http(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -245,7 +245,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) http_update1(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) http_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -318,7 +318,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) http_update2(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) http_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -395,7 +395,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blob_basic(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) blob_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -447,7 +447,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blob(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) blob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -509,7 +509,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blob_empty_path(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) blob_empty_path(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -570,7 +570,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blobFS(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) blobFS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -641,7 +641,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blobFSDynamicPath(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) blobFSDynamicPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -713,7 +713,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetDelimitedTextResource) blobDynamicContainer(data acceptance.TestData) string {
+func (DataFactoryDatasetDelimitedTextResource) blobDynamicContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

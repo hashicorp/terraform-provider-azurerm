@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AnomalyAlertResource struct{}
+type CostAnomalyAlertResource struct{}
 
 func TestAccResourceAnomalyAlert_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
-	r := AnomalyAlertResource{}
+	r := CostAnomalyAlertResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
@@ -30,7 +30,7 @@ func TestAccResourceAnomalyAlert_regressionTest(t *testing.T) {
 
 func TestAccResourceAnomalyAlert_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
-	r := AnomalyAlertResource{}
+	r := CostAnomalyAlertResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
@@ -44,7 +44,7 @@ func TestAccResourceAnomalyAlert_basic(t *testing.T) {
 
 func TestAccResourceAnomalyAlert_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
-	r := AnomalyAlertResource{}
+	r := CostAnomalyAlertResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
@@ -58,7 +58,7 @@ func TestAccResourceAnomalyAlert_complete(t *testing.T) {
 
 func TestAccResourceAnomalyAlert_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
-	r := AnomalyAlertResource{}
+	r := CostAnomalyAlertResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicForImport(),
@@ -75,7 +75,7 @@ func TestAccResourceAnomalyAlert_requiresImport(t *testing.T) {
 
 func TestAccResourceAnomalyAlert_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
-	r := AnomalyAlertResource{}
+	r := CostAnomalyAlertResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update(),
@@ -94,7 +94,7 @@ func TestAccResourceAnomalyAlert_update(t *testing.T) {
 	})
 }
 
-func (AnomalyAlertResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (CostAnomalyAlertResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (AnomalyAlertResource) Exists(ctx context.Context, client *clients.Client, 
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (AnomalyAlertResource) basic() string {
+func (CostAnomalyAlertResource) basic() string {
 	return `
 provider "azurerm" {
   features {}
@@ -124,7 +124,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
 `
 }
 
-func (AnomalyAlertResource) basicForImport() string {
+func (CostAnomalyAlertResource) basicForImport() string {
 	return `
 provider "azurerm" {
   features {}
@@ -140,7 +140,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
 `
 }
 
-func (AnomalyAlertResource) complete() string {
+func (CostAnomalyAlertResource) complete() string {
 	return `
 provider "azurerm" {
   features {}
@@ -160,7 +160,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
 `
 }
 
-func (r AnomalyAlertResource) requiresImport() string {
+func (r CostAnomalyAlertResource) requiresImport() string {
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +174,7 @@ resource "azurerm_cost_anomaly_alert" "import" {
 `, r.basicForImport())
 }
 
-func (AnomalyAlertResource) update() string {
+func (CostAnomalyAlertResource) update() string {
 	return `
 provider "azurerm" {
   features {}
@@ -190,7 +190,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
 `
 }
 
-func (AnomalyAlertResource) update2() string {
+func (CostAnomalyAlertResource) update2() string {
 	return `
 provider "azurerm" {
   features {}

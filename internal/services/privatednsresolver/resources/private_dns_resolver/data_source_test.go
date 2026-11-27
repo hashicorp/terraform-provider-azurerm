@@ -39,5 +39,5 @@ data "azurerm_private_dns_resolver" "test" {
   name                = azurerm_private_dns_resolver.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, PrivateDNSResolverDnsResolverResource{}.basic(data))
+`, PrivateDnsResolverResource{}.basic(data))
 }

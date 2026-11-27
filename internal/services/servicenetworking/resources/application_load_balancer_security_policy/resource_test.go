@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApplicationLoadBalancerSecurityPoliciesResource struct{}
+type ApplicationLoadBalancerSecurityPolicyResource struct{}
 
 func TestAccApplicationLoadBalancerSecurityPolicies_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
 
-	r := ApplicationLoadBalancerSecurityPoliciesResource{}
+	r := ApplicationLoadBalancerSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +36,7 @@ func TestAccApplicationLoadBalancerSecurityPolicies_basic(t *testing.T) {
 func TestAccApplicationLoadBalancerSecurityPolicies_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
 
-	r := ApplicationLoadBalancerSecurityPoliciesResource{}
+	r := ApplicationLoadBalancerSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -51,7 +51,7 @@ func TestAccApplicationLoadBalancerSecurityPolicies_complete(t *testing.T) {
 func TestAccApplicationLoadBalancerSecurityPolicies_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
 
-	r := ApplicationLoadBalancerSecurityPoliciesResource{}
+	r := ApplicationLoadBalancerSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -87,7 +87,7 @@ func TestAccApplicationLoadBalancerSecurityPolicies_update(t *testing.T) {
 func TestAccApplicationLoadBalancerSecurityPolicies_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
 
-	r := ApplicationLoadBalancerSecurityPoliciesResource{}
+	r := ApplicationLoadBalancerSecurityPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -99,7 +99,7 @@ func TestAccApplicationLoadBalancerSecurityPolicies_requiresImport(t *testing.T)
 	})
 }
 
-func (r ApplicationLoadBalancerSecurityPoliciesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApplicationLoadBalancerSecurityPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := securitypoliciesinterface.ParseSecurityPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (r ApplicationLoadBalancerSecurityPoliciesResource) Exists(ctx context.Cont
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ApplicationLoadBalancerSecurityPoliciesResource) template(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSecurityPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-alb-%[1]d"
@@ -145,7 +145,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApplicationLoadBalancerSecurityPoliciesResource) basic(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSecurityPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -162,7 +162,7 @@ resource "azurerm_application_load_balancer_security_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApplicationLoadBalancerSecurityPoliciesResource) update(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSecurityPolicyResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -182,7 +182,7 @@ resource "azurerm_application_load_balancer_security_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApplicationLoadBalancerSecurityPoliciesResource) complete(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSecurityPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -203,7 +203,7 @@ resource "azurerm_application_load_balancer_security_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApplicationLoadBalancerSecurityPoliciesResource) requiresImport(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerSecurityPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

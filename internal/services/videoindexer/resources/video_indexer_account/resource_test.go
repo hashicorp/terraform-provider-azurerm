@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AccountResource struct{}
-
-type VideoIndexerAccountResource = AccountResource
+type VideoIndexerAccountResource struct{}
 
 func TestAccVideoIndexerAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_indexer_account", "test")
-	r := AccountResource{}
+	r := VideoIndexerAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +35,7 @@ func TestAccVideoIndexerAccount_basic(t *testing.T) {
 
 func TestAccVideoIndexerAccount_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_indexer_account", "test")
-	r := AccountResource{}
+	r := VideoIndexerAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +50,7 @@ func TestAccVideoIndexerAccount_userAssignedIdentity(t *testing.T) {
 
 func TestAccVideoIndexerAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_indexer_account", "test")
-	r := AccountResource{}
+	r := VideoIndexerAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,7 +84,7 @@ func TestAccVideoIndexerAccount_update(t *testing.T) {
 	})
 }
 
-func (r AccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VideoIndexerAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accounts.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +97,7 @@ func (r AccountResource) Exists(ctx context.Context, client *clients.Client, sta
 	return pointer.To(true), nil
 }
 
-func (r AccountResource) basic(data acceptance.TestData) string {
+func (r VideoIndexerAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -123,7 +121,7 @@ resource "azurerm_video_indexer_account" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r AccountResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r VideoIndexerAccountResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,7 +147,7 @@ resource "azurerm_video_indexer_account" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r AccountResource) complete(data acceptance.TestData) string {
+func (r VideoIndexerAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,7 +176,7 @@ resource "azurerm_video_indexer_account" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r AccountResource) template(data acceptance.TestData) string {
+func (r VideoIndexerAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-VI-%[1]d"

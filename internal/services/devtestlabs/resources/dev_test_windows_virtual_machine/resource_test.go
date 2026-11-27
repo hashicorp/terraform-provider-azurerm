@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevTestVirtualMachineResource struct{}
+type DevTestWindowsVirtualMachineResource struct{}
 
 func TestAccDevTestWindowsVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
-	r := DevTestVirtualMachineResource{}
+	r := DevTestWindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -42,7 +42,7 @@ func TestAccDevTestWindowsVirtualMachine_basic(t *testing.T) {
 
 func TestAccDevTestWindowsVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
-	r := DevTestVirtualMachineResource{}
+	r := DevTestWindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccDevTestWindowsVirtualMachine_requiresImport(t *testing.T) {
 
 func TestAccDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
-	r := DevTestVirtualMachineResource{}
+	r := DevTestWindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	})
 }
 
-func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DevTestWindowsVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevTestVirtualMachineResource) basic(data acceptance.TestData) string {
+func (r DevTestWindowsVirtualMachineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -123,7 +123,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger%1000000)
 }
 
-func (r DevTestVirtualMachineResource) requiresImport(data acceptance.TestData) string {
+func (r DevTestWindowsVirtualMachineResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -149,7 +149,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "import" {
 `, r.basic(data))
 }
 
-func (r DevTestVirtualMachineResource) inboundNatRules(data acceptance.TestData) string {
+func (r DevTestWindowsVirtualMachineResource) inboundNatRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -190,7 +190,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger%1000000)
 }
 
-func (DevTestVirtualMachineResource) template(data acceptance.TestData) string {
+func (DevTestWindowsVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

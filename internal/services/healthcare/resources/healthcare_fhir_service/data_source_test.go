@@ -49,7 +49,7 @@ data "azurerm_healthcare_fhir_service" "test" {
   name         = azurerm_healthcare_fhir_service.test.name
   workspace_id = azurerm_healthcare_fhir_service.test.workspace_id
 }
-`, HealthcareApiFhirServiceResource{}.basic(data))
+`, HealthcareFhirServiceResource{}.basic(data))
 }
 
 func (HealthCareFhirServiceDataSource) dataSourceUserAssignedIdentity(data acceptance.TestData) string {
@@ -60,5 +60,5 @@ data "azurerm_healthcare_fhir_service" "test" {
   name         = azurerm_healthcare_fhir_service.test.name
   workspace_id = azurerm_healthcare_fhir_service.test.workspace_id
 }
-`, HealthcareApiFhirServiceResource{}.updateIdentityUserAssigned(data))
+`, HealthcareFhirServiceResource{}.updateIdentityUserAssigned(data))
 }

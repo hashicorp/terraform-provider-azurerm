@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRulestackOutboundUnTrustCertificateResource struct{}
+type PaloAltoLocalRulestackOutboundUntrustCertificateAssociationResource struct{}
 
 func TestAccLocalRulestackOutboundUnTrustCertificateResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_outbound_untrust_certificate_association", "test")
-	r := LocalRulestackOutboundUnTrustCertificateResource{}
+	r := PaloAltoLocalRulestackOutboundUntrustCertificateAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccLocalRulestackOutboundUnTrustCertificateResource_basic(t *testing.T)
 	})
 }
 
-func (r LocalRulestackOutboundUnTrustCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoLocalRulestackOutboundUntrustCertificateAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (r LocalRulestackOutboundUnTrustCertificateResource) Exists(ctx context.Con
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRulestackOutboundUnTrustCertificateResource) basic(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackOutboundUntrustCertificateAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -66,7 +66,7 @@ resource "azurerm_palo_alto_local_rulestack_outbound_untrust_certificate_associa
 `, r.template(data))
 }
 
-func (r LocalRulestackOutboundUnTrustCertificateResource) template(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackOutboundUntrustCertificateAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"

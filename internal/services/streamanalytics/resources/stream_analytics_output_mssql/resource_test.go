@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StreamAnalyticsOutputSqlResource struct{}
+type StreamAnalyticsOutputMssqlResource struct{}
 
 func TestAccStreamAnalyticsOutputSql_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
-	r := StreamAnalyticsOutputSqlResource{}
+	r := StreamAnalyticsOutputMssqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccStreamAnalyticsOutputSql_basic(t *testing.T) {
 
 func TestAccStreamAnalyticsOutputSql_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
-	r := StreamAnalyticsOutputSqlResource{}
+	r := StreamAnalyticsOutputMssqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,7 +57,7 @@ func TestAccStreamAnalyticsOutputSql_update(t *testing.T) {
 
 func TestAccStreamAnalyticsOutputSql_authenticationModeMsi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
-	r := StreamAnalyticsOutputSqlResource{}
+	r := StreamAnalyticsOutputMssqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccStreamAnalyticsOutputSql_authenticationModeMsi(t *testing.T) {
 
 func TestAccStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
-	r := StreamAnalyticsOutputSqlResource{}
+	r := StreamAnalyticsOutputMssqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 
 func TestAccStreamAnalyticsOutputSql_maxBatchCountAndMaxWriterCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
-	r := StreamAnalyticsOutputSqlResource{}
+	r := StreamAnalyticsOutputMssqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -121,7 +121,7 @@ func TestAccStreamAnalyticsOutputSql_maxBatchCountAndMaxWriterCount(t *testing.T
 	})
 }
 
-func (r StreamAnalyticsOutputSqlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StreamAnalyticsOutputMssqlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (r StreamAnalyticsOutputSqlResource) Exists(ctx context.Context, client *cl
 	return pointer.To(true), nil
 }
 
-func (r StreamAnalyticsOutputSqlResource) basic(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputMssqlResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,7 +155,7 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r StreamAnalyticsOutputSqlResource) updated(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputMssqlResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -175,7 +175,7 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r StreamAnalyticsOutputSqlResource) requiresImport(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputMssqlResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -193,7 +193,7 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
 `, r.basic(data))
 }
 
-func (r StreamAnalyticsOutputSqlResource) maxBatchCountAndMaxWriterCount(data acceptance.TestData, maxBatchCount, maxWriterCount float64) string {
+func (r StreamAnalyticsOutputMssqlResource) maxBatchCountAndMaxWriterCount(data acceptance.TestData, maxBatchCount, maxWriterCount float64) string {
 	return fmt.Sprintf(`
 %s
 
@@ -214,7 +214,7 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, r.template(data), data.RandomInteger, maxBatchCount, maxWriterCount)
 }
 
-func (r StreamAnalyticsOutputSqlResource) authenticationModeMsi(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputMssqlResource) authenticationModeMsi(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -231,7 +231,7 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r StreamAnalyticsOutputSqlResource) template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputMssqlResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

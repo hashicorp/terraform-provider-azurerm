@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerIpamPoolStaticCidrResource struct{}
+type NetworkManagerIpamPoolStaticCidrResource struct{}
 
 func testAccNetworkManagerIpamPoolStaticCidr_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
-	r := ManagerIpamPoolStaticCidrResource{}
+	r := NetworkManagerIpamPoolStaticCidrResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_basic(t *testing.T) {
 
 func testAccNetworkManagerIpamPoolStaticCidr_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
-	r := ManagerIpamPoolStaticCidrResource{}
+	r := NetworkManagerIpamPoolStaticCidrResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_update(t *testing.T) {
 
 func testAccNetworkManagerIpamPoolStaticCidr_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
-	r := ManagerIpamPoolStaticCidrResource{}
+	r := NetworkManagerIpamPoolStaticCidrResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_requiresImport(t *testing.T) {
 
 func testAccNetworkManagerIpamPoolStaticCidr_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
-	r := ManagerIpamPoolStaticCidrResource{}
+	r := NetworkManagerIpamPoolStaticCidrResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_complete(t *testing.T) {
 
 func testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
-	r := ManagerIpamPoolStaticCidrResource{}
+	r := NetworkManagerIpamPoolStaticCidrResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -109,7 +109,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber(t *testing.T) {
 
 func testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
-	r := ManagerIpamPoolStaticCidrResource{}
+	r := NetworkManagerIpamPoolStaticCidrResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -136,7 +136,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated(t *testing.T
 	})
 }
 
-func (r ManagerIpamPoolStaticCidrResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerIpamPoolStaticCidrResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := staticcidrs.ParseStaticCidrID(state.ID)
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (r ManagerIpamPoolStaticCidrResource) Exists(ctx context.Context, client *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerIpamPoolStaticCidrResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolStaticCidrResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -166,7 +166,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolStaticCidrResource) ipAddressNumber(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolStaticCidrResource) ipAddressNumber(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -182,7 +182,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolStaticCidrResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolStaticCidrResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -194,7 +194,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "import" {
 `, r.basic(data))
 }
 
-func (r ManagerIpamPoolStaticCidrResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolStaticCidrResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -210,7 +210,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerIpamPoolStaticCidrResource) template(data acceptance.TestData) string {
+func (r NetworkManagerIpamPoolStaticCidrResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-ipampool-%d"

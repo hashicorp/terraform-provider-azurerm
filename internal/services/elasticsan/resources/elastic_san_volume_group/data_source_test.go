@@ -59,5 +59,5 @@ data "azurerm_elastic_san_volume_group" "test" {
   name           = azurerm_elastic_san_volume_group.test.name
   elastic_san_id = azurerm_elastic_san_volume_group.test.elastic_san_id
 }
-`, ElasticSANVolumeGroupTestResource{}.complete(data))
+`, ElasticSanVolumeGroupResource{}.complete(data))
 }

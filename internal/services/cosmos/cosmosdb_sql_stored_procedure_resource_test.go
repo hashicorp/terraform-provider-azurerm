@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosSqlStoredProcedureResource struct{}
+type CosmosdbSqlStoredProcedureResource struct{}
 
 func TestAccCosmosDbSqlStoredProcedure_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
-	r := CosmosSqlStoredProcedureResource{}
+	r := CosmosdbSqlStoredProcedureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCosmosDbSqlStoredProcedure_basic(t *testing.T) {
 
 func TestAccCosmosDbSqlStoredProcedure_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
-	r := CosmosSqlStoredProcedureResource{}
+	r := CosmosdbSqlStoredProcedureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,7 +55,7 @@ func TestAccCosmosDbSqlStoredProcedure_update(t *testing.T) {
 	})
 }
 
-func (t CosmosSqlStoredProcedureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbSqlStoredProcedureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseStoredProcedureID(state.ID)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (t CosmosSqlStoredProcedureResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosSqlStoredProcedureResource) base(data acceptance.TestData) string {
+func (CosmosdbSqlStoredProcedureResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,7 +113,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, data.Locations.Primary, data.RandomInteger, string(cosmosdb.DatabaseAccountKindGlobalDocumentDB), string(cosmosdb.DefaultConsistencyLevelSession))
 }
 
-func (r CosmosSqlStoredProcedureResource) basic(data acceptance.TestData) string {
+func (r CosmosdbSqlStoredProcedureResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -135,7 +135,7 @@ BODY
 `, r.base(data), data.RandomInteger)
 }
 
-func (r CosmosSqlStoredProcedureResource) update(data acceptance.TestData) string {
+func (r CosmosdbSqlStoredProcedureResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

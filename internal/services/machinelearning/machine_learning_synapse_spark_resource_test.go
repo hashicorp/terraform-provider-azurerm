@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SynapseSparkResource struct{}
+type MachineLearningSynapseSparkResource struct{}
 
 func TestAccSynapseSpark_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_synapse_spark", "test")
-	r := SynapseSparkResource{}
+	r := MachineLearningSynapseSparkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccSynapseSpark_basic(t *testing.T) {
 
 func TestAccSynapseSpark_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_synapse_spark", "test")
-	r := SynapseSparkResource{}
+	r := MachineLearningSynapseSparkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccSynapseSpark_complete(t *testing.T) {
 
 func TestAccSynapseSpark_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_synapse_spark", "test")
-	r := SynapseSparkResource{}
+	r := MachineLearningSynapseSparkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccSynapseSpark_requiresImport(t *testing.T) {
 
 func TestAccSynapseSpark_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_synapse_spark", "test")
-	r := SynapseSparkResource{}
+	r := MachineLearningSynapseSparkResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccSynapseSpark_identity(t *testing.T) {
 	})
 }
 
-func (r SynapseSparkResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningSynapseSparkResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
@@ -121,7 +121,7 @@ func (r SynapseSparkResource) Exists(ctx context.Context, client *clients.Client
 	return pointer.To(computeResource.Model.Properties != nil), nil
 }
 
-func (r SynapseSparkResource) basic(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -136,7 +136,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r SynapseSparkResource) complete(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -157,7 +157,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r SynapseSparkResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -170,7 +170,7 @@ resource "azurerm_machine_learning_synapse_spark" "import" {
 `, template)
 }
 
-func (r SynapseSparkResource) identitySystemAssigned(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) identitySystemAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -187,7 +187,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r SynapseSparkResource) identityUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) identityUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -213,7 +213,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r SynapseSparkResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -239,7 +239,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func (r SynapseSparkResource) template(data acceptance.TestData) string {
+func (r MachineLearningSynapseSparkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

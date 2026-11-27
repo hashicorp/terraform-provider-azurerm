@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TriggerCustomEventResource struct{}
+type DataFactoryTriggerCustomEventResource struct{}
 
 func TestAccDataFactoryTriggerCustomEvent_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
-	r := TriggerCustomEventResource{}
+	r := DataFactoryTriggerCustomEventResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryTriggerCustomEvent_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryTriggerCustomEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
-	r := TriggerCustomEventResource{}
+	r := DataFactoryTriggerCustomEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryTriggerCustomEvent_basic(t *testing.T) {
 
 func TestAccDataFactoryTriggerCustomEvent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
-	r := TriggerCustomEventResource{}
+	r := DataFactoryTriggerCustomEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryTriggerCustomEvent_requiresImport(t *testing.T) {
 
 func TestAccDataFactoryTriggerCustomEvent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
-	r := TriggerCustomEventResource{}
+	r := DataFactoryTriggerCustomEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryTriggerCustomEvent_complete(t *testing.T) {
 
 func TestAccDataFactoryTriggerCustomEvent_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
-	r := TriggerCustomEventResource{}
+	r := DataFactoryTriggerCustomEventResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccDataFactoryTriggerCustomEvent_update(t *testing.T) {
 	})
 }
 
-func (t TriggerCustomEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryTriggerCustomEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TriggerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (t TriggerCustomEventResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (r TriggerCustomEventResource) basic(data acceptance.TestData) string {
+func (r DataFactoryTriggerCustomEventResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -135,7 +135,7 @@ resource "azurerm_data_factory_trigger_custom_event" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r TriggerCustomEventResource) requiresImport(data acceptance.TestData) string {
+func (r DataFactoryTriggerCustomEventResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +156,7 @@ resource "azurerm_data_factory_trigger_custom_event" "import" {
 `, r.basic(data))
 }
 
-func (r TriggerCustomEventResource) complete(data acceptance.TestData) string {
+func (r DataFactoryTriggerCustomEventResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -187,7 +187,7 @@ resource "azurerm_data_factory_trigger_custom_event" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (TriggerCustomEventResource) template(data acceptance.TestData) string {
+func (DataFactoryTriggerCustomEventResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosMongoRoleDefinitionResource struct{}
+type CosmosdbMongoRoleDefinitionResource struct{}
 
 func TestAccCosmosDbMongoRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
-	r := CosmosMongoRoleDefinitionResource{}
+	r := CosmosdbMongoRoleDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCosmosDbMongoRoleDefinition_basic(t *testing.T) {
 
 func TestAccCosmosDbMongoRoleDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
-	r := CosmosMongoRoleDefinitionResource{}
+	r := CosmosdbMongoRoleDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccCosmosDbMongoRoleDefinition_requiresImport(t *testing.T) {
 
 func TestAccCosmosDbMongoRoleDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
-	r := CosmosMongoRoleDefinitionResource{}
+	r := CosmosdbMongoRoleDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccCosmosDbMongoRoleDefinition_complete(t *testing.T) {
 
 func TestAccCosmosDbMongoRoleDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
-	r := CosmosMongoRoleDefinitionResource{}
+	r := CosmosdbMongoRoleDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccCosmosDbMongoRoleDefinition_update(t *testing.T) {
 	})
 }
 
-func (r CosmosMongoRoleDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbMongoRoleDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongorbacs.ParseMongodbRoleDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r CosmosMongoRoleDefinitionResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosMongoRoleDefinitionResource) basic(data acceptance.TestData) string {
+func (r CosmosdbMongoRoleDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -110,7 +110,7 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosMongoRoleDefinitionResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbMongoRoleDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -121,7 +121,7 @@ resource "azurerm_cosmosdb_mongo_role_definition" "import" {
 `, r.basic(data))
 }
 
-func (r CosmosMongoRoleDefinitionResource) complete(data acceptance.TestData) string {
+func (r CosmosdbMongoRoleDefinitionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -181,7 +181,7 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CosmosMongoRoleDefinitionResource) update(data acceptance.TestData) string {
+func (r CosmosdbMongoRoleDefinitionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -275,7 +275,7 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CosmosMongoRoleDefinitionResource) template(data acceptance.TestData) string {
+func (r CosmosdbMongoRoleDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

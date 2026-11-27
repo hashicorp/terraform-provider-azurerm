@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceOdbcResource struct{}
+type DataFactoryLinkedServiceOdbcResource struct{}
 
 func TestAccDataFactoryLinkedServiceODBC_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
-	r := LinkedServiceOdbcResource{}
+	r := DataFactoryLinkedServiceOdbcResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceODBC_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceODBC_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
-	r := LinkedServiceOdbcResource{}
+	r := DataFactoryLinkedServiceOdbcResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceODBC_anon_auth(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceODBC_basic_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
-	r := LinkedServiceOdbcResource{}
+	r := DataFactoryLinkedServiceOdbcResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedServiceODBC_basic_auth(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceODBC_basic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
-	r := LinkedServiceOdbcResource{}
+	r := DataFactoryLinkedServiceOdbcResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccDataFactoryLinkedServiceODBC_basic_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceOdbcResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceOdbcResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (t LinkedServiceOdbcResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceOdbcResource) anon_auth(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceOdbcResource) anon_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_data_factory_linked_service_odbc" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceOdbcResource) basic_auth(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceOdbcResource) basic_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,7 +149,7 @@ resource "azurerm_data_factory_linked_service_odbc" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceOdbcResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceOdbcResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,7 +186,7 @@ resource "azurerm_data_factory_linked_service_odbc" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceOdbcResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceOdbcResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -21,12 +21,12 @@ import (
 
 // (@jackofallops) Note: These tests require a valid GitHub token for ARM_GITHUB_ACCESS_TOKEN. This token needs the `repo` and `workflow` permissions on the referenced repositories.
 
-type AppServiceGitHubTokenResource struct{}
+type SourceControlTokenResource struct{}
 
 func TestAccSourceControlGitHubToken_regressionTest(t *testing.T) {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
 	data := acceptance.BuildTestData(t, "azurerm_source_control_token", "test")
-	r := AppServiceGitHubTokenResource{}
+	r := SourceControlTokenResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -42,7 +42,7 @@ func TestAccSourceControlGitHubToken_basic(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_source_control_token", "test")
-	r := AppServiceGitHubTokenResource{}
+	r := SourceControlTokenResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccSourceControlGitHubToken_requiresImport(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_source_control_token", "test")
-	r := AppServiceGitHubTokenResource{}
+	r := SourceControlTokenResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccSourceControlGitHubToken_requiresImport(t *testing.T) {
 	})
 }
 
-func (r AppServiceGitHubTokenResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SourceControlTokenResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resp, err := client.AppService.ResourceProvidersClient.GetSourceControl(ctx, resourceproviders.NewSourceControlID("GitHub"))
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -93,7 +93,7 @@ func (r AppServiceGitHubTokenResource) Exists(ctx context.Context, client *clien
 	return pointer.To(true), nil
 }
 
-func (r AppServiceGitHubTokenResource) basic(token string) string {
+func (r SourceControlTokenResource) basic(token string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,7 +106,7 @@ resource azurerm_source_control_token test {
 `, token)
 }
 
-func (r AppServiceGitHubTokenResource) requiresImport(token string) string {
+func (r SourceControlTokenResource) requiresImport(token string) string {
 	return fmt.Sprintf(`
 %s
 

@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRuleResource struct{}
+type PaloAltoLocalRulestackRuleResource struct{}
 
 func TestAccPaloAltoLocalRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
-	r := LocalRuleResource{}
+	r := PaloAltoLocalRulestackRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccPaloAltoLocalRule_basic(t *testing.T) {
 func TestAccPaloAltoLocalRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
-	r := LocalRuleResource{}
+	r := PaloAltoLocalRulestackRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccPaloAltoLocalRule_requiresImport(t *testing.T) {
 func TestAccPaloAltoLocalRule_withDestination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
-	r := LocalRuleResource{}
+	r := PaloAltoLocalRulestackRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccPaloAltoLocalRule_withDestination(t *testing.T) {
 func TestAccPaloAltoLocalRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
-	r := LocalRuleResource{}
+	r := PaloAltoLocalRulestackRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,7 +86,7 @@ func TestAccPaloAltoLocalRule_complete(t *testing.T) {
 func TestAccPaloAltoLocalRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
-	r := LocalRuleResource{}
+	r := PaloAltoLocalRulestackRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,7 +123,7 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
-	r := LocalRuleResource{}
+	r := PaloAltoLocalRulestackRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -185,7 +185,7 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 	})
 }
 
-func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoLocalRulestackRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := localrulesresources.ParseLocalRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, s
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRuleResource) basic(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -230,7 +230,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) basicProtocol(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) basicProtocol(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,7 +259,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) basicProtocolPorts(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) basicProtocolPorts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -288,7 +288,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) basicProtocolRange(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) basicProtocolRange(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -317,7 +317,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) basicProtocolAny(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) basicProtocolAny(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -346,7 +346,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) basicProtocolPortsRange(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) basicProtocolPortsRange(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -375,7 +375,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -398,7 +398,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "import" {
 `, r.basic(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) withDestination(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) withDestination(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -426,7 +426,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) complete(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -485,7 +485,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.templateWithCertsEnabled(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) completeUpdate(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -535,7 +535,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.templateWithCertsEnabled(data), data.RandomInteger)
 }
 
-func (r LocalRuleResource) template(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"
@@ -703,7 +703,7 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r LocalRuleResource) templateWithCertsEnabled(data acceptance.TestData) string {
+func (r PaloAltoLocalRulestackRuleResource) templateWithCertsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"

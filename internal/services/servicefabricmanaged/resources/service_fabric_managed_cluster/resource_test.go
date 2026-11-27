@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ClusterResource struct{}
+type ServiceFabricManagedClusterResource struct{}
 
 func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
-	r := ClusterResource{}
+	r := ServiceFabricManagedClusterResource{}
 	nodeTypeData1 := r.nodeType("test1", true, 130)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 
 func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
-	r := ClusterResource{}
+	r := ServiceFabricManagedClusterResource{}
 	nodeTypeData1 := r.nodeType("test1", true, 130)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -56,7 +56,7 @@ func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
 func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 
-	r := ClusterResource{}
+	r := ServiceFabricManagedClusterResource{}
 	nodeTypeData1 := r.nodeType("test1", true, 130)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 
 func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
-	r := ClusterResource{}
+	r := ServiceFabricManagedClusterResource{}
 	nodeTypeData1 := r.nodeType("test1", true, 130)
 	nodeTypeData1Altered := r.nodeType("test1", true, 140)
 	nodeTypeData2 := r.nodeType("test2", false, 130)
@@ -121,7 +121,7 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 
 func TestAccServiceFabricManagedCluster_authentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
-	r := ClusterResource{}
+	r := ServiceFabricManagedClusterResource{}
 	nodeTypeData1 := r.nodeType("test1", true, 130)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,7 +134,7 @@ func TestAccServiceFabricManagedCluster_authentication(t *testing.T) {
 	})
 }
 
-func (r ClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ServiceFabricManagedClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedcluster.ParseManagedClusterID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
@@ -150,7 +150,7 @@ func (r ClusterResource) Exists(ctx context.Context, clients *clients.Client, st
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ClusterResource) basic(data acceptance.TestData, nodeTypeData string) string {
+func (r ServiceFabricManagedClusterResource) basic(data acceptance.TestData, nodeTypeData string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,7 +190,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
 }
 
-func (r ClusterResource) withCustomSettings(data acceptance.TestData, nodeTypeData string) string {
+func (r ServiceFabricManagedClusterResource) withCustomSettings(data acceptance.TestData, nodeTypeData string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -263,7 +263,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
 }
 
-func (r ClusterResource) requiresImport(data acceptance.TestData, nt string) string {
+func (r ServiceFabricManagedClusterResource) requiresImport(data acceptance.TestData, nt string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -296,7 +296,7 @@ resource "azurerm_service_fabric_managed_cluster" "test1" {
 `, r.basic(data, nt), data.RandomString, nt)
 }
 
-func (r ClusterResource) nodeType(name string, primary bool, diskSize int) string {
+func (r ServiceFabricManagedClusterResource) nodeType(name string, primary bool, diskSize int) string {
 	return fmt.Sprintf(`
 node_type {
   data_disk_size_gb      = %[1]d
@@ -315,7 +315,7 @@ node_type {
 `, diskSize, name, primary)
 }
 
-func (r ClusterResource) authentication(data acceptance.TestData, nodeTypeData string) string {
+func (r ServiceFabricManagedClusterResource) authentication(data acceptance.TestData, nodeTypeData string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

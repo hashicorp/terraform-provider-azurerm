@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterProjectPoolTestResource struct{}
+type DevCenterProjectPoolResource struct{}
 
 func TestAccDevCenterProjectPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
-	r := DevCenterProjectPoolTestResource{}
+	r := DevCenterProjectPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenterProjectPool_basic(t *testing.T) {
 
 func TestAccDevCenterProjectPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
-	r := DevCenterProjectPoolTestResource{}
+	r := DevCenterProjectPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDevCenterProjectPool_requiresImport(t *testing.T) {
 
 func TestAccDevCenterProjectPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
-	r := DevCenterProjectPoolTestResource{}
+	r := DevCenterProjectPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDevCenterProjectPool_complete(t *testing.T) {
 
 func TestAccDevCenterProjectPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
-	r := DevCenterProjectPoolTestResource{}
+	r := DevCenterProjectPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -101,7 +101,7 @@ func TestAccDevCenterProjectPool_update(t *testing.T) {
 
 func TestAccDevCenterProjectPool_managedNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
-	r := DevCenterProjectPoolTestResource{}
+	r := DevCenterProjectPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -128,7 +128,7 @@ func TestAccDevCenterProjectPool_managedNetwork(t *testing.T) {
 	})
 }
 
-func (r DevCenterProjectPoolTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterProjectPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pools.ParsePoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (r DevCenterProjectPoolTestResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterProjectPoolTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterProjectPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,7 +161,7 @@ resource "azurerm_dev_center_project_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterProjectPoolTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterProjectPoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -176,7 +176,7 @@ resource "azurerm_dev_center_project_pool" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterProjectPoolTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterProjectPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +201,7 @@ resource "azurerm_dev_center_project_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterProjectPoolTestResource) update(data acceptance.TestData) string {
+func (r DevCenterProjectPoolResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -226,7 +226,7 @@ resource "azurerm_dev_center_project_pool" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterProjectPoolTestResource) managedNetwork(data acceptance.TestData, managedVNetRegion string) string {
+func (r DevCenterProjectPoolResource) managedNetwork(data acceptance.TestData, managedVNetRegion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -274,7 +274,7 @@ resource "azurerm_dev_center_project_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, managedVNetRegion)
 }
 
-func (r DevCenterProjectPoolTestResource) template(data acceptance.TestData) string {
+func (r DevCenterProjectPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-dcet-%d"

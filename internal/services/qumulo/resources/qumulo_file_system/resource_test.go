@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FileSystemTestResource struct{}
+type QumuloFileSystemResource struct{}
 
 func TestAccQumuloFileSystem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_qumulo_file_system", "test")
-	r := FileSystemTestResource{}
+	r := QumuloFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccQumuloFileSystem_basic(t *testing.T) {
 
 func TestAccQumuloFileSystem_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_qumulo_file_system", "test")
-	r := FileSystemTestResource{}
+	r := QumuloFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccQumuloFileSystem_requiresImport(t *testing.T) {
 
 func TestAccQumuloFileSystem_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_qumulo_file_system", "test")
-	r := FileSystemTestResource{}
+	r := QumuloFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccQumuloFileSystem_complete(t *testing.T) {
 
 func TestAccQumuloFileSystem_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_qumulo_file_system", "test")
-	r := FileSystemTestResource{}
+	r := QumuloFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccQumuloFileSystem_update(t *testing.T) {
 	})
 }
 
-func (r FileSystemTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r QumuloFileSystemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := filesystems.ParseFileSystemID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (r FileSystemTestResource) Exists(ctx context.Context, clients *clients.Cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r FileSystemTestResource) basic(data acceptance.TestData) string {
+func (r QumuloFileSystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -123,7 +123,7 @@ resource "azurerm_qumulo_file_system" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r FileSystemTestResource) update(data acceptance.TestData) string {
+func (r QumuloFileSystemResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -145,7 +145,7 @@ resource "azurerm_qumulo_file_system" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r FileSystemTestResource) requiresImport(data acceptance.TestData) string {
+func (r QumuloFileSystemResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,7 +162,7 @@ resource "azurerm_qumulo_file_system" "import" {
 `, r.basic(data))
 }
 
-func (r FileSystemTestResource) complete(data acceptance.TestData) string {
+func (r QumuloFileSystemResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -186,7 +186,7 @@ resource "azurerm_qumulo_file_system" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r FileSystemTestResource) template(data acceptance.TestData) string {
+func (r QumuloFileSystemResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

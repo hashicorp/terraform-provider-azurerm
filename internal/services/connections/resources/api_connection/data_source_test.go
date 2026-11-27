@@ -62,5 +62,5 @@ data "azurerm_api_connection" "test" {
   name                = azurerm_api_connection.test.name
   resource_group_name = azurerm_api_connection.test.resource_group_name
 }
-`, ApiConnectionTestResource{}.template(data), data.RandomInteger)
+`, ApiConnectionResource{}.template(data), data.RandomInteger)
 }

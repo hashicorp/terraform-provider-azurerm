@@ -35,7 +35,7 @@ func TestAccDesktopVirtualizationWorkspaceDataSource_complete(t *testing.T) {
 }
 
 func (DesktopVirtualizationWorkspaceDataSource) complete(data acceptance.TestData) string {
-	template := AzureRMDesktopVirtualizationWorkspaceResource{}.complete(data)
+	template := VirtualDesktopWorkspaceResource{}.complete(data)
 	return fmt.Sprintf(`
 %s
 

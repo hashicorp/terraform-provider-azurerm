@@ -17,13 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KeyVaultManagedHSMRoleAssignmentResource struct{}
+type KeyVaultManagedHardwareSecurityModuleRoleAssignmentResource struct{}
 
 // NOTE: all fields within the Role Assignment are ForceNew, therefore any Update tests aren't going to do much..
 
 func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_builtInRole(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
+	r := KeyVaultManagedHardwareSecurityModuleRoleAssignmentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_builtInRole(t *t
 
 func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
+	r := KeyVaultManagedHardwareSecurityModuleRoleAssignmentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole(t *te
 }
 
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
-func (r KeyVaultManagedHSMRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KeyVaultManagedHardwareSecurityModuleRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := client.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
 		return nil, errors.New("this Environment doesn't specify the Domain Suffix for Managed HSM")
@@ -68,7 +68,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Properties != nil), nil
 }
 
-func (r KeyVaultManagedHSMRoleAssignmentResource) builtInRole(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleRoleAssignmentResource) builtInRole(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -91,7 +91,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 `, KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3))
 }
 
-func (r KeyVaultManagedHSMRoleAssignmentResource) customRole(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleRoleAssignmentResource) customRole(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -106,5 +106,5 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
   role_definition_id = azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
-`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
+`, KeyVaultManagedHardwareSecurityModuleRoleDefinitionResource{}.basic(data))
 }

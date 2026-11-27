@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AutonomousDatabaseCloneFromBackupResource struct{}
+type OracleAutonomousDatabaseCloneFromBackupResource struct{}
 
 func TestAccAutonomousDatabaseCloneFromBackup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_backup", "test")
-	r := AutonomousDatabaseCloneFromBackupResource{}
+	r := OracleAutonomousDatabaseCloneFromBackupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_basic(t *testing.T) {
 
 func TestAccAutonomousDatabaseCloneFromBackup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_backup", "test")
-	r := AutonomousDatabaseCloneFromBackupResource{}
+	r := OracleAutonomousDatabaseCloneFromBackupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_requiresImport(t *testing.T) {
 
 func TestAccAutonomousDatabaseCloneFromBackup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_backup", "test")
-	r := AutonomousDatabaseCloneFromBackupResource{}
+	r := OracleAutonomousDatabaseCloneFromBackupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_complete(t *testing.T) {
 	})
 }
 
-func (r AutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r OracleAutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := autonomousdatabases.ParseAutonomousDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AutonomousDatabaseCloneFromBackupResource) basic(data acceptance.TestData) string {
+func (r OracleAutonomousDatabaseCloneFromBackupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -114,7 +114,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
 `, data.RandomInteger)
 }
 
-func (r AutonomousDatabaseCloneFromBackupResource) requiresImport(data acceptance.TestData) string {
+func (r OracleAutonomousDatabaseCloneFromBackupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -145,7 +145,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "import" {
 `, r.complete(data))
 }
 
-func (r AutonomousDatabaseCloneFromBackupResource) complete(data acceptance.TestData) string {
+func (r OracleAutonomousDatabaseCloneFromBackupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

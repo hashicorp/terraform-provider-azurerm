@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadTestTestResource struct{}
+type LoadTestResource struct{}
 
 func TestAccLoadTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
-	r := LoadTestTestResource{}
+	r := LoadTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccLoadTest_basic(t *testing.T) {
 
 func TestAccLoadTest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
-	r := LoadTestTestResource{}
+	r := LoadTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccLoadTest_requiresImport(t *testing.T) {
 
 func TestAccLoadTest_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
-	r := LoadTestTestResource{}
+	r := LoadTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccLoadTest_complete(t *testing.T) {
 
 func TestAccLoadTest_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
-	r := LoadTestTestResource{}
+	r := LoadTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccLoadTest_update(t *testing.T) {
 
 func TestAccLoadTest_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
-	r := LoadTestTestResource{}
+	r := LoadTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -112,7 +112,7 @@ func TestAccLoadTest_encryption(t *testing.T) {
 
 func TestAccLoadTest_encryptionMissingIdentityID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
-	r := LoadTestTestResource{}
+	r := LoadTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccLoadTest_encryptionMissingIdentityID(t *testing.T) {
 	})
 }
 
-func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LoadTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadtests.ParseLoadTestID(state.ID)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LoadTestTestResource) basic(data acceptance.TestData) string {
+func (r LoadTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -152,7 +152,7 @@ resource "azurerm_load_test" "test" {
 `, r.template(data))
 }
 
-func (r LoadTestTestResource) requiresImport(data acceptance.TestData) string {
+func (r LoadTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -164,7 +164,7 @@ resource "azurerm_load_test" "import" {
 `, r.basic(data))
 }
 
-func (r LoadTestTestResource) complete(data acceptance.TestData) string {
+func (r LoadTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -189,7 +189,7 @@ resource "azurerm_load_test" "test" {
 `, r.template(data))
 }
 
-func (r LoadTestTestResource) encryption(data acceptance.TestData) string {
+func (r LoadTestResource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -287,7 +287,7 @@ resource "azurerm_load_test" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r LoadTestTestResource) encryptionMissingIdentityID(data acceptance.TestData) string {
+func (r LoadTestResource) encryptionMissingIdentityID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -391,7 +391,7 @@ resource "azurerm_load_test" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r LoadTestTestResource) template(data acceptance.TestData) string {
+func (r LoadTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

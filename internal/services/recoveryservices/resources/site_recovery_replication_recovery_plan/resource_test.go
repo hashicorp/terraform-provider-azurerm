@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SiteRecoveryReplicationRecoveryPlan struct{}
+type SiteRecoveryReplicationRecoveryPlanResource struct{}
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_basic(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_withPreActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withPreActions(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_withPostActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withPostActions(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiActions(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_updateWithmultiActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_updateWithmultiActions(t *testin
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,7 +134,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withZones(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_withEdgeZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -149,7 +149,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withEdgeZones(t *testing.T) {
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,7 +166,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T)
 
 func TestAccSiteRecoveryReplicationRecoveryPlan_wrongActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
+	r := SiteRecoveryReplicationRecoveryPlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,7 +176,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_wrongActions(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryReplicationRecoveryPlan) template(data acceptance.TestData) string {
+func (SiteRecoveryReplicationRecoveryPlanResource) template(data acceptance.TestData) string {
 	tags := ""
 	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
 		tags = `
@@ -399,7 +399,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, tags)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) basic(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -421,7 +421,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) withPreActions(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) withPreActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -450,7 +450,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) withPostActions(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) withPostActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -479,7 +479,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) withMultiActions(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) withMultiActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -532,7 +532,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) updateWithMultiActions(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) updateWithMultiActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -585,7 +585,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) withZones(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) withZones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -611,7 +611,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) withEdgeZones(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) withEdgeZones(data acceptance.TestData) string {
 	// WestUS has an edge zone available - so hard-code to that
 	data.Locations.Primary = "westus"
 
@@ -644,7 +644,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) withMultiBootGroup(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) withMultiBootGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -676,7 +676,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) wrongActions(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlanResource) wrongActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -707,7 +707,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SiteRecoveryReplicationRecoveryPlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(state.ID)
 	if err != nil {
 		return nil, err

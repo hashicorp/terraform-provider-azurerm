@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevTestLabScheduleResource struct{}
+type DevTestScheduleResource struct{}
 
 func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
-	r := DevTestLabScheduleResource{}
+	r := DevTestScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 
 func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
-	r := DevTestLabScheduleResource{}
+	r := DevTestScheduleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 
 func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
-	r := DevTestLabScheduleResource{}
+	r := DevTestScheduleResource{}
 	secondResourceName := "azurerm_dev_test_schedule.test2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -98,7 +98,7 @@ func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 	})
 }
 
-func (DevTestLabScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DevTestScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := schedules.ParseLabScheduleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (DevTestLabScheduleResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (DevTestLabScheduleResource) autoShutdownBasic(data acceptance.TestData) string {
+func (DevTestScheduleResource) autoShutdownBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,7 +149,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (DevTestLabScheduleResource) autoShutdownBasicUpdate(data acceptance.TestData) string {
+func (DevTestScheduleResource) autoShutdownBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -189,7 +189,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (DevTestLabScheduleResource) autoStartupBasic(data acceptance.TestData) string {
+func (DevTestScheduleResource) autoStartupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,7 +229,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (DevTestLabScheduleResource) autoStartupBasicUpdate(data acceptance.TestData) string {
+func (DevTestScheduleResource) autoStartupBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -271,7 +271,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (DevTestLabScheduleResource) concurrent(data acceptance.TestData) string {
+func (DevTestScheduleResource) concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

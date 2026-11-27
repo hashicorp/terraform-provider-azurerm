@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PipelineResource struct{}
+type DataFactoryPipelineResource struct{}
 
 func TestAccDataFactoryPipeline_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	r := PipelineResource{}
+	r := DataFactoryPipelineResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccDataFactoryPipeline_regressionTest(t *testing.T) {
 
 func TestAccDataFactoryPipeline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	r := PipelineResource{}
+	r := DataFactoryPipelineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccDataFactoryPipeline_basic(t *testing.T) {
 
 func TestAccDataFactoryPipeline_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	r := PipelineResource{}
+	r := DataFactoryPipelineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccDataFactoryPipeline_complete(t *testing.T) {
 
 func TestAccDataFactoryPipeline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	r := PipelineResource{}
+	r := DataFactoryPipelineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 
 func TestAccDataFactoryPipeline_activities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	r := PipelineResource{}
+	r := DataFactoryPipelineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -137,7 +137,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 	})
 }
 
-func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryPipelineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pipelines.ParsePipelineID(state.ID)
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, s
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (t PipelineResource) appendVariableActivityNameIs(expected string) func(input []any) (*bool, error) {
+func (t DataFactoryPipelineResource) appendVariableActivityNameIs(expected string) func(input []any) (*bool, error) {
 	return func(input []any) (*bool, error) {
 		if len(input) == 0 || input[0] == nil {
 			return pointer.To(false), nil
@@ -171,7 +171,7 @@ func (t PipelineResource) appendVariableActivityNameIs(expected string) func(inp
 	}
 }
 
-func (PipelineResource) template(data acceptance.TestData) string {
+func (DataFactoryPipelineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -191,7 +191,7 @@ resource "azurerm_data_factory" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PipelineResource) basic(data acceptance.TestData) string {
+func (r DataFactoryPipelineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -202,7 +202,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PipelineResource) complete(data acceptance.TestData) string {
+func (r DataFactoryPipelineResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -278,7 +278,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PipelineResource) update(data acceptance.TestData) string {
+func (r DataFactoryPipelineResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -328,7 +328,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PipelineResource) activities(data acceptance.TestData) string {
+func (r DataFactoryPipelineResource) activities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -356,7 +356,7 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
+func (r DataFactoryPipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
 	headerBlock := `
       "headers": {
         "authorization": {
@@ -398,7 +398,7 @@ JSON
 `, r.template(data), data.RandomInteger, headerBlock)
 }
 
-func (r PipelineResource) activitiesUpdated(data acceptance.TestData) string {
+func (r DataFactoryPipelineResource) activitiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

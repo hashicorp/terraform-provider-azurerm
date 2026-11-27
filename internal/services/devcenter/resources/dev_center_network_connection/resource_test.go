@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DevCenterNetworkConnectionTestResource struct{}
+type DevCenterNetworkConnectionResource struct{}
 
 func TestAccDevCenterNetworkConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_network_connection", "test")
-	r := DevCenterNetworkConnectionTestResource{}
+	r := DevCenterNetworkConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDevCenterNetworkConnection_basic(t *testing.T) {
 
 func TestAccDevCenterNetworkConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_network_connection", "test")
-	r := DevCenterNetworkConnectionTestResource{}
+	r := DevCenterNetworkConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDevCenterNetworkConnection_requiresImport(t *testing.T) {
 
 func TestAccDevCenterNetworkConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_network_connection", "test")
-	r := DevCenterNetworkConnectionTestResource{}
+	r := DevCenterNetworkConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccDevCenterNetworkConnection_complete(t *testing.T) {
 
 func TestAccDevCenterNetworkConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_network_connection", "test")
-	r := DevCenterNetworkConnectionTestResource{}
+	r := DevCenterNetworkConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccDevCenterNetworkConnection_update(t *testing.T) {
 	})
 }
 
-func (r DevCenterNetworkConnectionTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DevCenterNetworkConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networkconnections.ParseNetworkConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r DevCenterNetworkConnectionTestResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DevCenterNetworkConnectionTestResource) basic(data acceptance.TestData) string {
+func (r DevCenterNetworkConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -117,7 +117,7 @@ resource "azurerm_dev_center_network_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DevCenterNetworkConnectionTestResource) requiresImport(data acceptance.TestData) string {
+func (r DevCenterNetworkConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +131,7 @@ resource "azurerm_dev_center_network_connection" "import" {
 `, r.basic(data))
 }
 
-func (r DevCenterNetworkConnectionTestResource) complete(data acceptance.TestData) string {
+func (r DevCenterNetworkConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,7 +162,7 @@ resource "azurerm_dev_center_network_connection" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DevCenterNetworkConnectionTestResource) update(data acceptance.TestData) string {
+func (r DevCenterNetworkConnectionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -200,7 +200,7 @@ resource "azurerm_dev_center_network_connection" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DevCenterNetworkConnectionTestResource) template(data acceptance.TestData) string {
+func (r DevCenterNetworkConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-dcnc-%d"

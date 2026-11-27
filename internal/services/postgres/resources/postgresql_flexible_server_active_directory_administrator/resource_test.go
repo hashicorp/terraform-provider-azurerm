@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PostgresqlFlexibleServerAdministratorResource struct{}
+type PostgresqlFlexibleServerActiveDirectoryAdministratorResource struct{}
 
 func TestAccPostgresqlFlexibleServerAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
-	r := PostgresqlFlexibleServerAdministratorResource{}
+	r := PostgresqlFlexibleServerActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccPostgresqlFlexibleServerAdministrator_basic(t *testing.T) {
 
 func TestAccPostgresqlFlexibleServerAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
-	r := PostgresqlFlexibleServerAdministratorResource{}
+	r := PostgresqlFlexibleServerActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccPostgresqlFlexibleServerAdministrator_requiresImport(t *testing.T) {
 
 func TestAccPostgresqlFlexibleServerAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
-	r := PostgresqlFlexibleServerAdministratorResource{}
+	r := PostgresqlFlexibleServerActiveDirectoryAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -63,7 +63,7 @@ func TestAccPostgresqlFlexibleServerAdministrator_disappears(t *testing.T) {
 	})
 }
 
-func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PostgresqlFlexibleServerActiveDirectoryAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := administratormicrosoftentras.ParseAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Contex
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PostgresqlFlexibleServerActiveDirectoryAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := administratormicrosoftentras.ParseAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Conte
 	return pointer.To(true), nil
 }
 
-func (PostgresqlFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {
+func (PostgresqlFlexibleServerActiveDirectoryAdministratorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -138,7 +138,7 @@ resource "azurerm_postgresql_flexible_server_active_directory_administrator" "te
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PostgresqlFlexibleServerAdministratorResource) requiresImport(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerActiveDirectoryAdministratorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

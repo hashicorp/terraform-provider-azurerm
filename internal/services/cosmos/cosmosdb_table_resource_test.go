@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosTableResource struct{}
+type CosmosdbTableResource struct{}
 
 func TestAccCosmosDbTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
-	r := CosmosTableResource{}
+	r := CosmosdbTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCosmosDbTable_basic(t *testing.T) {
 
 func TestAccCosmosDbTable_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
-	r := CosmosTableResource{}
+	r := CosmosdbTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccCosmosDbTable_update(t *testing.T) {
 
 func TestAccCosmosDbTable_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
-	r := CosmosTableResource{}
+	r := CosmosdbTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccCosmosDbTable_autoscale(t *testing.T) {
 
 func TestAccCosmosDbTable_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
-	r := CosmosTableResource{}
+	r := CosmosdbTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccCosmosDbTable_serverless(t *testing.T) {
 	})
 }
 
-func (t CosmosTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseTableID(state.ID)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (t CosmosTableResource) Exists(ctx context.Context, clients *clients.Client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosTableResource) basic(data acceptance.TestData) string {
+func (CosmosdbTableResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -130,7 +130,7 @@ resource "azurerm_cosmosdb_table" "test" {
 `, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger)
 }
 
-func (CosmosTableResource) throughput(data acceptance.TestData, throughput int) string {
+func (CosmosdbTableResource) throughput(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -143,7 +143,7 @@ resource "azurerm_cosmosdb_table" "test" {
 `, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, throughput)
 }
 
-func (CosmosTableResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+func (CosmosdbTableResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -158,7 +158,7 @@ resource "azurerm_cosmosdb_table" "test" {
 `, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, maxThroughput)
 }
 
-func (CosmosTableResource) serverless(data acceptance.TestData) string {
+func (CosmosdbTableResource) serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

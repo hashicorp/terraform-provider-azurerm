@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceDataLakeStorageGen2Resource struct{}
+type DataFactoryLinkedServiceDataLakeStorageGen2Resource struct{}
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
-	r := LinkedServiceDataLakeStorageGen2Resource{}
+	r := DataFactoryLinkedServiceDataLakeStorageGen2Resource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_regressionTest(t *testin
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
-	r := LinkedServiceDataLakeStorageGen2Resource{}
+	r := DataFactoryLinkedServiceDataLakeStorageGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_accountKeyAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
-	r := LinkedServiceDataLakeStorageGen2Resource{}
+	r := DataFactoryLinkedServiceDataLakeStorageGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_accountKeyAuth(t *testin
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_managed_id(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
-	r := LinkedServiceDataLakeStorageGen2Resource{}
+	r := DataFactoryLinkedServiceDataLakeStorageGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_managed_id(t *testing.T)
 
 func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
-	r := LinkedServiceDataLakeStorageGen2Resource{}
+	r := DataFactoryLinkedServiceDataLakeStorageGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceDataLakeStorageGen2Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceDataLakeStorageGen2Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (t LinkedServiceDataLakeStorageGen2Resource) Exists(ctx context.Context, cl
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceDataLakeStorageGen2Resource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceDataLakeStorageGen2Resource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,7 +148,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDataLakeStorageGen2Resource) accountKeyAuth(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceDataLakeStorageGen2Resource) accountKeyAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -184,7 +184,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
-func (LinkedServiceDataLakeStorageGen2Resource) managed_id(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceDataLakeStorageGen2Resource) managed_id(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -216,7 +216,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDataLakeStorageGen2Resource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceDataLakeStorageGen2Resource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,7 +259,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDataLakeStorageGen2Resource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceDataLakeStorageGen2Resource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

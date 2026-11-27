@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlJobStepTestResource struct{}
+type MssqlJobStepResource struct{}
 
 func TestAccMsSqlJobStep_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepTestResource{}
+	r := MssqlJobStepResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccMsSqlJobStep_basic(t *testing.T) {
 
 func TestAccMsSqlJobStep_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepTestResource{}
+	r := MssqlJobStepResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccMsSqlJobStep_requiresImport(t *testing.T) {
 
 func TestAccMsSqlJobStep_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepTestResource{}
+	r := MssqlJobStepResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestAccMsSqlJobStep_update(t *testing.T) {
 
 func TestAccMsSqlJobStep_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepTestResource{}
+	r := MssqlJobStepResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccMsSqlJobStep_complete(t *testing.T) {
 
 func TestAccMsSqlJobStep_removeCredentialExpectReplace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepTestResource{}
+	r := MssqlJobStepResource{}
 
 	// Ignoring recreation of the resource as we're purposely testing that the `CustomizeDiff`
 	// forces a new resource to be created when removing the `job_credential_id` property.
@@ -118,7 +118,7 @@ func TestAccMsSqlJobStep_removeCredentialExpectReplace(t *testing.T) {
 	})
 }
 
-func (MsSqlJobStepTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MssqlJobStepResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobsteps.ParseStepID(state.ID)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (MsSqlJobStepTestResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlJobStepTestResource) basic(data acceptance.TestData) string {
+func (r MssqlJobStepResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -153,7 +153,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobStepTestResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlJobStepResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +174,7 @@ EOT
 `, r.basic(data))
 }
 
-func (r MsSqlJobStepTestResource) complete(data acceptance.TestData) string {
+func (r MssqlJobStepResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -209,7 +209,7 @@ EOT
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobStepTestResource) template(data acceptance.TestData) string {
+func (r MssqlJobStepResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

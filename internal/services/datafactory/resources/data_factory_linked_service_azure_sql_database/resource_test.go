@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LinkedServiceAzureSQLDatabaseResource struct{}
+type DataFactoryLinkedServiceAzureSqlDatabaseResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_regressionTest(t *testing.T
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_basic(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_update(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_managed_id(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_managed_id(t *testing.T) {
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_PasswordKeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,7 +109,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_PasswordKeyVaultReference(t
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_ConnectionStringKeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -128,7 +128,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_ConnectionStringKeyVaultRef
 
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_Credential(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
-	r := LinkedServiceAzureSQLDatabaseResource{}
+	r := DataFactoryLinkedServiceAzureSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -142,7 +142,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_Credential(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataFactoryLinkedServiceAzureSqlDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) basic(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -181,7 +181,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) update1(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -218,7 +218,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) update2(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -255,7 +255,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) managed_id(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) managed_id(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -287,7 +287,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -334,7 +334,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) connection_string_key_vault_reference(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) connection_string_key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -385,7 +385,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureSQLDatabaseResource) credential(data acceptance.TestData) string {
+func (DataFactoryLinkedServiceAzureSqlDatabaseResource) credential(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

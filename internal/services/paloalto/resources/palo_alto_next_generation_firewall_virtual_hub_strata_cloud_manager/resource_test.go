@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallVHubStrataCloudManagerResource struct{}
+type PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource struct{}
 
 func TestAccNextGenerationFirewallVHubStrataCloudManager_basic(t *testing.T) {
 	if scmTenant := os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"); scmTenant == "" {
@@ -26,7 +26,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_basic(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVHubStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_requiresImport(t *testi
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVHubStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_complete(t *testing.T) 
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVHubStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_update(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager", "test")
-	r := NextGenerationFirewallVHubStrataCloudManagerResource{}
+	r := PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +110,7 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_update(t *testing.T) {
 	})
 }
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Exists(ctx context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) basic(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -155,7 +155,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -179,7 +179,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
 `, template)
 }
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) complete(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -243,7 +243,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_SCM_TENANT_NAME"))
 }
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) template(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallVirtualHubStrataCloudManagerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWVHSCM-%[1]d"

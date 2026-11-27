@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HealthcareApiFhirServiceResource struct{}
+type HealthcareFhirServiceResource struct{}
 
 func TestAccHealthcareApiFhirService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
-	r := HealthcareApiFhirServiceResource{}
+	r := HealthcareFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccHealthcareApiFhirService_basic(t *testing.T) {
 
 func TestAccHealthcareApiFhirService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
-	r := HealthcareApiFhirServiceResource{}
+	r := HealthcareFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccHealthcareApiFhirService_complete(t *testing.T) {
 
 func TestAccHealthcareApiFhirService_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
-	r := HealthcareApiFhirServiceResource{}
+	r := HealthcareFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccHealthcareApiFhirService_updateIdentity(t *testing.T) {
 
 func TestAccHealthcareApiFhirService_updateAcrLoginServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
-	r := HealthcareApiFhirServiceResource{}
+	r := HealthcareFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccHealthcareApiFhirService_updateAcrLoginServer(t *testing.T) {
 
 func TestAccHealthcareApiFhirService_updateCors(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
-	r := HealthcareApiFhirServiceResource{}
+	r := HealthcareFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -151,7 +151,7 @@ func TestAccHealthcareApiFhirService_updateCors(t *testing.T) {
 
 func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
-	r := HealthcareApiFhirServiceResource{}
+	r := HealthcareFhirServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -164,7 +164,7 @@ func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
 	})
 }
 
-func (HealthcareApiFhirServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (HealthcareFhirServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fhirservices.ParseFhirServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (HealthcareApiFhirServiceResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r HealthcareApiFhirServiceResource) basic(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -195,7 +195,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) updateIdentitySystemAssigned(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) updateIdentitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_fhir_service" "test" {
@@ -217,7 +217,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) updateIdentityUserAssigned(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) updateIdentityUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -249,7 +249,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) requiresImport(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_fhir_service" "import" {
@@ -267,7 +267,7 @@ resource "azurerm_healthcare_fhir_service" "import" {
 `, r.basic(data))
 }
 
-func (r HealthcareApiFhirServiceResource) complete(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {
 }
@@ -337,7 +337,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) updateAcrLoginServer(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) updateAcrLoginServer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {
 }
@@ -403,7 +403,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) updateCors(data acceptance.TestData) string {
+func (r HealthcareFhirServiceResource) updateCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {
 }
@@ -469,7 +469,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
 }
 
-func (HealthcareApiFhirServiceResource) template(data acceptance.TestData) string {
+func (HealthcareFhirServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

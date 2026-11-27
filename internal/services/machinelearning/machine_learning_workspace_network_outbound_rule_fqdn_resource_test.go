@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkspaceNetworkOutboundRuleFqdnResource struct{}
+type MachineLearningWorkspaceNetworkOutboundRuleFqdnResource struct{}
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_fqdn", "test")
-	r := WorkspaceNetworkOutboundRuleFqdnResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRuleFqdnResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_basic(t *testing.T) 
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_fqdn", "test")
-	r := WorkspaceNetworkOutboundRuleFqdnResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRuleFqdnResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_update(t *testing.T)
 
 func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_fqdn", "test")
-	r := WorkspaceNetworkOutboundRuleFqdnResource{}
+	r := MachineLearningWorkspaceNetworkOutboundRuleFqdnResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_requiresImport(t *te
 	})
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdnResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MachineLearningWorkspaceNetworkOutboundRuleFqdnResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managednetwork.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (r WorkspaceNetworkOutboundRuleFqdnResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model.Properties != nil), nil
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdnResource) template(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRuleFqdnResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -143,7 +143,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(10))
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdnResource) basic(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRuleFqdnResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -185,7 +185,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "test" 
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdnResource) update(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRuleFqdnResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -227,7 +227,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "test" 
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdnResource) requiresImport(data acceptance.TestData) string {
+func (r MachineLearningWorkspaceNetworkOutboundRuleFqdnResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s

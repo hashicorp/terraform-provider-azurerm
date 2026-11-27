@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosSqlContainerResource struct{}
+type CosmosdbSqlContainerResource struct{}
 
 func TestAccCosmosDbSqlContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCosmosDbSqlContainer_basic(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_basic_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccCosmosDbSqlContainer_basic_serverless(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -145,7 +145,7 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -194,7 +194,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_partition_key_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -210,7 +210,7 @@ func TestAccCosmosDbSqlContainer_partition_key_version(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -225,7 +225,7 @@ func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
 
 func TestAccCosmosDbSqlContainer_hierarchicalPartitionKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
+	r := CosmosdbSqlContainerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -238,7 +238,7 @@ func TestAccCosmosDbSqlContainer_hierarchicalPartitionKeys(t *testing.T) {
 	})
 }
 
-func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosdbSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseContainerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -252,7 +252,7 @@ func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosSqlContainerResource) basic(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -263,10 +263,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths = ["/definition/id"]
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) basic_serverless(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) basic_serverless(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -277,10 +277,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths = ["/definition/id"]
 }
-`, CosmosSqlDatabaseResource{}.serverless(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.serverless(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) complete(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -332,10 +332,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) analyticalStorageTTL(data acceptance.TestData, analyticalStorageTTL int) string {
+func (CosmosdbSqlContainerResource) analyticalStorageTTL(data acceptance.TestData, analyticalStorageTTL int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -356,7 +356,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, analyticalStorageTTL)
 }
 
-func (CosmosSqlContainerResource) update(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -410,10 +410,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) autoscale(data acceptance.TestData, maxThroughput int) string {
+func (CosmosdbSqlContainerResource) autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_sql_container" "test" {
@@ -426,10 +426,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger, maxThroughput)
 }
 
-func (CosmosSqlContainerResource) indexing_policy(data acceptance.TestData, includedPath, excludedPath string) string {
+func (CosmosdbSqlContainerResource) indexing_policy(data acceptance.TestData, includedPath, excludedPath string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -478,10 +478,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
 }
 
-func (CosmosSqlContainerResource) indexing_policy_update_spatialIndex(data acceptance.TestData, includedPath, excludedPath string) string {
+func (CosmosdbSqlContainerResource) indexing_policy_update_spatialIndex(data acceptance.TestData, includedPath, excludedPath string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -538,10 +538,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     }
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
 }
 
-func (CosmosSqlContainerResource) indexing_policy_update_includedPath(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) indexing_policy_update_includedPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -556,10 +556,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     indexing_mode = "none"
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) partition_key_version(data acceptance.TestData, version int) string {
+func (CosmosdbSqlContainerResource) partition_key_version(data acceptance.TestData, version int) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_sql_container" "test" {
@@ -570,10 +570,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_paths   = ["/definition/id"]
   partition_key_version = %[3]d
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, version)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger, version)
 }
 
-func (CosmosSqlContainerResource) conflictResolutionPolicy(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) conflictResolutionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -589,10 +589,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
   }
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
-func (CosmosSqlContainerResource) hierarchicalPartitionKeys(data acceptance.TestData) string {
+func (CosmosdbSqlContainerResource) hierarchicalPartitionKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -605,5 +605,5 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_paths   = ["/definition", "/id", "/sessionId"]
   partition_key_version = 2
 }
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+`, CosmosdbSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }

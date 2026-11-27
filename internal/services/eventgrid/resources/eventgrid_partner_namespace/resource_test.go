@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventGridPartnerNamespaceTestResource struct{}
+type EventgridPartnerNamespaceResource struct{}
 
 func TestAccEventGridPartnerNamespace_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace", "test")
-	r := EventGridPartnerNamespaceTestResource{}
+	r := EventgridPartnerNamespaceResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -31,7 +31,7 @@ func TestAccEventGridPartnerNamespace_regressionTest(t *testing.T) {
 func TestAccEventGridPartnerNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace", "test")
 
-	r := EventGridPartnerNamespaceTestResource{}
+	r := EventgridPartnerNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,7 +45,7 @@ func TestAccEventGridPartnerNamespace_basic(t *testing.T) {
 
 func TestAccEventGridPartnerNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace", "test")
-	r := EventGridPartnerNamespaceTestResource{}
+	r := EventgridPartnerNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -62,7 +62,7 @@ func TestAccEventGridPartnerNamespace_requiresImport(t *testing.T) {
 
 func TestAccEventGridPartnerNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace", "test")
-	r := EventGridPartnerNamespaceTestResource{}
+	r := EventgridPartnerNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -76,7 +76,7 @@ func TestAccEventGridPartnerNamespace_complete(t *testing.T) {
 
 func TestAccEventGridPartnerNamespace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace", "test")
-	r := EventGridPartnerNamespaceTestResource{}
+	r := EventgridPartnerNamespaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +96,7 @@ func TestAccEventGridPartnerNamespace_update(t *testing.T) {
 	})
 }
 
-func (EventGridPartnerNamespaceTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventgridPartnerNamespaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := partnernamespaces.ParsePartnerNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (EventGridPartnerNamespaceTestResource) Exists(ctx context.Context, client 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r EventGridPartnerNamespaceTestResource) basic(data acceptance.TestData) string {
+func (r EventgridPartnerNamespaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,7 +135,7 @@ resource "azurerm_eventgrid_partner_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (EventGridPartnerNamespaceTestResource) requiresImport(data acceptance.TestData) string {
+func (EventgridPartnerNamespaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -145,10 +145,10 @@ resource "azurerm_eventgrid_partner_namespace" "import" {
   resource_group_name     = azurerm_eventgrid_partner_namespace.test.resource_group_name
   partner_registration_id = azurerm_eventgrid_partner_namespace.test.partner_registration_id
 }
-`, EventGridPartnerNamespaceTestResource{}.basic(data))
+`, EventgridPartnerNamespaceResource{}.basic(data))
 }
 
-func (EventGridPartnerNamespaceTestResource) complete(data acceptance.TestData) string {
+func (EventgridPartnerNamespaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,7 +190,7 @@ resource "azurerm_eventgrid_partner_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (EventGridPartnerNamespaceTestResource) completeUpdate(data acceptance.TestData) string {
+func (EventgridPartnerNamespaceResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
