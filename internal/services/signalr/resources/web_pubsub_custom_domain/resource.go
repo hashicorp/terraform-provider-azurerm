@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return webPubsubCustomDomainResourceType
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Web PubSub Custom Domain."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateCustomDomainID
 }

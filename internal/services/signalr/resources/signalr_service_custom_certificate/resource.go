@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_signalr_service_custom_certificate"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure SignalR Custom Certificate."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomCertificateID
 }

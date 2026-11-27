@@ -13,6 +13,7 @@ import (
 func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
 	return helpers.AuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the ServiceBus Namespace Authorization Rule resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.
 		},
 		// lintignore: S013
 		"namespace_id": {
+			Description:  "The ID of the ServiceBus Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -39,6 +39,7 @@ func SecretStoreSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"key_vault_id": {
+					Description:  "The Key Vault ID to store secret.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -50,15 +51,17 @@ func SecretStoreSchema() *pluginsdk.Schema {
 
 func AuthInfoSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MaxItems: 1,
+		Description: "The authentication info.",
+		Type:        pluginsdk.TypeList,
+		Required:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
+					Description: "The authentication type.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					ForceNew:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(servicelinker.AuthTypeSecret),
 						string(servicelinker.AuthTypeServicePrincipalSecret),
@@ -69,12 +72,14 @@ func AuthInfoSchema() *pluginsdk.Schema {
 				},
 
 				"name": {
+					Description:  "Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"secret": {
+					Description:  "Password or account key for secret auth. `secret` and `name` should be either both specified or both not specified when `type` is set to `secret`.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
@@ -82,24 +87,28 @@ func AuthInfoSchema() *pluginsdk.Schema {
 				},
 
 				"client_id": {
+					Description:  "Client ID for `userAssignedIdentity` or `servicePrincipal` auth. When `type` is set to `userAssignedIdentity`, `client_id` and `subscription_id` should be either both specified or both not specified.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"subscription_id": {
+					Description:  "Subscription ID for `userAssignedIdentity`. `subscription_id` and `client_id` should be either both specified or both not specified.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"principal_id": {
+					Description:  "Principal ID for `servicePrincipal` auth.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"certificate": {
+					Description:  "Service Principal certificate for `servicePrincipal` auth.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,

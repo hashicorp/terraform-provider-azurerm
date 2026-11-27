@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"namespace_id": {
+			Description:  "The ID of the Service Bus namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,15 +20,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_key_id": {
+			Description:  "The ID of the Key Vault Key which should be used to encrypt the data in this Service Bus Namespace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 
 		"infrastructure_encryption_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Description: "Used to specify whether to enable Infrastructure Encryption.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 	}
 }

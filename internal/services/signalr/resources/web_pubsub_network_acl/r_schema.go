@@ -29,6 +29,7 @@ func webPubsubNetworkAclSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_request_types": {
+						Description:   "The allowed request types for the public network.",
 						Type:          pluginsdk.TypeSet,
 						Optional:      true,
 						ConflictsWith: []string{"public_network.0.denied_request_types"},
@@ -39,6 +40,7 @@ func webPubsubNetworkAclSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"denied_request_types": {
+						Description:   "The denied request types for the public network.",
 						Type:          pluginsdk.TypeSet,
 						Optional:      true,
 						ConflictsWith: []string{"public_network.0.allowed_request_types"},
@@ -57,14 +59,16 @@ func webPubsubNetworkAclSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
+						Description:  "The ID of the Private Endpoint which is based on the Web Pubsub service.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 					},
 
 					"allowed_request_types": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "The allowed request types for the Private Endpoint Connection.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(webpubsub.PossibleValuesForWebPubSubRequestType(), false),
@@ -72,8 +76,9 @@ func webPubsubNetworkAclSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"denied_request_types": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "The denied request types for the Private Endpoint Connection.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(webpubsub.PossibleValuesForWebPubSubRequestType(), false),

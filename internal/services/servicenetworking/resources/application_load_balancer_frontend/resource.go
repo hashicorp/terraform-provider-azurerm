@@ -17,6 +17,10 @@ func (f Resource) ResourceType() string {
 	return "azurerm_application_load_balancer_frontend"
 }
 
+func (f Resource) Description() string {
+	return "Manages an Application Gateway for Containers Frontend."
+}
+
 func (f Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return frontendsinterface.ValidateFrontendID
 }

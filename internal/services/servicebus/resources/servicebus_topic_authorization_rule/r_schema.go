@@ -12,6 +12,7 @@ import (
 func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the ServiceBus Topic Authorization Rule resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Sche
 
 		// lintignore: S013
 		"topic_id": {
+			Description:  "The ID of the ServiceBus Topic.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

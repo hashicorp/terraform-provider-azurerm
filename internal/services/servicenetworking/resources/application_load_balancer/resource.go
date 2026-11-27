@@ -17,6 +17,10 @@ func (t Resource) ResourceType() string {
 	return "azurerm_application_load_balancer"
 }
 
+func (t Resource) Description() string {
+	return "Manages an Application Gateway for Containers (ALB)."
+}
+
 func (t Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return trafficcontrollerinterface.ValidateTrafficControllerID
 }

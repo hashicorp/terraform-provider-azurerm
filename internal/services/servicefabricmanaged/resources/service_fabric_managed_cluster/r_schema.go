@@ -22,41 +22,47 @@ import (
 func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"backup_service_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "If true, backup service is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 		"dns_name": {
+			Description:  "Hostname for the cluster. If unset the cluster's name will be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The dns name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
 		},
 		"dns_service_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "If true, DNS service is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 		"location": commonschema.Location(),
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Resource Group.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(4, 23),
 				validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
 			),
 		},
 		"username": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Administrator password for the VMs that will be created as part of this cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 15),
 				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@"),
 			),
 		},
 		"password": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Description: "Administrator password for the VMs that will be created as part of this cluster.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(8, 123),
 				validation.StringIsNotWhiteSpace,
@@ -72,16 +78,19 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"parameter": {
+						Description:  "Parameter name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"section": {
+						Description:  "Section name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"value": {
+						Description:  "Parameter value.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotWhiteSpace,
@@ -90,17 +99,20 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"client_connection_port": {
+			Description:  "Port to use when connecting to the cluster.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1500, 65535),
 		},
 		"http_gateway_port": {
+			Description:  "Port that should be used by the Service Fabric Explorer to visualize applications and cluster status.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1500, 65535),
 		},
 		"lb_rule": lbRulesSchema(),
 		"sku": {
+			Description:  "SKU for this cluster.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -110,6 +122,7 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}, "Subnet"),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
+			Description:  "Upgrade wave for the fabric runtime.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      managedcluster.ClusterUpgradeCadenceWaveZero,

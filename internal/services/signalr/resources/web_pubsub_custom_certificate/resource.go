@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return webPubsubCustomCertificateResourceType
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Web PubSub Custom Certificate."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateCustomCertificateID
 }

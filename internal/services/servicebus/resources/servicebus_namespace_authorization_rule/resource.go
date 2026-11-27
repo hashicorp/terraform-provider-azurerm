@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusNamespaceAuthorizationRuleCreateUpdate,
-		Read:   resourceServiceBusNamespaceAuthorizationRuleRead,
-		Update: resourceServiceBusNamespaceAuthorizationRuleCreateUpdate,
-		Delete: resourceServiceBusNamespaceAuthorizationRuleDelete,
+		Description: "Manages a ServiceBus Namespace authorization Rule within a ServiceBus Namespace.",
+		Create:      resourceServiceBusNamespaceAuthorizationRuleCreateUpdate,
+		Read:        resourceServiceBusNamespaceAuthorizationRuleRead,
+		Update:      resourceServiceBusNamespaceAuthorizationRuleCreateUpdate,
+		Delete:      resourceServiceBusNamespaceAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namespacesauthorizationrule.ParseAuthorizationRuleID(id)

@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusTopicRead,
+		Description: "Use this data source to access information about an existing Service Bus Topic.",
+		Read:        dataSourceServiceBusTopicRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,70 +27,83 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Service Bus Topic.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.TopicName(),
 			},
 
 			"namespace_id": {
+				Description:  "The ID of the ServiceBus Namespace where the Service Bus Topic exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
 			"auto_delete_on_idle": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration of the idle interval after which the Topic is automatically deleted, minimum of 5 minutes.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_message_ttl": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration of TTL of messages sent to this topic if no TTL value is set on the message itself.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"duplicate_detection_history_time_window": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration during which duplicates can be detected.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"batched_operations_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls if server-side batched operations are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"express_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"partitioning_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"maximum_message_size_in_kb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Integer value which controls the maximum size of a message allowed on the topic for Premium SKU.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"max_size_in_megabytes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Integer value which controls the size of memory allocated for the topic. For supported values see the \"Queue/topic size\" section of [this document](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-quotas).",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"requires_duplicate_detection": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether the Topic requires duplicate detection.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Status of the Service Bus Topic.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"support_ordering": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether the Topic supports ordering.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 		},
 	}

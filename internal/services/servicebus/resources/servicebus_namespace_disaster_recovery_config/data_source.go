@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusNamespaceDisasterRecoveryConfigRead,
+		Description: "Use this data source to access information about an existing Service Bus Disaster Recovery Config.",
+		Read:        dataSourceServiceBusNamespaceDisasterRecoveryConfigRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,49 +29,57 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of this Service Bus Disaster Recovery Config.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"namespace_id": {
+				Description:  "The ID of the Service Bus Namespace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
 			"alias_authorization_rule_id": {
+				Description:  "The Shared access policies used to access the connection string for the alias.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"partner_namespace_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Service Bus Namespace to replicate to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"primary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias Primary Connection String for the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias Secondary Connection String for the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

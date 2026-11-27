@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusSubscriptionRead,
+		Description: "Use this data source to access information about an existing ServiceBus Subscription.",
+		Read:        dataSourceServiceBusSubscriptionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,64 +26,76 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the ServiceBus Subscription.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"topic_id": {
+				Description:  "The ID of the ServiceBus Topic where the Service Bus Subscription exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: topics.ValidateTopicID,
 			},
 
 			"auto_delete_on_idle": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The idle interval after which the Subscription is automatically deleted.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"default_message_ttl": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"lock_duration": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The lock duration for the subscription.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dead_lettering_on_message_expiration": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Service Bus Subscription has dead letter support when a message expires.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"dead_lettering_on_filter_evaluation_error": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the Service Bus Subscription has dead letter support on filter evaluation exceptions.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"batched_operations_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether batched operations are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"max_delivery_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The maximum number of deliveries.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"requires_session": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this ServiceBus Subscription supports session.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"forward_to": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of a ServiceBus Queue or ServiceBus Topic where messages are automatically forwarded.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"forward_dead_lettered_messages_to": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of a Queue or Topic to automatically forward Dead Letter messages to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

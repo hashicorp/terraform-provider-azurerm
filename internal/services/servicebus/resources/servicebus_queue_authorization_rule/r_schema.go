@@ -13,6 +13,7 @@ import (
 func resourceServiceBusqueueAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
 	return helpers.AuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Authorization Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func resourceServiceBusqueueAuthorizationRuleSchema() map[string]*pluginsdk.Sche
 
 		// lintignore: S013
 		"queue_id": {
+			Description:  "The ID of the ServiceBus Queue.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

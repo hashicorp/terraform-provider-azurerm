@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_function_app_connection"
 }
 
+func (r Resource) Description() string {
+	return "Manages a service connector for Function App."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return servicelinker.ValidateScopedLinkerID
 }

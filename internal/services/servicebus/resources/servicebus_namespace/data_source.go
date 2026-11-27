@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusNamespaceRead,
+		Description: "Use this data source to access information about an existing ServiceBus Namespace.",
+		Read:        dataSourceServiceBusNamespaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,59 +29,69 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The location of the Resource Group in which the ServiceBus Namespace exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Tier used for the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"capacity": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The capacity of the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"premium_messaging_partitions": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The messaging partitions of the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"default_primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary connection string for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary connection string for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"default_secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key for the authorization rule `RootManageSharedAccessKey`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The URL to access the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

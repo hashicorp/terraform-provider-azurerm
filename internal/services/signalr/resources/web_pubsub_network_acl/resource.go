@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubsubNetworkACLCreateUpdate,
-		Read:   resourceWebPubsubNetworkACLRead,
-		Update: resourceWebPubsubNetworkACLCreateUpdate,
-		Delete: resourceWebpubsubNetworkACLDelete,
+		Description: "Manages the Network ACL for a Web Pubsub.",
+		Create:      resourceWebPubsubNetworkACLCreateUpdate,
+		Read:        resourceWebPubsubNetworkACLRead,
+		Update:      resourceWebPubsubNetworkACLCreateUpdate,
+		Delete:      resourceWebpubsubNetworkACLDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

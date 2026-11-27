@@ -20,10 +20,11 @@ var defaultRequestTypes = []signalr.SignalRRequestType{
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSignalRServiceNetworkACLCreateUpdate,
-		Read:   resourceSignalRServiceNetworkACLRead,
-		Update: resourceSignalRServiceNetworkACLCreateUpdate,
-		Delete: resourceSignalRServiceNetworkACLDelete,
+		Description: "Manages the Network ACL for a SignalR service.",
+		Create:      resourceSignalRServiceNetworkACLCreateUpdate,
+		Read:        resourceSignalRServiceNetworkACLRead,
+		Update:      resourceSignalRServiceNetworkACLCreateUpdate,
+		Delete:      resourceSignalRServiceNetworkACLDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -17,10 +17,11 @@ const serviceBusQueueResourceName = "azurerm_servicebus_queue"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusQueueCreateUpdate,
-		Read:   resourceServiceBusQueueRead,
-		Update: resourceServiceBusQueueCreateUpdate,
-		Delete: resourceServiceBusQueueDelete,
+		Description: "Manages a ServiceBus Queue.",
+		Create:      resourceServiceBusQueueCreateUpdate,
+		Read:        resourceServiceBusQueueRead,
+		Update:      resourceServiceBusQueueCreateUpdate,
+		Delete:      resourceServiceBusQueueDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&queues.QueueId{}),

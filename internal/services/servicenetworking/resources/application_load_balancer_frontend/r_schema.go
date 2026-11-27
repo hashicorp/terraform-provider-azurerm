@@ -14,6 +14,7 @@ import (
 func (f Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name which should be used for this Application Gateway for Containers Frontend.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (f Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"application_load_balancer_id": {
+			Description:  "The ID of the Application Gateway for Containers.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,8 +36,9 @@ func (f Resource) Arguments() map[string]*schema.Schema {
 func (f Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Fully Qualified Domain Name of the DNS record associated to an Application Gateway for Containers Frontend.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

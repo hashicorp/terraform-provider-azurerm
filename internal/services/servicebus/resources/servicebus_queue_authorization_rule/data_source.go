@@ -18,7 +18,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusQueueAuthorizationRuleRead,
+		Description: "Use this data source to access information about an existing ServiceBus Queue Authorisation Rule within a ServiceBus Queue.",
+		Read:        dataSourceServiceBusQueueAuthorizationRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,6 +27,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this ServiceBus Queue Authorisation Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AuthorizationRuleName(),
@@ -39,6 +41,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"namespace_name": {
+				Description:  "The name of the ServiceBus Namespace.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.NamespaceName,
@@ -46,6 +49,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"queue_name": {
+				Description:  "The name of the ServiceBus Queue.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.QueueName(),
@@ -53,6 +57,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": {
+				Description:  "The name of the Resource Group where the ServiceBus Queue Authorisation Rule exists.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: resourcegroups.ValidateName,
@@ -75,39 +80,45 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Key for the ServiceBus Queue authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Connection String for the ServiceBus Queue authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Key for the ServiceBus Queue authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Connection String for the ServiceBus Queue authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias Secondary Connection String for the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

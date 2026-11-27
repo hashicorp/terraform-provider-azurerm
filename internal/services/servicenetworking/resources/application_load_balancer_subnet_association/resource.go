@@ -17,6 +17,10 @@ func (t Resource) ResourceType() string {
 	return "azurerm_application_load_balancer_subnet_association"
 }
 
+func (t Resource) Description() string {
+	return "Manages an association between an Application Gateway for Containers and a Subnet."
+}
+
 func (t Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return associationsinterface.ValidateAssociationID
 }

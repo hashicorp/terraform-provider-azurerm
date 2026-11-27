@@ -17,6 +17,10 @@ func (k Resource) ResourceType() string {
 	return "azurerm_service_fabric_managed_cluster"
 }
 
+func (k Resource) Description() string {
+	return "Manages a Resource Group."
+}
+
 func (k Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return managedcluster.ValidateManagedClusterID
 }

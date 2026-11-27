@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceFabricClusterCreateUpdate,
-		Read:   resourceServiceFabricClusterRead,
-		Update: resourceServiceFabricClusterCreateUpdate,
-		Delete: resourceServiceFabricClusterDelete,
+		Description: "Manages a Service Fabric Cluster.",
+		Create:      resourceServiceFabricClusterCreateUpdate,
+		Read:        resourceServiceFabricClusterRead,
+		Update:      resourceServiceFabricClusterCreateUpdate,
+		Delete:      resourceServiceFabricClusterDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Web PubSub Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"web_pubsub_id": {
+			Description:  "The Web PubSub ID of the Web PubSub Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain_name": {
+			Description:  "The custom domain name of the Web PubSub Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +36,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"web_pubsub_custom_certificate_id": {
+			Description:  "The Web PubSub Custom Certificate ID of the Web PubSub Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

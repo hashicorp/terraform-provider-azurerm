@@ -14,6 +14,7 @@ import (
 func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the SignalR service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,8 +32,9 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "Which tier to use.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Free_F1",
 							"Standard_S1",
@@ -42,8 +44,9 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"capacity": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The number of units associated with this SignalR service.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 						ValidateFunc: validation.IntInSlice([]int{
 							1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
 							300, 400, 500, 600, 700, 800, 900, 1000,
@@ -54,21 +57,24 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"connectivity_logs_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Connectivity Logs are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"messaging_logs_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Messaging Logs are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"http_request_logs_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether HTTP Request Logs are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"live_trace_enabled": { // azignore:AZP003 - deprecated in favor of `live_trace` and not added to the data source
@@ -85,66 +91,76 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the live trace is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"connectivity_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the log category `ConnectivityLogs` is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"messaging_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the log category `MessagingLogs` is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"http_request_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the log category `HttpRequestLogs` is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable public network access.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable local auth.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"aad_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable AAD auth.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tls_client_cert_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to request client certificate during TLS handshake.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"serverless_connection_timeout_in_seconds": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  30,
+			Description: "The client connection timeout.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     30,
 		},
 
 		"service_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Default",
+			Description: "The service mode.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "Default",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Serverless",
 				"Classic",
@@ -153,13 +169,15 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"upstream_endpoint": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category_pattern": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "The categories to match on, or `*` for all.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -167,8 +185,9 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"event_pattern": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "The events to match on, or `*` for all.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -176,8 +195,9 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"hub_pattern": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "The hubs to match on, or `*` for all.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -185,12 +205,14 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"url_template": {
+						Description:  "The upstream URL Template. This can be a URL or a template such as `http://host.com/{hub}/api/{category}/{event}`.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.UrlTemplate,
 					},
 
 					"user_assigned_identity_id": {
+						Description:  "The Managed Identity IDs to be assigned to this signalR upstream setting by using resource UUID as both system assigned and User Assigned Identity is supported.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
@@ -206,8 +228,9 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
+						Description: "A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -219,47 +242,55 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the SignalR service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The publicly accessible IP of the SignalR service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"public_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The publicly accessible port of the SignalR service which is designed for browser/client use.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"server_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The publicly accessible port of the SignalR service which is designed for customer server side use.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary access key for the SignalR service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary connection string for the SignalR service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary access key for the SignalR service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary connection string for the SignalR service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.Tags(),

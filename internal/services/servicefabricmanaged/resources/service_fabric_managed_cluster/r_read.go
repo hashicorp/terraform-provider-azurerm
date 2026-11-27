@@ -347,53 +347,65 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					Computed: true,
 				},
 				"data_disk_size_gb": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Description: "The size of the data disk in gigabytes.",
+					Type:        pluginsdk.TypeInt,
+					Required:    true,
 				},
 				"multiple_placement_groups_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "If set the node type can be composed of multiple placement groups.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The name which should be used for this node type.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"primary": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "If set to true, system services will run on this node type. Only one node type should be marked as primary. Primary node type cannot be deleted or changed once they're created.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 				"stateless": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "If set to true, only stateless workloads can run on this node type.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 				},
 				"vm_image_offer": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The offer type of the marketplace image cluster VMs will use.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"vm_image_publisher": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The publisher of the marketplace image cluster VMs will use.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"vm_image_sku": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The SKU of the marketplace image cluster VMs will use.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"vm_image_version": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The version of the marketplace image cluster VMs will use.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"vm_instance_count": {
+					Description:  "The number of instances this node type will launch.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(3, 100),
 				},
 				"vm_size": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The size of the instances in this node type.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"application_port_range": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "Sets the port range available for applications. Format is `<from_port>-<to_port>`, for example `10000-20000`.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					ValidateFunc: func(i any, s string) ([]string, []error) {
 						errors := make([]error, 0)
 						if _, _, err := parsePortRange(i.(string)); err != nil {
@@ -403,25 +415,29 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					},
 				},
 				"capacities": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
+					Description: "A list of key/value pairs used to set capacity tags for this node type.",
+					Type:        pluginsdk.TypeMap,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 				"data_disk_type": {
+					Description:  "The type of the disk to use for storing data.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(nodetype.DiskTypeStandardLRS),
 					ValidateFunc: validation.StringInSlice(nodetype.PossibleValuesForDiskType(), false),
 				},
 				"ephemeral_port_range": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "Sets the port range available for the OS. Format is `<from_port>-<to_port>`, for example `10000-20000`. There has to be at least 255 ports available and cannot overlap with `application_port_range`.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 				},
 				"placement_properties": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
+					Description: "A list of placement tags that can be used to indicate where services should run.",
+					Type:        pluginsdk.TypeMap,
+					Optional:    true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -432,8 +448,9 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"vault_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The ID of the Vault that contains the certificates.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 							},
 							"certificates": {
 								Type:     pluginsdk.TypeList,
@@ -441,12 +458,14 @@ func nodeTypeSchema() *pluginsdk.Schema {
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
 										"store": {
-											Type:     pluginsdk.TypeString,
-											Required: true,
+											Description: "The certificate store on the Virtual Machine to which the certificate should be added.",
+											Type:        pluginsdk.TypeString,
+											Required:    true,
 										},
 										"url": {
-											Type:     pluginsdk.TypeString,
-											Required: true,
+											Description: "The URL of a certificate that has been uploaded to Key Vault as a secret.",
+											Type:        pluginsdk.TypeString,
+											Required:    true,
 										},
 									},
 								},
@@ -461,9 +480,10 @@ func nodeTypeSchema() *pluginsdk.Schema {
 
 func authSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Description: "Controls how connections to the cluster are authenticated.",
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"active_directory": {
@@ -473,16 +493,19 @@ func authSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"client_application_id": {
+								Description:  "The ID of the Client Application.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.IsUUID,
 							},
 							"cluster_application_id": {
+								Description:  "The ID of the Cluster Application.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.IsUUID,
 							},
 							"tenant_id": {
+								Description:  "The ID of the Tenant.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.IsUUID,
@@ -496,18 +519,21 @@ func authSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"common_name": {
+								Description:  "The certificate's CN.",
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ValidateFunc: validation.StringIsNotWhiteSpace,
 							},
 							"thumbprint": {
+								Description:  "The thumbprint of the certificate.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotWhiteSpace,
 							},
 							"type": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Description: "The type of the certificate.",
+								Type:        pluginsdk.TypeString,
+								Required:    true,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(CertTypeAdmin),
 									string(CertTypeReadOnly),
@@ -528,26 +554,31 @@ func lbRulesSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"backend_port": {
+					Description:  "LB Backend port.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 				"frontend_port": {
+					Description:  "LB Frontend port.",
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 				"probe_protocol": {
+					Description:  "Protocol for the probe.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProbeProtocol(), false),
 				},
 				"probe_request_path": {
+					Description:  "Path for the probe to check, when probe protocol is set to `http`.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotWhiteSpace,
 				},
 				"protocol": {
+					Description:  "The transport protocol used in this rule.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProtocol(), false),

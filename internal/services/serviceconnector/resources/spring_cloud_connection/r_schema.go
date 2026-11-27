@@ -16,6 +16,7 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name of the service connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"spring_cloud_id": {
+			Description:  "The ID of the data source Spring Cloud.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,6 +32,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"target_resource_id": {
+			Description:  "The ID of the target resource. Possible target resources are `Postgres`, `PostgresFlexible`, `Mysql`, `Sql`, `Redis`, `RedisEnterprise`, `CosmosCassandra`, `CosmosGremlin`, `CosmosMongo`, `CosmosSql`, `CosmosTable`, `StorageBlob`, `StorageQueue`, `StorageFile`, `StorageTable`, `AppConfig`, `EventHub`, `ServiceBus`, `SignalR`, `WebPubSub`, `ConfluentKafka`. The integration guide can be found [here](https://learn.microsoft.com/azure/service-connector/how-to-integrate-postgres).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

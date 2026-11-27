@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_signalr_service_custom_domain"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure SignalR Custom Domain."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomDomainID
 }

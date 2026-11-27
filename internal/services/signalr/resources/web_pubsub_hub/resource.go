@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubSubHubCreateUpdate,
-		Read:   resourceWebPubSubHubRead,
-		Update: resourceWebPubSubHubCreateUpdate,
-		Delete: resourceWebPubSubHubDelete,
+		Description: "Manages the hub settings for a Web Pubsub.",
+		Create:      resourceWebPubSubHubCreateUpdate,
+		Read:        resourceWebPubSubHubRead,
+		Update:      resourceWebPubSubHubCreateUpdate,
+		Delete:      resourceWebPubSubHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webpubsub.ParseHubID(id)

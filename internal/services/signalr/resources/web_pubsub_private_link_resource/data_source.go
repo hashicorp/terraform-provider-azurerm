@@ -15,7 +15,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceWebPubsubPrivateLinkResourceRead,
+		Description: "Use this data source to access information about the Private Link Resource supported by the Web Pubsub Resource.",
+		Read:        dataSourceWebPubsubPrivateLinkResourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -23,6 +24,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"web_pubsub_id": {
+				Description:  "The ID of an existing Web Pubsub Resource which Private Link Resource should be retrieved for.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: webpubsub.ValidateWebPubSubID,
@@ -34,13 +36,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subresource_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name for the resource that has been onboarded to Private Link Service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description of the resource type that has been onboarded to Private Link Service.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

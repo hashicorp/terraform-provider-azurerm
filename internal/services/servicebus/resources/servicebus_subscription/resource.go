@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusSubscriptionCreateUpdate,
-		Read:   resourceServiceBusSubscriptionRead,
-		Update: resourceServiceBusSubscriptionCreateUpdate,
-		Delete: resourceServiceBusSubscriptionDelete,
+		Description: "Manages a ServiceBus Subscription.",
+		Create:      resourceServiceBusSubscriptionCreateUpdate,
+		Read:        resourceServiceBusSubscriptionRead,
+		Update:      resourceServiceBusSubscriptionCreateUpdate,
+		Delete:      resourceServiceBusSubscriptionDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

@@ -15,6 +15,7 @@ import (
 func (t Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name which should be used for this Application Gateway for Containers (ALB).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,8 +33,9 @@ func (t Resource) Arguments() map[string]*schema.Schema {
 func (t Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"primary_configuration_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The primary configuration endpoints of the Application Gateway for Containers (ALB).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

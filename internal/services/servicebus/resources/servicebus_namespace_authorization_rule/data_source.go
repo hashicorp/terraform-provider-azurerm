@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusNamespaceAuthorizationRuleRead,
+		Description: "Use this data source to access information about an existing ServiceBus Namespace Authorization Rule.",
+		Read:        dataSourceServiceBusNamespaceAuthorizationRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,50 +26,58 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the ServiceBus Namespace Authorization Rule.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"namespace_id": {
+				Description:  "The ID of the ServiceBus Namespace where the Service Bus Namespace Authorization Rule exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key for the authorization rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary connection string for the authorization rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key for the authorization rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary connection string for the authorization rule.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string_alias": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The alias Secondary Connection String for the ServiceBus Namespace.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

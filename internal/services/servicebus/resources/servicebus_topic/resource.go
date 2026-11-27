@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusTopicCreateUpdate,
-		Read:   resourceServiceBusTopicRead,
-		Update: resourceServiceBusTopicCreateUpdate,
-		Delete: resourceServiceBusTopicDelete,
+		Description: "Manages a ServiceBus Topic.",
+		Create:      resourceServiceBusTopicCreateUpdate,
+		Read:        resourceServiceBusTopicRead,
+		Update:      resourceServiceBusTopicCreateUpdate,
+		Delete:      resourceServiceBusTopicDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := topics.ParseTopicID(id)

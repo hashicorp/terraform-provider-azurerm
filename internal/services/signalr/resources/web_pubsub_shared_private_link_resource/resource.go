@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubsubSharedPrivateLinkServiceCreateUpdate,
-		Read:   resourceWebPubsubSharedPrivateLinkServiceRead,
-		Update: resourceWebPubsubSharedPrivateLinkServiceCreateUpdate,
-		Delete: resourceWebPubsubSharedPrivateLinkServiceDelete,
+		Description: "Manages the Shared Private Link Resource for a Web Pubsub service.",
+		Create:      resourceWebPubsubSharedPrivateLinkServiceCreateUpdate,
+		Read:        resourceWebPubsubSharedPrivateLinkServiceRead,
+		Update:      resourceWebPubsubSharedPrivateLinkServiceCreateUpdate,
+		Delete:      resourceWebPubsubSharedPrivateLinkServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

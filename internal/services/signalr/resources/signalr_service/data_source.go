@@ -22,7 +22,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmSignalRServiceRead,
+		Description: "Use this data source to access information about an existing Azure SignalR service.",
+		Read:        dataSourceArmSignalRServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,25 +31,29 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The FQDN of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The publicly accessible IP of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The supported Azure location where the SignalR service exists.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"sku": {
@@ -57,61 +62,72 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of the SKU.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"capacity": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The capacity of the SKU.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"public_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The publicly accessible port of the SignalR service which is designed for browser/client use.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"server_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The publicly accessible port of the SignalR service which is designed for customer server side use.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"local_auth_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether local authentication is enabled for this SignalR service.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"aad_auth_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Entra ID authentication is enabled for this SignalR service.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether public network access is enabled for this SignalR service.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tls_client_cert_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether a TLS client certificate is enabled for this SignalR service.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"connectivity_logs_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Connectivity Logs are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"messaging_logs_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether Messaging Logs are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"http_request_logs_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether HTTP Request Logs are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"live_trace": {
@@ -120,36 +136,42 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether live trace is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"connectivity_logs_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the log category `ConnectivityLogs` is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"messaging_logs_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the log category `MessagingLogs` is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 
 						"http_request_logs_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
+							Description: "Whether the log category `HttpRequestLogs` is enabled.",
+							Type:        pluginsdk.TypeBool,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"service_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The service mode.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"serverless_connection_timeout_in_seconds": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The serverless connection timeout of this SignalR service.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"upstream_endpoint": {
@@ -158,37 +180,42 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category_pattern": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The pattern that categories match on.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"event_pattern": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The pattern that events match on.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"hub_pattern": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The pattern that hubs match on.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"url_template": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The upstream URL Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"user_assigned_identity_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Managed Identity ID assigned to this SignalR upstream setting.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -200,8 +227,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of origins which should be able to make cross-origin calls.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -213,27 +241,31 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary access key of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The primary connection string of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary access key of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The secondary connection string of the SignalR service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

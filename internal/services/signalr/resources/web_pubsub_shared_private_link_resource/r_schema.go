@@ -15,6 +15,7 @@ import (
 func webPubsubSharedPrivateLinkResourceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Web Pubsub Shared Private Link Resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func webPubsubSharedPrivateLinkResourceSchema() map[string]*pluginsdk.Schema {
 		"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}, "Web Pub/Sub Service"),
 
 		"subresource_name": {
+			Description:  "The sub resource name which the Web Pubsub Private Endpoint can connect to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func webPubsubSharedPrivateLinkResourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_resource_id": {
+			Description:  "The ID of the Shared Private Link Enabled Remote Resource which this Web Pubsub Private Endpoint should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,14 +41,16 @@ func webPubsubSharedPrivateLinkResourceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"request_message": {
+			Description:  "The request message for requesting approval of the Shared Private Link Enabled Remote Resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The status of a Private Endpoint connection.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

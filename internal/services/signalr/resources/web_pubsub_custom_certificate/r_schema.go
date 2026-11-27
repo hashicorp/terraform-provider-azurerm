@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Web PubSub Custom Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"web_pubsub_id": {
+			Description:  "The Web PubSub ID of the Web PubSub Custom Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"custom_certificate_id": {
+			Description:  "The certificate ID of the Web PubSub Custom Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,8 +41,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"certificate_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The certificate version of the Web PubSub Custom Certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

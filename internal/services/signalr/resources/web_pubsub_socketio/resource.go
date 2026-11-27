@@ -28,6 +28,10 @@ func (w Resource) ResourceType() string {
 	return "azurerm_web_pubsub_socketio"
 }
 
+func (w Resource) Description() string {
+	return "Manages a Web PubSub Service for Socket.IO."
+}
+
 func (w Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateWebPubSubID
 }

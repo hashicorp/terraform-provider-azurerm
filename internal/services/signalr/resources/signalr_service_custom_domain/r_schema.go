@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the SignalR Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"signalr_service_id": {
+			Description:  "The SignalR ID of the SignalR Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain_name": {
+			Description:  "The custom domain name of the SignalR Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +36,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"signalr_custom_certificate_id": {
+			Description:  "The SignalR Custom Certificate ID of the SignalR Custom Domain.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

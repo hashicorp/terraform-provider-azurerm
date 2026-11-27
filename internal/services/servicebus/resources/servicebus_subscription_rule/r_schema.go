@@ -14,6 +14,7 @@ import (
 func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the ServiceBus Subscription Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 
 		// lintignore: S013
 		"subscription_id": {
+			Description:      "The ID of the ServiceBus Subscription in which this Rule should be created.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
@@ -30,17 +32,20 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"filter_type": {
+			Description:  "Type of filter to be applied to a BrokeredMessage.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForFilterType(), false),
 		},
 
 		"action": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Represents a set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"sql_filter": {
+			Description:  "Represents a filter written in SQL language-based syntax that to be evaluated against a BrokeredMessage.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 1024),
@@ -60,8 +65,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"correlation_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Identifier of the correlation.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -69,8 +75,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"message_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Identifier of the message.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -78,8 +85,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"to": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Address to send to.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -87,8 +95,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"reply_to": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Address of the queue to reply to.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -96,8 +105,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"label": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Application specific label.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -105,8 +115,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"session_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Session identifier.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -114,8 +125,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"reply_to_session_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Session identifier to reply to.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -123,8 +135,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"content_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Content type of the message.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
@@ -132,8 +145,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"properties": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "A list of user defined properties to be included in the filter. Specified as a map of name/value pairs.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
 							"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",

@@ -17,6 +17,10 @@ func (f Resource) ResourceType() string {
 	return "azurerm_application_load_balancer_security_policy"
 }
 
+func (f Resource) Description() string {
+	return "Manages an Application Load Balancer Security Policy."
+}
+
 func (f Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return securitypoliciesinterface.ValidateSecurityPolicyID
 }

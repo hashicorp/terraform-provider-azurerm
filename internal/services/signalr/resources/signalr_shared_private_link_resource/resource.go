@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSignalRSharedPrivateLinkCreateUpdate,
-		Read:   resourceSignalRSharedPrivateLinkRead,
-		Update: resourceSignalRSharedPrivateLinkCreateUpdate,
-		Delete: resourceSignalrSharedPrivateLinkDelete,
+		Description: "Manages the Shared Private Link Resource for a Signalr service.",
+		Create:      resourceSignalRSharedPrivateLinkCreateUpdate,
+		Read:        resourceSignalRSharedPrivateLinkRead,
+		Update:      resourceSignalRSharedPrivateLinkCreateUpdate,
+		Delete:      resourceSignalrSharedPrivateLinkDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

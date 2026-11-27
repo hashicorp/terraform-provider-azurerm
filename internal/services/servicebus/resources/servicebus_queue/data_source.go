@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceServiceBusQueueRead,
+		Description: "Use this data source to access information about an existing Service Bus Queue.",
+		Read:        dataSourceServiceBusQueueRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,95 +28,113 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Service Bus Queue.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.QueueName(),
 			},
 
 			"namespace_id": {
+				Description:  "The ID of the ServiceBus Namespace where the Service Bus Queue exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
 			"auto_delete_on_idle": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration of the idle interval after which the Queue is automatically deleted, minimum of 5 minutes.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"dead_lettering_on_message_expiration": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether the Queue has dead letter support when a message expires.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"default_message_ttl": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration of the TTL of messages sent to this queue. This is the default value used when TTL is not set on a message itself.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"duplicate_detection_history_time_window": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration during which duplicates can be detected.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"batched_operations_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether server-side batched operations are enabled.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"express_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"partitioning_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"forward_dead_lettered_messages_to": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of a Queue or Topic to automatically forward dead lettered messages to.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"forward_to": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The name of a Queue or Topic to automatically forward messages to. [See the documentation](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"lock_duration": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"max_delivery_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Integer value which controls when a message is automatically dead lettered.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"maximum_message_size_in_kb": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Integer value which controls the maximum size of a message allowed on the queue for Premium SKU.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"max_size_in_megabytes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "Integer value which controls the size of memory allocated for the queue. For supported values see the \"Queue or topic size\" section of [Service Bus Quotas](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-quotas).",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"requires_duplicate_detection": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether the Queue requires duplicate detection.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"requires_session": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Boolean flag which controls whether the Queue requires sessions. This will allow ordered handling of unbounded sequences of related messages. With sessions enabled a queue can guarantee first-in-first-out delivery of messages.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The status of the Queue.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

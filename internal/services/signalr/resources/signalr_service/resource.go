@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmSignalRServiceCreate,
-		Read:   resourceArmSignalRServiceRead,
-		Update: resourceArmSignalRServiceUpdate,
-		Delete: resourceArmSignalRServiceDelete,
+		Description: "Manages an Azure SignalR service.",
+		Create:      resourceArmSignalRServiceCreate,
+		Read:        resourceArmSignalRServiceRead,
+		Update:      resourceArmSignalRServiceUpdate,
+		Delete:      resourceArmSignalRServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -14,6 +14,7 @@ import (
 func webPubsubSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Web PubSub service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,8 +26,9 @@ func webPubsubSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "Which SKU to use.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Premium_P1",
 				"Premium_P2",
@@ -36,9 +38,10 @@ func webPubsubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
+			Description: "The number of units associated with this Web PubSub resource.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     1,
 			ValidateFunc: validation.IntInSlice([]int{
 				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
 				300, 400, 500, 600, 700, 800, 900, 1000,
@@ -52,76 +55,88 @@ func webPubsubSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the live trace is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"connectivity_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the log category `ConnectivityLogs` is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"messaging_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the log category `MessagingLogs` is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"http_request_logs_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the log category `HttpRequestLogs` is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable public network access.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable local auth.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"aad_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable AAD auth.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tls_client_cert_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to request client certificate during TLS handshake.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"public_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The publicly accessible port of the Web PubSub service which is designed for browser/client use.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"server_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The publicly accessible port of the Web PubSub service which is designed for customer server side use.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"external_ip": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The publicly accessible IP of the Web PubSub service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"hostname": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The FQDN of the Web PubSub service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"version": {
@@ -130,27 +145,31 @@ func webPubsubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"primary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary access key for the Web PubSub service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The primary connection string for the Web PubSub service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_access_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary access key for the Web PubSub service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secondary connection string for the Web PubSub service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"tags": commonschema.Tags(),

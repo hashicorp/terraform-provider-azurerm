@@ -16,10 +16,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubSubCreateUpdate,
-		Read:   resourceWebPubSubRead,
-		Update: resourceWebPubSubCreateUpdate,
-		Delete: resourceWebPubSubDelete,
+		Description: "Manages an Azure Web PubSub Service.",
+		Create:      resourceWebPubSubCreateUpdate,
+		Read:        resourceWebPubSubRead,
+		Update:      resourceWebPubSubCreateUpdate,
+		Delete:      resourceWebPubSubDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

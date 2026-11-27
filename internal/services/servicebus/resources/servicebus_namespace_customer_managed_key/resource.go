@@ -27,6 +27,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_servicebus_namespace_customer_managed_key"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Service Bus Namespace Customer Managed Key."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return namespaces.ValidateNamespaceID
 }

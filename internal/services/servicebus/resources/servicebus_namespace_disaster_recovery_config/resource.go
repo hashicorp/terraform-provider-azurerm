@@ -19,10 +19,11 @@ var (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusNamespaceDisasterRecoveryConfigCreate,
-		Read:   resourceServiceBusNamespaceDisasterRecoveryConfigRead,
-		Update: resourceServiceBusNamespaceDisasterRecoveryConfigUpdate,
-		Delete: resourceServiceBusNamespaceDisasterRecoveryConfigDelete,
+		Description: "Manages a Disaster Recovery Config for a Service Bus Namespace.",
+		Create:      resourceServiceBusNamespaceDisasterRecoveryConfigCreate,
+		Read:        resourceServiceBusNamespaceDisasterRecoveryConfigRead,
+		Update:      resourceServiceBusNamespaceDisasterRecoveryConfigUpdate,
+		Delete:      resourceServiceBusNamespaceDisasterRecoveryConfigDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(id)

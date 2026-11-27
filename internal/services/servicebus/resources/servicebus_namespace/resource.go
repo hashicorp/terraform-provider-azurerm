@@ -26,10 +26,11 @@ var (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusNamespaceCreate,
-		Read:   resourceServiceBusNamespaceRead,
-		Update: resourceServiceBusNamespaceUpdate,
-		Delete: resourceServiceBusNamespaceDelete,
+		Description: "Manages a ServiceBus Namespace.",
+		Create:      resourceServiceBusNamespaceCreate,
+		Read:        resourceServiceBusNamespaceRead,
+		Update:      resourceServiceBusNamespaceUpdate,
+		Delete:      resourceServiceBusNamespaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&namespaces.NamespaceId{}),
 

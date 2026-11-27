@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusSubscriptionRuleCreateUpdate,
-		Read:   resourceServiceBusSubscriptionRuleRead,
-		Update: resourceServiceBusSubscriptionRuleCreateUpdate,
-		Delete: resourceServiceBusSubscriptionRuleDelete,
+		Description: "Manages a ServiceBus Subscription Rule.",
+		Create:      resourceServiceBusSubscriptionRuleCreateUpdate,
+		Read:        resourceServiceBusSubscriptionRuleRead,
+		Update:      resourceServiceBusSubscriptionRuleCreateUpdate,
+		Delete:      resourceServiceBusSubscriptionRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := rules.ParseRuleID(id)

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceServiceBusQueueAuthorizationRuleCreateUpdate,
-		Read:   resourceServiceBusQueueAuthorizationRuleRead,
-		Update: resourceServiceBusQueueAuthorizationRuleCreateUpdate,
-		Delete: resourceServiceBusQueueAuthorizationRuleDelete,
+		Description: "Manages an Authorization Rule for a ServiceBus Queue.",
+		Create:      resourceServiceBusQueueAuthorizationRuleCreateUpdate,
+		Read:        resourceServiceBusQueueAuthorizationRuleRead,
+		Update:      resourceServiceBusQueueAuthorizationRuleCreateUpdate,
+		Delete:      resourceServiceBusQueueAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := queues.ParseQueueAuthorizationRuleID(id)
