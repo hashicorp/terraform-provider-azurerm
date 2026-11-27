@@ -833,3 +833,11 @@ func flattenKubernetesClusterKeyVaultKms(d *pluginsdk.ResourceData, input *manag
 
 	return azureKeyVaultKms
 }
+
+func flattenKubernetesClusterKmsInfrastructureEncryption(input *managedclusters.ManagedClusterSecurityProfile) bool {
+	if input == nil || input.KubernetesResourceObjectEncryptionProfile == nil {
+		return false
+	}
+
+	return pointer.From(input.KubernetesResourceObjectEncryptionProfile.InfrastructureEncryption) == managedclusters.InfrastructureEncryptionEnabled
+}

@@ -470,6 +470,11 @@ func RegisterDataSource() *pluginsdk.Resource {
 				},
 			},
 
+			"kms_infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"kubernetes_version": {
 				Description: "The version of Kubernetes used on the managed Kubernetes Cluster.",
 				Type:        pluginsdk.TypeString,
@@ -933,6 +938,8 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error 
 			if err := d.Set("key_management_service", flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
+
+			d.Set("kms_infrastructure_encryption_enabled", flattenKubernetesClusterKmsInfrastructureEncryption(props.SecurityProfile))
 
 			if err := d.Set("service_mesh_profile", flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)

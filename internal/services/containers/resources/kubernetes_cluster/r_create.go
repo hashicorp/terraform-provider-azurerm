@@ -139,7 +139,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	upgradeOverrideSettingRaw := d.Get("upgrade_override").([]any)
 	upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
 
-	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
+	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms, KubernetesResourceObjectEncryptionProfile)
 	securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
 
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]any)
@@ -169,6 +169,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, id.SubscriptionId, d, azureKeyVaultKmsRaw)
 	if err != nil {
 		return err
+	}
+
+	if d.Get("kms_infrastructure_encryption_enabled").(bool) {
+		securityProfile.KubernetesResourceObjectEncryptionProfile = expandKubernetesClusterKmsInfrastructureEncryption()
 	}
 
 	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}

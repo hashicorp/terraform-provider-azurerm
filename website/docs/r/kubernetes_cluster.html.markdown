@@ -135,6 +135,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `key_vault_secrets_provider` - (Optional) A `key_vault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver).
 
+* `kms_infrastructure_encryption_enabled` - (Optional) Should encryption at rest of Kubernetes resource objects using service-managed keys (infrastructure encryption) be enabled? This is required to use the new KMS experience, with either platform-managed keys or customer-managed keys using a versionless `key_management_service.0.key_vault_key_id`. For more details, please visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).
+
+~> **Note:** Infrastructure encryption requires Kubernetes 1.33 or later and is enabled by default from Kubernetes 1.37. Once enabled, it cannot be disabled. When enabling it on an existing cluster using a versioned `key_management_service.0.key_vault_key_id`, the key must be changed to a versionless key ID.
+
 * `kubelet_identity` - (Optional) A `kubelet_identity` block as defined below.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade). AKS does not require an exact patch version to be specified, minor version aliases such as `1.22` are also supported. - The minor version's latest GA patch is automatically chosen in that case. More details can be found in [the documentation](https://docs.microsoft.com/azure/aks/supported-kubernetes-versions?tabs=azure-cli#alias-minor-version).
