@@ -39,6 +39,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 
 			var state ContainerAppJobModel
+			var priorState ContainerAppJobModel
+			if err := metadata.Decode(&priorState); err != nil {
+				return err
+			}
 
 			state.Name = id.JobName
 			state.ResourceGroup = id.ResourceGroupName
@@ -90,6 +94,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("listing secrets for %s: %+v", *id, err)
 			}
 			state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
+			state.Secrets = helpers.PreserveContainerAppSecretValues(state.Secrets, priorState.Secrets)
 
 			return metadata.Encode(&state)
 		},
