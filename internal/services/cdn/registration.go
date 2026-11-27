@@ -129,6 +129,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		cdn_frontdoor_edge_action.ListResource{},
 		cdn_frontdoor_batch_rule_set.ListResource{},
+		cdn_frontdoor_custom_domain.ListResource{},
 		cdn_frontdoor_origin_group.ListResource{},
 		cdn_frontdoor_origin.ListResource{},
 	}
