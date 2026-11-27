@@ -103,7 +103,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("min_capacity") {
-		props.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
+		// Only send `min_capacity` when it is explicitly set in the config, otherwise the provider would force
+		// `min_capacity: 0`, which the API rejects for SKUs that do not support a minimum capacity of `0`. See #32873.
+		if rawMinCapacity := d.GetRawConfig().AsValueMap()["min_capacity"]; rawMinCapacity.IsKnown() && !rawMinCapacity.IsNull() {
+			props.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
+		}
 	}
 
 	if d.HasChange("read_replica_count") {
