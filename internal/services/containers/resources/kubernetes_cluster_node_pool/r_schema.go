@@ -334,9 +334,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workload_runtime": {
-			Description:  "Used to specify the workload runtime.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Description: "Used to specify the workload runtime.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			// NOTE: O+C Retain the API value when omitted instead of imposing a fixed runtime.
+			Computed:     true,
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForWorkloadRuntime(), false),
 		},
 
