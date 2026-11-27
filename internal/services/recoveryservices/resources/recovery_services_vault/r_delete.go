@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -54,7 +55,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta any) er
 		}
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := azuresdkhacks.DeleteVaultThenPoll(ctx, client, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
