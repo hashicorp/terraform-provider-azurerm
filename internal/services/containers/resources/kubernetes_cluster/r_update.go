@@ -316,6 +316,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 				natGatewayProfile.EffectiveOutboundIPs = nil
 			}
 
+			if key := "network_profile.0.nat_gateway_profile.0.sku"; d.HasChange(key) {
+				if sku := d.Get(key).(string); sku != "" {
+					natGatewayProfile.Sku = pointer.ToEnum[managedclusters.ManagedClusterNATGatewaySku](sku)
+				}
+			}
+
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
 		}
 
