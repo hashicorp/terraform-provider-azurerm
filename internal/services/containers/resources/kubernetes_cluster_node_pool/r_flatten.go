@@ -146,6 +146,7 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			d.Set("os_sku", string(*v))
 		}
 		d.Set("pod_subnet_id", props.PodSubnetID)
+		d.Set("pod_ip_allocation_mode", pointer.FromEnum(props.PodIPAllocationMode))
 
 		// not returned from the API if not Spot
 		priority := string(managedclusters.ScaleSetPriorityRegular)
