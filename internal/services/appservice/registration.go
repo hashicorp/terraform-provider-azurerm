@@ -88,6 +88,7 @@ func (r Registration) Resources() []sdk.Resource {
 		windows_function_app_slot.Resource{},
 		windows_web_app.Resource{},
 		windows_web_app_slot.Resource{},
+		LinuxWebAppSiteContainerResource{},
 	}
 }
 
@@ -112,5 +113,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		&service_plan.ListResource{},
+		&LinuxWebAppSiteContainerListResource{},
 	}
 }
