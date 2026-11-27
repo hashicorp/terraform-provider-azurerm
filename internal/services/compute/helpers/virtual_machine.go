@@ -5,7 +5,7 @@ package helpers
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -277,7 +277,7 @@ func ExpandVirtualMachineOSDisk(input []any, osType virtualmachines.OperatingSys
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
 		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState != virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+			return nil, errors.New("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &virtualmachines.SubResource{
 			Id: pointer.To(secureVMDiskEncryptionId),
@@ -291,7 +291,7 @@ func ExpandVirtualMachineOSDisk(input []any, osType virtualmachines.OperatingSys
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 {
 		if caching != string(virtualmachines.CachingTypesReadOnly) {
 			// Restriction per https://learn.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
-			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+			return nil, errors.New("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]any)

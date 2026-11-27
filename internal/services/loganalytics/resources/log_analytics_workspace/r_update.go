@@ -60,7 +60,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) er
 	if d.HasChange("identity") {
 		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
-			return fmt.Errorf("expanding `identity`")
+			return errors.New("expanding `identity`")
 		}
 		payload.Identity = expandedIdentity
 	}

@@ -4,6 +4,7 @@
 package synapse_sql_pool
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -78,7 +79,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 		if d.HasChange("sku_name") {
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			stateConf := &pluginsdk.StateChangeConf{

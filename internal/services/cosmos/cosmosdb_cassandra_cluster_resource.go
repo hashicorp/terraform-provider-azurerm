@@ -5,6 +5,7 @@ package cosmos
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -375,7 +376,7 @@ func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *manag
 				return res, string(*model.Properties.ProvisioningState), nil
 			}
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+		return nil, "", errors.New("unable to read provisioning state")
 	}
 }
 

@@ -4,6 +4,7 @@
 package stream_analytics_function_javascript_uda
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -46,7 +47,7 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta any)
 		if props := model.Properties; props != nil {
 			function, ok := props.(functions.AggregateFunctionProperties)
 			if !ok {
-				return fmt.Errorf("converting to an Aggregate Function")
+				return errors.New("converting to an Aggregate Function")
 			}
 
 			binding := function.Properties.Binding.(functions.JavaScriptFunctionBinding)

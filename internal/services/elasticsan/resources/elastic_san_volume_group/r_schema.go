@@ -5,6 +5,7 @@ package elastic_san_volume_group
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -123,11 +124,11 @@ func (k Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if len(config.Encryption) > 0 && config.EncryptionType != string(volumegroups.EncryptionTypeEncryptionAtRestWithCustomerManagedKey) {
-				return fmt.Errorf("encryption can only be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
+				return errors.New("encryption can only be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
 			}
 
 			if len(config.Encryption) == 0 && config.EncryptionType == string(volumegroups.EncryptionTypeEncryptionAtRestWithCustomerManagedKey) {
-				return fmt.Errorf("encryption must be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
+				return errors.New("encryption must be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
 			}
 
 			return nil

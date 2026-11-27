@@ -5,6 +5,7 @@ package stream_analytics_output_cosmosdb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -43,7 +44,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.Model.Properties
 		if _, ok := props.Datasource.(outputs.DocumentDbOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+			return errors.New("specified output is not of type")
 		}
 		return nil
 	}

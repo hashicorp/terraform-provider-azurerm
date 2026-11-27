@@ -5,7 +5,7 @@ package storage_container_immutability_policy
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -63,28 +63,28 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			protectedAppendWritesEnabled := diff.Get("protected_append_writes_enabled").(bool)
 
 			if protectedAppendWritesAllEnabled && protectedAppendWritesEnabled {
-				return fmt.Errorf("`protected_append_writes_all_enabled` and `protected_append_writes_enabled` cannot be set at the same time")
+				return errors.New("`protected_append_writes_all_enabled` and `protected_append_writes_enabled` cannot be set at the same time")
 			}
 
 			lockedOld, lockedNew := diff.GetChange("locked")
 
 			if lockedOld.(bool) && !lockedNew.(bool) {
-				return fmt.Errorf("unable to set `locked = false` - once an immutability policy locked it cannot be unlocked")
+				return errors.New("unable to set `locked = false` - once an immutability policy locked it cannot be unlocked")
 			}
 
 			if lockedOld.(bool) {
 				if diff.HasChange("immutability_period_in_days") {
 					if periodOld, periodNew := diff.GetChange("immutability_period_in_days"); periodOld.(int) < periodNew.(int) {
-						return fmt.Errorf("`immutability_period_in_days` cannot be decreased once an immutability policy has been locked")
+						return errors.New("`immutability_period_in_days` cannot be decreased once an immutability policy has been locked")
 					}
 				}
 
 				if diff.HasChange("protected_append_writes_all_enabled") {
-					return fmt.Errorf("`protected_append_writes_all_enabled` cannot be changed once an immutability policy has been locked")
+					return errors.New("`protected_append_writes_all_enabled` cannot be changed once an immutability policy has been locked")
 				}
 
 				if diff.HasChange("protected_append_writes_enabled") {
-					return fmt.Errorf("`protected_append_writes_enabled` cannot be changed once an immutability policy has been locked")
+					return errors.New("`protected_append_writes_enabled` cannot be changed once an immutability policy has been locked")
 				}
 			}
 

@@ -4,6 +4,7 @@
 package stream_analytics_job
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -50,7 +51,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error
 		clusterId := d.Get("stream_analytics_cluster_id").(string)
 		if d.Get("type").(string) == string(streamingjobs.JobTypeEdge) {
 			if clusterId != "" {
-				return fmt.Errorf("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
+				return errors.New("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
 			}
 		}
 		payload.Properties.Cluster = &streamingjobs.ClusterInfo{
@@ -90,7 +91,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error
 		storageAccount := d.Get("job_storage_account").([]any)
 		if d.Get("content_storage_policy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 			if len(storageAccount) == 0 {
-				return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
+				return errors.New("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
 			}
 		}
 		payload.Properties.JobStorageAccount = expandJobStorageAccount(storageAccount)
@@ -133,7 +134,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error
 		streamingUnits := d.Get("streaming_units").(int)
 		if d.Get("type").(string) == string(streamingjobs.JobTypeEdge) {
 			if streamingUnits != 0 {
-				return fmt.Errorf("the job type `Edge` doesn't support `streaming_units`")
+				return errors.New("the job type `Edge` doesn't support `streaming_units`")
 			}
 		}
 		transformation.Properties.StreamingUnits = pointer.To(int64(streamingUnits))

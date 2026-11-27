@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -69,13 +70,13 @@ func ExpandStreamAnalyticsOutputSerialization(input []any) (outputs.Serializatio
 	switch outputType {
 	case string(outputs.EventSerializationTypeAvro):
 		if encoding != "" {
-			return nil, fmt.Errorf("`encoding` cannot be set when `type` is set to `Avro`")
+			return nil, errors.New("`encoding` cannot be set when `type` is set to `Avro`")
 		}
 		if fieldDelimiter != "" {
-			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Avro`")
+			return nil, errors.New("`field_delimiter` cannot be set when `type` is set to `Avro`")
 		}
 		if format != "" {
-			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Avro`")
+			return nil, errors.New("`format` cannot be set when `type` is set to `Avro`")
 		}
 		var props any
 		return outputs.AvroSerialization{
@@ -84,13 +85,13 @@ func ExpandStreamAnalyticsOutputSerialization(input []any) (outputs.Serializatio
 
 	case string(outputs.EventSerializationTypeCsv):
 		if encoding == "" {
-			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Csv`")
+			return nil, errors.New("`encoding` must be specified when `type` is set to `Csv`")
 		}
 		if fieldDelimiter == "" {
-			return nil, fmt.Errorf("`field_delimiter` must be set when `type` is set to `Csv`")
+			return nil, errors.New("`field_delimiter` must be set when `type` is set to `Csv`")
 		}
 		if format != "" {
-			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Csv`")
+			return nil, errors.New("`format` cannot be set when `type` is set to `Csv`")
 		}
 		return outputs.CsvSerialization{
 			Properties: &outputs.CsvSerializationProperties{
@@ -101,13 +102,13 @@ func ExpandStreamAnalyticsOutputSerialization(input []any) (outputs.Serializatio
 
 	case string(outputs.EventSerializationTypeJson):
 		if encoding == "" {
-			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Json`")
+			return nil, errors.New("`encoding` must be specified when `type` is set to `Json`")
 		}
 		if format == "" {
-			return nil, fmt.Errorf("`format` must be specified when `type` is set to `Json`")
+			return nil, errors.New("`format` must be specified when `type` is set to `Json`")
 		}
 		if fieldDelimiter != "" {
-			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Json`")
+			return nil, errors.New("`field_delimiter` cannot be set when `type` is set to `Json`")
 		}
 
 		return outputs.JsonSerialization{
@@ -119,13 +120,13 @@ func ExpandStreamAnalyticsOutputSerialization(input []any) (outputs.Serializatio
 
 	case string(outputs.EventSerializationTypeParquet):
 		if encoding != "" {
-			return nil, fmt.Errorf("`encoding` cannot be set when `type` is set to `Parquet`")
+			return nil, errors.New("`encoding` cannot be set when `type` is set to `Parquet`")
 		}
 		if fieldDelimiter != "" {
-			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Parquet`")
+			return nil, errors.New("`field_delimiter` cannot be set when `type` is set to `Parquet`")
 		}
 		if format != "" {
-			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Parquet`")
+			return nil, errors.New("`format` cannot be set when `type` is set to `Parquet`")
 		}
 
 		var props any

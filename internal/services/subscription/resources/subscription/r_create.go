@@ -4,6 +4,7 @@
 package subscription
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -130,7 +131,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context with no deadline")
+		return errors.New("internal-error: context with no deadline")
 	}
 	createDeadline := time.Until(deadline)
 

@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -25,7 +26,7 @@ func SupportsBothHttpAndHttps(input []any, key string) error {
 
 	protocols := pluginsdk.ExpandStringSlice(input)
 	if !slices.Contains(*protocols, string(endpoints.DestinationProtocolHTTP)) || !slices.Contains(*protocols, string(endpoints.DestinationProtocolHTTPS)) {
-		return fmt.Errorf("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' field cannot be set to 'true' unless the 'supported_protocols' field contains both 'Http' and 'Https'")
+		return errors.New("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' field cannot be set to 'true' unless the 'supported_protocols' field contains both 'Http' and 'Https'")
 	}
 
 	return nil

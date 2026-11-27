@@ -5,7 +5,7 @@ package storage_blob
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
@@ -43,7 +43,7 @@ func RegisterResource() *pluginsdk.Resource {
 		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, i any) error {
 			if content := diff.Get("source_content"); content != "" && diff.Get("type") == "Page" {
 				if len(content.(string))%512 != 0 {
-					return fmt.Errorf(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`)
+					return errors.New(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`)
 				}
 			}
 			return nil

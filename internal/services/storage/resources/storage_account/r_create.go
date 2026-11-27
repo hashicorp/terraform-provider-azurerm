@@ -4,6 +4,7 @@
 package storage_account
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -130,7 +131,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	// BlobStorage does not support ZRS
 	if accountKind == storageaccounts.KindBlobStorage && string(payload.Sku.Name) == string(storageaccounts.SkuNameStandardZRS) {
-		return fmt.Errorf("`account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
+		return errors.New("`account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	accessTier, accessTierSetInConfig := d.GetOk("access_tier")
@@ -151,13 +152,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	// (https://learn.microsoft.com/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
 	if nfsV3Enabled {
 		if !isHnsEnabled {
-			return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
+			return errors.New("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
 		}
 
 		isPremiumTierAndBlockBlobStorageKind := accountTier == storageaccounts.SkuTierPremium && accountKind == storageaccounts.KindBlockBlobStorage
 		isStandardTierAndStorageV2Kind := accountTier == storageaccounts.SkuTierStandard && accountKind == storageaccounts.KindStorageVTwo
 		if !isPremiumTierAndBlockBlobStorageKind && !isStandardTierAndStorageV2Kind {
-			return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
+			return errors.New("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
 		}
 	}
 
@@ -202,7 +203,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		validPremiumConfiguration := accountTier == storageaccounts.SkuTierPremium && (accountKind == storageaccounts.KindBlockBlobStorage) || accountKind == storageaccounts.KindFileStorage
 		validV2Configuration := accountKind == storageaccounts.KindStorageVTwo
 		if !validPremiumConfiguration && !validV2Configuration {
-			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
+			return errors.New("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
@@ -244,13 +245,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		// See: https://learn.microsoft.com/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
 		if isVersioningEnabled && isHnsEnabled {
-			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+			return errors.New("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
 		if !isVersioningEnabled {
 			if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
-				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+				return errors.New("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
 			}
 
 			immutableStorageWithVersioningEnabled := false
@@ -264,7 +265,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 			if immutableStorageWithVersioningEnabled {
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 				// See: https://learn.microsoft.com/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
-				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
+				return errors.New("`immutability_policy` can't be set when `versioning_enabled` is false")
 			}
 		}
 
@@ -297,7 +298,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 			smb := sharePayload.Properties.ProtocolSettings.Smb
 			if smb != nil && smb.Multichannel != nil {
 				if smb.Multichannel.Enabled != nil && *smb.Multichannel.Enabled {
-					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					return errors.New("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 				}
 
 				sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil

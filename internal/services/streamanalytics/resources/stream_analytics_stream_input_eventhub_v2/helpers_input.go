@@ -4,6 +4,7 @@
 package stream_analytics_stream_input_eventhub_v2
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -27,10 +28,10 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 
 	case string(inputs.EventSerializationTypeCsv):
 		if encoding == "" {
-			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Csv`")
+			return nil, errors.New("`encoding` must be specified when `type` is set to `Csv`")
 		}
 		if fieldDelimiter == "" {
-			return nil, fmt.Errorf("`field_delimiter` must be set when `type` is set to `Csv`")
+			return nil, errors.New("`field_delimiter` must be set when `type` is set to `Csv`")
 		}
 		return inputs.CsvSerialization{
 			Properties: &inputs.CsvSerializationProperties{
@@ -41,7 +42,7 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 
 	case string(inputs.EventSerializationTypeJson):
 		if encoding == "" {
-			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Json`")
+			return nil, errors.New("`encoding` must be specified when `type` is set to `Json`")
 		}
 
 		return inputs.JsonSerialization{

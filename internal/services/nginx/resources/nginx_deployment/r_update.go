@@ -5,6 +5,7 @@ package nginx_deployment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -88,7 +89,7 @@ func (m Resource) Update() sdk.ResourceFunc {
 			}
 
 			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
-				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				return errors.New("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
 			}
 
 			if meta.ResourceData.HasChange("web_application_firewall") {

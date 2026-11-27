@@ -4,6 +4,7 @@
 package storage_table_entity
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -33,7 +34,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta any) error
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
 	if !ok || tableIdRaw.(string) == "" {
-		return fmt.Errorf("`storage_table_id` is required")
+		return errors.New("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 

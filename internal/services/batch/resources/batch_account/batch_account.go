@@ -4,7 +4,7 @@
 package batch_account
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 )
@@ -12,7 +12,7 @@ import (
 // expandBatchAccountKeyVaultReference expands Batch account KeyVault reference
 func expandBatchAccountKeyVaultReference(list []any) (*batchaccount.KeyVaultReference, error) {
 	if len(list) == 0 || list[0] == nil {
-		return nil, fmt.Errorf("key vault reference should be defined")
+		return nil, errors.New("key vault reference should be defined")
 	}
 
 	keyVaultRef := list[0].(map[string]any)

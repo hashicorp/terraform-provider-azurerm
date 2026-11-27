@@ -5,6 +5,7 @@ package machinelearning
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -128,7 +129,7 @@ func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
 
 			if metadata.ResourceDiff.Get("service_data_auth_identity").(string) == string(datastore.ServiceDataAccessAuthIdentityNone) {
 				if accountKey.IsNull() && sharedAccessSignature.IsNull() {
-					return fmt.Errorf("one of `account_key` or `shared_access_signature` must be specified")
+					return errors.New("one of `account_key` or `shared_access_signature` must be specified")
 				}
 			}
 

@@ -5,6 +5,7 @@ package linux_web_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -63,7 +64,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if servicePlan.Model != nil && servicePlan.Model.Sku != nil && servicePlan.Model.Sku.Name != nil {
 				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Model.Sku.Name) {
 					if sc.AlwaysOn {
-						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+						return errors.New("always_on feature has to be turned off before switching to a free/shared Sku")
 					}
 				}
 			}

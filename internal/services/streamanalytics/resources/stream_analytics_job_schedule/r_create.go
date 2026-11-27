@@ -5,6 +5,7 @@ package stream_analytics_job_schedule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -47,7 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			outputStartMode := streamingjobs.OutputStartMode(model.StartMode)
 			if outputStartMode == streamingjobs.OutputStartModeLastOutputEventTime {
 				if v := existing.Model.Properties.LastOutputEventTime; v == nil {
-					return fmt.Errorf("`start_mode` can only be set to `LastOutputEventTime` if this job was previously started")
+					return errors.New("`start_mode` can only be set to `LastOutputEventTime` if this job was previously started")
 				}
 			}
 
@@ -57,7 +58,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			if outputStartMode == streamingjobs.OutputStartModeCustomTime {
 				if model.StartTime == "" {
-					return fmt.Errorf("`start_time` must be specified if `start_mode` is set to `CustomTime`")
+					return errors.New("`start_time` must be specified if `start_mode` is set to `CustomTime`")
 				} else {
 					startTime, _ := date.ParseTime(time.RFC3339, model.StartTime)
 					outputStartTime := &date.Time{

@@ -27,7 +27,7 @@ func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) ([]management
 			_, snapshotExist := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot", k))
 			_, versionExist := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version", k))
 			if blobIndexExist && (snapshotExist || versionExist) {
-				return nil, fmt.Errorf("`match_blob_index_tag` is not supported as a filter for versions and snapshots")
+				return nil, errors.New("`match_blob_index_tag` is not supported as a filter for versions and snapshots")
 			}
 			result = append(result, *rule)
 		}
@@ -89,7 +89,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 
 			autoTierToHotOK := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.auto_tier_to_hot_from_cool_enabled", ruleIndex)).(bool)
 			if autoTierToHotOK && !sinceAccessOK {
-				return nil, fmt.Errorf("`auto_tier_to_hot_from_cool_enabled` must be used together with `tier_to_cool_after_days_since_last_access_time_greater_than`")
+				return nil, errors.New("`auto_tier_to_hot_from_cool_enabled` must be used together with `tier_to_cool_after_days_since_last_access_time_greater_than`")
 			}
 
 			var cnt int

@@ -5,6 +5,7 @@ package service_plan
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -147,13 +148,13 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			_, newEcValue := rd.GetChange("maximum_elastic_worker_count")
 			if rd.HasChange("premium_plan_auto_scale_enabled") {
 				if !helpers.PlanIsPremium(servicePlanSku) && newAutoScaleEnabled.(bool) {
-					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plans")
+					return errors.New("`premium_plan_auto_scale_enabled` can only be set for premium app service plans")
 				}
 			}
 
 			if rd.HasChange("maximum_elastic_worker_count") && newEcValue.(int) > 1 {
 				if !PlanSupportsScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus, or with Premium Skus when `premium_plan_auto_scale_enabled` is set to `true`")
+					return errors.New("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus, or with Premium Skus when `premium_plan_auto_scale_enabled` is set to `true`")
 				}
 			}
 

@@ -4,6 +4,7 @@
 package data_protection_backup_instance_disk
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -106,7 +107,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection)},

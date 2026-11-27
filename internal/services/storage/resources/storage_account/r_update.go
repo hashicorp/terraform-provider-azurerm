@@ -4,6 +4,7 @@
 package storage_account
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -45,7 +46,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
 	if accountKind == storageaccounts.KindBlobStorage && storageType == string(storageaccounts.SkuNameStandardZRS) {
-		return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
+		return errors.New("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -163,7 +164,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("large_file_share_enabled") {
 		// largeFileSharesState can only be set to `Enabled` and not `Disabled`, even if it is currently `Disabled`
 		if oldValue, newValue := d.GetChange("large_file_share_enabled"); oldValue.(bool) && !newValue.(bool) {
-			return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+			return errors.New("`large_file_share_enabled` cannot be disabled once it's been enabled")
 		}
 
 		if _, ok := storageKindsSupportLargeFileShares[accountKind]; !ok {
@@ -307,7 +308,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		if blobProperties.Properties.IsVersioningEnabled != nil && *blobProperties.Properties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
-			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+			return errors.New("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
 		// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
@@ -349,7 +350,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
 			if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
 				if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
-					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					return errors.New("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 				}
 			}
 

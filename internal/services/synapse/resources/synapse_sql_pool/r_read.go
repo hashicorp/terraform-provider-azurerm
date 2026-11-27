@@ -5,6 +5,7 @@ package synapse_sql_pool
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -93,7 +94,7 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 	storageAccountType := synapse.StorageAccountType(value.(string))
 
 	if storageAccountType == synapse.StorageAccountTypeLRS && geoBackupEnabled {
-		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
+		return errors.New("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
 	}
 
 	return nil

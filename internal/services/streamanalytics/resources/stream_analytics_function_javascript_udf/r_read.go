@@ -4,6 +4,7 @@
 package stream_analytics_function_javascript_udf
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -44,12 +45,12 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta any)
 		if props := model.Properties; props != nil {
 			function, ok := props.(functions.ScalarFunctionProperties)
 			if !ok {
-				return fmt.Errorf("converting to Scalar Function")
+				return errors.New("converting to Scalar Function")
 			}
 
 			binding, ok := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
 			if !ok {
-				return fmt.Errorf("converting to Binding")
+				return errors.New("converting to Binding")
 			}
 
 			d.Set("script", pointer.From(binding.Properties.Script))

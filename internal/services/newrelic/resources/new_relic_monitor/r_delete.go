@@ -5,6 +5,7 @@ package new_relic_monitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,7 +29,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			}
 
 			if len(model.UserInfo) == 0 {
-				return fmt.Errorf("deleting: `user` not found")
+				return errors.New("deleting: `user` not found")
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id, monitors.DeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {

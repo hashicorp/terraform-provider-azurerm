@@ -5,6 +5,7 @@ package subscription
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -20,14 +21,14 @@ func importSubscriptionByAlias() pluginsdk.ImporterFunc {
 		client := meta.(*clients.Client).Subscription.SubscriptionsClient
 		aliasId, err := subscriptionAliasPandora.ParseAliasID(d.Id())
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed parsing Subscription Alias ID for import")
+			return []*pluginsdk.ResourceData{}, errors.New("failed parsing Subscription Alias ID for import")
 		}
 		alias, err := aliasClient.AliasGet(ctx, *aliasId)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed reading Subscription Alias: %+v", err)
 		}
 		if alias.Model == nil || alias.Model.Properties == nil || alias.Model.Properties.SubscriptionId == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed reading Subscription Alias Properties, empty response or missing Subscription ID")
+			return []*pluginsdk.ResourceData{}, errors.New("failed reading Subscription Alias Properties, empty response or missing Subscription ID")
 		}
 		subscriptionResourceId := commonids.NewSubscriptionID(*alias.Model.Properties.SubscriptionId)
 		subscription, err := client.Get(ctx, subscriptionResourceId)
@@ -41,7 +42,7 @@ func importSubscriptionByAlias() pluginsdk.ImporterFunc {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `model.SubscriptionId` was nil", subscriptionResourceId)
 		}
 		if *subscription.Model.State != subscriptions.SubscriptionStateEnabled {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("cannot import a cancelled Subscription by Alias ID, please enable the subscription prior to import")
+			return []*pluginsdk.ResourceData{}, errors.New("cannot import a cancelled Subscription by Alias ID, please enable the subscription prior to import")
 		}
 		return []*pluginsdk.ResourceData{d}, nil
 	}

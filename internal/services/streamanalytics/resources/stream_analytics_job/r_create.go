@@ -4,6 +4,7 @@
 package stream_analytics_job
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -57,13 +58,13 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta any) error
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
 		if _, ok := d.GetOk("streaming_units"); ok {
-			return fmt.Errorf("the job type `Edge` doesn't support `streaming_units`")
+			return errors.New("the job type `Edge` doesn't support `streaming_units`")
 		}
 	} else {
 		if v, ok := d.GetOk("streaming_units"); ok {
 			transformation.Properties.StreamingUnits = pointer.To(int64(v.(int)))
 		} else {
-			return fmt.Errorf("`streaming_units` must be set when `type` is `Cloud`")
+			return errors.New("`streaming_units` must be set when `type` is `Cloud`")
 		}
 	}
 
@@ -112,7 +113,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta any) error
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
 		if _, ok := d.GetOk("stream_analytics_cluster_id"); ok {
-			return fmt.Errorf("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
+			return errors.New("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
 		}
 	} else {
 		if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {

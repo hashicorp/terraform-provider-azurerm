@@ -4,6 +4,7 @@
 package storage_data_lake_gen2_filesystem
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -75,7 +76,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if acl != nil && !account.IsHnsEnabled {
-		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
+		return errors.New("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]any)

@@ -4,6 +4,7 @@
 package active_directory_domain_service_replica_set
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -31,7 +32,7 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 		return err
 	}
 	if domainServiceId == nil {
-		return fmt.Errorf("parsing ID for Domain Service Replica Set")
+		return errors.New("parsing ID for Domain Service Replica Set")
 	}
 
 	idsdk := domainservices.NewDomainServiceID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name)

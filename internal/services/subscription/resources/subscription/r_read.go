@@ -5,6 +5,7 @@ package subscription
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -134,7 +135,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions
 func checkExistingAliases(ctx context.Context, client subscriptionAlias.SubscriptionsClient, subscriptionId string) (*string, int, error) {
 	aliasList, err := client.AliasListComplete(ctx)
 	if err != nil {
-		return nil, 0, fmt.Errorf("could not List existing Subscription Aliases")
+		return nil, 0, errors.New("could not List existing Subscription Aliases")
 	}
 
 	for _, v := range aliasList.Items {

@@ -5,6 +5,7 @@ package synapse_workspace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -117,7 +118,7 @@ const (
 func waitSynapseWorkspaceCMKState(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
@@ -157,7 +158,7 @@ func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *syna
 func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
