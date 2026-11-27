@@ -40,6 +40,7 @@ func TestAccDataSourceMsSqlServer_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("administrator_login").Exists(),
 				check.That(data.ResourceName).Key("fully_qualified_domain_name").Exists(),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("soft_delete_retention_days").HasValue("7"),
 				check.That(data.ResourceName).Key("tags.%").Exists(),
 			),
 		},

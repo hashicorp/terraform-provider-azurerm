@@ -119,6 +119,11 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta any) error {
 		props.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](v.(string))
 	}
 
+	// NOTE: `0` is a valid value (disables soft delete), so check the raw config rather than using `GetOk`
+	if v := d.GetRawConfig().GetAttr("soft_delete_retention_days"); !v.IsNull() {
+		props.Properties.RetentionDays = pointer.To(int64(d.Get("soft_delete_retention_days").(int)))
+	}
+
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}

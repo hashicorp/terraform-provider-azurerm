@@ -398,6 +398,38 @@ func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_softDeleteRetentionDays(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MssqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.softDeleteRetentionDays(data, 7),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_retention_days").HasValue("7"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.softDeleteRetentionDays(data, 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_retention_days").HasValue("3"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.softDeleteRetentionDays(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_retention_days").HasValue("0"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func (MssqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlServerID(state.ID)
 	if err != nil {
@@ -430,6 +462,23 @@ resource "azurerm_mssql_server" "test" {
   outbound_network_restriction_enabled = true
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlServerResource) softDeleteRetentionDays(data acceptance.TestData, days int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  soft_delete_retention_days = %[3]d
+}
+`, r.template(data), data.RandomInteger, days)
 }
 
 func (r MssqlServerResource) basicWithUnknownValue(data acceptance.TestData) string {
@@ -546,6 +595,8 @@ resource "azurerm_mssql_server" "test" {
 
   express_vulnerability_assessment_enabled = true
 
+  soft_delete_retention_days = 7
+
   tags = {
     ENV      = "Staging"
     database = "NotProd"
@@ -632,6 +683,8 @@ resource "azurerm_mssql_server" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  soft_delete_retention_days = 3
 
   tags = {
     update = "true"

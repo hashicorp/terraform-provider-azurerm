@@ -155,6 +155,10 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 			payload.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](d.Get("minimum_tls_version").(string))
 		}
 
+		if d.HasChange("soft_delete_retention_days") {
+			payload.Properties.RetentionDays = pointer.To(int64(d.Get("soft_delete_retention_days").(int)))
+		}
+
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}

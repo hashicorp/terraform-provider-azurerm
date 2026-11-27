@@ -54,6 +54,7 @@ func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.ServerPublicNetworkAccessFlagEnabled)
 			d.Set("outbound_network_restriction_enabled", pointer.From(props.RestrictOutboundNetworkAccess) == servers.ServerNetworkAccessFlagEnabled)
+			d.Set("soft_delete_retention_days", int(pointer.From(props.RetentionDays)))
 
 			primaryUserAssignedIdentityID := ""
 			if props.PrimaryUserAssignedIdentityId != nil && pointer.From(props.PrimaryUserAssignedIdentityId) != "" {
