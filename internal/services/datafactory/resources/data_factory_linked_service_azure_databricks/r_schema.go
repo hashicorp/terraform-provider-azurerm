@@ -212,6 +212,39 @@ func dataFactoryLinkedServiceAzureDatabricksSchema() map[string]*pluginsdk.Schem
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"spark_config": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"spark_environment_variables": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"custom_tags": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"init_scripts": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"log_destination": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},

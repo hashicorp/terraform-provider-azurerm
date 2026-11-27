@@ -102,6 +102,31 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 				return fmt.Errorf("expanding `instance_pool`: +%v", err)
 			}
 		}
+
+		if instancePoolMap["spark_config"] != nil {
+			if sparkConfig := instancePoolMap["spark_config"].(map[string]interface{}); len(sparkConfig) > 0 {
+				databricksProperties.NewClusterSparkConf = sparkConfig
+			}
+		}
+
+		if instancePoolMap["spark_environment_variables"] != nil {
+			if sparkEnvVars := instancePoolMap["spark_environment_variables"].(map[string]interface{}); len(sparkEnvVars) > 0 {
+				databricksProperties.NewClusterSparkEnvVars = sparkEnvVars
+			}
+		}
+
+		if data := instancePoolMap["log_destination"]; data != nil {
+			databricksProperties.NewClusterLogDestination = data
+		}
+
+		if instancePoolMap["custom_tags"] != nil {
+			if customTags := instancePoolMap["custom_tags"].(map[string]interface{}); len(customTags) > 0 {
+				databricksProperties.NewClusterCustomTags = customTags
+			}
+		}
+
+		initScripts := instancePoolMap["init_scripts"]
+		databricksProperties.NewClusterInitScripts = &initScripts
 	}
 
 	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]any)[0] != nil {

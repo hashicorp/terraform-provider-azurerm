@@ -89,6 +89,26 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 				instancePoolMap["max_number_of_workers"] = maxWorkers
 			}
 
+			if data := props.NewClusterSparkConf; data != nil {
+				instancePoolMap["spark_config"] = data
+			}
+
+			if data := props.NewClusterCustomTags; data != nil {
+				instancePoolMap["custom_tags"] = data
+			}
+
+			if data := props.NewClusterLogDestination; data != nil {
+				instancePoolMap["log_destination"] = data
+			}
+
+			if data := props.NewClusterSparkEnvVars; data != nil {
+				instancePoolMap["spark_environment_variables"] = data
+			}
+
+			if data := props.NewClusterInitScripts; data != nil {
+				instancePoolMap["init_scripts"] = data
+			}
+
 			instancePoolArray = append(instancePoolArray, instancePoolMap)
 		} else {
 			// Process assuming it's a new cluster config
