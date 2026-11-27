@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterSettingUpdate,
-		Read:   resourceSecurityCenterSettingRead,
-		Update: resourceSecurityCenterSettingUpdate,
-		Delete: resourceSecurityCenterSettingDelete,
+		Description: "Manages the Data Access Settings for Azure Security Center.",
+		Create:      resourceSecurityCenterSettingUpdate,
+		Read:        resourceSecurityCenterSettingRead,
+		Update:      resourceSecurityCenterSettingUpdate,
+		Delete:      resourceSecurityCenterSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := settings.ParseSettingID(id)

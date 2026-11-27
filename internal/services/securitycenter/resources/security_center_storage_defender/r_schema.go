@@ -15,6 +15,7 @@ import (
 func (s Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"storage_account_id": {
+			Description:  "The ID of the Storage Account the defender applied to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,21 +23,24 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"override_subscription_settings_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the settings defined for this Storage Account should override the settings defined for the subscription.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"malware_scanning_on_upload_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether On Upload malware scanning should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"malware_scanning_on_upload_cap_gb_per_month": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  -1,
+			Description: "The max GB to be scanned per Month. Omit this property or set to `-1` if no capping is needed.",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     -1,
 			ValidateFunc: validation.Any(
 				validation.IntAtLeast(1),
 				validation.IntInSlice([]int{-1}),
@@ -44,9 +48,10 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"sensitive_data_discovery_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Sensitive Data Discovery should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}, "Event Grid Topic"),

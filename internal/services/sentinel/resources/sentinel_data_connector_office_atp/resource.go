@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorOfficeATPCreate,
-		Read:   resourceSentinelDataConnectorOfficeATPRead,
-		Delete: resourceSentinelDataConnectorOfficeATPDelete,
+		Description: "Manages an Office ATP Data Connector.",
+		Create:      resourceSentinelDataConnectorOfficeATPCreate,
+		Read:        resourceSentinelDataConnectorOfficeATPRead,
+		Delete:      resourceSentinelDataConnectorOfficeATPDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindOfficeATP),
 

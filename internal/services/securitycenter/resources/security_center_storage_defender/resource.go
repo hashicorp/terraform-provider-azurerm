@@ -20,3 +20,7 @@ func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (s Resource) ResourceType() string {
 	return "azurerm_security_center_storage_defender"
 }
+
+func (s Resource) Description() string {
+	return "Manages the Defender for Storage."
+}

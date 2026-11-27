@@ -18,6 +18,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_dynamics_365"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Dynamics 365 Data Connector."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dataconnectors.ValidateDataConnectorID
 }

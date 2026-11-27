@@ -17,6 +17,10 @@ func (a Resource) ResourceType() string {
 	return "azurerm_sentinel_metadata"
 }
 
+func (a Resource) Description() string {
+	return "Manages a Sentinel Metadata."
+}
+
 func (a Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return metadata.ValidateMetadataID
 }

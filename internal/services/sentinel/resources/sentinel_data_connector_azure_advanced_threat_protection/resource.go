@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate,
-		Read:   resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead,
-		Delete: resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete,
+		Description: "Manages an Azure Advanced Threat Protection Data Connector.",
+		Create:      resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate,
+		Read:        resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead,
+		Delete:      resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindAzureAdvancedThreatProtection),
 

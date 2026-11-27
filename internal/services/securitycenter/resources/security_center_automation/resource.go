@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterAutomationCreateUpdate,
-		Read:   resourceSecurityCenterAutomationRead,
-		Update: resourceSecurityCenterAutomationCreateUpdate,
-		Delete: resourceSecurityCenterAutomationDelete,
+		Description: "Manages Security Center Automation and Continuous Export. This resource supports three types of destination in the `action`, Logic Apps, Log Analytics and Event Hubs.",
+		Create:      resourceSecurityCenterAutomationCreateUpdate,
+		Read:        resourceSecurityCenterAutomationRead,
+		Update:      resourceSecurityCenterAutomationCreateUpdate,
+		Delete:      resourceSecurityCenterAutomationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := automations.ParseAutomationID(id)

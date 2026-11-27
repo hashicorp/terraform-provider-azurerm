@@ -11,6 +11,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,6 +19,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"confidence": {
+			Description:  "Confidence levels of the Threat Intelligence Indicator.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      -1, // set the default value to -1 to split `nil` and `0`.
@@ -25,12 +27,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"created_by": {
+			Description:  "The creator of the Threat Intelligence Indicator.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
+			Description:  "The description of the Threat Intelligence Indicator.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -38,6 +42,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of the Threat Intelligence Indicator.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -45,8 +50,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The extension config of the Threat Intelligence Indicator in JSON format.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C API sets this if omitted without issues for overwriting/reverting to default so this can remain
 			Computed:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -59,6 +65,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"description": {
+						Description:  "The description of the external reference of the Threat Intelligence Indicator.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -70,20 +77,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"hashes": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "The list of hashes of the external reference of the Threat Intelligence Indicator.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"source_name": {
+						Description:  "The source name of the external reference of the Threat Intelligence Indicator.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"url": {
+						Description:  "The URL of the external reference of the Threat Intelligence Indicator.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -98,20 +108,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"language": {
+						Description:  "The language of granular marking of the Threat Intelligence Indicator.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"marking_ref": {
+						Description:  "The reference of the granular marking of the Threat Intelligence Indicator.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"selectors": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of selectors of the granular marking of the Threat Intelligence Indicator.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -126,6 +139,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name which should be used for the Lockheed Martin cyber kill chain phase.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -135,36 +149,41 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of tags of the Threat Intelligence Indicator.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"language": {
+			Description:  "The language of the Threat Intelligence Indicator.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"object_marking_refs": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of Threat Intelligence marking references.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"pattern": {
+			Description:  "The pattern used by the Threat Intelligence Indicator. When `pattern_type` set to `file`, `pattern` must be specified with `<HashName>:<Value>` format, such as `MD5:78ecc5c05cd8b79af480df2f8fba0b9d`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"pattern_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The type of pattern used by the Threat Intelligence Indicator.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(PatternTypeDomainName),
 				string(PatternTypeFile),
@@ -175,18 +194,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"pattern_version": {
+			Description:  "The version of a Threat Intelligence entity.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"revoked": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Threat Intelligence entity revoked.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"source": {
+			Description:  "Source of the Threat Intelligence Indicator.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -194,14 +216,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"threat_types": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of threat types of this Threat Intelligence Indicator.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"validate_from_utc": {
+			Description:  "The start of validate date in RFC3339.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -209,8 +233,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"validate_until_utc": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The end of validate date of the Threat Intelligence Indicator in RFC3339 format.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// Note: O+C because the API returns a date around 1 year in the future if omitted from config
 			Computed:     true,
 			ValidateFunc: validation.IsRFC3339Time,
@@ -221,33 +246,39 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The GUID of this Sentinel Threat Intelligence Indicator.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"created_on": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date of this Threat Intelligence Indicator created.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"defanged": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Threat Intelligence entity is defanged.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"external_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The external ID of the Threat Intelligence Indicator.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"external_last_updated_time_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The External last updated time in UTC.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"last_updated_time_utc": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The last updated time of the Threat Intelligence Indicator in UTC.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"parsed_pattern": {
@@ -256,8 +287,9 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"pattern_type_key": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type key of parsed pattern.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"pattern_type_values": {
@@ -266,13 +298,15 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The value of the parsed pattern type.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"value_type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The type of the value of the parsed pattern type value.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -282,8 +316,9 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"indicator_type": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of indicator types of this Threat Intelligence Indicator.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

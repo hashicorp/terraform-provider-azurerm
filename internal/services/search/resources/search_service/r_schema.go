@@ -14,9 +14,10 @@ import (
 func searchServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Search Service.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"location": commonschema.Location(),
@@ -24,12 +25,14 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
+			Description:  "The SKU which should be used for this Search Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(services.PossibleValuesForSkuName(), false),
 		},
 
 		"replica_count": {
+			Description:  "The number of replicas which should be created for this Search Service. This field cannot be set when using a `free` SKU ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)).",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      1,
@@ -37,9 +40,10 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"partition_count": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
+			Description: "The number of partitions which should be created. This field cannot be set when using a `free` SKU ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)).",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     1,
 			ValidateFunc: validation.IntInSlice([]int{
 				1,
 				2,
@@ -51,18 +55,21 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"local_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Search Service allows authenticating using API Keys.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"authentication_failure_mode": {
+			Description:  "The response that the Search Service should return for requests that fail authentication.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(services.PossibleValuesForAadAuthFailureMode(), false),
 		},
 
 		"hosting_mode": {
+			Description:           "The hosting mode, which allows for High Density partitions (that allow for up to 1000 indexes), should be supported.",
 			Type:                  pluginsdk.TypeString,
 			Optional:              true,
 			ForceNew:              true,
@@ -73,31 +80,36 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"customer_managed_key_enforcement_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Search Service should enforce that non-customer resources are encrypted.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"customer_managed_key_encryption_compliance_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Describes whether the Search Service is compliant or not with respect to having non-customer encrypted resources. If a service has more than one non-customer encrypted resource and `Enforcement` is `enabled` then the service will be marked as `NonCompliant`. If all the resources are customer encrypted, then the service will be marked as `Compliant`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The endpoint used to connect to this Search Service.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Primary Key used for Search Service Administration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The Secondary Key used for Search Service Administration.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"query_keys": {
@@ -106,28 +118,32 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of this Query Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "The value of this Query Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 				},
 			},
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether Public Network Access is allowed for this resource.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"semantic_search_sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The Semantic Search SKU which should be used for this Search Service.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(services.SearchSemanticSearchFree),
 				string(services.SearchSemanticSearchStandard),
@@ -135,8 +151,9 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allowed_ips": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of inbound IPv4 addresses or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Service's firewall.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.Any(
@@ -147,6 +164,7 @@ func searchServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_rule_bypass_option": {
+			Description:  "Whether to allow trusted Azure services to access a network restricted Search Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(services.SearchBypassNone),

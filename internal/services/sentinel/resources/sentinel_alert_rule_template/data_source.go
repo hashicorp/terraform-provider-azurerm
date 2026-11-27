@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSentinelAlertRuleTemplateRead,
+		Description: "Use this data source to access information about an existing Sentinel Alert Rule Template.",
+		Read:        dataSourceSentinelAlertRuleTemplateRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -33,6 +34,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of this Sentinel Alert Rule Template.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -41,6 +43,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"display_name": {
+				Description:  "The display name of this Sentinel Alert Rule Template.",
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -49,95 +52,113 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"log_analytics_workspace_id": {
+				Description:  "The ID of the Log Analytics Workspace.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"scheduled_template": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "This only applies to Sentinel Scheduled Alert Rule Template.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description of this Sentinel Scheduled Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"tactics": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of categories of attacks by which to classify the rule.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"severity": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The alert severity of this Sentinel Scheduled Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"query": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The query of this Sentinel Scheduled Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"query_frequency": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ISO 8601 timespan duration between two consecutive queries.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"query_period": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ISO 8601 timespan duration, which determines the time period of the data covered by the query.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"trigger_operator": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The alert trigger operator, combined with `trigger_threshold`, setting alert threshold of this Sentinel Scheduled Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"trigger_threshold": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule Template.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"security_incident_template": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "This only applies to Sentinel MS Security Incident Alert Rule Template.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description of this Sentinel MS Security Incident Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"product_filter": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Microsoft Security Service from where the alert will be generated.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
 			},
 
 			"nrt_template": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "This only applies to Sentinel NRT Alert Rule Template.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The description of this Sentinel NRT Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"tactics": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "A list of categories of attacks by which to classify the rule.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"severity": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The alert severity of this Sentinel NRT Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"query": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The query of this Sentinel NRT Alert Rule Template.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},

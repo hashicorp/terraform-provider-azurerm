@@ -11,6 +11,7 @@ import (
 func securityCenterContactSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Security Center Contact.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,25 +19,29 @@ func securityCenterContactSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"email": {
+			Description:  "The email of the Security Center Contact.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"phone": {
+			Description:  "The phone number of the Security Center Contact.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"alert_notifications": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether to send security alerts notifications to the security contact.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"alerts_to_admins": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether to send security alerts notifications to subscription admins.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 	}
 }

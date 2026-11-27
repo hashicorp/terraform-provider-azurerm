@@ -14,12 +14,14 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"display_name": {
+			Description:  "The Display Name of the built-in Anomaly Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"built_in_rule_id": {
+			Description:  "The ID of the built-in Anomaly Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,11 +37,13 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether the Duplicated Anomaly Alert Rule should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"mode": {
+			Description:  "Mode of the Duplicated Anomaly Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(securitymlanalyticssettings.PossibleValuesForSettingsStatus(), false),
@@ -51,14 +56,16 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
+						Description:  "The name of the multi select observation.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"values": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
+						Description: "A list of values of the multi select observation.",
+						Type:        pluginsdk.TypeList,
+						Required:    true,
 						Elem: &schema.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -66,13 +73,15 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 					},
 
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description of the multi select observation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"supported_values": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of supported values of the multi select observation.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &schema.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -88,25 +97,29 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
+						Description:  "The name of the single select observation.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description of the single select observation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"supported_values": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of supported values of the single select observation.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &schema.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"value": {
+						Description:  "The value of the multi select observation.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -122,22 +135,26 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The name of the prioritized exclude observation.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description of the prioritized exclude observation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"prioritize": {
+						Description:  "The prioritized value per `description`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"exclude": {
+						Description:  "The excluded value per `description`.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -153,29 +170,34 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
+						Description:  "The name of the threshold observation.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The description of the threshold observation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"max": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The max value of the threshold observation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"min": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The min value of the threshold observation.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The value of the threshold observation.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
@@ -191,28 +213,33 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 		},
 
 		"anomaly_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The anomaly version of the Anomaly Alert Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"anomaly_settings_version": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The version of the Anomaly Security ML Analytics Settings.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Anomaly Alert Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"frequency": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The frequency the Anomaly Alert Rule will be run, such as `P1D`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"is_default_settings": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the current settings of the Anomaly Alert Rule equal default settings.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"required_data_connector": {
@@ -221,13 +248,15 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"connector_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the required Data Connector.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"data_types": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of data types of the required Data Connector.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &schema.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -237,21 +266,24 @@ func (r Resource) Attributes() map[string]*schema.Schema {
 		},
 
 		"settings_definition_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the anomaly settings definition ID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tactics": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of categories of attacks by which to classify the rule.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &schema.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"techniques": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of techniques of attacks by which to classify the rule.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &schema.Schema{
 				Type: pluginsdk.TypeString,
 			},

@@ -12,6 +12,7 @@ import (
 func sentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace this Sentinel Fusion Alert Rule belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func sentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"alert_rule_template_guid": {
+			Description:  "The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,9 +28,10 @@ func sentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Sentinel Fusion Alert Rule should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"source": {
@@ -40,14 +43,16 @@ func sentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the Fusion source signal. Refer to Fusion alert rule template for supported values.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether this source signal is enabled or disabled in Fusion detection.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 					"sub_type": {
 						Type:     pluginsdk.TypeList,
@@ -55,19 +60,22 @@ func sentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "The Name of the source subtype under a given source signal in Fusion detection. Refer to Fusion alert rule template for supported values.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
+									Description: "Whether this source subtype under source signal is enabled or disabled in Fusion detection.",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     true,
 								},
 								"severities_allowed": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									MinItems: 1,
+									Description: "A list of severities that are enabled for this source subtype consumed in Fusion detection.",
+									Type:        pluginsdk.TypeSet,
+									Required:    true,
+									MinItems:    1,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(

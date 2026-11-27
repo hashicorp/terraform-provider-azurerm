@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAdvancedThreatProtectionCreateUpdate,
-		Read:   resourceAdvancedThreatProtectionRead,
-		Update: resourceAdvancedThreatProtectionCreateUpdate,
-		Delete: resourceAdvancedThreatProtectionDelete,
+		Description: "Manages a resource's Advanced Threat Protection setting.",
+		Create:      resourceAdvancedThreatProtectionCreateUpdate,
+		Read:        resourceAdvancedThreatProtectionRead,
+		Update:      resourceAdvancedThreatProtectionCreateUpdate,
+		Delete:      resourceAdvancedThreatProtectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AdvancedThreatProtectionID(id)

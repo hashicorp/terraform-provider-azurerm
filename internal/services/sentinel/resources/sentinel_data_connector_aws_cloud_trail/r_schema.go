@@ -13,6 +13,7 @@ import (
 func sentinelDataConnectorAwsCloudTrailSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this AWS CloudTrail Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func sentinelDataConnectorAwsCloudTrailSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that this AWS CloudTrail Data Connector resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func sentinelDataConnectorAwsCloudTrailSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"aws_role_arn": {
+			Description:  "The ARN of the AWS CloudTrail role, which is connected to this AWS CloudTrail Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.IsARN,

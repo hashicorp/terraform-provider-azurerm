@@ -16,6 +16,7 @@ import (
 func RegisterResource() *pluginsdk.Resource {
 	schema := map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The UUID which should be used for this Sentinel Automation Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace where this Sentinel applies to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -30,24 +32,28 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		"display_name": {
+			Description:  "The display name which should be used for this Sentinel Automation Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"order": {
+			Description:  "The order of this Sentinel Automation Rule.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 1000),
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Sentinel Automation Rule is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"triggers_on": {
+			Description:  "What triggers this automation rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(automationrules.TriggersOnIncidents),
@@ -55,6 +61,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		"triggers_when": {
+			Description:  "When this automation rule will be triggered.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(automationrules.TriggersWhenCreated),
@@ -62,6 +69,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		"expiration": {
+			Description:      "The time in RFC3339 format of kind `UTC` that determines when this Automation Rule should expire and be disabled.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.IsRFC3339Time,
@@ -69,6 +77,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		"condition_json": {
+			Description:  "A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsJSON,
@@ -85,18 +94,21 @@ func RegisterResource() *pluginsdk.Resource {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"order": {
+						Description:  "The execution order of this action.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
 					"title": {
+						Description:  "The title of the incident task.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"description": {
+						Description:  "The description of the incident task.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -112,20 +124,23 @@ func RegisterResource() *pluginsdk.Resource {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"order": {
+						Description:  "The execution order of this action.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
 					"status": {
+						Description:  "The status to set to the incident.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForIncidentStatus(), false),
 					},
 
 					"classification": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "The classification of the incident, when closing it.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(automationrules.IncidentClassificationUndetermined),
 							string(automationrules.IncidentClassificationBenignPositive) + "_" + string(automationrules.IncidentClassificationReasonSuspiciousButExpected),
@@ -136,26 +151,30 @@ func RegisterResource() *pluginsdk.Resource {
 					},
 
 					"classification_comment": {
+						Description:  "The comment why the incident is to be closed.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"labels": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of labels to add to the incident.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"owner_id": {
+						Description:  "The object ID of the entity this incident is assigned to.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"severity": {
+						Description:  "The severity to add to the incident.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForIncidentSeverity(), false),
@@ -174,10 +193,11 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 	}
 	return &pluginsdk.Resource{
-		Create: resourceSentinelAutomationRuleCreateOrUpdate,
-		Read:   resourceSentinelAutomationRuleRead,
-		Update: resourceSentinelAutomationRuleCreateOrUpdate,
-		Delete: resourceSentinelAutomationRuleDelete,
+		Description: "Manages a Sentinel Automation Rule.",
+		Create:      resourceSentinelAutomationRuleCreateOrUpdate,
+		Read:        resourceSentinelAutomationRuleRead,
+		Update:      resourceSentinelAutomationRuleCreateOrUpdate,
+		Delete:      resourceSentinelAutomationRuleDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

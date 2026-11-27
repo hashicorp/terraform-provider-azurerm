@@ -14,6 +14,7 @@ import (
 func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace this Sentinel Scheduled Alert Rule belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,12 +30,14 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The friendly name of this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"alert_rule_template_guid": {
+			Description:  "The GUID of the alert rule template which is used for this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -41,11 +45,13 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"alert_rule_template_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The version of the alert rule template which is used for this Sentinel Scheduled Alert Rule.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"description": {
+			Description:  "The description of this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -58,6 +64,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"aggregation_method": {
+						Description:  "The aggregation type of grouping the events.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForEventGroupingAggregationKind(), false),
@@ -67,8 +74,9 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tactics": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of categories of attacks by which to classify the rule.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAttackTactic(), false),
@@ -76,8 +84,9 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"techniques": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of techniques of attacks by which to classify the rule.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -94,8 +103,9 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"create_incident_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 					"grouping": {
 						Type:     pluginsdk.TypeList,
@@ -105,46 +115,53 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
+									Description: "Enable grouping incidents created from alerts triggered by this Sentinel Scheduled Alert Rule.",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     true,
 								},
 								"lookback_duration": {
+									Description:  "Limit the group to alerts created within the lookback duration (in ISO 8601 duration format).",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      "PT5M",
 									ValidateFunc: validation.ISO8601Duration,
 								},
 								"reopen_closed_incidents": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
+									Description: "Whether to re-open closed matching incidents.",
+									Type:        pluginsdk.TypeBool,
+									Optional:    true,
+									Default:     false,
 								},
 								"entity_matching_method": {
+									Description:  "The method used to group incidents.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      alertrules.MatchingMethodAnyAlert,
 									ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForMatchingMethod(), false),
 								},
 								"by_entities": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of entity types to group by, only when the `entity_matching_method` is `Selected`.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForEntityMappingType(), false),
 									},
 								},
 								"by_alert_details": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of alert details to group by, only when the `entity_matching_method` is `Selected`.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertDetail(), false),
 									},
 								},
 								"by_custom_details": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Description: "A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.",
+									Type:        pluginsdk.TypeList,
+									Optional:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -158,24 +175,28 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"severity": {
+			Description:  "The alert severity of this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertSeverity(), false),
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Sentinel Scheduled Alert Rule should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"query": {
+			Description:  "The query of this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"query_frequency": {
+			Description:  "The ISO 8601 timespan duration between two consecutive queries.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT5H",
@@ -183,6 +204,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"query_period": {
+			Description:  "The ISO 8601 timespan duration, which determines the time period of the data covered by the query. For example, it can query the past 10 minutes of data, or the past 6 hours of data.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT5H",
@@ -190,6 +212,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"trigger_operator": {
+			Description:  "The alert trigger operator, combined with `trigger_threshold`, setting alert threshold of this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(alertrules.TriggerOperatorGreaterThan),
@@ -197,6 +220,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"trigger_threshold": {
+			Description:  "The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
@@ -204,11 +228,13 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"suppression_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the Sentinel NRT Alert Rules should stop running query after an alert is generated.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 		"suppression_duration": {
+			Description:  "If `suppression_enabled` is `true`, this is ISO 8601 timespan duration, which specifies the amount of time the query should stop running after alert is generated.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT5H",
@@ -220,21 +246,25 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"description_format": {
+						Description:  "The format containing columns name(s) to override the description of this Sentinel Alert Rule.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"display_name_format": {
+						Description:  "The format containing columns name(s) to override the name of this Sentinel Alert Rule.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"severity_column_name": {
+						Description:  "The column name to take the alert severity from.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"tactics_column_name": {
+						Description:  "The column name to take the alert tactics from.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -245,11 +275,13 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"name": {
+									Description:  "The name of the dynamic property.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertProperty(), false),
 								},
 								"value": {
+									Description:  "The value of the dynamic property.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -261,8 +293,9 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 		"custom_details": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of string key-value pairs of columns to be attached to this Sentinel Scheduled Alert Rule. The key will appear as the field name in alerts and the value is the event parameter you wish to surface in the alerts.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -275,6 +308,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"entity_type": {
+						Description:  "The type of the entity.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForEntityMappingType(), false),
@@ -286,11 +320,13 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"identifier": {
+									Description:  "The identifier of the entity.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"column_name": {
+									Description:  "The column name to be mapped to the identifier.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -308,6 +344,7 @@ func sentinelAlertRuleScheduledSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"column_name": {
+						Description:  "The column name to be mapped to the identifier.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,

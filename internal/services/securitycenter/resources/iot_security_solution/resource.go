@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotSecuritySolutionCreateUpdate,
-		Read:   resourceIotSecuritySolutionRead,
-		Update: resourceIotSecuritySolutionCreateUpdate,
-		Delete: resourceIotSecuritySolutionDelete,
+		Description: "Manages an iot security solution.",
+		Create:      resourceIotSecuritySolutionCreateUpdate,
+		Read:        resourceIotSecuritySolutionRead,
+		Update:      resourceIotSecuritySolutionCreateUpdate,
+		Delete:      resourceIotSecuritySolutionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotSecuritySolutionID(id)

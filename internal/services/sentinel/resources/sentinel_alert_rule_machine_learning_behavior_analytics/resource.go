@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate,
-		Read:   resourceSentinelAlertRuleMLBehaviorAnalyticsRead,
-		Update: resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate,
-		Delete: resourceSentinelAlertRuleMLBehaviorAnalyticsDelete,
+		Description: "Manages a Sentinel Machine Learning Behavior Analytics Alert Rule.",
+		Create:      resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate,
+		Read:        resourceSentinelAlertRuleMLBehaviorAnalyticsRead,
+		Update:      resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate,
+		Delete:      resourceSentinelAlertRuleMLBehaviorAnalyticsDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := alertrules.ParseAlertRuleID(id)

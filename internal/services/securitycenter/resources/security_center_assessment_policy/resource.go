@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmSecurityCenterAssessmentPolicyCreate,
-		Read:   resourceArmSecurityCenterAssessmentPolicyRead,
-		Update: resourceArmSecurityCenterAssessmentPolicyUpdate,
-		Delete: resourceArmSecurityCenterAssessmentPolicyDelete,
+		Description: "Manages the Security Center Assessment Metadata for Azure Security Center.",
+		Create:      resourceArmSecurityCenterAssessmentPolicyCreate,
+		Read:        resourceArmSecurityCenterAssessmentPolicyRead,
+		Update:      resourceArmSecurityCenterAssessmentPolicyUpdate,
+		Delete:      resourceArmSecurityCenterAssessmentPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

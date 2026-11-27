@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_threat_intelligence_indicator"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Sentinel Threat Intelligence Indicator."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return threatintelligence.ValidateIndicatorID
 }

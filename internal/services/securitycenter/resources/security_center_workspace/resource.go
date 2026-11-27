@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterWorkspaceCreateUpdate,
-		Read:   resourceSecurityCenterWorkspaceRead,
-		Update: resourceSecurityCenterWorkspaceCreateUpdate,
-		Delete: resourceSecurityCenterWorkspaceDelete,
+		Description: "Manages the subscription's Security Center Workspace.",
+		Create:      resourceSecurityCenterWorkspaceCreateUpdate,
+		Read:        resourceSecurityCenterWorkspaceRead,
+		Update:      resourceSecurityCenterWorkspaceCreateUpdate,
+		Delete:      resourceSecurityCenterWorkspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WorkspaceID(id)

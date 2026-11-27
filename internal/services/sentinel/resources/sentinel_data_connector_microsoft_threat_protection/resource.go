@@ -18,6 +18,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_microsoft_threat_protection"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Microsoft Threat Protection Data Connector."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dataconnectors.ValidateDataConnectorID
 }

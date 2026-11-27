@@ -13,6 +13,7 @@ import (
 func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Device Security Group.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"iothub_id": {
+			Description:  "The ID of the IoT Hub which to link the Security Device Group to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"connection_from_ips_not_allowed": {
+						Description:  "Which IP is not allowed to be connected to in current device group for inbound connection.",
 						Type:         pluginsdk.TypeSet,
 						Optional:     true,
 						AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
@@ -43,6 +46,7 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"connection_to_ips_not_allowed": {
+						Description:  "Which IP is not allowed to be connected to in current device group for outbound connection.",
 						Type:         pluginsdk.TypeSet,
 						Optional:     true,
 						AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
@@ -53,6 +57,7 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"local_users_not_allowed": {
+						Description:  "Which local user is not allowed to login in current device group.",
 						Type:         pluginsdk.TypeSet,
 						Optional:     true,
 						AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
@@ -62,6 +67,7 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"processes_not_allowed": {
+						Description:  "Which process is not allowed to be executed in current device group.",
 						Type:         pluginsdk.TypeSet,
 						Optional:     true,
 						AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
@@ -79,8 +85,9 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The type of supported rule type.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(security.RuleTypeActiveConnectionsNotInAllowedRange),
 							string(security.RuleTypeAmqpC2DMessagesNotInAllowedRange),
@@ -102,18 +109,21 @@ func iotSecurityDeviceGroupSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"max": {
+						Description:  "The maximum threshold in the given time window.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
 					"min": {
+						Description:  "The minimum threshold in the given time window.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
 					"duration": {
+						Description:  "The time range. Represented in ISO 8601 duration format.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.ISO8601Duration,

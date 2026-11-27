@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
-		Read:   resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead,
-		Update: resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
-		Delete: resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete,
+		Description: "Manages a Microsoft Cloud App Security Data Connector.",
+		Create:      resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
+		Read:        resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead,
+		Update:      resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate,
+		Delete:      resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindMicrosoftCloudAppSecurity),
 

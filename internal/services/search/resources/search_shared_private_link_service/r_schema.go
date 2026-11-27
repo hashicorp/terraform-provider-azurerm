@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Azure Search Shared Private Link Resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"search_service_id": {
+			Description:  "The ID of the Azure Search Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"subresource_name": {
+			Description:  "The sub resource name which the Azure Search Private Endpoint can connect to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -35,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_resource_id": {
+			Description:  "The ID of the Shared Private Link Enabled Remote Resource which this Azure Search Private Endpoint should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -42,6 +46,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"request_message": {
+			Description:  "The request message for requesting approval of the Shared Private Link Enabled Remote Resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -52,8 +57,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The status of a Private Endpoint connection.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

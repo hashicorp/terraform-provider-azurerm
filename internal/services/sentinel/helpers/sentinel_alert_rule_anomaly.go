@@ -29,23 +29,27 @@ func AnomalyRuleMultiSelectSchema() *pluginsdk.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the multi select observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"description": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The description of the multi select observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"supported_values": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of supported values of the multi select observation.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &schema.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 				"values": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of values of the single select observation.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &schema.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -87,23 +91,27 @@ func AnomalyRuleSingleSelectSchema() *pluginsdk.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the single select observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"description": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The description of the single select observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"supported_values": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
+					Description: "A list of supported values of the single select observation.",
+					Type:        pluginsdk.TypeList,
+					Computed:    true,
 					Elem: &schema.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The value of the multi select observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -141,20 +149,24 @@ func AnomalyRulePrioritySchema() *pluginsdk.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the prioritized exclude observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"description": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The description of the prioritized exclude observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"prioritize": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The prioritized value per `description`.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"exclude": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The excluded value per `description`.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -193,24 +205,29 @@ func AnomalyRuleThresholdSchema() *pluginsdk.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The name of the threshold observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"description": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The description of the threshold observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"max": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The max value of the threshold observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"min": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The min value of the threshold observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The value of the threshold observation.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},

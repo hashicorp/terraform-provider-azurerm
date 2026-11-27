@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_log_analytics_workspace_onboarding"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Security Insights Sentinel Onboarding."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sentinelonboardingstates.ValidateOnboardingStateID
 }

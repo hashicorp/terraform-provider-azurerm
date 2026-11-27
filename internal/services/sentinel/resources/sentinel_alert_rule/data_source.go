@@ -17,7 +17,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSentinelAlertRuleRead,
+		Description: "Use this data source to access information about an existing Sentinel Alert Rule.",
+		Read:        dataSourceSentinelAlertRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,12 +26,14 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name which should be used for this Sentinel Alert Rule.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"log_analytics_workspace_id": {
+				Description:  "The ID of the Log Analytics Workspace this Sentinel Alert Rule belongs to.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: alertrules.ValidateWorkspaceID,

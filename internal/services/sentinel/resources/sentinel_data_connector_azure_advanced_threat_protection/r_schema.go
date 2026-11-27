@@ -12,6 +12,7 @@ import (
 func sentinelDataConnectorAzureAdvancedThreatProtectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Advanced Threat Protection Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func sentinelDataConnectorAzureAdvancedThreatProtectionSchema() map[string]*plug
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that this Azure Advanced Threat Protection Data Connector resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func sentinelDataConnectorAzureAdvancedThreatProtectionSchema() map[string]*plug
 		},
 
 		"tenant_id": {
+			Description:  "The ID of the tenant that this Azure Advanced Threat Protection Data Connector connects to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

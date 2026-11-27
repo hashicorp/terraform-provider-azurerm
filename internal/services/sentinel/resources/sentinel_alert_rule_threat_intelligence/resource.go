@@ -21,6 +21,10 @@ func (a Resource) ResourceType() string {
 	return "azurerm_sentinel_alert_rule_threat_intelligence"
 }
 
+func (a Resource) Description() string {
+	return "Manages a Sentinel Threat Intelligence Alert Rule."
+}
+
 func (a Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return alertrules.ValidateAlertRuleID
 }

@@ -18,6 +18,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_power_bi"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Office Power BI Data Connector."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return dataconnectors.ValidateDataConnectorID
 }

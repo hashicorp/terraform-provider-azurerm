@@ -13,6 +13,7 @@ import (
 func (a Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name which should be used for this Sentinel Threat Intelligence Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (a Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace this Sentinel Threat Intelligence Alert Rule belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (a Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"alert_rule_template_guid": {
+			Description:  "The GUID of the alert rule template which is used for this Sentinel Threat Intelligence Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,9 +37,10 @@ func (a Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Threat Intelligence Alert rule is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

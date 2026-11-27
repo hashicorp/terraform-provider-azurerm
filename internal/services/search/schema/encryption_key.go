@@ -26,12 +26,14 @@ func SearchDatasourceEncryptionKeySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"key_vault_key_id": {
+					Description:  "The ID of the Key Vault Key used for encryption.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 				},
 
 				"client_id": {
+					Description:  "The Client ID of the Microsoft Entra ID application used for authentication.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
@@ -39,6 +41,7 @@ func SearchDatasourceEncryptionKeySchema() *pluginsdk.Schema {
 				},
 
 				"client_secret": {
+					Description:  "The Client Secret of the Microsoft Entra ID application used for authentication.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,

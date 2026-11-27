@@ -14,6 +14,7 @@ import (
 func securityCenterAssessmentSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"assessment_policy_id": {
+			Description:  "The ID of the security Assessment policy to apply to this resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func securityCenterAssessmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"target_resource_id": {
+			Description:  "The ID of the target resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,18 +36,21 @@ func securityCenterAssessmentSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"code": {
+						Description:  "The programmatic code of the assessment status.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInEnumSlice(security.PossibleAssessmentStatusCodeValues(), false),
 					},
 
 					"cause": {
+						Description:  "The cause of the assessment status.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"description": {
+						Description:  "The human readable description of the assessment status.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -55,8 +60,9 @@ func securityCenterAssessmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"additional_data": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of additional data to associate with the assessment.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

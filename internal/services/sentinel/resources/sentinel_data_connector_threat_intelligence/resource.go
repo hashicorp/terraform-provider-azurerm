@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorThreatIntelligenceCreate,
-		Read:   resourceSentinelDataConnectorThreatIntelligenceRead,
-		Delete: resourceSentinelDataConnectorThreatIntelligenceDelete,
+		Description: "Manages a Threat Intelligence Data Connector.",
+		Create:      resourceSentinelDataConnectorThreatIntelligenceCreate,
+		Read:        resourceSentinelDataConnectorThreatIntelligenceRead,
+		Delete:      resourceSentinelDataConnectorThreatIntelligenceDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindThreatIntelligence),
 

@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_watchlist"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Sentinel Watchlist."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return watchlists.ValidateWatchlistID
 }

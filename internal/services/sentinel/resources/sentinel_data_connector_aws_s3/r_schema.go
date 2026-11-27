@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this AWS S3 Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that this AWS S3 Data Connector resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,20 +29,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"aws_role_arn": {
+			Description:  "The ARN of the AWS role, which is connected to this AWS S3 Data Connector. See the [Azure document](https://learn.microsoft.com/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) for details.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.IsARN,
 		},
 
 		"destination_table": {
+			Description:  "The name of the Log Analytics table that will store the ingested data.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"sqs_urls": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "A list of AWS SQS URLs for the AWS S3 Data Connector.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

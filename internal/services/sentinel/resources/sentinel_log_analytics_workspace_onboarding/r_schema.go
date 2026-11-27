@@ -12,6 +12,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// lintignore:S013
 		"workspace_id": {
+			Description:  "The Workspace ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,10 +20,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"customer_managed_key_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
+			Description: "Whether the Workspace is using Customer managed key.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
 		},
 	}
 }

@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
-		Read:   resourceSentinelDataConnectorAwsCloudTrailRead,
-		Update: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
-		Delete: resourceSentinelDataConnectorAwsCloudTrailDelete,
+		Description: "Manages an AWS CloudTrail Data Connector.",
+		Create:      resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
+		Read:        resourceSentinelDataConnectorAwsCloudTrailRead,
+		Update:      resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
+		Delete:      resourceSentinelDataConnectorAwsCloudTrailDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindAmazonWebServicesCloudTrail),
 

@@ -11,6 +11,7 @@ import (
 func advancedThreatProtectionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_resource_id": {
+			Description:  "The ID of the Azure Resource which to enable Advanced Threat Protection on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -18,8 +19,9 @@ func advancedThreatProtectionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Whether Advanced Threat Protection should be enabled on this resource.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 	}
 }

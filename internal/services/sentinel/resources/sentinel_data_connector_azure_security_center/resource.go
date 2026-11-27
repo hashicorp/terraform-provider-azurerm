@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorAzureSecurityCenterCreate,
-		Read:   resourceSentinelDataConnectorAzureSecurityCenterRead,
-		Delete: resourceSentinelDataConnectorAzureSecurityCenterDelete,
+		Description: "Manages an Azure Security Center Data Connector.",
+		Create:      resourceSentinelDataConnectorAzureSecurityCenterCreate,
+		Read:        resourceSentinelDataConnectorAzureSecurityCenterRead,
+		Delete:      resourceSentinelDataConnectorAzureSecurityCenterDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindAzureSecurityCenter),
 

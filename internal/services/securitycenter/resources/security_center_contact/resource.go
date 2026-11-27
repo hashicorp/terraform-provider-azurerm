@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterContactCreateUpdate,
-		Read:   resourceSecurityCenterContactRead,
-		Update: resourceSecurityCenterContactCreateUpdate,
-		Delete: resourceSecurityCenterContactDelete,
+		Description: "Manages the subscription's Security Center Contact.",
+		Create:      resourceSecurityCenterContactCreateUpdate,
+		Read:        resourceSecurityCenterContactRead,
+		Update:      resourceSecurityCenterContactCreateUpdate,
+		Delete:      resourceSecurityCenterContactDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ContactID(id)

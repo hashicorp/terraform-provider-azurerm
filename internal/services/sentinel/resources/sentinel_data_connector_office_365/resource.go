@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorOffice365CreateUpdate,
-		Read:   resourceSentinelDataConnectorOffice365Read,
-		Update: resourceSentinelDataConnectorOffice365CreateUpdate,
-		Delete: resourceSentinelDataConnectorOffice365Delete,
+		Description: "Manages an Office 365 Data Connector.",
+		Create:      resourceSentinelDataConnectorOffice365CreateUpdate,
+		Read:        resourceSentinelDataConnectorOffice365Read,
+		Update:      resourceSentinelDataConnectorOffice365CreateUpdate,
+		Delete:      resourceSentinelDataConnectorOffice365Delete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindOfficeThreeSixFive),
 

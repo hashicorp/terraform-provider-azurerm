@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSearchServiceCreate,
-		Read:   resourceSearchServiceRead,
-		Update: resourceSearchServiceUpdate,
-		Delete: resourceSearchServiceDelete,
+		Description: "Manages a Search Service.",
+		Create:      resourceSearchServiceCreate,
+		Read:        resourceSearchServiceRead,
+		Update:      resourceSearchServiceUpdate,
+		Delete:      resourceSearchServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),

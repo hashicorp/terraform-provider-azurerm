@@ -14,14 +14,16 @@ func securityCenterSettingSchema() map[string]*pluginsdk.Schema {
 
 	return map[string]*pluginsdk.Schema{
 		"setting_name": {
+			Description:  "The setting to manage.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(validSettingName, false),
 		},
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Boolean flag to enable/disable data access.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 	}
 }

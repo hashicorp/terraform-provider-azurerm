@@ -12,6 +12,7 @@ import (
 func sentinelDataConnectorAzureActiveDirectorySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Azure Active Directory Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func sentinelDataConnectorAzureActiveDirectorySchema() map[string]*pluginsdk.Sch
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that this Azure Active Directory Data Connector resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func sentinelDataConnectorAzureActiveDirectorySchema() map[string]*pluginsdk.Sch
 		},
 
 		"tenant_id": {
+			Description:  "The ID of the tenant that this Azure Active Directory Data Connector connects to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

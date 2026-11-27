@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_search_shared_private_link_service"
 }
 
+func (r Resource) Description() string {
+	return "Manages the Shared Private Link Service for an Azure Search Service."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sharedprivatelinkresources.ValidateSharedPrivateLinkResourceID
 }

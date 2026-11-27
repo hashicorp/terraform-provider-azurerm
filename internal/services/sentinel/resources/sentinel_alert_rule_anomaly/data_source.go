@@ -46,6 +46,7 @@ var _ sdk.DataSource = DataSource{}
 func (a DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The GUID of this Sentinel Alert Rule Template.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -54,6 +55,7 @@ func (a DataSource) Arguments() map[string]*schema.Schema {
 		},
 
 		"display_name": {
+			Description:  "The display name of this Sentinel Alert Rule Template.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -62,6 +64,7 @@ func (a DataSource) Arguments() map[string]*schema.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -72,28 +75,33 @@ func (a DataSource) Arguments() map[string]*schema.Schema {
 func (a DataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"anomaly_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The anomaly version of the Anomaly Alert Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"anomaly_settings_version": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The version of the Anomaly Security ML Analytics Settings.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Anomaly Alert Rule.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether the Anomaly Alert Rule is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"frequency": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The frequency the Anomaly Alert Rule will be run.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"required_data_connector": {
@@ -102,13 +110,15 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"connector_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the required Data Connector.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"data_types": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of data types of the required Data Connector.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &schema.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -123,21 +133,24 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 		},
 
 		"settings_definition_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the anomaly settings definition ID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tactics": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of categories of attacks by which to classify the rule.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &schema.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"techniques": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of techniques of attacks by which to classify the rule.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &schema.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -159,6 +172,10 @@ func (a DataSource) ModelObject() any {
 
 func (a DataSource) ResourceType() string {
 	return "azurerm_sentinel_alert_rule_anomaly"
+}
+
+func (a DataSource) Description() string {
+	return "Use this data source to access information about an existing Anomaly Alert Rule."
 }
 
 func (a DataSource) Read() sdk.ResourceFunc {

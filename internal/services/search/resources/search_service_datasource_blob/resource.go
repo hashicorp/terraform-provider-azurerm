@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_search_service_datasource_blob"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Search Service Blob Data Source."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return datasources.ValidateDatasourceID
 }

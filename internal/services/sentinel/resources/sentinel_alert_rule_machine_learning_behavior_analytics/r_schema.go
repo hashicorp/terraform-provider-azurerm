@@ -12,6 +12,7 @@ import (
 func sentinelAlertRuleMachineLearningBehaviorAnalyticsSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Sentinel Machine Learning Behavior Analytics Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func sentinelAlertRuleMachineLearningBehaviorAnalyticsSchema() map[string]*plugi
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace this Sentinel Machine Learning Behavior Analytics Alert Rule belongs to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func sentinelAlertRuleMachineLearningBehaviorAnalyticsSchema() map[string]*plugi
 		},
 
 		"alert_rule_template_guid": {
+			Description:  "The GUID of the alert rule template which is used for this Sentinel Machine Learning Behavior Analytics Alert Rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,9 +36,10 @@ func sentinelAlertRuleMachineLearningBehaviorAnalyticsSchema() map[string]*plugi
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Sentinel Machine Learning Behavior Analytics Alert Rule should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

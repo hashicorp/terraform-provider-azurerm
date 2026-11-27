@@ -12,6 +12,7 @@ import (
 func sentinelDataConnectorMicrosoftCloudAppSecuritySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Microsoft Cloud App Security Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func sentinelDataConnectorMicrosoftCloudAppSecuritySchema() map[string]*pluginsd
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that this Microsoft Cloud App Security Data Connector resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func sentinelDataConnectorMicrosoftCloudAppSecuritySchema() map[string]*pluginsd
 		},
 
 		"tenant_id": {
+			Description:  "The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -33,15 +36,17 @@ func sentinelDataConnectorMicrosoftCloudAppSecuritySchema() map[string]*pluginsd
 		},
 
 		"alerts_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the alerts should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"discovery_logs_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Discovery Logs should be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

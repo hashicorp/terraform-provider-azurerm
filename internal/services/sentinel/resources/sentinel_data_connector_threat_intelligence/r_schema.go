@@ -12,6 +12,7 @@ import (
 func sentinelDataConnectorThreatIntelligenceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Threat Intelligence Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func sentinelDataConnectorThreatIntelligenceSchema() map[string]*pluginsdk.Schem
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace that this Threat Intelligence Data Connector resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +28,7 @@ func sentinelDataConnectorThreatIntelligenceSchema() map[string]*pluginsdk.Schem
 		},
 
 		"tenant_id": {
+			Description:  "The ID of the tenant that this Threat Intelligence Data Connector connects to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -34,6 +37,7 @@ func sentinelDataConnectorThreatIntelligenceSchema() map[string]*pluginsdk.Schem
 		},
 
 		"lookback_date": {
+			Description:  "The lookback date for this Threat Intelligence Data Connector in RFC3339.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

@@ -12,15 +12,17 @@ import (
 func securityCenterSubscriptionPricingSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"tier": {
+			Description:  "The pricing tier to use.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInEnumSlice(security.PossiblePricingTierValues(), false),
 		},
 
 		"resource_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "VirtualMachines",
+			Description: "The resource type this setting affects.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "VirtualMachines",
 			ValidateFunc: validation.StringInSlice([]string{
 				"AI",
 				"Api",
@@ -42,9 +44,10 @@ func securityCenterSubscriptionPricingSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subplan": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "Resource type pricing subplan. Contact your MSFT representative for possible values.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"extension": {
@@ -53,13 +56,15 @@ func securityCenterSubscriptionPricingSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of extension.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"additional_extension_properties": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "Key/Value pairs that are required for some extensions.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotWhiteSpace,

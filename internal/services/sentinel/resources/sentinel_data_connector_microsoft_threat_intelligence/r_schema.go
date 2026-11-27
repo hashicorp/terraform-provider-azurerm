@@ -13,6 +13,7 @@ import (
 func (s Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
+			Description:  "The name which should be used for this Microsoft Threat Intelligence Data Connector.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:  "The ID of the Log Analytics Workspace.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,6 +29,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"tenant_id": {
+			Description:  "The ID of the tenant that this Microsoft Threat Intelligence Data Connector connects to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -36,6 +39,7 @@ func (s Resource) Arguments() map[string]*schema.Schema {
 
 		// lintignore: S013
 		"microsoft_emerging_threat_feed_lookback_date": {
+			Description:  "The lookback date for the Microsoft Emerging Threat Feed in RFC3339.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

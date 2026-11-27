@@ -18,6 +18,7 @@ import (
 func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Iot Security Solution.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,15 +30,17 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"display_name": {
+			Description:  "The Display Name for this Iot Security Solution.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"iothub_ids": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			Set:      set.HashStringIgnoreCase,
+			Description: "The IoT Hub resource IDs to which this Iot Security Solution is applied.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			Set:         set.HashStringIgnoreCase,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: iothubValidate.IotHubID,
@@ -50,8 +53,9 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"data_types": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
+						Description: "A list of data types which are sent to the workspace.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInEnumSlice(security.PossibleAdditionalWorkspaceDataTypeValues(), false),
@@ -59,6 +63,7 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"workspace_id": {
+						Description:  "The resource ID of the Log Analytics Workspace.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: workspaces.ValidateWorkspaceID,
@@ -68,8 +73,9 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"disabled_data_sources": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of disabled data sources for the Iot Security Solution.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInEnumSlice(security.PossibleDataSourceValues(), false),
@@ -77,6 +83,7 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_analytics_workspace_id": {
+			Description:      "The Log Analytics Workspace ID to which the security data will be sent.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     workspaces.ValidateWorkspaceID,
@@ -84,20 +91,23 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the Iot Security Solution is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"log_unmasked_ips_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether IP addresses should be unmasked in the log.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"events_to_export": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of data which is to be exported to the analytic workspace.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -114,114 +124,132 @@ func iotSecuritySolutionSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"acr_authentication": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether Principal Authentication is enabled for the ACR repository.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"agent_send_unutilized_msg": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the agent sends underutilized messages is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"baseline": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether to identify security related system configuration issues.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"edge_hub_mem_optimize": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether to optimize IoT Edge Hub memory.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"edge_logging_option": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether to configure logging for the IoT Edge module.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"inconsistent_module_settings": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether inconsistent module settings are enabled for SecurityGroup.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"install_agent": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether to install the Azure IoT Security agent.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"ip_filter_deny_all": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether to add the default IP filter policy that denies all.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"ip_filter_permissive_rule": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the IP filter rule's source allowable IP range is too large.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"open_ports": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether any ports are open on the device.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"permissive_firewall_policy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether a Firewall Policy exists which allows necessary communication to/from the device.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"permissive_input_firewall_rules": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether only necessary addresses or ports are allowed in.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"permissive_output_firewall_rules": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether only necessary addresses or ports are allowed out.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"privileged_docker_options": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether high level permissions are necessary for the module.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"shared_credentials": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether any credentials are shared among devices.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"vulnerable_tls_cipher_suite": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the TLS cypher suite needs to be updated.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
 		},
 
 		"query_for_resources": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "An Azure Resource Graph query used to set the resources monitored.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"query_subscription_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "A list of subscription IDs on which the user defined resources query should be executed.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,

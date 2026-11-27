@@ -24,7 +24,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceSearchServiceRead,
+		Description: "Manages a Search Service.",
+		Read:        dataSourceSearchServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -32,42 +33,49 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Search Service.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"customer_managed_key_encryption_compliance_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Describes whether the Search Service is compliant or not with respect to having non-customer encrypted resources. If a service has more than one non-customer encrypted resource and `Enforcement` is `enabled` then the service will be marked as `NonCompliant`. If all the resources are customer encrypted, then the service will be marked as `Compliant`.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The endpoint used to connect to this Search Service.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"replica_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of replicas which have been created.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"partition_count": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of partitions which have been created.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Primary Key used for Search Service Administration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Description: "The Secondary Key used for Search Service Administration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Sensitive:   true,
 			},
 
 			"query_keys": {
@@ -76,22 +84,25 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The name of this Query Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Description: "The value of this Query Key.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether public network access is enabled for this resource.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),

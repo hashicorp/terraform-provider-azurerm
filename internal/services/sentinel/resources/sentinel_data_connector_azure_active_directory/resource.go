@@ -13,9 +13,10 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorAzureActiveDirectoryCreate,
-		Read:   resourceSentinelDataConnectorAzureActiveDirectoryRead,
-		Delete: resourceSentinelDataConnectorAzureActiveDirectoryDelete,
+		Description: "Manages an Azure Active Directory Data Connector.",
+		Create:      resourceSentinelDataConnectorAzureActiveDirectoryCreate,
+		Read:        resourceSentinelDataConnectorAzureActiveDirectoryRead,
+		Delete:      resourceSentinelDataConnectorAzureActiveDirectoryDelete,
 
 		Importer: helpers.ImportDataConnectorUntyped(dataconnectors.DataConnectorKindAzureActiveDirectory),
 

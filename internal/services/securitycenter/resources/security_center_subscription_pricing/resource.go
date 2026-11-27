@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterSubscriptionPricingCreate,
-		Read:   resourceSecurityCenterSubscriptionPricingRead,
-		Update: resourceSecurityCenterSubscriptionPricingUpdate,
-		Delete: resourceSecurityCenterSubscriptionPricingDelete,
+		Description: "Manages the Pricing Tier for Azure Security Center in the current subscription.",
+		Create:      resourceSecurityCenterSubscriptionPricingCreate,
+		Read:        resourceSecurityCenterSubscriptionPricingRead,
+		Update:      resourceSecurityCenterSubscriptionPricingUpdate,
+		Delete:      resourceSecurityCenterSubscriptionPricingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := pricings.ParsePricingID(id)

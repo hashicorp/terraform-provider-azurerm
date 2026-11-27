@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Read:   resourceSentinelAlertRuleMsSecurityIncidentRead,
-		Update: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Delete: resourceSentinelAlertRuleMsSecurityIncidentDelete,
+		Description: "Manages a Sentinel MS Security Incident Alert Rule.",
+		Create:      resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Read:        resourceSentinelAlertRuleMsSecurityIncidentRead,
+		Update:      resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Delete:      resourceSentinelAlertRuleMsSecurityIncidentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := alertrules.ParseAlertRuleID(id)

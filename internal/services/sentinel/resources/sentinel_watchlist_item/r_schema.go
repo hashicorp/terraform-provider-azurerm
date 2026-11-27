@@ -12,6 +12,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name in UUID format which should be used for this Sentinel Watchlist Item.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -19,14 +20,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsUUID,
 		},
 		"watchlist_id": {
+			Description:  "The ID of the Sentinel Watchlist that this Item resides in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: watchlists.ValidateWatchlistID,
 		},
 		"properties": {
-			Type:     pluginsdk.TypeMap,
-			Required: true,
+			Description: "The key-value pairs of the Sentinel Watchlist Item.",
+			Type:        pluginsdk.TypeMap,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

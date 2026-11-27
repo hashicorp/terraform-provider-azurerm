@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_sentinel_alert_rule_anomaly_duplicate"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Duplicated Anomaly Alert Rule."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return securitymlanalyticssettings.ValidateSecurityMLAnalyticsSettingID
 }
