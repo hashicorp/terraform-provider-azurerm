@@ -94,10 +94,26 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_mssql_job_credential`
+
+* The `password_wo_version` property must now be at least `1`.
+
+### `azurerm_mssql_server`
+
+* The `administrator_login_password_wo_version` property must now be at least `1`.
+
+### `azurerm_mysql_flexible_server`
+
+* The `administrator_password_wo_version` property must now be at least `1`.
+
 ### `azurerm_network_interface`
 
 * The `auxiliary_mode` no longer accepts the `None` value.
 * The `auxiliary_sku` no longer accepts the `None` value.
+
+### `azurerm_postgresql_flexible_server`
+
+* The `administrator_password_wo_version` property must now be at least `1`.
 
 ### `azurerm_storage_account`
 
