@@ -607,13 +607,15 @@ jobs:
         run: make .tools/bin/gotestsum
       - name: Run tests
         run: |
+          pkg_list="$(./scripts/list-unit-test-pkgs.sh)"
+          readarray -t pkgs <<< "$pkg_list"
           .tools/bin/gotestsum \
            --format pkgname-and-test-fails \
            --format-hide-empty-pkg -- \
            -timeout=30s \
            -parallel=32 \
            -run='^Test[^A]|^TestA[^c]|^TestAc[^c]' \
-           ./...
+           "${pkgs[@]}"
       - name: Guidance on failure
         if: failure()
         run: |
