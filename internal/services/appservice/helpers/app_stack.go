@@ -92,6 +92,7 @@ func WindowsApplicationStackSchema() *pluginsdk.Schema {
 						"v4.0",
 					}, false),
 					AtLeastOneOf: WindowsApplicationStackConstraint,
+					Deprecated:   "This property has been deprecated in favour of `dotnet_version`.",
 				},
 
 				"php_version": {

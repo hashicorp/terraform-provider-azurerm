@@ -186,7 +186,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					}
 
 					siteConfig := SiteConfigWindows{}
-					if err := siteConfig.Flatten(webAppSiteConfig.Model.Properties, currentStack); err != nil {
+					if err := siteConfig.Flatten(webAppSiteConfig.Model.Properties, currentStack, metadata); err != nil {
 						return err
 					}
 					siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
