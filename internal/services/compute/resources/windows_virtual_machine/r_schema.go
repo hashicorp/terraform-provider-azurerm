@@ -374,6 +374,8 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			ForceNew:    true,
 		},
 
+		"size_properties": helpers.VirtualMachineSizePropertiesSchema(),
+
 		"source_image_id": {
 			Description: "The ID of the Image which this Virtual Machine should be created from. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.",
 			Type:        pluginsdk.TypeString,
