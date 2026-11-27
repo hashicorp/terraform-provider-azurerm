@@ -76,7 +76,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 	}
 	updatedRules := make([]rolemanagementpolicies.RoleManagementPolicyRule, 0)
 
-	if metadata.ResourceData.HasChange("eligible_assignment_rules") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("eligible_assignment_rules") {
 		if expirationAdminEligibilityBase, ok := existingRules["Expiration_Admin_Eligibility"]; ok {
 			if expirationAdminEligibility, ok := expirationAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
 				expirationRequired := pointer.From(expirationAdminEligibility.IsExpirationRequired)
@@ -97,7 +97,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChanges(
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges(
 		"active_assignment_rules.0.require_multifactor_authentication",
 		"active_assignment_rules.0.require_justification",
 		"active_assignment_rules.0.require_ticket_info",
@@ -122,7 +122,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChanges("active_assignment_rules.0.expiration_required", "active_assignment_rules.0.expire_after") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges("active_assignment_rules.0.expiration_required", "active_assignment_rules.0.expire_after") {
 		if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
 			if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
 				expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
@@ -143,7 +143,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("activation_rules.0.maximum_duration") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("activation_rules.0.maximum_duration") {
 		if expirationEndUserAssignmentBase, ok := existingRules["Expiration_EndUser_Assignment"]; ok {
 			if expirationEndUserAssignment, ok := expirationEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
 				if len(model.ActivationRules) == 1 {
@@ -155,7 +155,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChanges("activation_rules.0.require_approval", "activation_rules.0.approval_stage") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges("activation_rules.0.require_approval", "activation_rules.0.approval_stage") {
 		if approvalEndUserAssignmentBase, ok := existingRules["Approval_EndUser_Assignment"]; ok {
 			if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
 				if len(model.ActivationRules) == 1 {
@@ -171,7 +171,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 						}
 					}
 
-					if metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
+					if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
 						if len(model.ActivationRules) == 1 {
 							approvalStages := make([]rolemanagementpolicies.ApprovalStage, len(model.ActivationRules[0].ApprovalStages))
 							for i, stage := range model.ActivationRules[0].ApprovalStages {
@@ -197,7 +197,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("activation_rules.0.required_conditional_access_authentication_context") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("activation_rules.0.required_conditional_access_authentication_context") {
 		if authEndUserAssignmentBase, ok := existingRules["AuthenticationContext_EndUser_Assignment"]; ok {
 			if authEndUserAssignment, ok := authEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyAuthenticationContextRule); ok {
 				if _, ok = metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); ok {
@@ -212,7 +212,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChanges(
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges(
 		"activation_rules.0.require_multifactor_authentication",
 		"activation_rules.0.require_justification",
 		"activation_rules.0.require_ticket_info",
@@ -238,7 +238,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications") {
 		if notificationAdminAdminEligibilityBase, ok := existingRules["Notification_Admin_Admin_Eligibility"]; ok {
 			if notificationAdminAdminEligibility, ok := notificationAdminAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -249,7 +249,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationAdminAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].AdminNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -259,7 +259,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications") {
 		if notificationAdminAdminAssignmentBase, ok := existingRules["Notification_Admin_Admin_Assignment"]; ok {
 			if notificationAdminAdminAssignment, ok := notificationAdminAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -270,7 +270,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationAdminAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].AdminNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -280,7 +280,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications") {
 		if notificationAdminEndUserAssignmentBase, ok := existingRules["Notification_Admin_EndUser_Assignment"]; ok {
 			if notificationAdminEndUserAssignment, ok := notificationAdminEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -291,7 +291,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationAdminEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].AdminNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -301,7 +301,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications") {
 		if notificationApproverAdminEligibilityBase, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok {
 			if notificationApproverAdminEligibility, ok := notificationApproverAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -312,7 +312,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationApproverAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -322,7 +322,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications") {
 		if notificationApproverAdminAssignmentBase, ok := existingRules["Notification_Approver_Admin_Assignment"]; ok {
 			if notificationApproverAdminAssignment, ok := notificationApproverAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -333,7 +333,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationApproverAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -343,7 +343,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications") {
 		if notificationApproverEndUserAssignmentBase, ok := existingRules["Notification_Approver_EndUser_Assignment"]; ok {
 			if notificationApproverEndUserAssignment, ok := notificationApproverEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -354,7 +354,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationApproverEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].ApproverNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -364,7 +364,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications") {
 		if notificationRequestorAdminEligibilityBase, ok := existingRules["Notification_Requestor_Admin_Eligibility"]; ok {
 			if notificationRequestorAdminEligibility, ok := notificationRequestorAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -375,7 +375,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationRequestorAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -385,7 +385,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications") {
 		if notificationRequestorAdminAssignmentBase, ok := existingRules["Notification_Requestor_Admin_Assignment"]; ok {
 			if notificationRequestorAdminAssignment, ok := notificationRequestorAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -396,7 +396,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationRequestorAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications.0.additional_recipients"),
 								),
 							)
 						}
@@ -406,7 +406,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications") {
 		if notificationRequestorEndUserAssignmentBase, ok := existingRules["Notification_Requestor_EndUser_Assignment"]; ok {
 			if notificationRequestorEndUserAssignment, ok := notificationRequestorEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 				if len(model.NotificationRules) == 1 {
@@ -417,7 +417,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								expandNotificationSettings(
 									notificationRequestorEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications[0],
-									metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications.0.additional_recipients"),
+									metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications.0.additional_recipients"),
 								),
 							)
 						}
