@@ -134,4 +134,4 @@ terraform import azurerm_data_protection_backup_instance_cosmosdb_account.exampl
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection` - 2026-06-01
+* `Microsoft.DataProtection` - 2026-07-01

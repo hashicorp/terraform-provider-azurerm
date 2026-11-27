@@ -105,6 +105,14 @@ func UnmarshalBackupDatasourceParametersImplementation(input []byte) (BackupData
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "PostgreSqlFlexibleServerBackupDatasourceParameters") {
+		var out PostgreSqlFlexibleServerBackupDatasourceParameters
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into PostgreSqlFlexibleServerBackupDatasourceParameters: %+v", err)
+		}
+		return out, nil
+	}
+
 	var parent BaseBackupDatasourceParametersImpl
 	if err := json.Unmarshal(input, &parent); err != nil {
 		return nil, fmt.Errorf("unmarshaling into BaseBackupDatasourceParametersImpl: %+v", err)
