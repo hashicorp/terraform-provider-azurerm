@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -64,7 +64,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 	}
 	model.Properties = properties
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

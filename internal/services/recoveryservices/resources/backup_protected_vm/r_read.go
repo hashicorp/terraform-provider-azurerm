@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -87,7 +87,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx contex
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("recovering soft-deleted %s: %+v", id, err)
 	}
 

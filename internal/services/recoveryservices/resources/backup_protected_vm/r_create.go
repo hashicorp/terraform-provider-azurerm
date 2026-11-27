@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -96,7 +96,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, item, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, item, protecteditems.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -122,7 +122,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 			},
 		}
 
-		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}

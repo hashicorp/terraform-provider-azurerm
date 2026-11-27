@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -51,7 +51,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				Id:   pointer.To(id.ID()),
 				Type: pointer.To(VaultGuardResourceType),
 				Properties: pointer.To(resourceguardproxy.ResourceGuardProxyBase{
-					ResourceGuardResourceId: pointer.To(plan.ResourceGuardId),
+					ResourceGuardResourceId: plan.ResourceGuardId,
 				}),
 			}
 
