@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -23,8 +25,10 @@ func (r Resource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.ServicePlanClient
 
-			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %v", id, err)
+			pollerType := custompollers.NewServicePlanDeletePoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
