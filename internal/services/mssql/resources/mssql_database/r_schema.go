@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,7 +18,7 @@ import (
 )
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Description:  "The name of the MS SQL Database.",
 			Type:         pluginsdk.TypeString,
@@ -233,6 +234,19 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
+		"free_limit_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"free_limit_exhaustion_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"free_limit_enabled"},
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
+		},
+
 		"creation_source_database_id": {
 			Description:  "The ID of the source database from which to create the new database. This should only be used for databases with `create_mode` values that use another database as reference.",
 			Type:         pluginsdk.TypeString,
@@ -397,4 +411,22 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["sku_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ValidateFunc: validate.DatabaseSkuNameWithFree(),
+		}
+
+		s["free_limit_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// NOTE: O+C - preserve existing free-offer settings when upgrading from a provider that did not expose this field.
+			Computed: true,
+		}
+	}
+
+	return s
 }

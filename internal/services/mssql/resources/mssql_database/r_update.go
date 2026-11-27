@@ -284,6 +284,16 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 		props.LongTermRetentionBackupResourceId = pointer.To(d.Get("restore_long_term_retention_backup_id").(string))
 	}
 
+	if d.HasChange("free_limit_enabled") {
+		props.UseFreeLimit = pointer.To(d.Get("free_limit_enabled").(bool))
+	}
+
+	if d.HasChange("free_limit_exhaustion_behavior") {
+		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+			props.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
+		}
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}

@@ -87,6 +87,9 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 				skuName = *props.CurrentServiceObjectiveName
 			}
 
+			d.Set("free_limit_enabled", pointer.From(props.UseFreeLimit))
+			d.Set("free_limit_exhaustion_behavior", pointer.FromEnum(props.FreeLimitExhaustionBehavior))
+
 			if props.IsLedgerOn != nil {
 				ledgerEnabled = *props.IsLedgerOn
 			}
@@ -132,11 +135,15 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		// Determine whether the SKU is for SQL Data Warehouse
 		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-		// Determine whether the SKU is for SQL Database Free tier
-		isFreeSku := strings.EqualFold(skuName, "free")
+		// BillOverUsage free-offer databases support normal backup retention policies, whereas AutoPause free-offer databases do not.
+		isAutoPauseFreeDatabase := model.Properties != nil && pointer.From(model.Properties.FreeLimitExhaustionBehavior) == databases.FreeLimitExhaustionBehaviorAutoPause
+		// Databases created with the retired `Free` SKU may still exist.
+		if strings.EqualFold(skuName, "free") {
+			isAutoPauseFreeDatabase = true
+		}
 
-		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
-		if !isDwSku && !isFreeSku {
+		// DW SKUs and AutoPause free-offer databases do not currently support LRP and do not honour normal SRP operations
+		if !isDwSku && !isAutoPauseFreeDatabase {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -159,7 +166,6 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 				}
 			}
 		} else {
-			// DW SKUs and SQL Database Free tier need the retention policies to be empty for state consistency
 			emptySlice := make([]any, 0)
 			d.Set("long_term_retention_policy", emptySlice)
 			d.Set("short_term_retention_policy", emptySlice)
@@ -174,9 +180,9 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 			}
 
-			// For Datawarehouse SKUs and SQL Database Free tier, set the geo-backup policy setting
+			// For Datawarehouse and AutoPause free-offer databases, set the geo-backup policy setting.
 			if geoPolicyModel := geoPoliciesResponse.Model; geoPolicyModel != nil {
-				if (isDwSku || isFreeSku) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+				if (isDwSku || isAutoPauseFreeDatabase) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}

@@ -48,6 +48,18 @@ func RegisterResource() *pluginsdk.Resource {
 		Schema: resourceMsSqlDatabaseSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIf("free_limit_enabled", func(ctx context.Context, d *schema.ResourceDiff, _ any) bool {
+				// An existing database cannot be converted to the free tier.
+				old, new := d.GetChange("free_limit_enabled")
+				return d.Id() != "" && !old.(bool) && new.(bool)
+			}),
+			pluginsdk.ForceNewIf("free_limit_exhaustion_behavior", func(ctx context.Context, d *schema.ResourceDiff, _ any) bool {
+				// Switching from BillOverUsage back to AutoPause is rejected by the API while the free offer remains enabled.
+				old, new := d.GetChange("free_limit_exhaustion_behavior")
+				return d.Id() != "" && d.Get("free_limit_enabled").(bool) &&
+					old.(string) == string(databases.FreeLimitExhaustionBehaviorBillOverUsage) &&
+					new.(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause)
+			}),
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ any) bool {
 				// hyperscale can not be changed to another sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
@@ -110,6 +122,47 @@ func RegisterResource() *pluginsdk.Resource {
 						}
 					}
 				}
+				return nil
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+				raw := d.GetRawConfig()
+				if raw.IsNull() || !raw.IsKnown() {
+					return nil
+				}
+				rawConfig := raw.AsValueMap()
+
+				behaviorVal, hasBehavior := rawConfig["free_limit_exhaustion_behavior"]
+				behaviorSet := hasBehavior && behaviorVal.IsKnown() && !behaviorVal.IsNull()
+
+				enabledVal, hasEnabled := rawConfig["free_limit_enabled"]
+				if hasEnabled && !enabledVal.IsKnown() {
+					return nil
+				}
+				useFreeLimit := d.Get("free_limit_enabled").(bool)
+
+				if behaviorSet && !useFreeLimit {
+					return errors.New("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`")
+				}
+
+				if useFreeLimit {
+					if hasBehavior && !behaviorVal.IsKnown() {
+						return nil
+					}
+					storageVal, hasStorage := rawConfig["storage_account_type"]
+					if hasStorage && !storageVal.IsKnown() {
+						return nil
+					}
+
+					behavior := d.Get("free_limit_exhaustion_behavior").(string)
+					if behavior == "" {
+						// Azure defaults to `AutoPause` when omitted.
+						behavior = string(databases.FreeLimitExhaustionBehaviorAutoPause)
+					}
+					if behavior == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
+						return errors.New("`storage_account_type` must be `Local` when `free_limit_enabled` is `true` and `free_limit_exhaustion_behavior` is `AutoPause`")
+					}
+				}
+
 				return nil
 			},
 		),
