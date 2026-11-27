@@ -33,6 +33,15 @@ func dataProtectionBackupPolicyBlobStorageSchema() map[string]*pluginsdk.Schema 
 			ValidateFunc: basebackuppolicyresources.ValidateBackupVaultID,
 		},
 
+		"time_zone": {
+			Description:  "The Time Zone which should be used by the backup schedule.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"backup_repeating_time_intervals"},
+		},
+
 		"backup_repeating_time_intervals": {
 			Description: "A list of repeating time interval. It should follow `ISO 8601` repeating time interval.",
 			Type:        schema.TypeList,
@@ -42,6 +51,7 @@ func dataProtectionBackupPolicyBlobStorageSchema() map[string]*pluginsdk.Schema 
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			RequiredWith: []string{"vault_default_retention_duration"},
 		},
 
 		"operational_default_retention_duration": {
@@ -51,14 +61,6 @@ func dataProtectionBackupPolicyBlobStorageSchema() map[string]*pluginsdk.Schema 
 			ForceNew:     true,
 			ValidateFunc: validation.ISO8601Duration,
 			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
-		},
-
-		"time_zone": {
-			Description:  "The Time Zone which should be used by the backup schedule.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"vault_default_retention_duration": {
