@@ -31,12 +31,14 @@ var _ sdk.DataSource = DataSource{}
 func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NGINX Dataplane API Key.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"nginx_deployment_id": {
+			Description:  "The ID of the NGINX Deployment that the API key is associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
@@ -47,13 +49,15 @@ func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"end_date_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The RFC3339 formatted time after which this Dataplane API Key is no longer valid.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"hint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The first three characters of the secret text to help identify it in use.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -64,6 +68,10 @@ func (m DataSource) ModelObject() any {
 
 func (m DataSource) ResourceType() string {
 	return "azurerm_nginx_api_key"
+}
+
+func (m DataSource) Description() string {
+	return "Use this data source to access information about an existing NGINX Dataplane API Key."
 }
 
 func (m DataSource) Read() sdk.ResourceFunc {

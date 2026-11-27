@@ -33,13 +33,13 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"shape": {
-			Description:  "Filter the versions by system shape.",
+			Description:  "The model name of the Cloud Exadata Infrastructure resource. This is used to filter out the available GI versions compatible with the given model.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(giversions.PossibleValuesForSystemShapes(), false),
 		},
 		"zone": {
-			Description: "Filter the versions by zone.",
+			Description: "The Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 		},
@@ -49,8 +49,9 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"versions": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of valid GI software versions.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -64,6 +65,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_gi_versions"
+}
+
+func (d DataSource) Description() string {
+	return "This data source provides the list of GI Versions in Oracle Cloud Infrastructure Database service."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

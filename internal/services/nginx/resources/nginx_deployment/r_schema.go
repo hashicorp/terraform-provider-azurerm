@@ -22,6 +22,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
+			Description:  "The name which should be used for this NGINX Deployment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +30,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
+			Description: "The NGINX Deployment SKU.",
 			// docs: <https://docs.nginx.com/nginxaas/azure/billing/overview/>
 			// we will not be forcing validation of SKU as there are internal SKUs
 			// used for testing and for F5 NGINX private offers
@@ -42,6 +44,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"capacity": {
+			Description:   "The number of NGINX capacity units for this NGINX deployment.",
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ValidateFunc:  validation.IntPositive,
@@ -55,18 +58,21 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the autoscaling profile.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"min_capacity": {
+						Description:  "The minimum number of NGINX capacity units for this NGINX Deployment.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntPositive,
 					},
 
 					"max_capacity": {
+						Description:  "The maximum number of NGINX capacity units for this NGINX Deployment.",
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntPositive,
@@ -76,6 +82,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"email": {
+			Description:  "The preferred support contact email address for receiving alerts and notifications.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -89,8 +96,9 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of Public IP Resource IDs for this NGINX Deployment.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -107,19 +115,22 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The private IP Address.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 
 					"allocation_method": {
+						Description:  "The method for allocating the private IP.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The Subnet Resource ID for this NGINX Deployment.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
@@ -131,17 +142,19 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The Subnet Resource ID for this NGINX Deployment.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
 		},
 
 		"automatic_upgrade_channel": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "stable",
+			Description: "The automatic upgrade channel for the NGINX deployment.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "stable",
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					"stable",
@@ -157,8 +170,9 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"activation_state_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Description: "Whether WAF is enabled/disabled for this NGINX Deployment.",
+						Type:        pluginsdk.TypeBool,
+						Required:    true,
 					},
 					"status": {
 						Type:     pluginsdk.TypeList,
@@ -183,17 +197,20 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 func (m Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"nginx_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The version of the NGINX Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The IP address of the NGINX Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"dataplane_api_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The dataplane API endpoint of the NGINX Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"monitor_id": {
+			Description:  "The ID of the New Relic Monitor this Tag Rule should be created within.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,15 +21,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"azure_active_directory_log_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether Azure Active Directory logs should be sent for the Monitor resource.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"activity_log_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether activity logs from Azure resources should be sent for the Monitor resource.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"log_tag_filter": {
@@ -37,29 +40,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name (also known as the key) of the tag.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"action": {
+						Description:  "Valid actions for a filtering tag. Exclusion takes priority over inclusion.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 					},
 
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The value of the tag.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
 		},
 
 		"metric_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether metrics should be sent for the Monitor resource.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"metric_tag_filter": {
@@ -68,29 +75,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name (also known as the key) of the tag.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"action": {
+						Description:  "Valid actions for a filtering tag. Exclusion takes priority over inclusion.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 					},
 
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The value of the tag.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
 		},
 
 		"subscription_log_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether subscription logs should be sent for the Monitor resource.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }

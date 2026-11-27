@@ -46,29 +46,34 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 		// Optional filters
 
 		"database_software_image_supported": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to filter the results to the set of Oracle Database versions that are supported for the database software images.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 		"database_system_shape": {
+			Description:   "If provided, filters the results to the set of database versions which are supported for the given shape.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  validation.StringInSlice(dbversions.PossibleValuesForBaseDbSystemShapes(), false),
 			ConflictsWith: []string{"shape_family"},
 		},
 		"shape_family": {
+			Description:   "If provided, filters the results to the set of database versions which are supported for the given shape family.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  validation.StringInSlice(dbversions.PossibleValuesForShapeFamilyType(), false),
 			ConflictsWith: []string{"database_system_shape"},
 		},
 		"storage_management": {
+			Description:  "The database system storage management option. Used to list database versions available for that storage manager.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForStorageManagementType(), false),
 		},
 		"upgrade_supported": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Whether to filter the results to the set of database versions which are supported for upgrade.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 	}
 }
@@ -82,20 +87,24 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the Oracle Database version.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"latest_version": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether this version of the Oracle Database software is the latest version for a release.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"pluggable_database_supported": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether this version of the Oracle Database software supports pluggable databases.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The value of the Oracle Database version.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -109,6 +118,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_database_system_versions"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about existing Oracle Database Systems Versions."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

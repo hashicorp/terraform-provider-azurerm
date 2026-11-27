@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceLocalNetworkGatewayRead,
+		Description: "Use this data source to access information about an existing Local Network Gateway.",
+		Read:        dataSourceLocalNetworkGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,8 +28,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the Local Network Gateway.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -36,18 +38,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"gateway_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The gateway IP address the Local Network Gateway uses.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"gateway_fqdn": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The gateway FQDN the Local Network Gateway uses.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"address_space": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Description: "The list of string CIDRs representing the address spaces the gateway exposes.",
+				Type:        pluginsdk.TypeList,
+				Computed:    true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -59,18 +64,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The BGP speaker's ASN.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"bgp_peering_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The BGP peering address and BGP identifier of this BGP speaker.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"peer_weight": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The weight added to routes learned from this BGP speaker.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},

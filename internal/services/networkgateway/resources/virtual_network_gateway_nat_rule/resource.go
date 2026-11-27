@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkGatewayNatRuleCreate,
-		Read:   resourceVirtualNetworkGatewayNatRuleRead,
-		Update: resourceVirtualNetworkGatewayNatRuleUpdate,
-		Delete: resourceVirtualNetworkGatewayNatRuleDelete,
+		Description: "Manages a Virtual Network Gateway NAT Rule.",
+		Create:      resourceVirtualNetworkGatewayNatRuleCreate,
+		Read:        resourceVirtualNetworkGatewayNatRuleRead,
+		Update:      resourceVirtualNetworkGatewayNatRuleUpdate,
+		Delete:      resourceVirtualNetworkGatewayNatRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

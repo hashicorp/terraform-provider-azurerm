@@ -16,6 +16,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"name": {
+			Description:  "The name which should be used for this Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,6 +27,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Required
 		"compute_count": {
+			Description:  "The number of compute servers for the Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"database_server_type": {
+			Description:  "The database server model type of the cloud Exadata infrastructure resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -41,6 +44,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
+			Description:  "The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -48,12 +52,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"shape": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The shape of the ODB@A infrastructure resource.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"storage_count": {
+			Description:  "The number of storage servers for the Cloud Exadata Infrastructure.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
@@ -62,10 +68,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Optional
 		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true,
+			Description: "The email address used by Oracle to send notifications regarding databases and infrastructure.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -79,10 +86,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days_of_week": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "Days during the week when maintenance should be performed.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.DaysOfWeek,
@@ -90,10 +98,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"hours_of_day": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "The window of hours during the day when maintenance should be performed. The window is a 4 hour slot.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validate.HoursOfDay,
@@ -101,6 +110,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"lead_time_in_weeks": {
+						Description:  "Lead time window allows user to set a lead time to prepare for a down time. The lead time is in weeks.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -109,10 +119,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"months": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "Months during the year when maintenance should be performed.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.Month,
@@ -120,6 +131,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"patching_mode": {
+						Description:  "Cloud Exadata Infrastructure node patching method, either `ROLLING` or `NONROLLING`. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -128,6 +140,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"preference": {
+						Description:  "The maintenance window scheduling preference.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -136,10 +149,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"weeks_of_month": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true, // azignore:AZS007 - pre-existing violation
-						ForceNew: true,
+						Description: "Weeks during the month when maintenance should be performed. Weeks start on the 1st, 8th, 15th, and 22nd days of the month, and have a duration of 7 days. Weeks start and end based on calendar dates, not days of the week. For example, to allow maintenance during the 2nd week of the month (from the 8th day to the 14th day of the month), use the value 2. Maintenance cannot be scheduled for the fifth week of months that contain more than 28 days. This parameter works in conjunction with the daysOfWeek and hoursOfDay parameters to allow you to specify specific days of the week and hours that maintenance will be performed.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
+						ForceNew:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validation.IntBetween(1, 4),
@@ -150,6 +164,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_server_type": {
+			Description:  "The storage server model type of the cloud Exadata infrastructure resource.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation

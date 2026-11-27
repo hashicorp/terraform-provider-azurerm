@@ -37,12 +37,14 @@ var _ sdk.DataSource = DataSource{}
 func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the NGINX Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"nginx_deployment_id": {
+			Description:  "The ID of the NGINX Deployment that the certificate is associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
@@ -53,43 +55,51 @@ func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"key_virtual_path": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The path to the key file of the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"certificate_virtual_path": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The path to the certificate file of the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"key_vault_secret_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Key Vault Secret for the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"sha1_thumbprint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SHA-1 thumbprint of the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"key_vault_secret_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The version of the certificate.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"key_vault_secret_creation_date": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date/time the certificate was created in Azure Key Vault.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"error_code": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The error code of the certificate error, if any.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"error_message": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The error message of the certificate error, if any.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -100,6 +110,10 @@ func (m DataSource) ModelObject() any {
 
 func (m DataSource) ResourceType() string {
 	return "azurerm_nginx_certificate"
+}
+
+func (m DataSource) Description() string {
+	return "Use this data source to access information about an existing NGINX Certificate."
 }
 
 func (m DataSource) Read() sdk.ResourceFunc {

@@ -47,6 +47,7 @@ func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
+			Description:  "The name of this NGINX Deployment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -57,27 +58,31 @@ func (m DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"nginx_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "NGINX version of the Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dataplane_api_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The dataplane API endpoint of the NGINX Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The NGINX Deployment SKU.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
 
 		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of NGINX capacity units for this NGINX Deployment.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"auto_scale_profile": {
@@ -86,31 +91,36 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Name of the autoscaling profile.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"min_capacity": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The minimum number of NGINX capacity units for this NGINX Deployment.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"max_capacity": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The maximum number of NGINX capacity units for this NGINX Deployment.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"email": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Preferred email associated with the NGINX Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ip_address": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The IP address of the NGINX Deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"frontend_public": {
@@ -119,8 +129,9 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The list of Public IP Resource IDs for this NGINX Deployment.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -135,18 +146,21 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Private IP address of the NGINX Deployment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"allocation_method": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The method of allocating the private IP to the NGINX Deployment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The subnet ID of the NGINX Deployment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -158,16 +172,18 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The subnet resource ID of the NGINX Deployment.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"automatic_upgrade_channel": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The automatic upgrade channel for this NGINX deployment.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"web_application_firewall": {
@@ -176,8 +192,9 @@ func (m DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"activation_state_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether WAF is enabled/disabled for this NGINX Deployment.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"status": {
 						Type:     pluginsdk.TypeList,
@@ -225,12 +242,14 @@ func webApplicationFirewallComponentVersionsComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"waf_engine_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The version of the WAF Engine.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 				"waf_nginx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The version of the WAF Nginx module.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},
@@ -243,6 +262,10 @@ func (m DataSource) ModelObject() any {
 
 func (m DataSource) ResourceType() string {
 	return "azurerm_nginx_deployment"
+}
+
+func (m DataSource) Description() string {
+	return "Use this data source to access information about an existing NGINX Deployment."
 }
 
 func (m DataSource) Read() sdk.ResourceFunc {

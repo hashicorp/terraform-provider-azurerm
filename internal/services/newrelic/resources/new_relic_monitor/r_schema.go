@@ -16,9 +16,10 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name which should be used for this Azure Native New Relic Monitor.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[\w\-]{1,32}$`),
 				`name must be between 1 and 32 characters in length and may contain only letters, numbers, hyphens and underscores`,
@@ -37,6 +38,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"effective_date": {
+						Description:      "The date when plan was applied.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ForceNew:         true,
@@ -46,10 +48,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 					// Enum is removed https://github.com/Azure/azure-rest-api-specs/issues/31093
 					"billing_cycle": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  "MONTHLY",
+						Description: "The billing cycles.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     "MONTHLY",
 						ValidateFunc: validation.StringInSlice([]string{
 							"MONTHLY",
 							"WEEKLY",
@@ -58,16 +61,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"plan_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  "newrelic-pay-as-you-go-free-live",
+						Description: "The plan ID published by NewRelic.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Default:     "newrelic-pay-as-you-go-free-live",
 						ValidateFunc: validation.StringInSlice([]string{
 							"newrelic-pay-as-you-go-free-live",
 						}, false),
 					},
 
 					"usage_type": {
+						Description:  "The usage type.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -86,6 +91,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
+						Description:  "The user Email.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -93,6 +99,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"first_name": {
+						Description:  "The first name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -100,6 +107,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"last_name": {
+						Description:  "The last name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -107,6 +115,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"phone_number": {
+						Description:  "The contact phone number.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -117,6 +126,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"account_creation_source": {
+			Description:  "The source of account creation.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -125,6 +135,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"account_id": {
+			Description:  "The account ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -135,6 +146,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedIdentityOptionalForceNew(),
 
 		"ingestion_key": {
+			Description:  "The ingestion key of account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -143,6 +155,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"organization_id": {
+			Description:  "The organization ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -151,6 +164,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"org_creation_source": {
+			Description:  "The source of org creation.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -159,6 +173,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"user_id": {
+			Description:  "The user ID.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

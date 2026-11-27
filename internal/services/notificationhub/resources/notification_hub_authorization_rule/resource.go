@@ -17,10 +17,11 @@ var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNotificationHubAuthorizationRuleCreateUpdate,
-		Read:   resourceNotificationHubAuthorizationRuleRead,
-		Update: resourceNotificationHubAuthorizationRuleCreateUpdate,
-		Delete: resourceNotificationHubAuthorizationRuleDelete,
+		Description: "Manages an Authorization Rule associated with a Notification Hub within a Notification Hub Namespace.",
+		Create:      resourceNotificationHubAuthorizationRuleCreateUpdate,
+		Read:        resourceNotificationHubAuthorizationRuleRead,
+		Update:      resourceNotificationHubAuthorizationRuleCreateUpdate,
+		Delete:      resourceNotificationHubAuthorizationRuleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := hubs.ParseNotificationHubAuthorizationRuleID(id)
 			return err

@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_resource_anchor"
 }
 
+func (Resource) Description() string {
+	return "Manages an Oracle Resource Anchor."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return resourceanchors.ValidateResourceAnchorID
 }

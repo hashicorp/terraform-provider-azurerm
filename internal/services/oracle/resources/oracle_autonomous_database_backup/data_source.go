@@ -47,6 +47,7 @@ type AutonomousDatabaseBackupDataModel struct {
 func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"autonomous_database_id": {
+			Description:  "The azureId of the Autonomous Database for which we will be listing the backups.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
@@ -62,12 +63,14 @@ func (a DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (a DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the Autonomous Database Backup.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The user-friendly name of the backup.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": {
@@ -81,18 +84,21 @@ func (a DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_period_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The retention period in days for the Autonomous Database Backup.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"autonomous_database_ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The OCID of the Autonomous Database OCID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"autonomous_database_backup_ocid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The backup OCID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"database_backup_size_in_tbs": {
@@ -116,33 +122,39 @@ func (a DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"lifecycle_details": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Information about the current lifecycle state of the backup.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"lifecycle_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current state of the backup.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current provisioning state of the Autonomous Database Backup.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_available_til": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date and time the backup will become unusable.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_ended": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date and time the backup was completed.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"time_started": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The date and time the backup started.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -153,6 +165,10 @@ func (a DataSource) ModelObject() any {
 
 func (a DataSource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database_backup"
+}
+
+func (a DataSource) Description() string {
+	return "Use this data source to access information about existing Autonomous Database Backups."
 }
 
 func (a DataSource) Read() sdk.ResourceFunc {

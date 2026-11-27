@@ -21,7 +21,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceVirtualNetworkGatewayRead,
+		Description: "Use this data source to access information about an existing Virtual Network Gateway.",
+		Read:        dataSourceVirtualNetworkGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,6 +30,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				Description:  "The name of the Virtual Network Gateway.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -39,38 +41,45 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the Virtual Network Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"vpn_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The routing type of the Virtual Network Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"bgp_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"private_ip_address_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether a private IP will be used for this gateway for connections.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"active_active": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether this is an Active-Active Gateway.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Configuration of the size and capacity of the Virtual Network Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"generation": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Generation of the Virtual Network Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"ip_configuration": {
@@ -79,33 +88,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The resource ID of the IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "A user-defined name of the IP configuration.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "How the private IP address of the gateway's virtual interface is assigned.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the gateway subnet of a Virtual Network in which the Virtual Network Gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each Virtual Network can contain at most a single Virtual Network Gateway.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The Private IP Address associated with the Virtual Network Gateway.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The ID of the Public IP Address associated with the Virtual Network Gateway.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 					},
 				},
@@ -117,49 +132,57 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"address_space": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "The address space out of which IP addresses for VPN clients will be taken. You can provide more than one address space, e.g. in CIDR notation.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"aad_tenant": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "AzureAD Tenant URL. This setting is incompatible with the use of `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"aad_audience": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The client ID of the Azure VPN application. See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://learn.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values. This setting is incompatible with the use of `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"aad_issuer": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The STS URL for your tenant. This setting is incompatible with the use of `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"root_certificate": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "These root certificates are used to sign the client certificate used by the VPN clients to connect to the gateway. This setting is incompatible with the use of `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The user-defined name of the root certificate.",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 
 									"public_cert_data": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Description: "The public certificate of the root certificate authority. The certificate must be provided in Base-64 encoded X.509 format (PEM).",
+										Type:        pluginsdk.TypeString,
+										Computed:    true,
 									},
 								},
 							},
 						},
 
 						"revoked_certificate": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Description: "This setting is incompatible with the use of `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.",
+							Type:        pluginsdk.TypeList,
+							Computed:    true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -176,18 +199,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 						},
 
 						"radius_server_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The address of the Radius server. This setting is incompatible with the use of `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"radius_server_secret": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The secret used by the Radius server. This setting is incompatible with the use of `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"vpn_client_protocols": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "List of the protocols supported by the VPN client.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -202,18 +228,21 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The Autonomous System Number (ASN) to use as part of the BGP.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 
 						"peering_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The BGP peer IP address of the Virtual Network Gateway. This address is needed to configure the created gateway as a BGP Peer on the on-premises VPN devices.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 
 						"peer_weight": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
+							Description: "The weight added to routes which have been learned through BGP peering.",
+							Type:        pluginsdk.TypeInt,
+							Computed:    true,
 						},
 					},
 				},
@@ -225,8 +254,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
+							Description: "A list of address blocks reserved for this Virtual Network in CIDR notation.",
+							Type:        pluginsdk.TypeSet,
+							Computed:    true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -236,8 +266,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"default_local_network_gateway_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the Local Network Gateway through which outbound Internet traffic from the Virtual Network in which the gateway is created will be routed (*forced tunneling*). Refer to the [Azure documentation on forced tunneling](https://learn.microsoft.com/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"tags": commonschema.TagsDataSource(),

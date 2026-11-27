@@ -53,6 +53,7 @@ type DBNodeDataModel struct {
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cloud_vm_cluster_id": {
+			Description:  "The ID of the Cloud VM cluster.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: cloudvmclusters.ValidateCloudVMClusterID,
@@ -68,13 +69,15 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"additional_details": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Additional information about the planned maintenance.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"backup_ip_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the backup IP address associated with the database node. Use this OCID with either the [GetPrivateIp](https://docs.cloud.oracle.com/iaas/api/#/en/iaas/20160918/PrivateIp/GetPrivateIp) or the [GetPublicIpByPrivateIpId](https://docs.cloud.oracle.com/iaas/api/#/en/iaas/20160918/PublicIp/GetPublicIpByPrivateIpId) API to get the IP address needed to make a database connection.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"backup_vnic_2_id": {
@@ -83,38 +86,45 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"backup_vnic_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the backup VNIC.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"cpu_core_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The number of CPU cores enabled on the DB node.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"db_node_storage_size_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The allocated local node storage in GBs on the DB node.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"db_server_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the ExaCC DB server associated with the database node.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"db_system_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the DB system.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"fault_domain": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the Fault Domain the instance is contained in.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"host_ip_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the host IP address associated with the database node. Use this OCID with either the [GetPrivateIp](https://docs.cloud.oracle.com/iaas/api/#/en/iaas/20160918/PrivateIp/GetPrivateIp) or the [GetPublicIpByPrivateIpId](https://docs.cloud.oracle.com/iaas/api/#/en/iaas/20160918/PublicIp/GetPublicIpByPrivateIpId) API to get the IP address needed to make a database connection.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"hostname": {
@@ -123,48 +133,57 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"lifecycle_details": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Information about the current lifecycle details.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"lifecycle_state": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Information about the current lifecycle state.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"maintenance_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type of database node maintenance.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"memory_size_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The allocated memory in GBs on the DB Node.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"ocid": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DB node.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"software_storage_size_in_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
+						Description: "The size (in GB) of the block storage volume allocation for the DB system. This attribute applies only for Virtual Machine DB systems.",
+						Type:        pluginsdk.TypeInt,
+						Computed:    true,
 					},
 
 					"time_created": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The date and time that the DB node was created.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"time_maintenance_window_end": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "End date and time of maintenance window.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"time_maintenance_window_start": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "Start date and time of maintenance window.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"vnic_2_id": {
@@ -173,8 +192,9 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"vnic_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the VNIC.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -188,6 +208,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_db_nodes"
+}
+
+func (d DataSource) Description() string {
+	return "Lists the database nodes for the specified Cloud VM Cluster."
 }
 
 func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

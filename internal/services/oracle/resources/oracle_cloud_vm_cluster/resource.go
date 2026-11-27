@@ -17,6 +17,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_cloud_vm_cluster"
 }
 
+func (Resource) Description() string {
+	return "Manages a Cloud VM Cluster."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cloudvmclusters.ValidateCloudVMClusterID
 }

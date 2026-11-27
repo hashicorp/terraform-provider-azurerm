@@ -20,6 +20,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database_cross_region_disaster_recovery"
 }
 
+func (Resource) Description() string {
+	return "Manages a Cross Region Disaster Recovery Autonomous Database."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
 }
