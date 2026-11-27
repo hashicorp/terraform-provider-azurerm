@@ -5,6 +5,7 @@ package marketplace_role_assignment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -53,7 +54,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			if roleDefinitionId == "" {
-				return fmt.Errorf("either 'role_definition_id' or 'role_definition_name' needs to be set")
+				return errors.New("either 'role_definition_id' or 'role_definition_name' needs to be set")
 			}
 
 			metadata.ResourceData.Set("role_definition_id", roleDefinitionId)

@@ -12,12 +12,14 @@ import (
 func logicAppTriggerCustomSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the HTTP Trigger to be created within the Logic App Workflow.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 		},
 
 		"logic_app_id": {
+			Description:  "The ID of the Logic App Workflow.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,14 +27,16 @@ func logicAppTriggerCustomSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"body": {
+			Description:      "The JSON Blob defining the Body of this Custom Trigger.",
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 		"callback_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The URL of the Trigger within the Logic App Workflow. For use with certain resources like [monitor_action_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_action_group) and [security_center_automation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/security_center_automation).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

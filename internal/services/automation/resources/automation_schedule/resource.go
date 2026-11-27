@@ -5,7 +5,7 @@ package automation_schedule
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationScheduleCreate,
-		Read:   resourceAutomationScheduleRead,
-		Update: resourceAutomationScheduleUpdate,
-		Delete: resourceAutomationScheduleDelete,
+		Description: "Manages an Automation Schedule.",
+		Create:      resourceAutomationScheduleCreate,
+		Read:        resourceAutomationScheduleRead,
+		Update:      resourceAutomationScheduleUpdate,
+		Delete:      resourceAutomationScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schedule.ParseScheduleID(id)
@@ -46,30 +47,30 @@ func RegisterResource() *pluginsdk.Resource {
 				// have to check it in raw config
 				intervalVal := diff.GetRawConfig().GetAttr("interval")
 				if !intervalVal.IsNull() {
-					return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+					return errors.New("`interval` cannot be set when frequency is `OneTime`")
 				}
 			}
 
 			if frequency == "minute" && interval.(int) < 15 {
 				intervalVal := diff.GetRawConfig().GetAttr("interval")
 				if intervalVal.IsKnown() {
-					return fmt.Errorf("`interval` must be set to at least `15` when frequency is `Minute`")
+					return errors.New("`interval` must be set to at least `15` when frequency is `Minute`")
 				}
 			}
 
 			_, hasWeekDays := diff.GetOk("week_days")
 			if hasWeekDays && frequency != "week" {
-				return fmt.Errorf("`week_days` can only be set when frequency is `Week`")
+				return errors.New("`week_days` can only be set when frequency is `Week`")
 			}
 
 			_, hasMonthDays := diff.GetOk("month_days")
 			if hasMonthDays && frequency != "month" {
-				return fmt.Errorf("`month_days` can only be set when frequency is `Month`")
+				return errors.New("`month_days` can only be set when frequency is `Month`")
 			}
 
 			_, hasMonthlyOccurrences := diff.GetOk("monthly_occurrence")
 			if hasMonthlyOccurrences && frequency != "month" {
-				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
+				return errors.New("`monthly_occurrence` can only be set when frequency is `Month`")
 			}
 
 			return nil

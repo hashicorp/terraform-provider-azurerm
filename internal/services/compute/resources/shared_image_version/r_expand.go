@@ -4,7 +4,7 @@
 package shared_image_version
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
@@ -33,7 +33,7 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 
 		if diskEncryptionSetId != "" {
 			if d.Get("replication_mode").(string) == string(galleryimageversions.ReplicationModeShallow) {
-				return nil, fmt.Errorf("`disk_encryption_set_id` cannot be used when `replication_mode` is `Shallow`")
+				return nil, errors.New("`disk_encryption_set_id` cannot be used when `replication_mode` is `Shallow`")
 			}
 
 			output.Encryption = &galleryimageversions.EncryptionImages{

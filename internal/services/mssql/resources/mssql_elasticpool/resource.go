@@ -19,10 +19,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlElasticPoolCreateUpdate,
-		Read:   resourceMsSqlElasticPoolRead,
-		Update: resourceMsSqlElasticPoolCreateUpdate,
-		Delete: resourceMsSqlElasticPoolDelete,
+		Description: "Allows you to manage an Azure SQL Elastic Pool.",
+		Create:      resourceMsSqlElasticPoolCreateUpdate,
+		Read:        resourceMsSqlElasticPoolRead,
+		Update:      resourceMsSqlElasticPoolCreateUpdate,
+		Delete:      resourceMsSqlElasticPoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SqlElasticPoolId{}),
 

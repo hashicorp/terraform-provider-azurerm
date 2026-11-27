@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryPipelineCreateUpdate,
-		Read:   resourceDataFactoryPipelineRead,
-		Update: resourceDataFactoryPipelineCreateUpdate,
-		Delete: resourceDataFactoryPipelineDelete,
+		Description: "Manages a Pipeline inside an Azure Data Factory.",
+		Create:      resourceDataFactoryPipelineCreateUpdate,
+		Read:        resourceDataFactoryPipelineRead,
+		Update:      resourceDataFactoryPipelineCreateUpdate,
+		Delete:      resourceDataFactoryPipelineDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := pipelines.ParsePipelineID(id)

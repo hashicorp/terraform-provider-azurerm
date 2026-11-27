@@ -4,6 +4,7 @@
 package site_recovery_replication_policy
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
@@ -27,7 +28,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 	recoveryPoint := int64(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsistency := int64(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
 	if appConsistency > recoveryPoint {
-		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
+		return errors.New("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 	}
 
 	parameters := replicationpolicies.UpdatePolicyInput{

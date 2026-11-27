@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -55,7 +56,7 @@ func VirtualMachineGalleryApplicationAssignmentID(input string) (VirtualMachineG
 	}
 
 	if virtualMachineId == nil || galleryApplicationVersionId == nil {
-		return VirtualMachineGalleryApplicationAssignmentId{}, fmt.Errorf("parse error, both VirtualMachineId and GalleryApplicationVersionId should not be nil")
+		return VirtualMachineGalleryApplicationAssignmentId{}, errors.New("parse error, both VirtualMachineId and GalleryApplicationVersionId should not be nil")
 	}
 
 	return VirtualMachineGalleryApplicationAssignmentId{

@@ -112,14 +112,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol_ports": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MinItems:     1,
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.ProtocolWithPort,
 			},
-			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
 		"source": schema.SourceSchema(),

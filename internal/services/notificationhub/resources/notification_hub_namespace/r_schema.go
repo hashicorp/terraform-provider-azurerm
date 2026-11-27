@@ -46,8 +46,8 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 		"zone_redundancy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"replication_region": {

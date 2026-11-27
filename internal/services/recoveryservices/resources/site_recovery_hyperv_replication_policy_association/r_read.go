@@ -5,6 +5,7 @@ package site_recovery_hyperv_replication_policy_association
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -74,7 +75,7 @@ func fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx context.
 	}
 
 	if resp.Items[0].Id == nil {
-		return "", fmt.Errorf("container id is nil")
+		return "", errors.New("container id is nil")
 	}
 
 	return helpers.HandleAzureSdkForGoBug2824(*resp.Items[0].Id), nil

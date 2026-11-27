@@ -5,6 +5,7 @@ package role_definition
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -95,17 +96,17 @@ func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client *rolede
 			return resp, "Failed", err
 		}
 		if resp.Model == nil {
-			return resp, "Failed", fmt.Errorf("`model` was nil")
+			return resp, "Failed", errors.New("`model` was nil")
 		}
 		if resp.Model.Properties == nil {
-			return resp, "Failed", fmt.Errorf("`properties` was nil")
+			return resp, "Failed", errors.New("`properties` was nil")
 		}
 		if resp.Model.Properties.CreatedOn == nil {
-			return resp, "Failed", fmt.Errorf("`properties.CreatedOn` was nil")
+			return resp, "Failed", errors.New("`properties.CreatedOn` was nil")
 		}
 
 		if resp.Model.Properties.UpdatedOn == nil {
-			return resp, "Failed", fmt.Errorf("`properties.UpdatedOn` was nil")
+			return resp, "Failed", errors.New("`properties.UpdatedOn` was nil")
 		}
 
 		updateRequestTime, err := time.Parse(time.RFC3339, updateRequestDate)

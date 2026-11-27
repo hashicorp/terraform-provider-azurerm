@@ -5,6 +5,7 @@ package managedhsm_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -44,7 +45,7 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(t *testing
 func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := client.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
-		return nil, fmt.Errorf("this Environment doesn't specify the Domain Suffix for Managed HSM")
+		return nil, errors.New("this Environment doesn't specify the Domain Suffix for Managed HSM")
 	}
 	id, err := parse.ManagedHSMDataPlaneRoleDefinitionID(state.ID, domainSuffix)
 	if err != nil {

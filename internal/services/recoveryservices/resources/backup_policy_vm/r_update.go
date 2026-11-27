@@ -5,6 +5,7 @@ package backup_policy_vm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -58,7 +59,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta any)
 	if d.HasChange("instant_restore_retention_days") {
 		days := d.Get("instant_restore_retention_days").(int)
 		if properties.PolicyType != nil && protectionpolicies.IAASVMPolicyTypeVOne == *properties.PolicyType && days > 5 {
-			return fmt.Errorf("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
+			return errors.New("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
 		}
 
 		properties.InstantRpRetentionRangeInDays = pointer.To(int64(days))

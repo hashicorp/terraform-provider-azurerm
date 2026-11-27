@@ -5,6 +5,7 @@ package lb_nat_pool_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -177,13 +178,13 @@ func (r LoadBalancerNatPool) Destroy(ctx context.Context, client *clients.Client
 		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 	if lb.Model == nil {
-		return nil, fmt.Errorf("`model` was nil")
+		return nil, errors.New("`model` was nil")
 	}
 	if lb.Model.Properties == nil {
-		return nil, fmt.Errorf("`properties` was nil")
+		return nil, errors.New("`properties` was nil")
 	}
 	if lb.Model.Properties.InboundNatPools == nil {
-		return nil, fmt.Errorf("`properties.InboundNatPools` was nil")
+		return nil, errors.New("`properties.InboundNatPools` was nil")
 	}
 
 	inboundNatPools := make([]loadbalancers.InboundNatPool, 0)

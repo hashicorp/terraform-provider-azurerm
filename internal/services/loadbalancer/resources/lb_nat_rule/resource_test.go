@@ -5,6 +5,7 @@ package lb_nat_rule_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -259,13 +260,13 @@ func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client
 		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 	if lb.Model == nil {
-		return nil, fmt.Errorf("`model` was nil")
+		return nil, errors.New("`model` was nil")
 	}
 	if lb.Model.Properties == nil {
-		return nil, fmt.Errorf("`properties` was nil")
+		return nil, errors.New("`properties` was nil")
 	}
 	if lb.Model.Properties.InboundNatRules == nil {
-		return nil, fmt.Errorf("`properties.InboundNatRules` was nil")
+		return nil, errors.New("`properties.InboundNatRules` was nil")
 	}
 
 	inboundNatRules := make([]loadbalancers.InboundNatRule, 0)

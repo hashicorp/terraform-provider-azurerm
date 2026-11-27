@@ -20,47 +20,53 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the API Management Workspace API Version Set.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
 				"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
 			),
 		},
 
-		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}, "API Management Workspace"),
 
 		"display_name": {
+			Description:  "The display name of the API Management Workspace API Version Set.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"versioning_scheme": {
+			Description:  "Where in a request that the API Version should be read from.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(apiversionset.PossibleValuesForVersioningScheme(), false),
 		},
 
 		"description": {
+			Description:  "The description of the API Management Workspace API Version Set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"version_header_name": {
+			Description:   "The name of the header to read from inbound requests to determine the API version.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"version_query_name"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"version_query_name"},
 		},
 
 		"version_query_name": {
+			Description:   "The name of the query string parameter to read from inbound requests to determine the API version.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ConflictsWith: []string{"version_header_name"},
 			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"version_header_name"},
 		},
 	}
 }

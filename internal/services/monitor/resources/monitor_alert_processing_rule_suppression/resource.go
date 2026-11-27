@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_monitor_alert_processing_rule_suppression"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Alert Processing Rule which suppress notifications."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return alertprocessingrules.ValidateActionRuleID
 }

@@ -34,8 +34,8 @@ func purviewAccountSchema() map[string]*pluginsdk.Schema {
 
 		"managed_event_hub_enabled": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
 			Optional: true,
+			Default:  true,
 		},
 
 		"managed_resource_group_name": {

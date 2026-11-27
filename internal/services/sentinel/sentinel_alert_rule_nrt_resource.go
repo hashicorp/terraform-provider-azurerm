@@ -4,6 +4,7 @@
 package sentinel
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -117,19 +118,19 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				Optional: true,
 				// NOTE: O+C The API creates an incident if omitted but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
-				MaxItems: 1,
 				MinItems: 1,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"create_incident_enabled": {
-							Required: true,
 							Type:     pluginsdk.TypeBool,
+							Required: true,
 						},
 						"grouping": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							MaxItems: 1,
 							MinItems: 1,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -140,8 +141,8 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 									"lookback_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.ISO8601Duration,
 										Default:      "PT5M",
+										ValidateFunc: validation.ISO8601Duration,
 									},
 									"reopen_closed_incidents": {
 										Type:     pluginsdk.TypeBool,
@@ -281,8 +282,8 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 						},
 						"field_mapping": {
 							Type:     pluginsdk.TypeList,
-							MaxItems: 3,
 							Required: true,
+							MaxItems: 3,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"identifier": {
@@ -390,7 +391,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta an
 
 	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
 	if entityMappingCount+sentinelEntityMappingCount > 5 {
-		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
+		return errors.New("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.

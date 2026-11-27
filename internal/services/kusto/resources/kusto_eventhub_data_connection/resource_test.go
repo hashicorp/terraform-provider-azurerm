@@ -5,6 +5,7 @@ package kusto_eventhub_data_connection_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -171,7 +172,7 @@ func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *
 		}
 		return pointer.To(value.Properties != nil), nil
 	} else {
-		return nil, fmt.Errorf("response model is empty")
+		return nil, errors.New("response model is empty")
 	}
 }
 

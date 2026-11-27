@@ -5,6 +5,7 @@ package linux_web_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -59,7 +60,7 @@ func (r Resource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("reading Service Plan for Linux %s: %+v", id, err)
 		}
 		if !strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
-			return fmt.Errorf("specified Service Plan is not a Linux plan")
+			return errors.New("specified Service Plan is not a Linux plan")
 		}
 
 		return nil

@@ -14,6 +14,7 @@ import (
 func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Front Door Profile.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -25,6 +26,7 @@ func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"response_timeout_seconds": {
+			Description:  "The maximum response timeout in seconds.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      120,
@@ -32,9 +34,10 @@ func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The SKU for this Front Door Profile.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(profiles.SkuNamePremiumAzureFrontDoor),
 				string(profiles.SkuNameStandardAzureFrontDoor),
@@ -43,13 +46,14 @@ func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
 
 		"log_scrubbing_rule": {
 			Type:     pluginsdk.TypeSet,
-			MaxItems: 3,
 			Optional: true,
+			MaxItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"match_variable": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The variable to be scrubbed from the logs.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 						ValidateFunc: validation.StringInSlice(
 							profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
 							false,
@@ -62,8 +66,9 @@ func cdnFrontdoorProfileSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"resource_guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The UUID of this Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

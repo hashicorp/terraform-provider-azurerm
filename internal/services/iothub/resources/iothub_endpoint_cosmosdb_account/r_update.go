@@ -5,6 +5,7 @@ package iothub_endpoint_cosmosdb_account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -55,7 +56,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 					if authenticationType == devices.AuthenticationTypeKeyBased {
 						if state.PrimaryKey == "" || state.SecondaryKey == "" {
-							return fmt.Errorf("`primary_key` and `secondary_key` must be specified when `authentication_type` is `keyBased`")
+							return errors.New("`primary_key` and `secondary_key` must be specified when `authentication_type` is `keyBased`")
 						}
 
 						endpoint.PrimaryKey = pointer.To(state.PrimaryKey)
@@ -63,7 +64,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 						endpoint.Identity = nil
 					} else {
 						if state.PrimaryKey != "" || state.SecondaryKey != "" {
-							return fmt.Errorf("`primary_key` or `secondary_key` cannot be specified when `authentication_type` is `identityBased`")
+							return errors.New("`primary_key` or `secondary_key` cannot be specified when `authentication_type` is `identityBased`")
 						}
 
 						endpoint.PrimaryKey = nil

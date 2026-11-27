@@ -17,6 +17,7 @@ import (
 func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Front Door Route.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_endpoint_id": {
+			Description:  "The resource ID of the Front Door Endpoint where this Front Door Route should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +33,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_origin_group_id": {
+			Description:  "The resource ID of the Front Door Origin Group where this Front Door Route should be created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: afdorigingroups.ValidateOriginGroupID,
@@ -40,8 +43,9 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		// can provision/destroy the resources in the correct order.
 		// Made this field optional to address comments in Issue #29063
 		"cdn_frontdoor_origin_ids": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "One or more Front Door Origin resource IDs for this Front Door Route.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: afdorigins.ValidateOriginGroupOriginID,
@@ -49,8 +53,9 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_custom_domain_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "The IDs of the Front Door Custom Domains which are associated with this Front Door Route.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: afddomains.ValidateCustomDomainID,
@@ -58,9 +63,10 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"link_to_default_domain": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Front Door Route should be linked to the default endpoint.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"cache": {
@@ -70,8 +76,9 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"query_strings": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "Query strings to include or ignore.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringDoesNotContainAny(","),
@@ -79,6 +86,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"query_string_caching_behavior": {
+						Description:  "How the Front Door Route will cache requests that include query strings.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
@@ -86,14 +94,16 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"compression_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "Whether content compression is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"content_types_to_compress": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "A list of one or more `Content types` (formerly known as `MIME types`) to compress.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.FrontDoorContentType,
@@ -104,12 +114,14 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this Front Door Route is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"forwarding_protocol": {
+			Description:  "The Protocol that will be use when forwarding traffic to backends.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(routes.ForwardingProtocolMatchRequest),
@@ -117,19 +129,22 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"https_redirect_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to automatically redirect HTTP traffic to HTTPS traffic.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"cdn_frontdoor_origin_path": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A directory path on the Front Door Origin that can be used to retrieve content (e.g. `contoso.cloudapp.net/originpath`).",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"patterns_to_match": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "The route patterns of the rule.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -137,8 +152,9 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"cdn_frontdoor_rule_set_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of the Front Door Rule Set IDs which should be assigned to this Front Door Route.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: rulesets.ValidateRuleSetID,
@@ -146,9 +162,10 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"supported_protocols": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MaxItems: 2,
+			Description: "One or more Protocols supported by this Front Door Route.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
+			MaxItems:    2,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(routes.PossibleValuesForAFDEndpointProtocols(), false),

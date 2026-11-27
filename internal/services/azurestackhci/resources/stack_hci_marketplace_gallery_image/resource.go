@@ -23,3 +23,7 @@ func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (Resource) ResourceType() string {
 	return "azurerm_stack_hci_marketplace_gallery_image"
 }
+
+func (Resource) Description() string {
+	return "Manages an Azure Stack HCI Marketplace Gallery Image."
+}

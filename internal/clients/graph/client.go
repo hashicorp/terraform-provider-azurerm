@@ -145,7 +145,7 @@ func UserPrincipalObjectID(ctx context.Context, authorizer auth.Authorizer, envi
 	}
 
 	if model.ID == nil {
-		return nil, fmt.Errorf("returned object ID was nil")
+		return nil, errors.New("returned object ID was nil")
 	}
 
 	return model.ID, nil

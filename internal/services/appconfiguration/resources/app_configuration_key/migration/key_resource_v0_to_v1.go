@@ -58,47 +58,47 @@ func (KeyResourceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func KeyResourceSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 		"content_type": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"etag": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"key": {
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 		"label": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"locked": {
-			Optional: true,
 			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Optional: true,
-			Type:     pluginsdk.TypeMap,
 		},
 		"type": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"value": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 		"vault_key_reference": {
-			Optional: true,
 			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 	}
 }

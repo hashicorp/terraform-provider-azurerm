@@ -83,8 +83,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
-				ForceNew: true,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -125,8 +125,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(2, 50),
 				Default:      2,
+				ValidateFunc: validation.IntBetween(2, 50),
 			},
 
 			"shareable_link_enabled": {
@@ -138,8 +138,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"sku": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(bastionhosts.PossibleValuesForBastionHostSkuName(), false),
 				Default:      string(bastionhosts.BastionHostSkuNameBasic),
+				ValidateFunc: validation.StringInSlice(bastionhosts.PossibleValuesForBastionHostSkuName(), false),
 			},
 
 			"tunneling_enabled": {
@@ -229,31 +229,31 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta any) error {
 	sessionRecordingEnabled := d.Get("session_recording_enabled").(bool)
 
 	if scaleUnits > 2 && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`")
+		return errors.New("`scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`")
 	}
 
 	if fileCopyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`")
+		return errors.New("`file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
 	if ipConnectEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`")
+		return errors.New("`ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
 	if kerberosEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-		return fmt.Errorf("`kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`")
+		return errors.New("`kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
 	if shareableLinkEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`")
+		return errors.New("`shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
 	if tunnelingEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`")
+		return errors.New("`tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`")
 	}
 
 	if sessionRecordingEnabled && sku != bastionhosts.BastionHostSkuNamePremium {
-		return fmt.Errorf("`session_recording_enabled` is only supported when `sku` is `Premium`")
+		return errors.New("`session_recording_enabled` is only supported when `sku` is `Premium`")
 	}
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -321,14 +321,14 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
 		if sku != bastionhosts.BastionHostSkuNameDeveloper {
-			return fmt.Errorf("`virtual_network_id` is only supported when `sku` is `Developer`")
+			return errors.New("`virtual_network_id` is only supported when `sku` is `Developer`")
 		}
 
 		parameters.Properties.VirtualNetwork = &bastionhosts.SubResource{
 			Id: pointer.To(v.(string)),
 		}
 	} else if sku == bastionhosts.BastionHostSkuNameDeveloper {
-		return fmt.Errorf("`virtual_network_id` is required when `sku` is `Developer`")
+		return errors.New("`virtual_network_id` is required when `sku` is `Developer`")
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -382,7 +382,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("file_copy_enabled") {
 		fileCopyEnabled := d.Get("file_copy_enabled").(bool)
 		if fileCopyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-			return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`")
+			return errors.New("`file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableFileCopy = pointer.To(fileCopyEnabled)
 	}
@@ -390,7 +390,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("ip_connect_enabled") {
 		ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
 		if ipConnectEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-			return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`")
+			return errors.New("`ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableIPConnect = pointer.To(ipConnectEnabled)
 	}
@@ -398,7 +398,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("scale_units") {
 		scaleUnits := d.Get("scale_units").(int)
 		if scaleUnits > 2 && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-			return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`")
+			return errors.New("`scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`")
 		}
 		payload.Properties.ScaleUnits = pointer.To(int64(scaleUnits))
 	}
@@ -406,7 +406,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("shareable_link_enabled") {
 		shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
 		if shareableLinkEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-			return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`")
+			return errors.New("`shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableShareableLink = pointer.To(shareableLinkEnabled)
 	}
@@ -414,7 +414,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("tunneling_enabled") {
 		tunnelingEnabled := d.Get("tunneling_enabled").(bool)
 		if tunnelingEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-			return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`")
+			return errors.New("`tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`")
 		}
 		payload.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
 	}
@@ -422,7 +422,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("session_recording_enabled") {
 		sessionRecordingEnabled := d.Get("session_recording_enabled").(bool)
 		if sessionRecordingEnabled && sku != bastionhosts.BastionHostSkuNamePremium {
-			return fmt.Errorf("`session_recording_enabled` is only supported when `sku` is `Premium`")
+			return errors.New("`session_recording_enabled` is only supported when `sku` is `Premium`")
 		}
 		payload.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
 	}

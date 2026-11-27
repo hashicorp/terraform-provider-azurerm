@@ -15,10 +15,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataShareCreateUpdate,
-		Read:   resourceDataShareRead,
-		Update: resourceDataShareCreateUpdate,
-		Delete: resourceDataShareDelete,
+		Description: "Manages a Data Share.",
+		Create:      resourceDataShareCreateUpdate,
+		Read:        resourceDataShareRead,
+		Update:      resourceDataShareCreateUpdate,
+		Delete:      resourceDataShareDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

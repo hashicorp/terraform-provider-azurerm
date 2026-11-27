@@ -5,6 +5,7 @@ package resource_group_template_deployment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -71,10 +72,10 @@ func deleteNestedResource(ctx context.Context, resourcesClient *resources.Client
 
 func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client, properties resources.DeploymentPropertiesExtended, subscriptionId string) error {
 	if properties.Providers == nil {
-		return fmt.Errorf("`properties.Providers` was nil - insufficient data to clean up this Template Deployment")
+		return errors.New("`properties.Providers` was nil - insufficient data to clean up this Template Deployment")
 	}
 	if properties.OutputResources == nil {
-		return fmt.Errorf("`properties.OutputResources` was nil - insufficient data to clean up this Template Deployment")
+		return errors.New("`properties.OutputResources` was nil - insufficient data to clean up this Template Deployment")
 	}
 
 	providersClient := client.ResourceProvidersClient
@@ -91,7 +92,7 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 	deletedResources := make(map[string]bool)
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("could not retrieve context deadline")
+		return errors.New("could not retrieve context deadline")
 	}
 
 	return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
@@ -115,7 +116,7 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 		}
 
 		if deletedTimes > 0 {
-			return pluginsdk.RetryableError(fmt.Errorf("may exist nested resources to delete, retrying"))
+			return pluginsdk.RetryableError(errors.New("may exist nested resources to delete, retrying"))
 		}
 
 		// If `deletedTimes` is 0, it means all resources have been successfully deleted if the `errorList` is empty, or the remaining resources cannot be deleted

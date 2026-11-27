@@ -5,6 +5,7 @@ package springcloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -73,8 +74,8 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "S0",
 				ForceNew: true,
+				Default:  "S0",
 				ValidateFunc: validation.StringInSlice([]string{
 					"B0",
 					"S0",
@@ -85,8 +86,8 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true, // azignore:AZS007 - pre-existing violation
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Basic",
 					"Enterprise",
@@ -505,7 +506,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta any) error
 
 	skuName := d.Get("sku_name").(string)
 	if skuName == "E0" && gitProperty != nil {
-		return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
+		return errors.New("`config_server_git_setting` is not supported for sku `E0`")
 	}
 
 	if skuName != "E0" {
@@ -617,7 +618,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta any) error
 		}
 		skuName := d.Get("sku_name").(string)
 		if skuName == "E0" && gitProperty != nil {
-			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
+			return errors.New("`config_server_git_setting` is not supported for sku `E0`")
 		}
 		if skuName != "E0" {
 			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
@@ -978,7 +979,7 @@ func expandSpringCloudConfigServerGitProperty(input []any) (*appplatform.ConfigS
 	httpBasicAuth := v["http_basic_auth"].([]any)
 	sshAuth := v["ssh_auth"].([]any)
 	if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
-		return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth`")
+		return nil, errors.New("can not set both `http_basic_auth` and `ssh_auth`")
 	}
 	if len(httpBasicAuth) > 0 {
 		v := httpBasicAuth[0].(map[string]any)
@@ -1032,7 +1033,7 @@ func expandSpringCloudGitPatternRepository(input []any) (*[]appplatform.GitPatte
 		httpBasicAuth := v["http_basic_auth"].([]any)
 		sshAuth := v["ssh_auth"].([]any)
 		if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
-			return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth` for the same repository")
+			return nil, errors.New("can not set both `http_basic_auth` and `ssh_auth` for the same repository")
 		}
 		if len(httpBasicAuth) > 0 {
 			v := httpBasicAuth[0].(map[string]any)

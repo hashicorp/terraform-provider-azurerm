@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -144,9 +145,10 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"rolling_upgrade_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             pluginsdk.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"max_batch_instance_percent": {
@@ -178,7 +180,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				DiffSuppressFunc: azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff,
 			},
 
 			"overprovision": {
@@ -190,8 +191,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 				ForceNew: true,
+				Default:  true,
 			},
 
 			"priority": {
@@ -282,6 +283,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 1,
+				Set:      resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"provision_vm_agent": {
@@ -335,7 +337,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
 			// lintignore:S018
@@ -344,13 +345,14 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
+				Set:      resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disable_password_authentication": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
 							ForceNew: true,
+							Default:  false,
 						},
 						"ssh_keys": {
 							Type:     pluginsdk.TypeList,
@@ -370,13 +372,13 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
 			// lintignore:S018
 			"network_profile": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				Set:      resourceVirtualMachineScaleSetNetworkConfigurationHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -445,34 +447,34 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 									"application_gateway_backend_address_pool_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 
 									"application_security_group_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
+										MaxItems: 20,
+										Set:      pluginsdk.HashString,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
 										},
-										Set:      pluginsdk.HashString,
-										MaxItems: 20,
 									},
 
 									"load_balancer_backend_address_pool_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 
 									"load_balancer_inbound_nat_rules_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Computed: true, // azignore:AZS007 - pre-existing violation
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 									},
 
 									"primary": {
@@ -509,7 +511,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineScaleSetNetworkConfigurationHash,
 			},
 
 			"boot_diagnostics": {
@@ -537,6 +538,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MaxItems: 1,
+				Set:      resourceVirtualMachineScaleSetStorageProfileOsDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -552,8 +554,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"vhd_containers": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
 						"managed_disk_type": {
@@ -584,7 +586,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineScaleSetStorageProfileOsDiskHash,
 			},
 
 			"storage_profile_data_disk": {
@@ -636,6 +637,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
+				Set:      resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -664,7 +666,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
 			// lintignore:S018
@@ -696,6 +697,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				Set:      resourceVirtualMachineScaleSetExtensionHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -726,11 +728,11 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"provision_after_extensions": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							Set:      pluginsdk.HashString,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							Set: pluginsdk.HashString,
 						},
 
 						"settings": {
@@ -749,7 +751,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceVirtualMachineScaleSetExtensionHash,
 			},
 
 			"proximity_placement_group_id": {
@@ -1899,7 +1900,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 	managedDiskType := osDiskConfig["managed_disk_type"].(string)
 
 	if managedDiskType == "" && name == "" {
-		return nil, fmt.Errorf("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
+		return nil, errors.New("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
 	}
 
 	osDisk := &virtualmachinescalesets.VirtualMachineScaleSetOSDisk{
@@ -1928,7 +1929,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	if managedDiskType != "" {
 		if name != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please remove name or set it to blank)")
+			return nil, errors.New("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please remove name or set it to blank)")
 		}
 
 		osDisk.Name = nil
@@ -1938,11 +1939,11 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	// BEGIN: code to be removed after GH-13016 is merged
 	if image != "" && managedDiskType != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `image` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
+		return nil, errors.New("[ERROR] Conflict between `image` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
 	}
 
 	if len(vhd_containers) > 0 && managedDiskType != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_containers` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
+		return nil, errors.New("[ERROR] Conflict between `vhd_containers` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
 
@@ -1995,7 +1996,7 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *pluginsd
 	imageReference := virtualmachinescalesets.ImageReference{}
 
 	if imageID != "" && publisher != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
+		return nil, errors.New("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
 	if imageID != "" {

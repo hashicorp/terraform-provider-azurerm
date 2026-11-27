@@ -4,6 +4,7 @@
 package securitycenter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -110,7 +111,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	// api returns "" for workspace id after an create/update and eventually the new value
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Waiting"},

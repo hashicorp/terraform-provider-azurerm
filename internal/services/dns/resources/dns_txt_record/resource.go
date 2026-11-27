@@ -19,10 +19,11 @@ const azurermDnsTxtRecordResourceName = "azurerm_dns_txt_record"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsTxtRecordCreateUpdate,
-		Read:   resourceDnsTxtRecordRead,
-		Update: resourceDnsTxtRecordCreateUpdate,
-		Delete: resourceDnsTxtRecordDelete,
+		Description: "Enables you to manage DNS TXT Records within Azure DNS.",
+		Create:      resourceDnsTxtRecordCreateUpdate,
+		Read:        resourceDnsTxtRecordRead,
+		Update:      resourceDnsTxtRecordCreateUpdate,
+		Delete:      resourceDnsTxtRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

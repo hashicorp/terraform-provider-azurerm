@@ -21,6 +21,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_iothub_endpoint_cosmosdb_account"
 }
 
+func (r Resource) Description() string {
+	return "Manages an IotHub Cosmos DB Account Endpoint."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.EndpointCosmosDBAccountID
 }

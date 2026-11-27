@@ -5,6 +5,7 @@ package site_recovery_hyperv_network_mapping
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -74,7 +75,7 @@ func fetchFabricIdByFriendlyName(ctx context.Context, fabricClient *replicationf
 		}
 	}
 
-	return "", fmt.Errorf("fabric not found")
+	return "", errors.New("fabric not found")
 }
 
 func fetchReplicationNetworkIdByFriendlyName(ctx context.Context, networksClient *replicationnetworks.ReplicationNetworksClient, fabricId, friendlyName string) (string, error) {
@@ -94,5 +95,5 @@ func fetchReplicationNetworkIdByFriendlyName(ctx context.Context, networksClient
 		}
 	}
 
-	return "", fmt.Errorf("replication network not found")
+	return "", errors.New("replication network not found")
 }

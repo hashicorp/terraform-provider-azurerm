@@ -14,10 +14,11 @@ const DomainServiceResourceName = "azurerm_active_directory_domain_service"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceActiveDirectoryDomainServiceCreateUpdate,
-		Read:   resourceActiveDirectoryDomainServiceRead,
-		Update: resourceActiveDirectoryDomainServiceCreateUpdate,
-		Delete: resourceActiveDirectoryDomainServiceDelete,
+		Description: "Manages an Active Directory Domain Service.",
+		Create:      resourceActiveDirectoryDomainServiceCreateUpdate,
+		Read:        resourceActiveDirectoryDomainServiceRead,
+		Update:      resourceActiveDirectoryDomainServiceCreateUpdate,
+		Delete:      resourceActiveDirectoryDomainServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(3 * time.Hour),
