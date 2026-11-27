@@ -45,7 +45,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
 		},
 
 		"sku_tier": {

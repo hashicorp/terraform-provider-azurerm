@@ -78,10 +78,16 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				if !config.PublicNetworkAccess {
-					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				// The public_network_access_enabled has different behavior for null, false and true.
+				// See: https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites?pivots=deployment-language-bicep#staticsite
+				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["public_network_access_enabled"]; v.IsNull() {
+					model.Properties.PublicNetworkAccess = nil
 				} else {
-					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+					if v.False() {
+						model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+					} else {
+						model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+					}
 				}
 			}
 

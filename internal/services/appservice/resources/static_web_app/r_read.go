@@ -65,8 +65,6 @@ func (r Resource) Read() sdk.ResourceFunc {
 					if repositoryToken, ok := metadata.ResourceData.GetOk("repository_token"); ok {
 						state.RepositoryToken = repositoryToken.(string)
 					}
-
-					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -108,7 +106,23 @@ func (r Resource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			// The public_network_access_enabled has different behavior for null, false and true.
+			// See: https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites?pivots=deployment-language-bicep#staticsite
+			// We need special handling here as the plugin sdk currently doesn't support null setting an attribute.
+			if model := staticSite.Model; model != nil {
+				if props := model.Properties; props != nil {
+					// We don't nil set the property as it is a top level property, and SDKv2 will always give it a concrete value (i.e. false) if we set it explicitly.
+					if props.PublicNetworkAccess != nil {
+						metadata.ResourceData.Set("public_network_access_enabled", strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled))
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }

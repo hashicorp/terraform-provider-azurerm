@@ -16,7 +16,6 @@ type StaticWebAppResourceModel struct {
 	ConfigFileChanges   bool                                       `tfschema:"configuration_file_changes_enabled"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
-	PublicNetworkAccess bool                                       `tfschema:"public_network_access_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`

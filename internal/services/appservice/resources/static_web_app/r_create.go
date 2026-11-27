@@ -65,7 +65,6 @@ func (r Resource) Create() sdk.ResourceFunc {
 			props := &staticsites.StaticSite{
 				AllowConfigFileUpdates:   pointer.To(model.ConfigFileChanges),
 				StagingEnvironmentPolicy: pointer.To(staticsites.StagingEnvironmentPolicyEnabled),
-				PublicNetworkAccess:      pointer.To(helpers.PublicNetworkAccessEnabled),
 			}
 
 			if !model.PreviewEnvironments {
@@ -79,8 +78,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				props.RepositoryToken = pointer.To(model.RepositoryToken)
 			}
 
-			if !model.PublicNetworkAccess {
-				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+			// The public_network_access_enabled has different behavior for null, false and true.
+			// See: https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites?pivots=deployment-language-bicep#staticsite
+			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+				if v.False() {
+					props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				} else {
+					props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+				}
 			}
 
 			envelope.Properties = props
