@@ -25,7 +25,7 @@ resource "time_static" "example" {}
 
 resource "azurerm_pim_active_role_assignment" "example" {
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.example.id}"
+  role_definition_id = data.azurerm_role_definition.example.id
   principal_id       = data.azurerm_client_config.example.object_id
 
   schedule {
