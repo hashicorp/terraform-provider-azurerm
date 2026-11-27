@@ -31,13 +31,13 @@ func writeOnlyKeyVaultSecretTemplate(data TestData, secret string, secretFromAtt
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctestkv-%[1]s"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
-  soft_delete_retention_days  = 7
-  rbac_authorization_enabled  = false
+  name                       = "acctestkv-%[1]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  rbac_authorization_enabled = false
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

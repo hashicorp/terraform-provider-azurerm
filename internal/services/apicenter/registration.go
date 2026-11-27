@@ -7,6 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_api"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_api_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_api_version"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_deployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_environment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_metadata_schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_service"
 )
 
 type Registration struct{}
@@ -39,7 +46,15 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		api_center_api.Resource{},
+		api_center_api_definition.Resource{},
+		api_center_api_version.Resource{},
+		api_center_deployment.Resource{},
+		api_center_environment.Resource{},
+		api_center_metadata_schema.Resource{},
+		api_center_service.Resource{},
+	}
 }
 
 func (r Registration) Actions() []func() action.Action {
@@ -59,5 +74,13 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		api_center_api.ListResource{},
+		api_center_api_definition.ListResource{},
+		api_center_api_version.ListResource{},
+		api_center_deployment.ListResource{},
+		api_center_environment.ListResource{},
+		api_center_metadata_schema.ListResource{},
+		api_center_service.ListResource{},
+	}
 }
