@@ -1299,6 +1299,7 @@ type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
 	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0`, `8.0`, `9.0`, `10.0` and `11.0`
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
+	GoVersion             string                   `tfschema:"go_version"`                  // Supported values `1.22`, `1.23`
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
 	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
@@ -1351,6 +1352,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1366,8 +1368,29 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
+				},
+
+				"go_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"1.22",
+						"1.23",
+					}, false),
+					ExactlyOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.go_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.use_custom_runtime",
+					},
+					Description: "The version of Go to use. Possible values are `1.22` and `1.23`.",
 				},
 
 				"python_version": {
@@ -1391,6 +1414,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1415,6 +1439,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1436,6 +1461,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1458,6 +1484,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1473,6 +1500,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 					Elem: &pluginsdk.Resource{
@@ -1526,6 +1554,7 @@ func LinuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1547,6 +1576,11 @@ func LinuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 
 				"use_dotnet_isolated_runtime": {
 					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"go_version": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
@@ -1640,6 +1674,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1653,6 +1688,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1675,6 +1711,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1695,6 +1732,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1714,6 +1752,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1728,6 +1767,7 @@ func WindowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.go_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
 				},
@@ -1910,6 +1950,11 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
 			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+		}
+
+		if linuxAppStack.GoVersion != "" {
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "golang", false)
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {

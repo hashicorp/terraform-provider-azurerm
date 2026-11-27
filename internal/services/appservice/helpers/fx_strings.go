@@ -124,6 +124,10 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 		appType = string(FxStringPrefixPython)
 		appString = appStack.PythonVersion
 
+	case appStack.GoVersion != "":
+		appType = string(FxStringPrefixGo)
+		appString = appStack.GoVersion
+
 	case appStack.JavaVersion != "":
 		appType = string(FxStringPrefixJava)
 		appString = appStack.JavaVersion
@@ -174,6 +178,10 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 
 	case FxStringPrefixNode:
 		appStack := ApplicationStackLinuxFunctionApp{NodeVersion: parts[1]}
+		result = append(result, appStack)
+
+	case FxStringPrefixGo:
+		appStack := ApplicationStackLinuxFunctionApp{GoVersion: parts[1]}
 		result = append(result, appStack)
 
 	case FxStringPrefixPython:
