@@ -5,6 +5,7 @@ package framework
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -167,6 +168,23 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			"msi_api_version": schema.StringAttribute{
 				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 				Optional:    true,
+			},
+
+			"msi_custom_header_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "The name of the custom header to send when authenticating using Managed Service Identity.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$"),
+						"must be a valid HTTP header name containing only alphanumeric characters or !#$%&'*+-.^_`|~",
+					),
+				},
+			},
+
+			"msi_custom_header_value": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The value of the custom header to send when authenticating using Managed Service Identity.",
 			},
 
 			// Azure CLI specific fields
