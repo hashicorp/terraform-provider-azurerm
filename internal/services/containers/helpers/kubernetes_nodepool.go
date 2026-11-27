@@ -746,6 +746,13 @@ func SchemaNodePoolNetworkProfile() *pluginsdk.Schema {
 					},
 				},
 
+				"dranet_mode": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(agentpools.DRANETModeUnmanaged),
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForDRANETMode(), false),
+				},
+
 				"node_public_ip_tags": {
 					Description: "A mapping of tags to the instance-level public IPs.",
 					Type:        pluginsdk.TypeMap,
@@ -869,6 +876,11 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			networkProfile.AllowedHostPorts = &allowedHostPorts
 		}
 		networkProfile.ApplicationSecurityGroups = networkProfileRaw.ApplicationSecurityGroups
+		if networkProfileRaw.Dranet != nil {
+			networkProfile.Dranet = &agentpools.DRANETProfile{
+				Mode: pointer.ToEnum[agentpools.DRANETMode](pointer.FromEnum(networkProfileRaw.Dranet.Mode)),
+			}
+		}
 		if nodePublicIPTagsRaw := networkProfileRaw.NodePublicIPTags; nodePublicIPTagsRaw != nil {
 			ipTags := make([]agentpools.IPTag, 0)
 			for _, ipTagRaw := range *nodePublicIPTagsRaw {
@@ -1459,7 +1471,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		return nil, err
 	}
 
-	networkProfile := FlattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+	networkProfile := FlattenClusterPoolNetworkProfile(agentPool.NetworkProfile, len(d.Get("default_node_pool.0.node_network_profile").([]any)) > 0)
 	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(agentPool.SecurityProfile)
 
 	out := map[string]any{
@@ -1911,7 +1923,10 @@ func ExpandClusterPoolNetworkProfile(input []any) *managedclusters.AgentPoolNetw
 	return &managedclusters.AgentPoolNetworkProfile{
 		AllowedHostPorts:          ExpandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]any)),
 		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]any)),
-		NodePublicIPTags:          ExpandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
+		Dranet: &managedclusters.DRANETProfile{
+			Mode: pointer.ToEnum[managedclusters.DRANETMode](v["dranet_mode"].(string)),
+		},
+		NodePublicIPTags: ExpandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
 	}
 }
 
@@ -1986,14 +2001,22 @@ func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentP
 	}
 }
 
-func FlattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []any {
-	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
+func FlattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile, hasExistingBlock bool) []any {
+	if input == nil {
+		input = &managedclusters.AgentPoolNetworkProfile{}
+	}
+	dranetMode := string(managedclusters.DRANETModeUnmanaged)
+	if input.Dranet != nil && input.Dranet.Mode != nil {
+		dranetMode = string(*input.Dranet.Mode)
+	}
+	if !hasExistingBlock && dranetMode == string(managedclusters.DRANETModeUnmanaged) && input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
 		return []any{}
 	}
 	return []any{
 		map[string]any{
 			"allowed_host_ports":             FlattenClusterPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
 			"application_security_group_ids": pluginsdk.FlattenSlice(input.ApplicationSecurityGroups),
+			"dranet_mode":                    dranetMode,
 			"node_public_ip_tags":            FlattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}
