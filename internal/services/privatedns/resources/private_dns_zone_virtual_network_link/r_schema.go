@@ -38,7 +38,7 @@ func privateDnsZoneVirtualNetworkLinkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"registration_enabled": {
-			Description: "Is auto-registration of Virtual Machine records in the Virtual Network in the Private DNS zone enabled?",
+			Description: "Whether auto-registration of Virtual Machine records in the Virtual Network in the Private DNS zone is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

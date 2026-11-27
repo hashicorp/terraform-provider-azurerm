@@ -45,7 +45,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Description: "Is the storage auto grow for PostgreSQL Flexible Server enabled?",
+				Description: "Whether the storage auto grow for PostgreSQL Flexible Server is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -87,7 +87,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Description: "Is public network access enabled?",
+				Description: "Whether public network access is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

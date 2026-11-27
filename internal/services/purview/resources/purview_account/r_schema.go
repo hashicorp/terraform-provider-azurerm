@@ -50,7 +50,7 @@ func purviewAccountSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_enabled": {
-			Description: "Should the Purview Account be visible to the public network?",
+			Description: "Whether the Purview Account should be visible to the public network.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

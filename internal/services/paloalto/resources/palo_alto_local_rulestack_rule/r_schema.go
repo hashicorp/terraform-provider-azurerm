@@ -83,7 +83,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"destination": schema.DestinationSchema(),
 
 		"logging_enabled": {
-			Description: "Should Logging be enabled?",
+			Description: "Whether Logging should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -97,21 +97,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"negate_destination": {
-			Description: "Should the inverse of the Destination configuration be used?",
+			Description: "Whether the inverse of the Destination configuration should be used.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"negate_source": {
-			Description: "Should the inverse of the Source configuration be used?",
+			Description: "Whether the inverse of the Source configuration should be used.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"enabled": {
-			Description: "Should this Rule be enabled?",
+			Description: "Whether this Rule should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

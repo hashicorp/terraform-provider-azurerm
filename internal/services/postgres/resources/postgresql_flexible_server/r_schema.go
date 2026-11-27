@@ -117,7 +117,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_grow_enabled": {
-			Description: "Is the storage auto grow for PostgreSQL Flexible Server enabled?",
+			Description: "Whether the storage auto grow for PostgreSQL Flexible Server is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -132,7 +132,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_tier": {
-			Description: "The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Please see the `storage_tier` defaults based on `storage_mb` table below.",
+			Description: "The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. See the `storage_tier` defaults based on `storage_mb` table below.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
@@ -294,7 +294,7 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"geo_redundant_backup_enabled": {
-			Description: "Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server?",
+			Description: "Whether Geo-Redundant backup is enabled on the PostgreSQL Flexible Server.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true, Default: false,

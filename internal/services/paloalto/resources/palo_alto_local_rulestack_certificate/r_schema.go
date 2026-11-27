@@ -50,7 +50,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"self_signed": {
-			Description:  "Should a Self Signed Certificate be used?",
+			Description:  "Whether a Self Signed Certificate should be used.",
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,

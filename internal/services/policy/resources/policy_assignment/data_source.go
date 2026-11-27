@@ -89,7 +89,7 @@ func (DataSource) Attributes() map[string]*schema.Schema {
 		},
 
 		"enforce": {
-			Description: "Whether this Policy is enforced or not?",
+			Description: "Whether this policy is enforced.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

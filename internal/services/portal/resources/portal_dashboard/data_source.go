@@ -25,7 +25,7 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Description: "Use this data source to access information about an existing shared dashboard in the Azure Portal. This is the data source of the `azurerm_dashboard` resource.",
+		Description: "Use this data source to access information about an existing shared dashboard in the Azure Portal.",
 		Read:        dataSourcePortalDashboardRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{

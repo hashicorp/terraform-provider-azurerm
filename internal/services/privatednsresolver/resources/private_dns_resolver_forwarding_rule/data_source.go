@@ -91,7 +91,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Private DNS Resolver Forwarding Rule enabled?",
+			Description: "Whether the Private DNS Resolver Forwarding Rule is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

@@ -48,7 +48,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"registration_enabled": {
-				Description: "Whether the auto-registration of Virtual Machine records in the Virtual Network in the Private DNS zone is enabled or not.",
+				Description: "Whether the auto-registration of Virtual Machine records in the Virtual Network in the Private DNS zone is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
