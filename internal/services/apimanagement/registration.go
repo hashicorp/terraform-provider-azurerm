@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_certificate_authority"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_config_connection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_host_name_configuration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_global_schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_group"
@@ -163,6 +164,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		api_management_gateway_config_connection.Resource{},
 		api_management_notification_recipient_email.Resource{},
 		api_management_notification_recipient_user.Resource{},
 		api_management_standalone_gateway.Resource{},
