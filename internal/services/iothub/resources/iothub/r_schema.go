@@ -563,6 +563,12 @@ func iothubSchema() map[string]*pluginsdk.Schema {
 			Optional:    true,
 		},
 
+		"data_residency_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

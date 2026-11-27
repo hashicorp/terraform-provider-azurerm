@@ -126,6 +126,10 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta any) error {
 		props.Properties.PublicNetworkAccess = enabled
 	}
 
+	if v, ok := d.GetOk("data_residency_enabled"); ok {
+		props.Properties.EnableDataResidency = pointer.To(v.(bool))
+	}
+
 	retention, retentionOk := d.GetOk("event_hub_retention_in_days")
 	partition, partitionOk := d.GetOk("event_hub_partition_count")
 	if partitionOk || retentionOk {

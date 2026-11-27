@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,6 +103,10 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta any) error {
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
 			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
+		}
+
+		if properties.EnableDataResidency != nil {
+			d.Set("data_residency_enabled", pointer.From(properties.EnableDataResidency))
 		}
 
 		if err := d.Set("cloud_to_device", flattenIoTHubCloudToDevice(properties.CloudToDevice)); err != nil {
