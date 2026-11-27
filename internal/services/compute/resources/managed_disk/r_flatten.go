@@ -6,16 +6,16 @@ package managed_disk
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/framework/location"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func RegisterResourceFlatten(d *pluginsdk.ResourceData, id *commonids.ManagedDiskId, model *disks.Disk, includeResource bool) error {
+func resourceManagedDiskFlatten(d *pluginsdk.ResourceData, id *commonids.ManagedDiskId, model *disks.Disk, includeResource bool) error {
 	d.Set("name", id.DiskName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -31,7 +31,7 @@ func RegisterResourceFlatten(d *pluginsdk.ResourceData, id *commonids.ManagedDis
 		d.Set("zone", zone)
 
 		if sku := model.Sku; sku != nil {
-			d.Set("storage_account_type", string(*sku.Name))
+			d.Set("storage_account_type", string(pointer.From(sku.Name)))
 		}
 
 		if includeResource {
@@ -42,12 +42,13 @@ func RegisterResourceFlatten(d *pluginsdk.ResourceData, id *commonids.ManagedDis
 					d.Set("logical_sector_size", creationData.LogicalSectorSize)
 				}
 
+				// imageReference is returned as well when galleryImageReference is used, only check imageReference when galleryImageReference is not returned
 				galleryImageReferenceId := ""
 				imageReferenceId := ""
-				if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.Id != nil {
-					galleryImageReferenceId = *galleryImageReference.Id
-				} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.Id != nil {
-					imageReferenceId = *imageReference.Id
+				if creationData.GalleryImageReference != nil && creationData.GalleryImageReference.Id != nil {
+					galleryImageReferenceId = pointer.From(creationData.GalleryImageReference.Id)
+				} else if creationData.ImageReference != nil {
+					imageReferenceId = pointer.From(creationData.ImageReference.Id)
 				}
 				d.Set("gallery_image_reference_id", galleryImageReferenceId)
 				d.Set("image_reference_id", imageReferenceId)
@@ -70,11 +71,11 @@ func RegisterResourceFlatten(d *pluginsdk.ResourceData, id *commonids.ManagedDis
 				d.Set("hyper_v_generation", pointer.FromEnum(props.HyperVGeneration))
 				d.Set("network_access_policy", pointer.FromEnum(props.NetworkAccessPolicy))
 				d.Set("disk_access_id", props.DiskAccessId)
-				d.Set("public_network_access_enabled", *props.PublicNetworkAccess == disks.PublicNetworkAccessEnabled)
+				d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == disks.PublicNetworkAccessEnabled)
 
 				diskEncryptionSetId := ""
-				if props.Encryption != nil && props.Encryption.DiskEncryptionSetId != nil {
-					diskEncryptionSetId = *props.Encryption.DiskEncryptionSetId
+				if props.Encryption != nil {
+					diskEncryptionSetId = pointer.From(props.Encryption.DiskEncryptionSetId)
 				}
 				d.Set("disk_encryption_set_id", diskEncryptionSetId)
 
@@ -86,15 +87,13 @@ func RegisterResourceFlatten(d *pluginsdk.ResourceData, id *commonids.ManagedDis
 				securityType := ""
 				secureVMDiskEncryptionSetId := ""
 				if securityProfile := props.SecurityProfile; securityProfile != nil {
-					if *securityProfile.SecurityType == disks.DiskSecurityTypesTrustedLaunch {
+					if pointer.From(securityProfile.SecurityType) == disks.DiskSecurityTypesTrustedLaunch {
 						trustedLaunchEnabled = true
 					} else {
-						securityType = string(*securityProfile.SecurityType)
+						securityType = string(pointer.From(securityProfile.SecurityType))
 					}
 
-					if securityProfile.SecureVMDiskEncryptionSetId != nil {
-						secureVMDiskEncryptionSetId = *securityProfile.SecureVMDiskEncryptionSetId
-					}
+					secureVMDiskEncryptionSetId = pointer.From(securityProfile.SecureVMDiskEncryptionSetId)
 				}
 				d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 				d.Set("security_type", securityType)

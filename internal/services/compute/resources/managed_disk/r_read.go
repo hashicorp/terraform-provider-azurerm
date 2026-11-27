@@ -34,5 +34,5 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("making Read request on Azure Managed Disk %s (resource group %s): %s", id.DiskName, id.ResourceGroupName, err)
 	}
 
-	return RegisterResourceFlatten(d, id, resp.Model, true)
+	return resourceManagedDiskFlatten(d, id, resp.Model, true)
 }

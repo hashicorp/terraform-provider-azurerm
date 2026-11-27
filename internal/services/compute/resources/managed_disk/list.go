@@ -5,6 +5,7 @@ package managed_disk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -48,14 +49,14 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "listing "+ResourceType, err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", ResourceType), err)
 			return
 		}
 		results = resp.Items
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "listing "+ResourceType, err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", ResourceType), err)
 			return
 		}
 		results = resp.Items
@@ -68,14 +69,14 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			rd := RegisterResource().Data(&terraform.InstanceState{})
 			id, err := commonids.ParseManagedDiskIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing "+ResourceType+" ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", ResourceType), err)
 				return
 			}
 
 			rd.SetId(id.ID())
 
-			if err := RegisterResourceFlatten(rd, id, &item, request.IncludeResource); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding "+ResourceType+" resource data", err)
+			if err := resourceManagedDiskFlatten(rd, id, &item, request.IncludeResource); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", ResourceType), err)
 				return
 			}
 
