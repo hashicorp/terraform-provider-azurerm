@@ -24,7 +24,7 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"application_type": {
-			Description: "The type of Application Insights to create. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure.",
+			Description: "The type of Application Insights to create. These values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -127,20 +127,20 @@ func applicationInsightsSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"internet_ingestion_enabled": {
-			Description: "Should the Application Insights component support ingestion over the Public Internet?",
+			Description: "Whether the Application Insights component should support ingestion over the Public Internet.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"internet_query_enabled": {
-			Description: "Should the Application Insights component support querying over the Public Internet?",
+			Description: "Whether the Application Insights component should support querying over the Public Internet.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 		"force_customer_storage_for_profiler": {
-			Description: "Should the Application Insights component force users to create their own Storage Account for profiling?",
+			Description: "Whether the Application Insights component should force users to create their own Storage Account for profiling.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

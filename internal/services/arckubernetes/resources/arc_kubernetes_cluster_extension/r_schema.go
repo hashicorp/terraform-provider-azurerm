@@ -34,7 +34,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension_type": {
-			Description:  "The type of extension. For more information, please refer to [Available Extensions for Arc-enabled Kubernetes clusters](https://learn.microsoft.com/azure/azure-arc/kubernetes/extensions-release).",
+			Description:  "The type of extension. For more information, refer to [Available Extensions for Arc-enabled Kubernetes clusters](https://learn.microsoft.com/azure/azure-arc/kubernetes/extensions-release).",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

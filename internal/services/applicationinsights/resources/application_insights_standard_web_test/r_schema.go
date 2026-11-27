@@ -83,13 +83,13 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Should the WebTest be enabled?",
+			Description: "Whether the WebTest should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"retry_enabled": {
-			Description: "Should the retry on WebTest failure be enabled?",
+			Description: "Whether the retry on WebTest failure should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -101,7 +101,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"follow_redirects_enabled": {
-						Description: "Should the following of redirects be enabled?",
+						Description: "Whether the following of redirects should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -118,7 +118,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"parse_dependent_requests_enabled": {
-						Description: "Should the parsing of dependent requests be enabled?",
+						Description: "Whether the parsing of dependent requests should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -175,7 +175,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"ignore_status_code": {
-						Description: "Should status code of the response be ignored?",
+						Description: "Whether status code of the response should be ignored.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -189,7 +189,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"ssl_check_enabled": {
-						Description: "Should the SSL check be enabled?",
+						Description: "Whether the SSL check should be enabled.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,

@@ -59,14 +59,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchema(),
 
 		"client_affinity_enabled": {
-			Description: "Should Client Affinity be enabled?",
+			Description: "Whether Client Affinity should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"client_certificate_enabled": {
-			Description: "Should Client Certificates be enabled?",
+			Description: "Whether Client Certificates should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -89,14 +89,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"enabled": {
-			Description: "Should the Windows Web App be enabled?",
+			Description: "Whether the Windows Web App should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"https_only": {
-			Description: "Should the Windows Web App require HTTPS connections?",
+			Description: "Whether the Windows Web App should require HTTPS connections.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -115,21 +115,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"logs": helpers.LogsConfigSchema(),
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Web App?",
+			Description: "Whether public network access should be enabled for the Web App.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Should the default FTP Basic Authentication publishing profile be enabled?",
+			Description: "Whether the default FTP Basic Authentication publishing profile should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

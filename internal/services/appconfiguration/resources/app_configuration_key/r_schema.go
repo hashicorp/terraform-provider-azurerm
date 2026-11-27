@@ -68,7 +68,7 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"locked": {
-			Description: "Should this App Configuration Key be Locked to prevent changes?",
+			Description: "Whether this App Configuration Key should be Locked to prevent changes.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

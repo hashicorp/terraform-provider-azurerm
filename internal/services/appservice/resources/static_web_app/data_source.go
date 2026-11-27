@@ -64,19 +64,19 @@ func (s DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"configuration_file_changes_enabled": {
-			Description: "Are changes to the configuration file permitted?",
+			Description: "Whether changes to the configuration file are permitted.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"preview_environments_enabled": {
-			Description: "Are Preview (Staging) environments enabled?",
+			Description: "Whether Preview (Staging) environments are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Static Web App?",
+			Description: "Whether public network access is enabled for the Static Web App.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

@@ -115,13 +115,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
-			Description: "Is Client Affinity enabled?",
+			Description: "Whether Client Affinity is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Description: "Are Client Certificates enabled?",
+			Description: "Whether Client Certificates are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -159,13 +159,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Windows Web App enabled?",
+			Description: "Whether the Windows Web App is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"https_only": {
-			Description: "Does the Windows Web App require HTTPS connections?",
+			Description: "Whether the Windows Web App requires HTTPS connections.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -213,19 +213,19 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for the Windows Web App?",
+			Description: "Whether Public Network Access is enabled for the Windows Web App.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

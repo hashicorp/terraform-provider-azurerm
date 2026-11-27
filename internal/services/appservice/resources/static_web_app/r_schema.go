@@ -32,21 +32,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"configuration_file_changes_enabled": {
-			Description: "Should changes to the configuration file be permitted?",
+			Description: "Whether changes to the configuration file should be permitted.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"preview_environments_enabled": {
-			Description: "Are Preview (Staging) environments enabled?",
+			Description: "Whether Preview (Staging) environments are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Static Web App?",
+			Description: "Whether public network access should be enabled for the Static Web App.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

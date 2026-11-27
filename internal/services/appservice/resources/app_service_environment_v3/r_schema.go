@@ -40,7 +40,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"allow_new_private_endpoint_connections": {
-			Description: "Should new Private Endpoint Connections be allowed?",
+			Description: "Whether new Private Endpoint Connections should be allowed.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

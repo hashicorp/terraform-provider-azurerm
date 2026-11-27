@@ -103,7 +103,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"container_registry_use_managed_identity": {
-					Description: "Should connections for Azure Container Registry use Managed Identity?",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -127,7 +127,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Should the HTTP2 be enabled?",
+					Description: "Whether the HTTP2 should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -143,7 +143,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Should the Windows Web App Slot `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Windows Web App Slot `ip_restriction` configuration should be used for the SCM also.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -182,7 +182,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -204,7 +204,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Description: "Should the Windows Web App Slot use a 32-bit worker?",
+					Description: "Whether the Windows Web App Slot should use a 32-bit worker.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					// Note: O+C because Variable default value depending on several factors, such as plan type.
@@ -212,7 +212,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"websockets_enabled": {
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,

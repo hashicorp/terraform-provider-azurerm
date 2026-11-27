@@ -29,10 +29,9 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"validation_type": {
-			Description: "One of `cname-delegation` or `dns-txt-token`.",
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				ValidationTypeTXT,
 				ValidationTypeCName,

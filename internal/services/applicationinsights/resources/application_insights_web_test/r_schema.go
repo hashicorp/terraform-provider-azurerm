@@ -66,7 +66,7 @@ func applicationInsightsWebTestSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the test actively being monitored?",
+			Description: "Whether the test is actively monitored.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

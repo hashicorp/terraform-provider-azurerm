@@ -41,14 +41,14 @@ func applicationInsightsSmartDetectionRuleSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"enabled": {
-			Description: "Is the Application Insights Smart Detection Rule enabled?",
+			Description: "Whether the Application Insights Smart Detection Rule is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"send_emails_to_subscription_owners": {
-			Description: "Do emails get sent to subscription owners?",
+			Description: "Whether emails get sent to subscription owners.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

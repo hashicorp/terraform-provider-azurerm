@@ -95,7 +95,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"auto_heal_setting": helpers.AutoHealSettingSchemaLinux(),
 
 				"container_registry_use_managed_identity": {
-					Description: "Should connections for Azure Container Registry use Managed Identity?",
+					Description: "Whether connections for Azure Container Registry should use Managed Identity.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -120,7 +120,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"http2_enabled": {
-					Description: "Should the HTTP2 be enabled?",
+					Description: "Whether the HTTP2 should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -136,7 +136,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Description: "Should the Linux Web App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Whether the Linux Web App `ip_restriction` configuration should be used for the SCM also.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -175,7 +175,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Whether Remote Debugging should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
@@ -197,14 +197,14 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Description: "Should the Linux Web App use a 32-bit worker?",
+					Description: "Whether the Linux Web App should use a 32-bit worker.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
 				},
 
 				"websockets_enabled": {
-					Description: "Should Web Sockets be enabled?",
+					Description: "Whether Web Sockets should be enabled.",
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,

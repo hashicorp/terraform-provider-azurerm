@@ -128,7 +128,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_uses_managed_identity": {
-			Description: "Does the Function App use Managed Identity to access the Storage Account?",
+			Description: "Whether the Function App uses Managed Identity to access the Storage Account.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -161,13 +161,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"builtin_logging_enabled": {
-			Description: "Is built in logging enabled?",
+			Description: "Whether built in logging is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Description: "Are Client Certificates enabled?",
+			Description: "Whether Client Certificates are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -193,13 +193,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Function App enabled?",
+			Description: "Whether the Function App is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"content_share_force_disabled": {
-			Description: "Are the settings for linking the Function App to storage suppressed?",
+			Description: "Whether the settings for linking the Function App to storage are suppressed.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -211,7 +211,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
-			Description: "Can the Function App only be accessed via HTTPS?",
+			Description: "Whether the Function App can only be accessed via HTTPS.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -277,7 +277,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for this Linux Function App?",
+			Description: "Whether Public Network Access is enabled for this Linux Function App.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -291,13 +291,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

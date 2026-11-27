@@ -31,7 +31,7 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 		},
 		"enabled": {
-			Description: "The status of the App Configuration Feature. By default, this is set to false.",
+			Description: "The status of the App Configuration Feature.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
@@ -64,7 +64,7 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:    true,
 		},
 		"locked": {
-			Description: "Should this App Configuration Feature be Locked to prevent changes?",
+			Description: "Whether this App Configuration Feature should be Locked to prevent changes.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

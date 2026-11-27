@@ -180,7 +180,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Function App?",
+			Description: "Whether public network access should be enabled for the Function App.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -194,7 +194,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -65,7 +65,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"per_site_scaling_enabled": {
-			Description: "Should Per Site Scaling be enabled?",
+			Description: "Whether Per Site Scaling should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -80,7 +80,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"premium_plan_auto_scale_enabled": {
-			Description: "Should automatic scaling be enabled for the Premium SKU Plan? Cannot be set unless using a Premium SKU.",
+			Description: "Whether automatic scaling should be enabled for the Premium SKU Plan. Cannot be set unless using a Premium SKU.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -95,7 +95,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_balancing_enabled": {
-			Description: "Should the Service Plan balance across Availability Zones in the region?",
+			Description: "Whether the Service Plan balances across Availability Zones in the region.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},

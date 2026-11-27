@@ -97,7 +97,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"depends_on": {
-						Description: "Specifies other kustomizations that this kustomization depends on. This kustomization will not reconcile until all dependencies have completed their reconciliation.",
+						Description: "Other kustomizations that this kustomization depends on. This kustomization will not reconcile until all dependencies have completed their reconciliation.",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
 						Elem: &pluginsdk.Schema{

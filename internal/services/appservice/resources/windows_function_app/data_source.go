@@ -123,7 +123,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_uses_managed_identity": {
-			Description: "Is the Function App using a Managed Identity to access the Storage Account?",
+			Description: "Whether the Function App uses a Managed Identity to access the Storage Account.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -135,7 +135,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"app_settings": {
-			Description: "A `map of key-value pairs for App Settings and custom values.",
+			Description: "A map of key-value pairs for App Settings and custom values.",
 			Type:        pluginsdk.TypeMap,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{
@@ -150,13 +150,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"builtin_logging_enabled": {
-			Description: "Is the built-in logging enabled?",
+			Description: "Whether the built-in logging is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Description: "Is the use of Client Certificates enabled?",
+			Description: "Whether the use of Client Certificates is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -182,13 +182,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Function App enabled?",
+			Description: "Whether the Function App is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"content_share_force_disabled": {
-			Description: "Are Content Share Settings disabled?",
+			Description: "Whether Content Share Settings are disabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -200,7 +200,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
-			Description: "Is the Function App only accessible via HTTPS?",
+			Description: "Whether the Function App is only accessible via HTTPS.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -260,7 +260,7 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for the Windows Function App?",
+			Description: "Whether Public Network Access is enabled for the Windows Function App.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -268,13 +268,13 @@ func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

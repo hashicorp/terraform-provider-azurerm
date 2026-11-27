@@ -28,7 +28,7 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"read_permissions": {
-			Description: "The list of read permissions granted to the API key. Please note these values are case sensitive.",
+			Description: "The list of read permissions granted to the API key. These values are case sensitive.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,
@@ -40,7 +40,7 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"write_permissions": {
-			Description: "The list of write permissions granted to the API key. Please note these values are case sensitive.",
+			Description: "The list of write permissions granted to the API key. These values are case sensitive.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			ForceNew:    true,

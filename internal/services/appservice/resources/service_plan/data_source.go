@@ -88,13 +88,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"per_site_scaling_enabled": {
-			Description: "Is Per Site Scaling be enabled?",
+			Description: "Whether per site scaling is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"premium_plan_auto_scale_enabled": {
-			Description: "Is premium plan autoscale enabled?",
+			Description: "Whether premium plan autoscale is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -124,7 +124,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_balancing_enabled": {
-			Description: "Is the Service Plan balance across Availability Zones in the region?",
+			Description: "Whether the Service Plan balances across Availability Zones in the region.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

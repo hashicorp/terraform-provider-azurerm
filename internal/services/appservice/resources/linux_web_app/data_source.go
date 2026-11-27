@@ -127,13 +127,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
-			Description: "Is Client Affinity enabled?",
+			Description: "Whether Client Affinity is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"client_certificate_enabled": {
-			Description: "Are Client Certificates enabled?",
+			Description: "Whether Client Certificates are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -171,13 +171,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is the Linux Web App enabled?",
+			Description: "Whether the Linux Web App is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"https_only": {
-			Description: "Should the Linux Web App require HTTPS connections?",
+			Description: "Whether the Linux Web App requires HTTPS connections.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -232,7 +232,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Is Public Network Access enabled for this Linux Web App?",
+			Description: "Whether Public Network Access is enabled for this Linux Web App.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -240,13 +240,13 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Are the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Are the default FTP Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default FTP Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

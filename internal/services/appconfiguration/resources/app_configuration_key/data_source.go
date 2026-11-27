@@ -67,7 +67,7 @@ func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:    true,
 		},
 		"locked": {
-			Description: "Is this App Configuration Key be Locked to prevent changes?",
+			Description: "Whether this App Configuration Key is locked to prevent changes.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},

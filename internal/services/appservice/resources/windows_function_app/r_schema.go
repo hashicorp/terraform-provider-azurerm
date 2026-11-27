@@ -125,7 +125,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_exclusion_paths": {
-			Description: "Paths to exclude when using client certificates, separated by ;",
+			Description: "Paths to exclude when using client certificates, separated by `;`.",
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
 		},
@@ -148,7 +148,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"content_share_force_disabled": {
-			Description: "Should Content Share Settings be disabled?",
+			Description: "Whether Content Share Settings should be disabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -186,21 +186,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
-			Description: "Should public network access be enabled for the Function App?",
+			Description: "Whether public network access should be enabled for the Function App.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled?",
+			Description: "Whether the default WebDeploy Basic Authentication publishing credentials are enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Description: "Should the default FTP Basic Authentication publishing profile be enabled?",
+			Description: "Whether the default FTP Basic Authentication publishing profile should be enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,

@@ -60,7 +60,7 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"allow_new_private_endpoint_connections": {
-			Description: "Are new Private Endpoint Connections allowed?",
+			Description: "Whether new Private Endpoint Connections are allowed.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
