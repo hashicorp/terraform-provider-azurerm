@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -105,7 +106,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"dns_suffix": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -116,35 +117,6 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"inbound_network_dependencies": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"ports": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-				},
 			},
 		},
 
@@ -187,6 +159,38 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.SixPointOh() {
+		schema["inbound_network_dependencies"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"ports": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+			Deprecated: "The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3 - the `inbound_network_dependencies` attribute has been deprecated and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+	return schema
 }
 
 func (r Resource) CustomizeDiff() sdk.ResourceFunc {

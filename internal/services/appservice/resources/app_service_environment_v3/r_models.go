@@ -21,7 +21,7 @@ type AppServiceEnvironmentV3Model struct {
 	Tags                               map[string]string                 `tfschema:"tags"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
 	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
-	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
+	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies,removedInNextMajorVersion"`
 	InternalInboundIPAddresses         []string                          `tfschema:"internal_inbound_ip_addresses"`
 	IpSSLAddressCount                  int64                             `tfschema:"ip_ssl_address_count"`
 	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`

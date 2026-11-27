@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -70,13 +71,17 @@ func (r Resource) Read() sdk.ResourceFunc {
 						state.RemoteDebuggingEnabled = pointer.From(props.RemoteDebugEnabled)
 					}
 				}
-				inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
-				if err != nil {
-					return err
+				if !features.SixPointOh() {
+					// The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3 and
+					// returns an error for `ASEV3` resources, so we log and continue rather than failing the Read.
+					inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
+					if err != nil {
+						// azignore:AZR009 - logging the dependent network configuration retrieval error rather than failing the read
+						metadata.Logger.Warnf("retrieving Inbound Network Dependencies for %s: %+v", *id, err)
+					} else {
+						state.InboundNetworkDependencies = *inboundNetworkDependencies
+					}
 				}
-
-				state.InboundNetworkDependencies = *inboundNetworkDependencies
-
 				state.Tags = pointer.From(model.Tags)
 			}
 
@@ -104,6 +109,7 @@ func flattenClusterSettingsModel(input *[]appserviceenvironments.NameValuePair) 
 	return output
 }
 
+// remove this function in 6.0 - `inboundNetworkDependenciesEndpoints` is not supported for App Service Environment v3.
 func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
 	if err != nil {

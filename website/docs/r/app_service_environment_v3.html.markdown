@@ -131,8 +131,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `external_inbound_ip_addresses` - The external inbound IP addresses of the App Service Environment V3.
 
-* `inbound_network_dependencies` - An `inbound_network_dependencies` block as defined below.
-
 * `internal_inbound_ip_addresses` - The internal inbound IP addresses of the App Service Environment V3.
 
 * `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
@@ -144,16 +142,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `pricing_tier` - Pricing tier for the front end instances.
 
 * `windows_outbound_ip_addresses` - Outbound addresses of Windows based Apps in this App Service Environment V3.
-
----
-
-An `inbound_network_dependencies` block exports the following:
-
-* `description` - A short description of the purpose of the network traffic.
-
-* `ip_addresses` - A list of IP addresses that network traffic will originate from in CIDR notation.
-
-* `ports` - The ports that network traffic will arrive to the App Service Environment V3 on.
 
 ## Timeouts
 
