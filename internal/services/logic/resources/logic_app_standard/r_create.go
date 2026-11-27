@@ -174,6 +174,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			metadata.SetID(id)
 
+			if len(data.StorageAccounts) > 0 {
+				storageConfig := helpers.ExpandStorageConfig(data.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id, *storageConfig); err != nil {
+					return fmt.Errorf("setting Storage Accounts for %s: %+v", id, err)
+				}
+			}
+
 			if !data.FtpPublishBasicAuthEnabled {
 				policy := webapps.CsmPublishingCredentialsPoliciesEntity{
 					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{

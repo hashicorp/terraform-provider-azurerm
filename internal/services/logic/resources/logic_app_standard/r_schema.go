@@ -142,6 +142,46 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"storage_account": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MaxItems: 5,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAzureStorageType(), false),
+					},
+					"account_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"share_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"access_key": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"mount_path": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
+
 		"storage_account_name": {
 			Description:  "The backend Storage Account name which will be used by this Logic App (e.g. for Stateful workflows data).",
 			Type:         pluginsdk.TypeString,

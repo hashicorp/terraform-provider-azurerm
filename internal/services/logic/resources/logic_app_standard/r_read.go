@@ -131,6 +131,15 @@ func (r Resource) Read() sdk.ResourceFunc {
 				state.ConnectionStrings = helpers.FlattenConnectionStrings(model)
 			}
 
+			storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing Azure Storage Accounts for %s: %+v", *id, err)
+			}
+
+			if model := storageAccountsResp.Model; model != nil {
+				state.StorageAccounts = helpers.FlattenStorageAccounts(model)
+			}
+
 			ftpBasicAuth, err := client.GetFtpAllowed(ctx, *id)
 			if err != nil || ftpBasicAuth.Model == nil {
 				return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)

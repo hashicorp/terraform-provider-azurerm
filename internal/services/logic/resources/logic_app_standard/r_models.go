@@ -26,6 +26,7 @@ type LogicAppResourceModel struct {
 	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
 	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
 	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
+	StorageAccounts             []helpers.StorageAccount                   `tfschema:"storage_account"`
 	StorageAccountName          string                                     `tfschema:"storage_account_name"`
 	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
 	StorageKeyVaultSecretID     string                                     `tfschema:"storage_key_vault_secret_id"`

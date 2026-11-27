@@ -154,6 +154,13 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageConfig := helpers.ExpandStorageConfig(data.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, *id, *storageConfig); err != nil {
+					return fmt.Errorf("setting Storage Accounts for %s: %+v", id, err)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStrings := helpers.ExpandConnectionStrings(data.ConnectionStrings)
 				if connectionStrings.Properties != nil {
