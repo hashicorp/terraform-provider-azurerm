@@ -34,21 +34,21 @@ func notificationHubAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"manage": {
-			Description: "Does this Authorization Rule have Manage access to the Notification Hub?",
+			Description: "Whether this Authorization Rule has manage access to the Notification Hub.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"send": {
-			Description: "Does this Authorization Rule have Send access to the Notification Hub?",
+			Description: "Whether this Authorization Rule has send access to the Notification Hub.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"listen": {
-			Description: "Does this Authorization Rule have Listen access to the Notification Hub?",
+			Description: "Whether this Authorization Rule has listen access to the Notification Hub.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

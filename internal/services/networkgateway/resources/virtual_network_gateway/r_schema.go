@@ -60,7 +60,7 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"private_ip_address_enabled": {
-			Description: "Should private IP be enabled on this gateway for connections?",
+			Description: "Whether private IP should be enabled on this gateway for connections.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
@@ -185,7 +185,7 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"is_default": {
-						Description: "Is this a Default Virtual Network Gateway Policy Group?",
+						Description: "Whether this is a Default Virtual Network Gateway Policy Group.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -574,20 +574,20 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"bgp_route_translation_for_nat_enabled": {
-			Description: "Is BGP Route Translation for NAT enabled?",
+			Description: "Whether BGP Route Translation for NAT is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"dns_forwarding_enabled": {
-			Description: "Is DNS forwarding enabled?",
+			Description: "Whether DNS forwarding is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 		},
 
 		"ip_sec_replay_protection_enabled": {
-			Description: "Is IP Sec Replay Protection enabled?",
+			Description: "Whether IP Sec Replay Protection is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -612,14 +612,14 @@ func virtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"remote_vnet_traffic_enabled": {
-			Description: "Is remote VNet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled?",
+			Description: "Whether remote VNet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 		},
 
 		"virtual_wan_traffic_enabled": {
-			Description: "Is remote VNet traffic that is used to configure this gateway to accept traffic from remote Virtual WAN networks enabled?",
+			Description: "Whether remote VNet traffic that is used to configure this gateway to accept traffic from remote Virtual WAN networks is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,

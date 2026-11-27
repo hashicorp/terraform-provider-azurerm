@@ -55,7 +55,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		// Required (inherited from base)
 
 		"admin_password": {
-			Description:  "The password for the SYS, SYSTEM, and PDB Admin users. The password must be at least 12 characters long, and contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (`\"`) or the username \"admin\", regardless of casing.",
+			Description:  "The password for the SYS, SYSTEM, and PDB Admin users. The password must be at least 12 characters long, and contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (`\"`) or the username `admin`, regardless of casing.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

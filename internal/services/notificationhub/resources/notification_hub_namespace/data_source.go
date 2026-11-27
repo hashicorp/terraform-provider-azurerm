@@ -53,7 +53,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"enabled": {
-				Description: "Is this Notification Hub Namespace enabled?",
+				Description: "Whether this Notification Hub Namespace is enabled.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

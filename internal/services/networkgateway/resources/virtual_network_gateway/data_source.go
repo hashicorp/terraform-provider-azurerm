@@ -53,7 +53,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"bgp_enabled": {
-				Description: "Will BGP (Border Gateway Protocol) be enabled for this Virtual Network Gateway?",
+				Description: "Whether BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},
@@ -65,7 +65,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"active_active": {
-				Description: "Is this an Active-Active Gateway?",
+				Description: "Whether this is an Active-Active Gateway.",
 				Type:        pluginsdk.TypeBool,
 				Computed:    true,
 			},

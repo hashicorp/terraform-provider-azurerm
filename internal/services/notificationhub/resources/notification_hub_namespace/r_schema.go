@@ -32,7 +32,7 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Description: "Is this Notification Hub Namespace enabled?",
+			Description: "Whether this Notification Hub Namespace is enabled.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,
@@ -48,7 +48,7 @@ func notificationHubNamespaceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_redundancy_enabled": {
-			Description: "Is Zone Redundancy Enabled for the Notification Hub Namespace?",
+			Description: "Whether Zone Redundancy is Enabled for the Notification Hub Namespace.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			ForceNew:    true,

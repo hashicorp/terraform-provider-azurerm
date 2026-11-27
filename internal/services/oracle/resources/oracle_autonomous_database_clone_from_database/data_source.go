@@ -135,7 +135,7 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"refreshable_status": {
-			Description: "The current refreshable status of the clone. Values include `Refreshing` and `NotRefreshing`.",
+			Description: "The current refreshable status of the clone.",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
@@ -374,7 +374,7 @@ func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"peer_database_ids": {
-			Description: "The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.",
+			Description: "The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. For Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.",
 			Type:        pluginsdk.TypeList,
 			Computed:    true,
 			Elem: &pluginsdk.Schema{
