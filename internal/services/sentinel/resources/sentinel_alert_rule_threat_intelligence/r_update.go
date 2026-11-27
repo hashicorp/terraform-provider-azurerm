@@ -26,7 +26,7 @@ func (a Resource) Update() sdk.ResourceFunc {
 
 			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %+v", err)
+				return err
 			}
 			resp, err := client.Get(ctx, *id)
 			if err != nil {

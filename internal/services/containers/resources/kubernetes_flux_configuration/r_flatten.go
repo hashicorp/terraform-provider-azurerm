@@ -5,7 +5,6 @@ package kubernetes_flux_configuration
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
@@ -21,7 +20,7 @@ func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinitio
 
 	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("parsing account %q: %+v", pointer.From(input.Url), err)
+		return nil, err
 	}
 
 	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))

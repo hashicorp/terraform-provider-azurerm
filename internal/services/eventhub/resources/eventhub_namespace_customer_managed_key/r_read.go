@@ -59,7 +59,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 				if item.Identity != nil && item.Identity.UserAssignedIdentity != nil {
 					userAssignedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*item.Identity.UserAssignedIdentity)
 					if err != nil {
-						return fmt.Errorf("parsing `user_assigned_identity_id`: %+v", err)
+						return err
 					}
 					if err := d.Set("user_assigned_identity_id", userAssignedId.ID()); err != nil {
 						return fmt.Errorf("setting `user_assigned_identity_id`: %+v", err)

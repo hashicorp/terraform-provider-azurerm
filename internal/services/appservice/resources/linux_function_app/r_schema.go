@@ -348,7 +348,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				newPlanId, err := commonids.ParseAppServicePlanID(newPlanIdRaw.(string))
 				if err != nil {
-					return fmt.Errorf("reading new plan id %+v", err)
+					return err
 				}
 
 				var currentTierIsDynamic, newTierIsDynamic, newTierIsBasic bool
@@ -383,7 +383,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				if currentPlanIdRaw.(string) != "" {
 					currentPlanId, err := commonids.ParseAppServicePlanIDInsensitively(currentPlanIdRaw.(string))
 					if err != nil {
-						return fmt.Errorf("reading existing plan id %+v", err)
+						return err
 					}
 
 					currentPlan, err := client.Get(ctx, *currentPlanId)

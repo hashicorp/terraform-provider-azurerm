@@ -180,7 +180,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			if v := pointer.From(result.ID); v != "" {
 				roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(v)
 				if err != nil {
-					return fmt.Errorf("paring role definition id %q: %v", v, err)
+					return err
 				}
 				config.ResourceManagerId = roleID.ID()
 			}

@@ -24,7 +24,7 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta any) err
 
 	profileId, err := profiles.ParseTrafficManagerProfileID(d.Get("profile_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `profile_id`: %+v", err)
+		return err
 	}
 
 	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeNestedEndpoints, d.Get("name").(string))

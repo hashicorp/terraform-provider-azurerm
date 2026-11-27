@@ -25,7 +25,7 @@ func (h Resource) Read() sdk.ResourceFunc {
 
 			id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			fabricId := replicationfabrics.NewReplicationFabricID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, id.ReplicationFabricName)
@@ -62,7 +62,7 @@ const TargetContainerIdAzure = "Microsoft Azure"
 func fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, fabricId replicationfabrics.ReplicationFabricId) (string, error) {
 	id, err := replicationprotectioncontainers.ParseReplicationFabricID(fabricId.ID())
 	if err != nil {
-		return "", fmt.Errorf("parsing %s: %+v", fabricId.ID(), err)
+		return "", err
 	}
 
 	resp, err := containerClient.ListByReplicationFabricsComplete(ctx, *id)

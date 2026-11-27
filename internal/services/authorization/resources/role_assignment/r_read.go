@@ -73,7 +73,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 				}
 				parsedRoleDefId, err := roledefinitions.ParseScopedRoleDefinitionID(roleDefResourceId)
 				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", roleDefResourceId, err)
+					return err
 				}
 				roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleDefId)
 				if err != nil {

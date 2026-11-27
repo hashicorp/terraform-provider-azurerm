@@ -56,7 +56,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if encIdentity := encryption.Identity; encIdentity != nil && pointer.From(encIdentity.UserAssignedIdentity) != "" {
 				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
+					return err
 				}
 				customerManagedKeyIdentityId = parsed.ID()
 			}

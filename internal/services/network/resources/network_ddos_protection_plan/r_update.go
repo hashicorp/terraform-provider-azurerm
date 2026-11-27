@@ -26,7 +26,7 @@ func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta any
 
 	id, err := ddosprotectionplans.ParseDdosProtectionPlanID(d.Id())
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return err
 	}
 
 	locks.ByID(id.ID())

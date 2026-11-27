@@ -48,7 +48,7 @@ func (m Resource) Read() sdk.ResourceFunc {
 
 				kustoClusterId, err := commonids.ParseKustoClusterIDInsensitively(properties.AdxResourceId)
 				if err != nil {
-					return fmt.Errorf("parsing `kusto_cluster_uri`: %+v", err)
+					return err
 				}
 				output.KustoClusterId = kustoClusterId.ID()
 

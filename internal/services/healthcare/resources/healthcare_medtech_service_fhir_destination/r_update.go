@@ -22,7 +22,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 
 	medTechService, err := iotconnectors.ParseIotConnectorID(d.Get("medtech_service_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Med Tech Service error: %+v", err)
+		return err
 	}
 	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroupName, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 

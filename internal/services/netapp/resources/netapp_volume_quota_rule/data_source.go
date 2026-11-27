@@ -94,7 +94,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 
 			volumeID, err := volumes.ParseVolumeID(state.VolumeID)
 			if err != nil {
-				return fmt.Errorf("error parsing volume id %s: %+v", state.VolumeID, err)
+				return err
 			}
 
 			id := volumequotarules.NewVolumeQuotaRuleID(metadata.Client.Account.SubscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, state.Name)

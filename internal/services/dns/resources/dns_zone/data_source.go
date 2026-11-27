@@ -171,7 +171,7 @@ func findZone(ctx context.Context, client *zones.ZonesClient, subscriptionId, na
 
 	id, err := zones.ParseDnsZoneIDInsensitively(*found.Id)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parsing %q as a DNS Zone ID: %+v", *found.Id, err)
+		return nil, nil, err
 	}
 	return &found, &id.ResourceGroupName, nil
 }

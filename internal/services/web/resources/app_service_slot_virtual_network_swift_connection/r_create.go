@@ -34,7 +34,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 
 	subnetID, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing subnet ID %+v", err)
+		return err
 	}
 
 	appSlotID := webapps.NewSlotID(appID.SubscriptionId, appID.ResourceGroupName, appID.SiteName, d.Get("slot_name").(string))

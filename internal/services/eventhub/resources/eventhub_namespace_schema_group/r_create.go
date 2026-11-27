@@ -23,7 +23,7 @@ func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, me
 
 	namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing eventhub namespace %s error: %+v", namespaceId.ID(), err)
+		return err
 	}
 
 	id := schemaregistry.NewSchemaGroupID(subscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))

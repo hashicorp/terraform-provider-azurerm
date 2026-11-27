@@ -26,14 +26,14 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
 	serverId, err := commonids.ParseSqlServerIDInsensitively(d.Get("server_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
+		return err
 	}
 
 	id := virtualnetworkrules.NewVirtualNetworkRuleID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
 
 	subnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing subnet ID %q: %+v", d.Get("subnet_id"), err)
+		return err
 	}
 
 	if d.IsNewResource() {

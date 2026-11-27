@@ -31,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			eMailServiceID, err := emailservices.ParseEmailServiceID(model.EMailServiceID)
 			if err != nil {
-				return fmt.Errorf("parsing parent email_service_id: %+v", err)
+				return err
 			}
 
 			id := domains.NewDomainID(subscriptionId, eMailServiceID.ResourceGroupName, eMailServiceID.EmailServiceName, model.Name)

@@ -56,7 +56,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing server ID: %+v", err)
+		return err
 	}
 
 	id := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, name)
@@ -120,7 +120,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		for _, partnerDatabase := range partnerDatabases {
 			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+				return err
 			}
 
 			locks.ByID(partnerDatabaseId.ID())
@@ -131,7 +131,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		for _, partnerDatabase := range partnerDatabases {
 			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+				return err
 			}
 
 			// See: https://learn.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
@@ -222,7 +222,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 			// We need to make sure the enclave types match...
 			primaryDatabaseId, err := commonids.ParseSqlDatabaseID(creationSourceDatabaseId.(string))
 			if err != nil {
-				return fmt.Errorf("parsing creation source database ID: %+v", err)
+				return err
 			}
 
 			primaryDatabase, err := client.Get(ctx, *primaryDatabaseId, databases.DefaultGetOperationOptions())

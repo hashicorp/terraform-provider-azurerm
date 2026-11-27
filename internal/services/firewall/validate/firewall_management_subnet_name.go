@@ -12,7 +12,7 @@ import (
 func FirewallManagementSubnetName(v any, k string) (warnings []string, errors []error) {
 	parsed, err := commonids.ParseSubnetID(v.(string))
 	if err != nil {
-		errors = append(errors, fmt.Errorf("parsing %q: %+v", v.(string), err))
+		errors = append(errors, err)
 		return warnings, errors
 	}
 

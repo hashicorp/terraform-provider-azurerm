@@ -23,7 +23,7 @@ func (s Resource) Read() sdk.ResourceFunc {
 
 			id, err := commonids.ParseScopeID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

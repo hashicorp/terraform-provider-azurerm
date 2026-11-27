@@ -48,7 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.RoutingIntentCreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.RoutingIntentCreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

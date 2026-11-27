@@ -24,7 +24,7 @@ func (s Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing id: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.NetworkMappingClient
@@ -61,7 +61,7 @@ const HyperVNetworkMappingRecoveryFabricName = "Microsoft Azure"
 func fetchFabricIdByFriendlyName(ctx context.Context, fabricClient *replicationfabrics.ReplicationFabricsClient, vaultId, friendlyName string) (string, error) {
 	parsedVaultId, err := replicationfabrics.ParseVaultID(vaultId)
 	if err != nil {
-		return "", fmt.Errorf("parsing vault id: %+v", err)
+		return "", err
 	}
 
 	fabrics, err := fabricClient.ListComplete(ctx, *parsedVaultId)
@@ -81,7 +81,7 @@ func fetchFabricIdByFriendlyName(ctx context.Context, fabricClient *replicationf
 func fetchReplicationNetworkIdByFriendlyName(ctx context.Context, networksClient *replicationnetworks.ReplicationNetworksClient, fabricId, friendlyName string) (string, error) {
 	parsedFabricId, err := replicationnetworks.ParseReplicationFabricID(fabricId)
 	if err != nil {
-		return "", fmt.Errorf("parsing fabric id: %+v", err)
+		return "", err
 	}
 
 	networks, err := networksClient.ListByReplicationFabricsComplete(ctx, *parsedFabricId)

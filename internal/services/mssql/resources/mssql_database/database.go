@@ -69,13 +69,13 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		// Look for candidate partner SQL servers
 		linkDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
 		if err != nil {
-			return nil, fmt.Errorf("parsing Replication Link SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
+			return nil, err
 		}
 
 		fmtString := "/subscriptions/" + linkDatabase.SubscriptionId
 		linkSubscription, err := commonids.ParseSubscriptionID(fmtString)
 		if err != nil {
-			return nil, fmt.Errorf("parsing Replication Link SQL Database Subscription %q: %+v", fmtString, err)
+			return nil, err
 		}
 
 		log.Printf("[INFO] Replication Link SQL Databases Subscription: %q", *linkSubscription)
@@ -101,7 +101,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 			partnerServerId, err := commonids.ParseSqlServerIDInsensitively(*server.Id)
 			if err != nil {
-				return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", *server.Id, err)
+				return nil, err
 			}
 
 			log.Printf("[INFO] Parsed Partner SQL Server ID: %q", partnerServerId)
@@ -109,7 +109,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			// Check if like-named server has a database named like the partner database, also with a replication link
 			partnerDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
 			if err != nil {
-				return nil, fmt.Errorf("parsing Partner SQL Database ID %q: %+v", *server.Id, err)
+				return nil, err
 			}
 
 			linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, *partnerDatabase)

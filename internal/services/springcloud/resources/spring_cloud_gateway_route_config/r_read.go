@@ -46,7 +46,7 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta a
 		if props.AppResourceID != nil {
 			appId, err := appplatform_rm.ParseAppIDInsensitively(*props.AppResourceID)
 			if err != nil {
-				return fmt.Errorf("parsing `spring_cloud_app_id`: %+v", err)
+				return err
 			}
 			d.Set("spring_cloud_app_id", appId.ID())
 		}

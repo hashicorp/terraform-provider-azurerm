@@ -135,7 +135,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 					// for some reason the DiffSuppressFunc for `subnet_id` isn't working as intended, so we'll also flatten the id insensitively
 					subnetId, err := commonids.ParseSubnetIDInsensitively(*v)
 					if err != nil {
-						return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
+						return nil, err
 					}
 					block["subnet_id"] = subnetId.ID()
 				}

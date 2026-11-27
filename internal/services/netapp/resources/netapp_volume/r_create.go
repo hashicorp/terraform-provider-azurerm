@@ -137,7 +137,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta any) error {
 		// Get snapshot ID GUID value
 		parsedSnapshotResourceID, err := snapshots.ParseSnapshotID(snapshotResourceID)
 		if err != nil {
-			return fmt.Errorf("parsing snapshotResourceID %q: %+v", snapshotResourceID, err)
+			return err
 		}
 
 		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient

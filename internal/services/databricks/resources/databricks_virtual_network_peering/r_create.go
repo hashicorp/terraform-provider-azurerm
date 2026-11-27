@@ -30,7 +30,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	// of the workspace to create the peerings ID
 	workspaceId, err := vnetpeering.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("unable to parse 'workspace_id': %+v", err)
+		return err
 	}
 
 	id = vnetpeering.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), workspaceId.WorkspaceName, d.Get("name").(string))

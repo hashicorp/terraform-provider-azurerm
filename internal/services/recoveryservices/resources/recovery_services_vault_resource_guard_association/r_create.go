@@ -28,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			vaultId, err := vaults.ParseVaultID(plan.VaultId)
 			if err != nil {
-				return fmt.Errorf("parsing vault id %w", err)
+				return err
 			}
 
 			name := "VaultProxy"

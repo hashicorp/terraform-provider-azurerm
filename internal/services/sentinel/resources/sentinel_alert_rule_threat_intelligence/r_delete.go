@@ -20,7 +20,7 @@ func (a Resource) Delete() sdk.ResourceFunc {
 
 			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %+v", err)
+				return err
 			}
 
 			if _, err := client.Delete(ctx, *id); err != nil {

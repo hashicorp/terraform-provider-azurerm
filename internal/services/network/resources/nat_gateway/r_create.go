@@ -60,7 +60,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

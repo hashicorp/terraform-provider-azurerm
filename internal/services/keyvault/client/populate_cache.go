@@ -55,7 +55,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 		// Populate the key vault into the cache
 		keyVaultId, err := commonids.ParseKeyVaultIDInsensitively(*item.Id)
 		if err != nil {
-			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", *item.Id, err)
+			return err
 		}
 		vaultUri := *item.Properties.VaultUri
 		c.AddToCache(*keyVaultId, vaultUri)
@@ -81,7 +81,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 
 		id, err := commonids.ParseKeyVaultIDInsensitively(*item.Id)
 		if err != nil {
-			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", *item.Id, err)
+			return err
 		}
 		if _, inCache := getCachedKeyValue(c.cacheKeyForKeyVault(id.VaultName)); inCache {
 			// don't bother caching it if we've already got it

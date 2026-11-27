@@ -39,7 +39,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 			keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 			if err != nil {
-				return fmt.Errorf("parsing Key Vault ID: %+v", err)
+				return err
 			}
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)

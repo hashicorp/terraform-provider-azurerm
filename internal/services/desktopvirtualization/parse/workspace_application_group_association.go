@@ -48,12 +48,12 @@ func WorkspaceApplicationGroupAssociationID(input string) (*WorkspaceApplication
 
 	workspaceId, err := workspace.ParseWorkspaceID(segments[0])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Workspace ID for Workspace/Application Group Association %q: %+v", segments[0], err)
+		return nil, err
 	}
 
 	applicationGroupId, err := applicationgroup.ParseApplicationGroupID(segments[1])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Application Group ID for Workspace/Application Group Association %q: %+v", segments[1], err)
+		return nil, err
 	}
 
 	return &WorkspaceApplicationGroupAssociationId{
@@ -70,12 +70,12 @@ func WorkspaceApplicationGroupAssociationIDInsensitively(input string) (*Workspa
 
 	workspaceId, err := workspace.ParseWorkspaceIDInsensitively(segments[0])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Workspace ID for Workspace/Application Group Association %q: %+v", segments[0], err)
+		return nil, err
 	}
 
 	applicationGroupId, err := applicationgroup.ParseApplicationGroupIDInsensitively(segments[1])
 	if err != nil {
-		return nil, fmt.Errorf("parsing Application Group ID for Workspace/Application Group Association %q: %+v", segments[1], err)
+		return nil, err
 	}
 
 	return &WorkspaceApplicationGroupAssociationId{

@@ -222,7 +222,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 				if roleDefinitionId := pointer.From(props.RoleDefinitionID); roleDefinitionId != "" {
 					parsed, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(roleDefinitionId)
 					if err != nil {
-						return fmt.Errorf("parsing role definition id %q: %v", roleDefinitionId, err)
+						return err
 					}
 
 					model.RoleDefinitionId = parsed.ID()

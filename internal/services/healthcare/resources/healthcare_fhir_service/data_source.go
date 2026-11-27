@@ -164,7 +164,7 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta any
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing workspace id error: %+v", err)
+		return err
 	}
 	id := fhirservices.NewFhirServiceID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 

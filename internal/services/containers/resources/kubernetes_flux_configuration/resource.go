@@ -34,13 +34,13 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			errs = append(errs, err)
 			return
 		}
 
 		// validate the scope is a connected cluster id
 		if _, err := commonids.ParseKubernetesClusterID(id.Scope); err != nil {
-			errs = append(errs, fmt.Errorf("parsing %q as a Kubernetes Cluster ID: %+v", idRaw, err))
+			errs = append(errs, err)
 			return
 		}
 

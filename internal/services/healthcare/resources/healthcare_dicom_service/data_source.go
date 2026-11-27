@@ -186,7 +186,7 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta an
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing workspace id error: %+v", err)
+		return err
 	}
 
 	id := dicomservices.NewDicomServiceID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))

@@ -30,7 +30,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 
 			vaultId, err := replicationnetworkmappings.ParseVaultID(plan.VaultId)
 			if err != nil {
-				return fmt.Errorf("parsing vault id: %+v", err)
+				return err
 			}
 
 			fabricId, err := fetchFabricIdByFriendlyName(ctx, fabricClient, vaultId.ID(), plan.SCVMMname)
@@ -45,7 +45,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 
 			parsedNetworkId, err := replicationnetworkmappings.ParseReplicationNetworkID(networkId)
 			if err != nil {
-				return fmt.Errorf("parsing network id: %+v", err)
+				return err
 			}
 
 			id := replicationnetworkmappings.NewReplicationNetworkMappingID(parsedNetworkId.SubscriptionId, parsedNetworkId.ResourceGroupName, parsedNetworkId.VaultName, parsedNetworkId.ReplicationFabricName, parsedNetworkId.ReplicationNetworkName, plan.Name)

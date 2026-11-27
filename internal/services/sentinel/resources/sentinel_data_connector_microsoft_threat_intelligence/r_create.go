@@ -27,7 +27,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 
 			workSpaceId, err := workspaces.ParseWorkspaceID(metaModel.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id %+v", err)
+				return err
 			}
 
 			id := dataconnectors.NewDataConnectorID(workSpaceId.SubscriptionId, workSpaceId.ResourceGroupName, workSpaceId.WorkspaceName, metaModel.Name)

@@ -24,7 +24,7 @@ func resourceResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta any) 
 
 	id, err := remediations.ParseScopedRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
+		return err
 	}
 	resp, err := client.GetAtResource(ctx, *id)
 	if err != nil {

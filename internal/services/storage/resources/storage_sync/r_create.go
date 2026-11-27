@@ -46,7 +46,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta any) error {
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.StorageSyncServicesCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.StorageSyncServicesCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())

@@ -22,7 +22,7 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 	workspaceId := d.Get("workspace_id").(string)
 	workspace, err := linkedstorageaccounts.ParseWorkspaceID(workspaceId)
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return err
 	}
 	id := linkedstorageaccounts.NewDataSourceTypeID(workspace.SubscriptionId, d.Get("resource_group_name").(string), workspace.WorkspaceName, linkedstorageaccounts.DataSourceType(d.Get("data_source_type").(string)))
 

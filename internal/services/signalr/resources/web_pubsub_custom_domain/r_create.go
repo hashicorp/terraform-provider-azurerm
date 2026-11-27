@@ -28,7 +28,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			webPubsubId, err := webpubsub.ParseWebPubSubIDInsensitively(metadata.ResourceData.Get("web_pubsub_id").(string))
 			if err != nil {
-				return fmt.Errorf("parsing web pubsub id error: %+v", err)
+				return err
 			}
 
 			id := webpubsub.NewCustomDomainID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, metadata.ResourceData.Get("name").(string))
@@ -37,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(webPubsubId.ID())
 
 			if _, err := webpubsub.ParseCustomCertificateIDInsensitively(customDomainWebPubsubModel.WebPubsubCustomCertificateId); err != nil {
-				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
+				return err
 			}
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {

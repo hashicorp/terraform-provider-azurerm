@@ -58,7 +58,7 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta any) 
 				} else {
 					parsedApiId, err := api.ParseApiIDInsensitively(props.Scope)
 					if err != nil {
-						return fmt.Errorf("parsing scope into product/ api id %q: %+v", props.Scope, err)
+						return err
 					}
 					apiId = parsedApiId.ID()
 				}

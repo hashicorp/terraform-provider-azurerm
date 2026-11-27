@@ -24,7 +24,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			id, err := devices.ParseDataBoxEdgeDeviceID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parse: %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)

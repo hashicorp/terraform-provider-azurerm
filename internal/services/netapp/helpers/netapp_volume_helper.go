@@ -1013,7 +1013,7 @@ func AuthorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 				// Get the capacity pool for this volume
 				capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
 				if err != nil {
-					return fmt.Errorf("parsing capacity pool ID %q: %+v", *volume.Properties.CapacityPoolResourceId, err)
+					return err
 				}
 
 				// This is a secondary volume, create its ID
@@ -1028,7 +1028,7 @@ func AuthorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 				// Getting primary resource id
 				primaryId, err := volumes.ParseVolumeID(pointer.From(replication.RemoteVolumeResourceId))
 				if err != nil {
-					return fmt.Errorf("parsing primary volume ID %q: %+v", pointer.From(replication.RemoteVolumeResourceId), err)
+					return err
 				}
 
 				// Authorizing
@@ -1048,7 +1048,7 @@ func AuthorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 			// Get the capacity pool for this volume
 			capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
 			if err != nil {
-				return fmt.Errorf("parsing capacity pool ID %q: %+v", *volume.Properties.CapacityPoolResourceId, err)
+				return err
 			}
 
 			// Create the destination volume ID for status checking

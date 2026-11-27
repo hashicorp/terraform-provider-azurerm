@@ -147,7 +147,7 @@ func deleteBackupsFromVault(ctx context.Context, id *backupvaults.BackupVaultId,
 			if shouldDestroyBackups {
 				backupID, err := backups.ParseBackupID(pointer.From(backup.Id))
 				if err != nil {
-					return fmt.Errorf("parsing backup ID %s: %w", pointer.From(backup.Id), err)
+					return err
 				}
 
 				if err := retryBackupDelete(ctx, backupClient, pointer.From(backupID), 120, 30); err != nil {

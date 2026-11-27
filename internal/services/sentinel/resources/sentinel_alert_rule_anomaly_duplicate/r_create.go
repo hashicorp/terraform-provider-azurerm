@@ -31,7 +31,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id: %+v", err)
+				return err
 			}
 
 			items, err := client.ListComplete(ctx, securitymlanalyticssettings.WorkspaceId(*workspaceId))

@@ -19,7 +19,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.RecoveryServices.FabricClient
 			id, err := replicationfabrics.ParseReplicationFabricID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {

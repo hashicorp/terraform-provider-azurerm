@@ -54,7 +54,7 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta any)
 	}
 	parameters.Properties.StorageAccountTenantId = &tenantId
 
-	if err := client.CloudEndpointsCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CloudEndpointsCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

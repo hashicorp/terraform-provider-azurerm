@@ -25,7 +25,7 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	apiTagId, err := apitag.ParseApiTagID(d.Get("api_tag_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing `api_id`: %v", err)
+		return err
 	}
 
 	apiName := helpers.GetApiName(apiTagId.ApiId)

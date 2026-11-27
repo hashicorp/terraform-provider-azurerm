@@ -21,7 +21,7 @@ func (Resource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return err
 			}
 
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases

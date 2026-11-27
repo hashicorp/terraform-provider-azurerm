@@ -28,7 +28,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			id, err := replicationprotecteditems.ParseReplicationProtectedItemID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			existing, err := client.Get(ctx, *id)

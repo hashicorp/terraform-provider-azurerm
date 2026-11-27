@@ -18,7 +18,7 @@ func (s Resource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing id: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.NetworkMappingClient

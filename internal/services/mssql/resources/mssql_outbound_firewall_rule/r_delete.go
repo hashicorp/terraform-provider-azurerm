@@ -19,7 +19,7 @@ func resourceMsSqlOutboundFirewallRuleDelete(d *pluginsdk.ResourceData, meta any
 
 	id, err := outboundfirewallrules.ParseOutboundFirewallRuleID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
+		return err
 	}
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {

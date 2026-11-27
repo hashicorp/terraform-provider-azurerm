@@ -56,7 +56,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if webAppSlot.ServicePlanID != "" {
 				newServicePlanId, err := commonids.ParseAppServicePlanID(webAppSlot.ServicePlanID)
 				if err != nil {
-					return fmt.Errorf("parsing service_plan_id for %s: %+v", id, err)
+					return err
 				}
 				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
 				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024

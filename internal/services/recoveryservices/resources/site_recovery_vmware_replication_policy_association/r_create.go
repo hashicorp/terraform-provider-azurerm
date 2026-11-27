@@ -42,7 +42,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 
 			parsedContainerId, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(containerId)
 			if err != nil {
-				return fmt.Errorf("parse %q: %+v", containerId, err)
+				return err
 			}
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)

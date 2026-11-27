@@ -155,7 +155,7 @@ func flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster bool, 
 	case privateDNSZoneID != "":
 		parsedPrivateDNSZoneID, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDNSZoneID)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
+			return nil, err
 		}
 		privateDNSZoneID = parsedPrivateDNSZoneID.ID()
 	}
@@ -194,7 +194,7 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 	if input.WebAppRouting.Identity != nil {
 		parsedResourceId, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(input.WebAppRouting.Identity.ResourceId))
 		if err != nil {
-			return nil, fmt.Errorf("parsing `web_app_routing_ingress.0.web_app_routing_identity.0.user_assigned_identity_id`: %+v", err)
+			return nil, err
 		}
 
 		webAppRoutingIdentity = append(webAppRoutingIdentity, WebAppRoutingIdentityModel{

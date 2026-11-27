@@ -27,7 +27,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.LogAnalyticsWorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing Log Analytics Workspace ID: %w", err)
+				return err
 			}
 
 			id := watchlists.NewWatchlistID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)

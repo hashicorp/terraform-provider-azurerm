@@ -162,7 +162,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 		// Populate the Managed HSM into the cache
 		managedHsm, err := managedhsms.ParseManagedHSMIDInsensitively(*item.Id)
 		if err != nil {
-			return fmt.Errorf("parsing %q as a Managed HSM ID: %+v", *item.Id, err)
+			return err
 		}
 		dataPlaneUri := *item.Properties.HsmUri
 		c.AddToCache(*managedHsm, dataPlaneUri)

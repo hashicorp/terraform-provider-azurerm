@@ -130,7 +130,7 @@ func (k DataSource) Read() sdk.ResourceFunc {
 
 			storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
 			if err != nil {
-				return fmt.Errorf("parsing storage_account_id: %v", err)
+				return err
 			}
 			accountName = storageAccountId.StorageAccountName
 			account, err = storageClient.GetAccount(ctx, *storageAccountId)
@@ -151,7 +151,7 @@ func (k DataSource) Read() sdk.ResourceFunc {
 			// Parse the table endpoint as a data plane account ID
 			accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
 			if err != nil {
-				return fmt.Errorf("parsing Account ID: %v", err)
+				return err
 			}
 
 			id := tables.NewTableID(*accountId, model.Name)

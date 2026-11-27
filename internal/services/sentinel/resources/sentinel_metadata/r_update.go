@@ -25,7 +25,7 @@ func (a Resource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Sentinel.MetadataClient
 			id, err := sentinelmetadata.ParseMetadataID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			if _, err = client.Get(ctx, *id); err != nil {

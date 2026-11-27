@@ -241,7 +241,7 @@ func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile)
 	if profile.SubnetId != nil {
 		subnetId, err := commonids.ParseSubnetIDInsensitively(*profile.SubnetId)
 		if err != nil {
-			return []WorkerProfile{}, fmt.Errorf("parsing subnet id: %+v", err)
+			return []WorkerProfile{}, err
 		}
 		subnetIdString = subnetId.ID()
 	}

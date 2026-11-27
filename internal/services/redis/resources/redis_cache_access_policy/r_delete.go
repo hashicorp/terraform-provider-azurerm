@@ -24,7 +24,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.Redis.CacheAccessPoliciesClient
 			id, err := rediscacheaccesspolicies.ParseAccessPolicyID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			locks.ByID(model.RedisCacheID)

@@ -30,7 +30,7 @@ func (s Resource) Create() sdk.ResourceFunc {
 			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing spring service ID: %+v", err)
+				return err
 			}
 			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 

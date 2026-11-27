@@ -4,8 +4,6 @@
 package signalr_service_custom_domain
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +22,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *signalr.CustomDomai
 		if props.CustomCertificate.Id != nil {
 			signalrCustomCertificateID, err := signalr.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
 			if err != nil {
-				return fmt.Errorf("parsing signalr custom cert id for %s: %+v", *id, err)
+				return err
 			}
 			state.SignalrCustomCertificateId = signalrCustomCertificateID.ID()
 		}

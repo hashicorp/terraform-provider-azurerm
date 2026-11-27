@@ -470,7 +470,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 
 		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 		if err != nil {
-			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
+			return "", err
 		}
 		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseURL, keyID.Name, keyID.Version)
 		if err != nil {

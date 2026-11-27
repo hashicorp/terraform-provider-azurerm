@@ -150,7 +150,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 					serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
-						return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
+						return err
 					}
 
 					state.ServicePlanId = serverFarmId.ID()

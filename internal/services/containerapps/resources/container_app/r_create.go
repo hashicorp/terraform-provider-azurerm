@@ -49,7 +49,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			envId, err := managedenvironments.ParseManagedEnvironmentID(app.ManagedEnvironmentId)
 			if err != nil {
-				return fmt.Errorf("parsing Container App Environment ID for %s: %+v", id, err)
+				return err
 			}
 
 			env, err := environmentClient.Get(ctx, *envId)

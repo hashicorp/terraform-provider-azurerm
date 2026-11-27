@@ -29,12 +29,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			webPubsubId, err := webpubsub.ParseWebPubSubID(metadata.ResourceData.Get("web_pubsub_id").(string))
 			if err != nil {
-				return fmt.Errorf("parsing web pubsub service id error: %+v", err)
+				return err
 			}
 
 			keyVaultCertificateId, err := keyvault.ParseNestedItemID(metadata.ResourceData.Get("custom_certificate_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 			if err != nil {
-				return fmt.Errorf("parsing custom certificate id error: %+v", err)
+				return err
 			}
 
 			keyVaultUri := keyVaultCertificateId.KeyVaultBaseURL

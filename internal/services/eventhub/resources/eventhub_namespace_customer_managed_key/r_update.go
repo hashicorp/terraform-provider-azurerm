@@ -73,7 +73,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		for item := range namespace.Identity.IdentityIds {
 			parentEhnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(item)
 			if err != nil {
-				return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", item, err)
+				return err
 			}
 			if resourceids.Match(parentEhnUaiId, userAssignedIdentityId) {
 				isIdentityAssignedToParent = true

@@ -18,7 +18,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := openshiftclusters.ParseOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient

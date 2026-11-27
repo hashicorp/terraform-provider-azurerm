@@ -268,7 +268,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta any) error {
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
 	computeResource, err := client.ComputeGet(ctx, *id)

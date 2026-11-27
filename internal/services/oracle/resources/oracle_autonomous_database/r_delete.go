@@ -20,7 +20,7 @@ func (Resource) Delete() sdk.ResourceFunc {
 
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return err
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {

@@ -47,7 +47,7 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta any) erro
 	// Parse the file endpoint as a data plane account ID
 	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
+		return err
 	}
 
 	storageShareId := shares.NewShareID(*accountId, id.ShareName)

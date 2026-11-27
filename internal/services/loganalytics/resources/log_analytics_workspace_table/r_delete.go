@@ -24,7 +24,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			// We do not delete the resource here, just set the retention to workspace default value, which is
