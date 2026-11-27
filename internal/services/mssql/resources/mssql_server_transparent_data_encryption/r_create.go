@@ -48,10 +48,17 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	var key *keyvault.NestedItemID
 	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
+
+		// With `auto_rotation_enabled` the configured ID may be versionless, in which case
+		// the current version needs resolving before the Server Key can be created.
+		if keyId, err = resourceMsSqlTransparentDataEncryptionVersionedKey(ctx, keyId, "key_vault_key_id", d.Get("auto_rotation_enabled").(bool), meta); err != nil {
+			return err
+		}
+
 		key = keyId
 	}
 

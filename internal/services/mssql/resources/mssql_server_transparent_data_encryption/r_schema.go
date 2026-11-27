@@ -21,10 +21,11 @@ func mssqlServerTransparentDataEncryptionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_key_id": {
-			Description:  "To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+			Description:      "To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.",
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: diffSuppressKeyVaultVersionedKey,
+			ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 
 		"auto_rotation_enabled": {
