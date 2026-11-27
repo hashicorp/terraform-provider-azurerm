@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -120,7 +121,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 	thumbprint := d.Get("thumbprint").(string)
 	if sslState != "" {
 		if thumbprint == "" {
-			return fmt.Errorf("`thumbprint` must be specified when `ssl_state` is set")
+			return errors.New("`thumbprint` must be specified when `ssl_state` is set")
 		}
 
 		payload.Properties.SslState = pointer.ToEnum[webapps.SslState](sslState)
@@ -128,7 +129,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 
 	if thumbprint != "" {
 		if sslState == "" {
-			return fmt.Errorf("`ssl_state` must be specified when `thumbprint` is set")
+			return errors.New("`ssl_state` must be specified when `thumbprint` is set")
 		}
 
 		payload.Properties.Thumbprint = pointer.To(thumbprint)

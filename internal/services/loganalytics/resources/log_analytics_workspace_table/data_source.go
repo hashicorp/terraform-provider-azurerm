@@ -31,12 +31,14 @@ type LogAnalyticsWorkspaceTableDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The name of this Log Analytics Workspace Table.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 		"workspace_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The ID of the Log Analytics Workspace the table belongs to.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 	}
 }
@@ -44,16 +46,19 @@ func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"retention_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The table's data retention in days.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 		"total_retention_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The table's total data retention in days.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 		"plan": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The billing plan information for the Log Analytics Workspace Table.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -64,6 +69,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_log_analytics_workspace_table"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Log Analytics Workspace Table."
 }
 
 func (DataSource) Read() sdk.ResourceFunc {

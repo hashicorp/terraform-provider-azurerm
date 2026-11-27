@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppIntegrationAccountSessionCreateUpdate,
-		Read:   resourceLogicAppIntegrationAccountSessionRead,
-		Update: resourceLogicAppIntegrationAccountSessionCreateUpdate,
-		Delete: resourceLogicAppIntegrationAccountSessionDelete,
+		Description: "Manages a Logic App Integration Account Session.",
+		Create:      resourceLogicAppIntegrationAccountSessionCreateUpdate,
+		Read:        resourceLogicAppIntegrationAccountSessionRead,
+		Update:      resourceLogicAppIntegrationAccountSessionCreateUpdate,
+		Delete:      resourceLogicAppIntegrationAccountSessionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

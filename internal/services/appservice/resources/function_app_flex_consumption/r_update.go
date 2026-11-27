@@ -5,6 +5,7 @@ package function_app_flex_consumption
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -136,14 +137,14 @@ func (r Resource) Update() sdk.ResourceFunc {
 					switch storageAuthType {
 					case webapps.AuthenticationTypeStorageAccountConnectionString:
 						if deploymentStorageKey == "" {
-							return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
+							return errors.New("the storage account access key must be specified when using the storage key based access")
 						}
 						backendStorageUseMsi = false
 						backendSaConStr = fmt.Sprintf(StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
 						deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(string(DeploymentStorageConnStr))
 					case webapps.AuthenticationTypeUserAssignedIdentity:
 						if state.StorageUserAssignedIdentityID == "" {
-							return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
+							return errors.New("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 						}
 						backendStorageUseMsi = true
 						backendSaConStr = deploymentStorageName

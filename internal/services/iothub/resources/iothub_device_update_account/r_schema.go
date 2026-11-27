@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this IoT Hub Device Update Account.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,15 +28,17 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether the public network access is enabled for the IoT Hub Device Update Account.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"sku": {
+			Description:  "SKU of the IoT Hub Device Update Account.",
 			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      deviceupdates.SKUStandard,
 			ValidateFunc: validation.StringInSlice(deviceupdates.PossibleValuesForSKU(), false),
 		},
@@ -47,8 +50,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"host_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The API host name of the IoT Hub Device Update Account.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

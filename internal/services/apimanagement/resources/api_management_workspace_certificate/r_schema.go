@@ -26,15 +26,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}, "API Management Workspace"),
 
 		"certificate_data_base64": {
 			Description:  "The base64-encoded string containing the certificate in PKCS#12 (.pfx) format.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 			ValidateFunc: validation.StringIsBase64,
+			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 		},
 
 		"key_vault_secret_id": {
@@ -50,8 +50,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			RequiredWith: []string{"certificate_data_base64"},
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"certificate_data_base64"},
 		},
 
 		"user_assigned_identity_client_id": {

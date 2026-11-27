@@ -31,8 +31,8 @@ func privateDnsPtrRecordSchema() map[string]*pluginsdk.Schema {
 		"records": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			Set:      pluginsdk.HashString,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
 		"ttl": {

@@ -5,6 +5,7 @@ package eventhub_namespace_disaster_recovery_config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -48,7 +49,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *disasterrecoveryconfigs.DisasterRecoveryConfigsClient, id disasterrecoveryconfigs.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
@@ -64,7 +65,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Con
 			if model := read.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if props.ProvisioningState == nil {
-						return read, "failed", fmt.Errorf("provisioningState was empty")
+						return read, "failed", errors.New("provisioningState was empty")
 					}
 
 					if *props.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {

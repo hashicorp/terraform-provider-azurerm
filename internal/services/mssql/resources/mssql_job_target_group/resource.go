@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_mssql_job_target_group"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Job Target Group."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return jobtargetgroups.ValidateTargetGroupID
 }

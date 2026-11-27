@@ -5,6 +5,7 @@ package mysql_flexible_server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -54,39 +55,39 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) erro
 	createMode := servers.CreateMode(d.Get("create_mode").(string))
 
 	if _, ok := d.GetOk("replication_role"); ok {
-		return fmt.Errorf("`replication_role` cannot be set while creating")
+		return errors.New("`replication_role` cannot be set while creating")
 	}
 
 	if _, ok := d.GetOk("source_server_id"); !ok {
 		if createMode == servers.CreateModePointInTimeRestore || createMode == servers.CreateModeReplica || createMode == servers.CreateModeGeoRestore {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, or `Replica`")
+			return errors.New("`source_server_id` is required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, or `Replica`")
 		}
 	}
 
 	if createMode == servers.CreateModePointInTimeRestore {
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
+			return errors.New("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
 		}
 	}
 
 	if createMode == "" || createMode == servers.CreateModeDefault {
 		if _, ok := d.GetOk("administrator_login"); !ok {
-			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
+			return errors.New("`administrator_login` is required when `create_mode` is `Default`")
 		}
 
 		if _, ok := d.GetOk("administrator_password"); !ok && woPassword.IsNull() {
-			return fmt.Errorf("`administrator_password_wo` or `administrator_password` is required when `create_mode` is `Default`")
+			return errors.New("`administrator_password_wo` or `administrator_password` is required when `create_mode` is `Default`")
 		}
 
 		if _, ok := d.GetOk("sku_name"); !ok {
-			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
+			return errors.New("`sku_name` is required when `create_mode` is `Default`")
 		}
 	}
 
 	storageSettings := expandArmServerStorage(d.Get("storage").([]any))
 	if storageSettings != nil {
 		if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
-			return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
+			return errors.New("`iops` can not be set if `io_scaling_enabled` is set to true")
 		}
 	}
 
@@ -135,14 +136,14 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) erro
 	if pointInTimeUTC != "" {
 		v, err := time.Parse(time.RFC3339, pointInTimeUTC)
 		if err != nil {
-			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
+			return errors.New("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
 		parameters.Properties.SetRestorePointInTimeAsTime(v)
 	}
 
 	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
 	if err != nil {
-		return fmt.Errorf("expanding `identity`")
+		return errors.New("expanding `identity`")
 	}
 	parameters.Identity = identity
 

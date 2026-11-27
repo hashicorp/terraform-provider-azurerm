@@ -13,6 +13,7 @@ import (
 func monitorScheduledQueryRulesLogSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the scheduled query rule.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,8 +25,9 @@ func monitorScheduledQueryRulesLogSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"authorized_resource_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of IDs of Resources referred into query.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azure.ValidateResourceID,
@@ -44,21 +46,24 @@ func monitorScheduledQueryRulesLogSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
+									Description:  "Name of the dimension.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "Include",
+									Description: "Operator for dimension values.",
+									Type:        pluginsdk.TypeString,
+									Optional:    true,
+									Default:     "Include",
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 									}, false),
 								},
 								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
+									Description: "List of dimension values.",
+									Type:        pluginsdk.TypeList,
+									Required:    true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -68,6 +73,7 @@ func monitorScheduledQueryRulesLogSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"metric_name": {
+						Description:  "Name of the metric. Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://learn.microsoft.com/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -76,20 +82,23 @@ func monitorScheduledQueryRulesLogSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 		"data_source_id": {
+			Description:  "The resource URI over which log search query is to be run.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
 		"description": {
+			Description:  "The description of the scheduled query rule.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 4096),
 		},
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether this scheduled query rule is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"tags": commonschema.Tags(),

@@ -45,9 +45,9 @@ func (*Action) Schema(ctx context.Context, _ action.SchemaRequest, response *act
 				},
 			},
 			"timeout": schema.StringAttribute{
-				Optional:            true,
 				Description:         "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.", // azignore:AZS014 - an action cannot set a Default in its schema
 				MarkdownDescription: "Timeout duration for the Slot Distribution action to complete. Defaults to 20m.", // azignore:AZS014 - an action cannot set a Default in its schema
+				Optional:            true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -62,42 +62,42 @@ func webAppSetSlotDistributionActionRuleSchema(ctx context.Context) schema.Block
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
 				"hostname": schema.StringAttribute{
-					Required:    true,
 					Description: "The Hostname of the Slot to route traffic to.",
+					Required:    true,
 				},
 				"rule_name": schema.StringAttribute{
-					Required:    true,
 					Description: "The name of the unique distribution rule, if not supplied will default to the slot name (recommended).",
+					Required:    true,
 				},
 				"reroute_percentage": schema.Float64Attribute{
-					Required:    true,
 					Description: "Percentage of traffic which will be redirected to the supplied slot hostname.",
+					Required:    true,
 				},
 				"change_step": schema.Float64Attribute{
-					Optional:    true,
 					Description: "In auto ramp up scenario this is the step to add/remove from ReroutePercentage.",
+					Optional:    true,
 					Validators: []validator.Float64{
 						float64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("change_interval_minutes")),
 					},
 				},
 				"change_interval_minutes": schema.Int64Attribute{
-					Optional:    true,
 					Description: "The interval in minutes to reevaluate ReroutePercentage.",
+					Optional:    true,
 					Validators: []validator.Int64{
 						int64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("change_step")),
 					},
 				},
 				"min_reroute_percentage": schema.Float64Attribute{
-					Optional:    true,
 					Description: "The lower boundary above which ReroutePercentage will stay.",
+					Optional:    true,
 				},
 				"max_reroute_percentage": schema.Float64Attribute{
-					Optional:    true,
 					Description: "The upper boundary below which ReroutePercentage will stay.",
+					Optional:    true,
 				},
 				"change_decision_callback_url": schema.StringAttribute{
-					Optional:    true,
 					Description: "Custom decision algorithm can be provided in TiPCallback site extension which URL can be specified.",
+					Optional:    true,
 					Validators: []validator.String{
 						typehelpers.WrappedStringValidator{
 							Func: validation.IsURLWithHTTPorHTTPS,

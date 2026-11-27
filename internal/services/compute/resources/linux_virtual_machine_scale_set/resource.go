@@ -6,7 +6,6 @@ package linux_virtual_machine_scale_set
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 	"time"
 
@@ -28,10 +27,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLinuxVirtualMachineScaleSetCreate,
-		Read:   resourceLinuxVirtualMachineScaleSetRead,
-		Update: resourceLinuxVirtualMachineScaleSetUpdate,
-		Delete: resourceLinuxVirtualMachineScaleSetDelete,
+		Description: "Manages a Linux Virtual Machine Scale Set.",
+		Create:      resourceLinuxVirtualMachineScaleSetCreate,
+		Read:        resourceLinuxVirtualMachineScaleSetRead,
+		Update:      resourceLinuxVirtualMachineScaleSetUpdate,
+		Delete:      resourceLinuxVirtualMachineScaleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineScaleSetID(id)
@@ -75,11 +75,11 @@ func RegisterResource() *pluginsdk.Resource {
 					auxiliarySku := raw["auxiliary_sku"].(string)
 
 					if auxiliaryMode != "" && auxiliarySku == "" {
-						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+						return errors.New("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
 					}
 
 					if auxiliarySku != "" && auxiliaryMode == "" {
-						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+						return errors.New("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
 					}
 				}
 

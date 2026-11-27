@@ -20,7 +20,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBlueprintPublishedVersionRead,
+		Description: "Use this data source to access information about an existing Blueprint Published Version.",
+		Read:        dataSourceBlueprintPublishedVersionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,14 +29,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"blueprint_name": {
+				Description:  "The name of the Blueprint Definition.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"scope_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The ID of the Management Group / Subscription where this Blueprint Definition is stored.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
 					validate.ManagementGroupID,
@@ -43,6 +46,7 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"version": {
+				Description:  "The Version name of the Published Version of the Blueprint Definition.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -50,13 +54,15 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			// Computed
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of the Blueprint Published Version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The display name of the Blueprint Published Version.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"last_modified": {
@@ -65,8 +71,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"target_scope": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The target scope.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"time_created": {
@@ -75,8 +82,9 @@ func RegisterDataSource() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The type of the Blueprint.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 		},
 	}

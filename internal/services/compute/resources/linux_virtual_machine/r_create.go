@@ -4,6 +4,7 @@
 package linux_virtual_machine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -178,7 +179,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 		}
 
 		if mode == string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
-			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+			return errors.New("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
 		}
 
 		if params.Properties.OsProfile.LinuxConfiguration.PatchSettings == nil {
@@ -188,7 +189,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 
 		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
 			if patchMode != string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+				return errors.New("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
 			}
 
 			if params.Properties.OsProfile.LinuxConfiguration.PatchSettings == nil {
@@ -204,7 +205,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 
 		if v, ok := d.GetOk("reboot_setting"); ok {
 			if patchMode != string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+				return errors.New("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
 			}
 
 			if params.Properties.OsProfile.LinuxConfiguration.PatchSettings == nil {
@@ -220,10 +221,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 
 		adminPassword := d.Get("admin_password").(string)
 		if disablePasswordAuthentication && len(sshKeys) == 0 {
-			return fmt.Errorf("at least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
+			return errors.New("at least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
 		} else if !disablePasswordAuthentication {
 			if adminPassword == "" {
-				return fmt.Errorf("an `admin_password` must be specified if `disable_password_authentication` is set to `false`")
+				return errors.New("an `admin_password` must be specified if `disable_password_authentication` is set to `false`")
 			}
 
 			params.Properties.OsProfile.AdminPassword = pointer.To(adminPassword)
@@ -263,10 +264,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
 		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			return errors.New("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+			return errors.New("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
 		}
 
 		if params.Properties.SecurityProfile == nil {
@@ -322,7 +323,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if !provisionVMAgent && allowExtensionOperations { // TODO - Replace this with CustomizeDiff for plan-time catch?
-		return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		return errors.New("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -357,17 +358,17 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Properties.Priority != nil && *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return errors.New("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.Properties.EvictionPolicy = pointer.ToEnum[virtualmachines.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return errors.New("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if priority != virtualmachines.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return errors.New("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		params.Properties.BillingProfile = &virtualmachines.BillingProfile{

@@ -76,8 +76,8 @@ func (RedisCacheV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"enable_non_ssl_port": {
 			Type:     pluginsdk.TypeBool,
-			Default:  false,
 			Optional: true,
+			Default:  false,
 		},
 
 		"subnet_id": {

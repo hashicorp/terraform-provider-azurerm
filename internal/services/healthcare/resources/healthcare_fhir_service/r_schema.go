@@ -15,6 +15,7 @@ import (
 func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Healthcare FHIR Service.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -24,6 +25,7 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"workspace_id": {
+			Description:  "The ID of the Healthcare Workspace where the Healthcare FHIR Service should exist.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -33,6 +35,7 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"kind": {
+			Description:  "The kind of the Healthcare FHIR Service.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -41,8 +44,9 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"access_policy_object_ids": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of the access policies of the service instance.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
@@ -56,19 +60,22 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authority": {
+						Description:  "The Azure Active Directory (tenant) that serves as the authentication authority to access the service. Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id}.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"audience": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The intended audience to receive authentication tokens for the service.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 
 					"smart_proxy_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether smart proxy is enabled.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 				},
 			},
@@ -78,8 +85,9 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 
 		// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
 		"container_registry_login_server_url": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "A list of azure container registry settings used for convert data operation of the service instance.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -92,21 +100,24 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"login_server": {
+						Description:  "An Azure container registry used for export operations of the service instance.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"image_name": {
+						Description:  "An image within Azure container registry used for export operations of the service instance.",
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"digest": {
+						Description:  "A digest of an image within Azure container registry used for export operations of the service instance to narrow the artifacts down.",
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
 						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -119,9 +130,10 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						MaxItems: 64,
+						Description: "A set of origins to be allowed via CORS.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						MaxItems:    64,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -129,9 +141,10 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"allowed_headers": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						MaxItems: 64,
+						Description: "A set of headers to be allowed via CORS.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						MaxItems:    64,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -139,9 +152,10 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"allowed_methods": {
-						Type:     pluginsdk.TypeSet,
-						Required: true,
-						MaxItems: 64,
+						Description: "The methods to be allowed via CORS.",
+						Type:        pluginsdk.TypeSet,
+						Required:    true,
+						MaxItems:    64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -158,29 +172,33 @@ func healthcareFhirServiceSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"max_age_in_seconds": {
+						Description:  "The max age to be allowed via CORS.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 2000000000),
 					},
 
 					"credentials_allowed": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Description: "If credentials are allowed via CORS.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
 		},
 
 		"configuration_export_storage_account_name": {
+			Description:  "The name of the Storage Account which the operation configuration information is exported to.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether public networks access is enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"tags": commonschema.Tags(),

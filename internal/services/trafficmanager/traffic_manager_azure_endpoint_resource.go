@@ -115,14 +115,14 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 
 			"geo_mappings": {
 				Type:     pluginsdk.TypeList,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Optional: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"subnet": {
 				Type:     pluginsdk.TypeList,
-				ForceNew: true,
 				Optional: true,
+				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"first": {

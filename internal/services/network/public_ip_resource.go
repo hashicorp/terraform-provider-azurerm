@@ -74,8 +74,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"ddos_protection_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForDdosSettingsProtectionMode(), false),
 				Default:      string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForDdosSettingsProtectionMode(), false),
 			},
 
 			"ddos_protection_plan_id": {
@@ -89,8 +89,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"ip_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(publicipaddresses.IPVersionIPvFour),
 				ForceNew:     true,
+				Default:      string(publicipaddresses.IPVersionIPvFour),
 				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPVersion(), false),
 			},
 
@@ -106,8 +106,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(publicipaddresses.PublicIPAddressSkuTierRegional),
 				ForceNew:     true,
+				Default:      string(publicipaddresses.PublicIPAddressSkuTierRegional),
 				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForPublicIPAddressSkuTier(), false),
 			},
 
@@ -230,7 +230,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) || strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)) {
 		if !strings.EqualFold(ipAllocationMethod, string(publicipaddresses.IPAllocationMethodStatic)) {
-			return fmt.Errorf("`allocation_method` must be set to `Static` when `sku` is set to `Standard` or `StandardV2`")
+			return errors.New("`allocation_method` must be set to `Static` when `sku` is set to `Standard` or `StandardV2`")
 		}
 	}
 
@@ -258,7 +258,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta any) error {
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
 	if planOk {
 		if !strings.EqualFold(ddosProtectionMode, "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+			return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 		}
 		publicIp.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
 			Id: pointer.To(ddosProtectionPlanId.(string)),
@@ -364,7 +364,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("ddos_protection_plan_id") {
 		if !strings.EqualFold(string(*payload.Properties.DdosSettings.ProtectionMode), "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+			return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 		}
 		if payload.Properties.DdosSettings == nil {
 			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}

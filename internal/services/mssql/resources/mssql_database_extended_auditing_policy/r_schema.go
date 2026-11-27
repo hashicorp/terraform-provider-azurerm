@@ -12,6 +12,7 @@ import (
 func mssqlDatabaseExtendedAuditingPolicySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"database_id": {
+			Description:  "The ID of the SQL database to set the extended auditing policy.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,18 +20,21 @@ func mssqlDatabaseExtendedAuditingPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable the extended auditing policy.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"blob_storage_endpoint": {
+			Description:  "The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"storage_account_access_key": {
+			Description:  "The access key to use for the auditing Storage Account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -38,12 +42,14 @@ func mssqlDatabaseExtendedAuditingPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_account_access_key_is_secondary": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the `storage_account_access_key` value is the storage's secondary key.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"retention_in_days": {
+			Description:  "The number of days to retain logs for in the Storage Account.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
@@ -51,9 +57,10 @@ func mssqlDatabaseExtendedAuditingPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_monitoring_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Whether to enable audit events to Azure Monitor.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 	}
 }

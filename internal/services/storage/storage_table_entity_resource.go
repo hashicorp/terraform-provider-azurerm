@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -96,7 +97,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
 	if !ok || tableIdRaw.(string) == "" {
-		return fmt.Errorf("`storage_table_id` is required")
+		return errors.New("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
@@ -185,7 +186,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta any) error
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
 	if !ok || tableIdRaw.(string) == "" {
-		return fmt.Errorf("`storage_table_id` is required")
+		return errors.New("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
@@ -329,7 +330,7 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta any) error
 
 	tableIdRaw, ok := d.GetOk("storage_table_id")
 	if !ok || tableIdRaw.(string) == "" {
-		return fmt.Errorf("`storage_table_id` is required")
+		return errors.New("`storage_table_id` is required")
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 

@@ -23,3 +23,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_dev_center_project"
 }
+
+func (r Resource) Description() string {
+	return "Manages a Dev Center Project."
+}

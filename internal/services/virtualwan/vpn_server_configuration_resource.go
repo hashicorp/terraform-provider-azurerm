@@ -4,6 +4,7 @@
 package virtualwan
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -197,8 +198,8 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 									"secret": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"score": {
@@ -338,17 +339,17 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta any) e
 	}
 
 	if supportsAAD && aadAuthentication == nil {
-		return fmt.Errorf("`azure_active_directory_authentication` must be specified when `vpn_authentication_type` is set to `AAD`")
+		return errors.New("`azure_active_directory_authentication` must be specified when `vpn_authentication_type` is set to `AAD`")
 	}
 
 	// parameter:VpnServerConfigVpnClientRootCertificates is not specified when VpnAuthenticationType as Certificate is selected.
 	if supportsCertificates && len(clientRootCertsRaw) == 0 {
-		return fmt.Errorf("`client_root_certificate` must be specified when `vpn_authentication_type` is set to `Certificate`")
+		return errors.New("`client_root_certificate` must be specified when `vpn_authentication_type` is set to `Certificate`")
 	}
 
 	if supportsRadius {
 		if radius == nil {
-			return fmt.Errorf("`radius` must be specified when `vpn_authentication_type` is set to `Radius`")
+			return errors.New("`radius` must be specified when `vpn_authentication_type` is set to `Radius`")
 		}
 
 		if radius.servers != nil && len(*radius.servers) != 0 {
@@ -537,7 +538,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta any) e
 		radius := expandVpnServerConfigurationRadius(d.Get("radius").([]any))
 		if supportsRadius {
 			if radius == nil {
-				return fmt.Errorf("`radius` must be specified when `vpn_authentication_type` is set to `Radius`")
+				return errors.New("`radius` must be specified when `vpn_authentication_type` is set to `Radius`")
 			}
 
 			if radius.servers != nil && len(*radius.servers) != 0 {
@@ -553,12 +554,12 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta any) e
 	}
 
 	if supportsAAD && payload.Properties.AadAuthenticationParameters == nil {
-		return fmt.Errorf("`azure_active_directory_authentication` must be specified when `vpn_authentication_type` is set to `AAD`")
+		return errors.New("`azure_active_directory_authentication` must be specified when `vpn_authentication_type` is set to `AAD`")
 	}
 
 	// parameter:VpnServerConfigVpnClientRootCertificates is not specified when VpnAuthenticationType as Certificate is selected.
 	if supportsCertificates && payload.Properties.VpnClientRootCertificates != nil && len(*payload.Properties.VpnClientRootCertificates) == 0 {
-		return fmt.Errorf("`client_root_certificate` must be specified when `vpn_authentication_type` is set to `Certificate`")
+		return errors.New("`client_root_certificate` must be specified when `vpn_authentication_type` is set to `Certificate`")
 	}
 
 	if d.HasChange("tags") {

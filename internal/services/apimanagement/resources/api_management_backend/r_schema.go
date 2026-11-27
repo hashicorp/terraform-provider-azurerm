@@ -72,8 +72,8 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 									Description:  "The number of failures within the specified interval that will trigger the circuit breaker.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									ValidateFunc: validation.IntBetween(1, 10000),
+									ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 								},
 								"error_reasons": {
 									Description:  "A list of error reasons to consider as failures.",
@@ -90,8 +90,8 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 									Description:  "The percentage of failures within the specified interval that will trigger the circuit breaker.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									ValidateFunc: validation.IntBetween(1, 100),
+									ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 								},
 								"status_code_range": {
 									Type:         pluginsdk.TypeList,
@@ -129,9 +129,10 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"authorization": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						MaxItems:     1,
+						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"parameter": {
@@ -150,37 +151,36 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 					},
 					"certificate": {
-						Description: "A list of client certificate thumbprints to present to the backend host. The certificates must exist within the API Management Service.",
-						Type:        pluginsdk.TypeList,
-						Optional:    true,
+						Description:  "A list of client certificate thumbprints to present to the backend host. The certificates must exist within the API Management Service.",
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 					},
 					"header": {
-						Description: "A mapping of header parameters to pass to the backend host. The keys are the header names and the values are a comma separated string of header values. This is converted to a list before being passed to the API.",
-						Type:        pluginsdk.TypeMap,
-						Optional:    true,
+						Description:  "A mapping of header parameters to pass to the backend host. The keys are the header names and the values are a comma separated string of header values. This is converted to a list before being passed to the API.",
+						Type:         pluginsdk.TypeMap,
+						Optional:     true,
+						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 					},
 					"query": {
-						Description: "A mapping of query parameters to pass to the backend host. The keys are the query names and the values are a comma separated string of query values. This is converted to a list before being passed to the API.",
-						Type:        pluginsdk.TypeMap,
-						Optional:    true,
+						Description:  "A mapping of query parameters to pass to the backend host. The keys are the query names and the values are a comma separated string of query values. This is converted to a list before being passed to the API.",
+						Type:         pluginsdk.TypeMap,
+						Optional:     true,
+						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 					},
 				},
 			},
@@ -238,8 +238,8 @@ func apiManagementBackendSchema() map[string]*pluginsdk.Schema {
 
 		"service_fabric_cluster": {
 			Type:     pluginsdk.TypeList,
-			MaxItems: 1,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"client_certificate_id": {

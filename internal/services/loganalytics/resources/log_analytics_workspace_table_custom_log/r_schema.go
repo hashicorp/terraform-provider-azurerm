@@ -39,6 +39,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Log Analytics Workspace Table Custom Log.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -55,6 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"workspace_id": {
+			Description:  "The object ID of the Log Analytics Workspace that contains the table.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -62,18 +64,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
+			Description:  "The description of the table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
+			Description:  "The display name of the table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"plan": {
+			Description:  "The system how to handle and charge the logs ingested to the table.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(tables.TablePlanEnumAnalytics),
@@ -81,12 +86,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_in_days": {
+			Description:  "The table's retention in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
+			Description:  "The table's total retention in days.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
@@ -97,8 +104,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"solutions": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
+			Description: "A list of solutions associated with the table.",
+			Type:        pluginsdk.TypeSet,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

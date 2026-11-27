@@ -13,6 +13,7 @@ import (
 func iothubCertificateSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the IotHub Certificate resource.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func iothubCertificateSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"iothub_name": {
+			Description:  "The name of the IoTHub that this certificate will be attached to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,16 +31,18 @@ func iothubCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"certificate_content": {
+			Description:  "The Base-64 representation of the X509 leaf certificate .cer file or just a .pem file content.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"is_verified": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether the certificate is verified.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }

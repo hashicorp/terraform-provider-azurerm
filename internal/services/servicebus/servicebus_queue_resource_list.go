@@ -5,6 +5,7 @@ package servicebus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
@@ -79,7 +80,7 @@ func (ServiceBusQueueListResource) List(ctx context.Context, request list.ListRe
 	// so capture its deadline to rebuild a live context for the per-item flatten.
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		sdk.SetResponseErrorDiagnostic(stream, "internal-error", fmt.Errorf("context had no deadline"))
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", errors.New("context had no deadline"))
 		return
 	}
 

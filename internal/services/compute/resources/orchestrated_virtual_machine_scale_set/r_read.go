@@ -4,6 +4,7 @@
 package orchestrated_virtual_machine_scale_set
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -278,7 +279,7 @@ func flattenOrchestratedVirtualMachineScaleSetSku(input *virtualmachinescalesets
 		return &skuName, nil
 	}
 
-	return nil, fmt.Errorf("sku struct `name` is nil")
+	return nil, errors.New("sku struct `name` is nil")
 }
 
 const (

@@ -19,10 +19,11 @@ const azurermDnsARecordResourceName = "azurerm_dns_a_record"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsARecordCreateUpdate,
-		Read:   resourceDnsARecordRead,
-		Update: resourceDnsARecordCreateUpdate,
-		Delete: resourceDnsARecordDelete,
+		Description: "Enables you to manage DNS A Records within Azure DNS.",
+		Create:      resourceDnsARecordCreateUpdate,
+		Read:        resourceDnsARecordRead,
+		Update:      resourceDnsARecordCreateUpdate,
+		Delete:      resourceDnsARecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

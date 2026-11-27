@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHDInsightHBaseClusterCreate,
-		Read:   resourceHDInsightHBaseClusterRead,
-		Update: helpers.HdinsightClusterUpdate("HBase", resourceHDInsightHBaseClusterRead),
-		Delete: helpers.HdinsightClusterDelete("HBase"),
+		Description: "Manages an HDInsight HBase Cluster.",
+		Create:      resourceHDInsightHBaseClusterCreate,
+		Read:        resourceHDInsightHBaseClusterRead,
+		Update:      helpers.HdinsightClusterUpdate("HBase", resourceHDInsightHBaseClusterRead),
+		Delete:      helpers.HdinsightClusterDelete("HBase"),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseHDInsightClusterID(id)

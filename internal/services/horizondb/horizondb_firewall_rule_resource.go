@@ -45,6 +45,10 @@ func (HorizondbFirewallRuleResource) ResourceType() string {
 	return "azurerm_horizondb_firewall_rule"
 }
 
+func (HorizondbFirewallRuleResource) Description() string {
+	return "Manages a HorizonDB Firewall Rule."
+}
+
 func (HorizondbFirewallRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewallrules.ValidateFirewallRuleID
 }
@@ -56,24 +60,27 @@ func (HorizondbFirewallRuleResource) Identity() resourceids.ResourceId {
 func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the HorizonDB Firewall Rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 80),
 				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]$`), "must contain only alphanumeric characters and hyphens and start and end with an alphanumeric character"),
 			),
 		},
 
-		"horizondb_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.PoolId{}),
+		"horizondb_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.PoolId{}, "HorizonDB Pool"),
 
 		"end_ip_address": {
+			Description:  "The last IPv4 address in the allowed range.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
 
 		"start_ip_address": {
+			Description:  "The first IPv4 address in the allowed range.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,

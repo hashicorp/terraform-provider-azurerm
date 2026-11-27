@@ -5,6 +5,7 @@ package synapse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -107,8 +108,8 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  DefaultCreateMode,
 				ForceNew: true,
+				Default:  DefaultCreateMode,
 				ValidateFunc: validation.StringInSlice([]string{
 					DefaultCreateMode,
 					RecoveryCreateMode,
@@ -126,22 +127,22 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 
 			"recovery_database_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"restore"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
 					validate.SqlPoolRecoverableDatabaseID,
 					commonids.ValidateSqlDatabaseID,
 					mssqlValidate.RecoverableDatabaseID,
 				),
+				ConflictsWith: []string{"restore"},
 			},
 
 			"restore": {
 				Type:          pluginsdk.TypeList,
-				ForceNew:      true,
 				Optional:      true,
+				ForceNew:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"recovery_database_id"},
 				Elem: &pluginsdk.Resource{
@@ -173,8 +174,8 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 
 			"geo_backup_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -192,7 +193,7 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 	storageAccountType := synapse.StorageAccountType(value.(string))
 
 	if storageAccountType == synapse.StorageAccountTypeLRS && geoBackupEnabled {
-		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
+		return errors.New("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
 	}
 
 	return nil
@@ -379,7 +380,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 		if d.HasChange("sku_name") {
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			stateConf := &pluginsdk.StateChangeConf{

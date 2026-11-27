@@ -16,6 +16,7 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"bot_name": {
+			Description:  "The name of the Bot Resource this channel will be associated with.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,60 +24,70 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"site": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "A site represents a client application that you want to connect to your bot.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the site.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"user_upload_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the user upload is enabled for this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Enables/Disables this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"endpoint_parameters_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the endpoint parameters are enabled for this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"storage_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Whether the storage site is enabled for detailed logging.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"v1_allowed": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Enables v1 of the Directline protocol for this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"v3_allowed": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
+						Description: "Enables v3 of the Directline protocol for this site.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 
 					"enhanced_authentication_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Default:  false,
-						Optional: true,
+						Description: "Enables additional security measures for this site, see [Direct Line enhanced authentication](https://learn.microsoft.com/azure/bot-service/bot-builder-security-enhanced?view=azure-bot-service-4.0). Disabled by default.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 
 					"trusted_origins": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Description: "This field is required when `enhanced_authentication_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.",
+						Type:        pluginsdk.TypeSet,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -84,35 +95,40 @@ func botChannelDirectlineSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Primary key for accessing this site.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"key2": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+						Description: "Secondary key for accessing this site.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
+						Sensitive:   true,
 					},
 
 					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "ID for the site.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"extension_key_1": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The first key for Directline App Service Extension.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"extension_key_2": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The second key for Directline App Service Extension.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

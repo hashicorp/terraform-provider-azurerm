@@ -6,6 +6,7 @@ package framework
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -38,7 +39,7 @@ func getClientSecret(d *ProviderModel) (*string, error) {
 		fileSecret := strings.TrimSpace(string(fileSecretRaw))
 
 		if clientSecret != "" && clientSecret != fileSecret {
-			return nil, fmt.Errorf("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
+			return nil, errors.New("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
 		}
 
 		clientSecret = fileSecret
@@ -59,7 +60,7 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 		fileToken := strings.TrimSpace(string(fileTokenRaw))
 
 		if idToken != "" && idToken != fileToken {
-			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
+			return nil, errors.New("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
 		}
 
 		idToken = fileToken
@@ -75,7 +76,7 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 		fileToken := strings.TrimSpace(string(fileTokenRaw))
 
 		if idToken != "" && idToken != fileToken {
-			return nil, fmt.Errorf("mismatch between supplied OIDC token and OIDC token file contents provided by AKS Workload Identity - please either remove one, ensure they match, or disable use_aks_workload_identity")
+			return nil, errors.New("mismatch between supplied OIDC token and OIDC token file contents provided by AKS Workload Identity - please either remove one, ensure they match, or disable use_aks_workload_identity")
 		}
 
 		idToken = fileToken
@@ -96,7 +97,7 @@ func getClientId(d *ProviderModel) (*string, error) {
 		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
 
 		if clientId != "" && clientId != fileClientId {
-			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
+			return nil, errors.New("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
 		}
 
 		clientId = fileClientId
@@ -105,7 +106,7 @@ func getClientId(d *ProviderModel) (*string, error) {
 	if d.UseAKSWorkloadIdentity.ValueBool() && clientId != "" {
 		aksClientId := os.Getenv("ARM_CLIENT_ID")
 		if clientId != "" && clientId != aksClientId {
-			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
+			return nil, errors.New("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
 		}
 		clientId = aksClientId
 	}

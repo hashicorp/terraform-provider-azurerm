@@ -113,6 +113,7 @@ var _ sdk.DataSource = DataSource{}
 func (a DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Azure Arc machine.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -136,13 +137,15 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"publisher": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Publisher of the extension.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Type of the extension.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -154,65 +157,75 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"publisher": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Publisher of the extension.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "Type of the extension.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
 					},
 
 					"extensions_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Whether the extension service is enabled or disabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"guest_configuration_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Specified whether the guest configuration service is enabled or disabled.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 
 					"incoming_connections_ports": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The list of ports that the agent will be able to listen on.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"proxy_bypass": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "List of service names which should not use the specified proxy server.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"proxy_url": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The URL of the proxy to be used.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"active_directory_fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The AD fully qualified display name.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"agent_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure Arc machine agent full version.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"client_public_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Public Key that the client provides to be used during initial resource onboarding.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"cloud_metadata": {
@@ -222,8 +235,9 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"provider": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The cloud provider. For example `Azure`, `AWS` and `GCP`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -238,25 +252,29 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure Arc machine display name.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"dns_fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The DNS fully qualified display name.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Windows domain name.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"last_status_change_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The time of the last status change.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"location": commonschema.LocationComputed(),
@@ -268,41 +286,48 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"city": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The city or locality where the resource is located.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"country_or_region": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The country or region where the resource is located.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"district": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The district, state, or province where the resource is located.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A canonical name for the geographic or physical location.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
 		},
 
 		"machine_fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure Arc machine fully qualified display name.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"mssql_discovered": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether any MS SQL instance is discovered on the machine.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"os_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Operating System running on the Azure Arc machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"os_profile": {
@@ -312,8 +337,9 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"computer_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The host OS name of the Azure Arc machine.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"linux": {
@@ -329,13 +355,15 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"assessment_mode": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The assessment mode.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 
 											"patch_mode": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The patch mode.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 										},
 									},
@@ -357,13 +385,15 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"assessment_mode": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The assessment mode.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 
 											"patch_mode": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
+												Description: "The patch mode.",
+												Type:        pluginsdk.TypeString,
+												Computed:    true,
 											},
 										},
 									},
@@ -376,28 +406,33 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 		},
 
 		"os_sku": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Operating System product SKU.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The type of Operating System.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"os_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The version of Operating System running on the Azure Arc machine.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"parent_cluster_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource ID of the parent cluster (Azure HCI) this machine is assigned to, if any.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"private_link_scope_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The resource ID of the parent cluster (Azure HCI) this machine is assigned to, if any.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"service_status": {
@@ -413,13 +448,15 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"startup_type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The behaviour of the service when the Arc-enabled machine starts up.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"status": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The current status of the service.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -432,13 +469,15 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"startup_type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The behaviour of the service when the Arc-enabled machine starts up.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 
 								"status": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
+									Description: "The current status of the service.",
+									Type:        pluginsdk.TypeString,
+									Computed:    true,
 								},
 							},
 						},
@@ -448,18 +487,21 @@ func (a DataSource) Attributes() map[string]*schema.Schema {
 		},
 
 		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The status of the Azure Arc machine agent.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"vm_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Azure Arc machine unique ID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"vm_uuid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Arc Machine's unique SMBIOS ID.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -472,6 +514,10 @@ func (a DataSource) ModelObject() any {
 
 func (a DataSource) ResourceType() string {
 	return "azurerm_arc_machine"
+}
+
+func (a DataSource) Description() string {
+	return "Use this data source to access information about an existing Azure Arc machine."
 }
 
 func (a DataSource) Read() sdk.ResourceFunc {

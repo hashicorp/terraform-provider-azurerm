@@ -14,49 +14,49 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name for this Dapr component.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.DaprComponentName,
-			Description:  "The name for this Dapr Component.",
 		},
 
 		"container_app_environment_id": {
+			Description:  "The ID of the Container App Managed Environment for this Dapr Component.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: daprcomponents.ValidateManagedEnvironmentID,
-			Description:  "The Container App Managed Environment ID to configure this Dapr component on.",
 		},
 
 		"component_type": {
+			Description:  "The Dapr Component Type. For example `state.azure.blobstorage`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The Dapr Component Type. For example `state.azure.blobstorage`.",
 		},
 
 		"version": {
+			Description:  "The version of the component.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The version of the component.",
 		},
 
 		"init_timeout": {
+			Description:  "The timeout for component initialisation as a `ISO8601` formatted string. e.g. `5s`, `2h`, `1m`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "5s",
 			ValidateFunc: validate.InitTimeout,
-			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`.",
 		},
 
 		"ignore_errors": {
+			Description: "Whether the Dapr sidecar should continue initialisation if the component fails to load.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the Dapr sidecar to continue initialisation if the component fails to load?",
 		},
 
 		"secret": helpers.SecretsSchema(),
@@ -64,13 +64,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"metadata": helpers.ContainerAppEnvironmentDaprMetadataSchema(),
 
 		"scopes": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
+			Description: "A list of scopes to which this component applies.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			MinItems:    1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A list of scopes to which this component applies. e.g. a Container App's `dapr.app_id` value.",
 		},
 	}
 }

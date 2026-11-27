@@ -221,7 +221,7 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subscription_required": {
-			Description: "Should this API require a subscription key?",
+			Description: "Whether this API should require a subscription key.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
@@ -292,13 +292,13 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 
 		// Computed
 		"is_current": {
-			Description: "Is this the current API Revision?",
+			Description: "Whether this is the current API Revision.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
 
 		"is_online": {
-			Description: "Is this API Revision online/accessible via the Gateway?",
+			Description: "Whether this API Revision is online/accessible via the Gateway.",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
@@ -306,9 +306,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		"version": {
 			Description: "The Version number of this API, if this API is versioned.",
 			Type:        pluginsdk.TypeString,
-			Computed:    true,
+			Optional:    true,
 			// Note: O+C because the API assigns a version identifier when not explicitly set
-			Optional: true,
+			Computed: true,
 		},
 
 		"version_description": {
@@ -321,9 +321,9 @@ func apiManagementApiSchema() map[string]*pluginsdk.Schema {
 		"version_set_id": {
 			Description: "The ID of the Version Set which this API is associated with.",
 			Type:        pluginsdk.TypeString,
-			Computed:    true,
+			Optional:    true,
 			// Note: O+C because the API assigns a version set ID when not explicitly set
-			Optional: true,
+			Computed: true,
 		},
 	}
 }

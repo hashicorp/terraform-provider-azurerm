@@ -4,6 +4,7 @@
 package signalr
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -55,7 +56,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 				ValidateFunc: validate.WebPubSubHubName(),
 			},
 
-			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}, "Web Pub/Sub Service"),
 
 			"event_handler": {
 				Type:     pluginsdk.TypeList,
@@ -89,9 +90,9 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 
 						"auth": {
 							Type:     pluginsdk.TypeList,
-							MaxItems: 1,
-							MinItems: 1,
 							Optional: true,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"managed_identity_id": {
@@ -360,7 +361,7 @@ func expandEventListener(input []any) (*[]webpubsub.EventListener, error) {
 		endpointName := block["eventhub_namespace_name"].(string)
 		fullQualifiedName := endpointName + ".servicebus.windows.net"
 		if _, ok := block["eventhub_name"]; !ok {
-			return nil, fmt.Errorf("no event hub is specified")
+			return nil, errors.New("no event hub is specified")
 		}
 		ehName := block["eventhub_name"].(string)
 		endpoint := webpubsub.EventHubEndpoint{

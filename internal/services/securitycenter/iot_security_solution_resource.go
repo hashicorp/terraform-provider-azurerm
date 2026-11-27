@@ -4,6 +4,7 @@
 package securitycenter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -73,11 +74,11 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"iothub_ids": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				Set:      set.HashStringIgnoreCase,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: iothubValidate.IotHubID,
 				},
-				Set: set.HashStringIgnoreCase,
 			},
 
 			"additional_workspace": {
@@ -338,7 +339,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta any
 				QuerySubscriptions: pluginsdk.ExpandStringSlice(querySubscriptions),
 			}
 		} else {
-			return fmt.Errorf("`query_for_resources` and `query_subscription_ids` must be set togetther")
+			return errors.New("`query_for_resources` and `query_subscription_ids` must be set togetther")
 		}
 	}
 

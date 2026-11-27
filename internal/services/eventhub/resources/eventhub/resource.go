@@ -5,6 +5,7 @@ package eventhub
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -19,10 +20,11 @@ var eventHubResourceName = "azurerm_eventhub"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubCreate,
-		Read:   resourceEventHubRead,
-		Update: resourceEventHubUpdate,
-		Delete: resourceEventHubDelete,
+		Description: "Manages an Event Hub as a nested resource within an Event Hubs namespace.",
+		Create:      resourceEventHubCreate,
+		Read:        resourceEventHubRead,
+		Update:      resourceEventHubUpdate,
+		Delete:      resourceEventHubDelete,
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&eventhubs.EventhubId{}),
@@ -49,7 +51,7 @@ func RegisterResource() *pluginsdk.Resource {
 					destinationMap := destination.AsValueSlice()[0].AsValueMap()
 					authType := destinationMap["storage_authentication_type"]
 					if authType.IsKnown() && !authType.IsNull() && authType.AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destinationMap["storage_authentication_id"].IsNull() {
-						return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+						return errors.New("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
 					}
 				}
 			}

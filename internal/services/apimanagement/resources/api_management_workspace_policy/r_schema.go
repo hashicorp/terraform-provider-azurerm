@@ -13,7 +13,7 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}, "API Management Workspace"),
 
 		"xml_content": {
 			Description: "The API Management Workspace Policy as an XML string.",
@@ -21,16 +21,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			// NOTE: O+C when `xml_link` is provided, the API downloads it into `xml_content`.
 			Computed:         true,
-			ExactlyOneOf:     []string{"xml_link", "xml_content"},
 			DiffSuppressFunc: helpers.XmlWithDotNetInterpolationsDiffSuppress,
+			ExactlyOneOf:     []string{"xml_link", "xml_content"},
 		},
 
 		"xml_link": {
 			Description:  "A publicly accessible URL to a policy XML document.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"xml_link", "xml_content"},
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			ExactlyOneOf: []string{"xml_link", "xml_content"},
 		},
 	}
 }

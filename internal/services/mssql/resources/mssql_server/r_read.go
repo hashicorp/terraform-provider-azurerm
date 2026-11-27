@@ -5,6 +5,7 @@ package mssql_server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -44,7 +45,7 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	old, new := d.GetChange("minimum_tls_version")
 	// todo remove `old != "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
 	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
-		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
+		err = errors.New("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
 	return
 }
@@ -52,7 +53,7 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
 	if old.(bool) && d.HasChange("administrator_login_password") {
-		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
+		err = errors.New("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 	return
 }

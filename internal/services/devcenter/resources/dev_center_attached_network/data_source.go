@@ -30,20 +30,22 @@ type DevCenterAttachedNetworkDataSourceModel struct {
 func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Dev Center Attached Network.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequired(&devcenters.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequired(&devcenters.DevCenterId{}, "Dev Center"),
 	}
 }
 
 func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"network_connection_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the attached Dev Center Network Connection.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }
@@ -54,6 +56,10 @@ func (DataSource) ModelObject() any {
 
 func (DataSource) ResourceType() string {
 	return "azurerm_dev_center_attached_network"
+}
+
+func (DataSource) Description() string {
+	return "Use this data source to access information about an existing Dev Center Attached Network."
 }
 
 func (r DataSource) Read() sdk.ResourceFunc {

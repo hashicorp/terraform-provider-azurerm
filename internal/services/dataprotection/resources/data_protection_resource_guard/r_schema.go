@@ -12,6 +12,7 @@ import (
 func dataProtectionResourceGuardSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the Resource Guard.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,8 +24,9 @@ func dataProtectionResourceGuardSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"vault_critical_operation_exclusion_list": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of the critical operations which are not protected by this Resource Guard.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

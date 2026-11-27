@@ -5,7 +5,7 @@ package logic_app_trigger_http_request
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
@@ -14,10 +14,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogicAppTriggerHttpRequestCreateUpdate,
-		Read:   resourceLogicAppTriggerHttpRequestRead,
-		Update: resourceLogicAppTriggerHttpRequestCreateUpdate,
-		Delete: resourceLogicAppTriggerHttpRequestDelete,
+		Description: "Manages an HTTP Request Trigger within a Logic App Workflow.",
+		Create:      resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Read:        resourceLogicAppTriggerHttpRequestRead,
+		Update:      resourceLogicAppTriggerHttpRequestCreateUpdate,
+		Delete:      resourceLogicAppTriggerHttpRequestDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := workflowtriggers.ParseTriggerID(id)
@@ -36,7 +37,7 @@ func RegisterResource() *pluginsdk.Resource {
 			if relativePath != "" {
 				method := diff.Get("method").(string)
 				if method == "" {
-					return fmt.Errorf("`method` must be specified when `relative_path` is set")
+					return errors.New("`method` must be specified when `relative_path` is set")
 				}
 			}
 

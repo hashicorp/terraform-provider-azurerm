@@ -12,7 +12,7 @@ import (
 
 func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": helpers.SchemaHDInsightName(),
+		"name": helpers.SchemaHDInsightName("HDInsight Kafka Cluster"),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -20,7 +20,7 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 
 		"cluster_version": helpers.SchemaHDInsightClusterVersion(),
 
-		"tier": helpers.SchemaHDInsightTier(),
+		"tier": helpers.SchemaHDInsightTier("HDInsight Kafka Cluster"),
 
 		"tls_min_version": helpers.SchemaHDInsightTls(),
 
@@ -35,9 +35,10 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"kafka": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Description: "The version of Kafka which should be used for this HDInsight Kafka Cluster.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
 					},
 				},
 			},
@@ -56,9 +57,10 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 		"compute_isolation": helpers.SchemaHDInsightsComputeIsolation(),
 
 		"encryption_in_transit_enabled": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
+			Description: "Whether encryption in transit is enabled for this HDInsight Kafka Cluster.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
 		},
 
 		"disk_encryption": helpers.SchemaHDInsightsDiskEncryptionProperties(),
@@ -81,12 +83,14 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"rest_proxy": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"roles.0.kafka_management_node"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"security_group_id": {
+						Description:  "The Azure Active Directory Security Group ID.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -94,6 +98,7 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"security_group_name": {
+						Description:  "The Azure Active Directory Security Group name.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -101,24 +106,26 @@ func hdinsightKafkaClusterSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			RequiredWith: []string{"roles.0.kafka_management_node"},
 		},
 
 		"tags": commonschema.Tags(),
 
 		"https_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The HTTPS Connectivity Endpoint for this HDInsight Kafka Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kafka_rest_proxy_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Kafka Rest Proxy Endpoint for this HDInsight Kafka Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"ssh_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SSH Connectivity Endpoint for this HDInsight Kafka Cluster.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"monitor": helpers.SchemaHDInsightsMonitor(),

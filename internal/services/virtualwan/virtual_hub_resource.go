@@ -5,6 +5,7 @@ package virtualwan
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -143,8 +144,8 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"virtual_router_auto_scale_min_capacity": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(2),
 				Default:      2,
+				ValidateFunc: validation.IntAtLeast(2),
 			},
 		},
 	}
@@ -157,7 +158,7 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	defer cancel()
 
 	if _, ok := ctx.Deadline(); !ok {
-		return fmt.Errorf("deadline is not properly set for Virtual Hub")
+		return errors.New("deadline is not properly set for Virtual Hub")
 	}
 
 	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -242,7 +243,7 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	defer cancel()
 
 	if _, ok := ctx.Deadline(); !ok {
-		return fmt.Errorf("deadline is not properly set for Virtual Hub")
+		return errors.New("deadline is not properly set for Virtual Hub")
 	}
 
 	id, err := virtualwans.ParseVirtualHubID(d.Id())

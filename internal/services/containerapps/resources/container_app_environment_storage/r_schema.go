@@ -14,56 +14,57 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name for this Container App Environment Storage.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedEnvironmentStorageName,
-			Description:  "The name for this Storage.",
 		},
 
 		"container_app_environment_id": {
+			Description:  "The ID of the Container App Environment to which this storage belongs.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: managedenvironmentsstorages.ValidateManagedEnvironmentID,
-			Description:  "The ID of the Container App Environment to which this storage belongs.",
 		},
 
 		"account_name": {
+			Description:   "The Azure Storage Account in which the Share to be used is located.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
 			ValidateFunc:  storageValidate.StorageAccountName,
 			RequiredWith:  []string{"access_key"},
 			ConflictsWith: []string{"nfs_server_url"},
-			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
 		"access_key": {
+			Description:  "The Storage Account Access Key.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"account_name"},
-			Description:  "The Storage Account Access Key.",
 		},
 
 		"share_name": {
+			Description: "The name of the Azure Storage Share to use.",
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The name of the Azure Storage Share to use.",
 		},
 
 		"access_mode": {
+			Description:  "The access mode to connect this storage to the Container App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(managedenvironmentsstorages.PossibleValuesForAccessMode(), false),
-			Description:  "The access mode to connect this storage to the Container App.",
 		},
 
 		"nfs_server_url": {
+			Description:   "The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`.",
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,

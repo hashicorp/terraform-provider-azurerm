@@ -8,6 +8,7 @@ package chaosstudio
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -86,25 +87,25 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"name": {
-			ForceNew: true,
-			Required: true,
 			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"selectors": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"chaos_studio_target_ids": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidateChaosStudioTargetID,
@@ -114,36 +115,36 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 		"steps": {
-			Required: true,
 			Type:     pluginsdk.TypeList,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required:     true,
 						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch": {
-						Required: true,
 						Type:     pluginsdk.TypeList,
+						Required: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Required:     true,
 									Type:         pluginsdk.TypeString,
+									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"actions": {
-									Required: true,
 									Type:     pluginsdk.TypeList,
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"action_type": {
-												Required: true,
 												Type:     pluginsdk.TypeString,
+												Required: true,
 												ValidateFunc: validation.StringInSlice([]string{
 													continuousActionType,
 													delayActionType,
@@ -153,16 +154,16 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 											// the different types of actions require different properties to be set
 											// which is why the validation for these is done in expandActions
 											"urn": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"selector_name": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"duration": {
-												Optional: true,
 												Type:     pluginsdk.TypeString,
+												Optional: true,
 											},
 											"parameters": {
 												Type:     pluginsdk.TypeMap,
@@ -446,7 +447,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 		switch action.ActionType {
 		case continuousActionType:
 			if action.Duration == "" || action.SelectorName == "" || action.Urn == "" {
-				return nil, fmt.Errorf("`duration`, `selector_name` and `urn` must be set for actions with `action_type` of `continuous`")
+				return nil, errors.New("`duration`, `selector_name` and `urn` must be set for actions with `action_type` of `continuous`")
 			}
 			output = append(output, experiments.ContinuousAction{
 				Duration:   action.Duration,
@@ -456,7 +457,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 			})
 		case delayActionType:
 			if action.Duration == "" {
-				return nil, fmt.Errorf("`duration` must be set for actions with `action_type` of `delay`")
+				return nil, errors.New("`duration` must be set for actions with `action_type` of `delay`")
 			}
 			output = append(output, experiments.DelayAction{
 				Duration: action.Duration,
@@ -464,7 +465,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 			})
 		case discreteActionType:
 			if action.SelectorName == "" || action.Urn == "" {
-				return nil, fmt.Errorf("`selector_name` and `urn` must be set for actions with `action_type` of `discrete`")
+				return nil, errors.New("`selector_name` and `urn` must be set for actions with `action_type` of `discrete`")
 			}
 			output = append(output, experiments.DiscreteAction{
 				Parameters: parameters,
@@ -488,7 +489,7 @@ func flattenSelector(input []experiments.Selector) (*[]SelectorSchema, error) {
 		targetIds := make([]string, 0)
 		ls, ok := selector.(experiments.ListSelector)
 		if !ok {
-			return nil, fmt.Errorf("selector is not of type ListSelector")
+			return nil, errors.New("selector is not of type ListSelector")
 		}
 		for _, t := range ls.Targets {
 			targetIds = append(targetIds, t.Id)
@@ -564,7 +565,7 @@ func flattenActions(input []experiments.Action) (*[]ActionSchema, error) {
 			actionOutput.Urn = a.Name
 			actionOutput.ActionType = discreteActionType
 		default:
-			return nil, fmt.Errorf("action is not of type `continuous`, `delay` or `discrete`")
+			return nil, errors.New("action is not of type `continuous`, `delay` or `discrete`")
 		}
 
 		output = append(output, actionOutput)

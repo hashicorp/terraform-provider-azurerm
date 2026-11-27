@@ -5,6 +5,7 @@ package custompollers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -132,7 +133,7 @@ func TestClusterStatePoller_GetError(t *testing.T) {
 	id := redisenterprise.NewRedisEnterpriseID("12345678-1234-1234-1234-123456789012", "test-rg", "test-cluster")
 
 	mockClient := &mockRedisEnterpriseClient{
-		getError: fmt.Errorf("API error"),
+		getError: errors.New("API error"),
 	}
 
 	pollerType := &clusterStatePoller{
@@ -208,7 +209,7 @@ func (m *mockRedisEnterpriseClient) Get(ctx context.Context, id redisenterprise.
 	if m.getResponse != nil {
 		return *m.getResponse, nil
 	}
-	return redisenterprise.GetOperationResponse{}, fmt.Errorf("no mock response configured")
+	return redisenterprise.GetOperationResponse{}, errors.New("no mock response configured")
 }
 
 type statefulMockClient struct {

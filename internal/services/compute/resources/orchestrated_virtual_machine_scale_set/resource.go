@@ -5,6 +5,7 @@ package orchestrated_virtual_machine_scale_set
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -27,10 +28,11 @@ type Output struct {
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceOrchestratedVirtualMachineScaleSetCreate,
-		Read:   resourceOrchestratedVirtualMachineScaleSetRead,
-		Update: resourceOrchestratedVirtualMachineScaleSetUpdate,
-		Delete: resourceOrchestratedVirtualMachineScaleSetDelete,
+		Description: "Manages an Orchestrated Virtual Machine Scale Set in Flexible Orchestration Mode.",
+		Create:      resourceOrchestratedVirtualMachineScaleSetCreate,
+		Read:        resourceOrchestratedVirtualMachineScaleSetRead,
+		Update:      resourceOrchestratedVirtualMachineScaleSetUpdate,
+		Delete:      resourceOrchestratedVirtualMachineScaleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineScaleSetID(id)
@@ -80,7 +82,7 @@ func RegisterResource() *pluginsdk.Resource {
 					}
 				} else {
 					if hasSkuName && skuName == SkuNameMix {
-						return fmt.Errorf("`sku_profile` must be configured when `sku_name` is set to `Mix`")
+						return errors.New("`sku_profile` must be configured when `sku_name` is set to `Mix`")
 					}
 				}
 
@@ -152,17 +154,17 @@ func RegisterResource() *pluginsdk.Resource {
 					auxiliarySku := raw["auxiliary_sku"].(string)
 
 					if auxiliaryMode != "" && auxiliarySku == "" {
-						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+						return errors.New("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
 					}
 
 					if auxiliarySku != "" && auxiliaryMode == "" {
-						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+						return errors.New("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
 					}
 
 					if auxiliaryMode != "" {
 						networkApiVersion := virtualmachinescalesets.NetworkApiVersion(diff.Get("network_api_version").(string))
 						if networkApiVersion == virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne {
-							return fmt.Errorf("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
+							return errors.New("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
 						}
 					}
 				}
