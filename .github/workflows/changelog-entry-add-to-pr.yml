@@ -1,5 +1,9 @@
 name: changelog-entry-add-to-pr
 
+# The entry is written and pushed by two different jobs, so the token that can push is never on a runner beside the pull request's files:
+# write-entry has the files and no such token, and hands its commit to push-entry, which has the token and checks out none of them.
+# Tested by scripts/automation/changelog-entry-push.test.sh, as a workflow_run workflow only runs once it is on main.
+
 # workflow_run is needed for write access on fork PRs, which pull_request cannot provide
 on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
@@ -11,21 +15,22 @@ on:  # zizmor: ignore[dangerous-triggers]
 permissions: {}
 
 jobs:
-  changelog:
+  write-entry:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      has-entry: ${{ steps.commit.outputs.has-entry }}
     steps:
-      # the persisted token is what pushes the entry to the PR branch
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6 # zizmor: ignore[artipacked]
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
-          token: ${{ secrets.SERVICE_ACCOUNT_CHANGELOG_TOKEN }}
+          persist-credentials: false
 
       - name: Download event metadata
-        id: download
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           path: artifacts/
@@ -99,18 +104,104 @@ jobs:
             exit 1
           fi
 
-      - name: Commit and push changelog entries to PR branch
+      # the commit goes on a branch with a fixed name, as the pull request's own branch name is chosen by its author
+      - name: Commit changelog entries and bundle the commit
+        id: commit
         env:
           PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         run: |
+          pr_head=$(git rev-parse HEAD)
+          git switch --quiet -C changelog-entry
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .changelog/
-          git diff --cached --quiet || git commit -m "changelog: add entries for PR #${PR_NUMBER}"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "has-entry=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit --quiet -m "changelog: add entries for PR #${PR_NUMBER}"
+          git bundle create "${RUNNER_TEMP}/changelog-entry.bundle" "${pr_head}..refs/heads/changelog-entry"
+          echo "has-entry=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: steps.commit.outputs.has-entry == 'true'
+        with:
+          name: changelog-entry-bundle
+          path: ${{ runner.temp }}/changelog-entry.bundle
+          retention-days: 1
+
+  push-entry:
+    needs: write-entry
+    if: needs.write-entry.outputs.has-entry == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    steps:
+      # main, for the script below: nothing from the pull request is checked out in this job
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/automation
+
+      # the pull request number is read again from the comment's own run, not taken from the job that had the pull request's files
+      - name: Download event metadata
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          path: artifacts/
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+
+      - name: Download the bundled commit
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: changelog-entry-bundle
+          path: ${{ runner.temp }}
+
+      - name: Check the commit and push it to the PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUSH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_CHANGELOG_TOKEN }}
+          BUNDLE_PATH: ${{ runner.temp }}/changelog-entry.bundle
+          FETCH_URL: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          IFS= read -r PR_NUMBER < artifacts/pr-number
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Invalid pr-number" >&2
+            exit 1
+          fi
+
+          # where the pull request's branch lives, which is a fork for a pull request from a fork
+          head_repo=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRepositoryOwner,headRepository --jq '"\(.headRepositoryOwner.login)/\(.headRepository.name)"')
+          HEAD_REF=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefName --jq '.headRefName')
+
+          export PR_NUMBER HEAD_REF
+          export PUSH_URL="${GITHUB_SERVER_URL}/${head_repo}.git"
+          ./scripts/automation/changelog-entry-push.sh
+
+  comment-on-failure:
+    needs: [write-entry, push-entry]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Download event metadata
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          path: artifacts/
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
 
       - name: Comment on failure
-        if: failure() && steps.download.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
