@@ -36,11 +36,15 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta any) er
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceApiManagementNamedValueFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementNamedValueFlatten(d *pluginsdk.ResourceData, id *namedvalue.NamedValueId, model *namedvalue.NamedValueContract) error {
 	d.Set("name", id.NamedValueId)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("secret", pointer.From(props.Secret))
@@ -55,7 +59,7 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta any) er
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func flattenApiManagementNamedValueKeyVault(input *namedvalue.KeyVaultContractProperties) []any {

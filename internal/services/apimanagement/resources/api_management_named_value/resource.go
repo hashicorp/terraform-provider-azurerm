@@ -6,9 +6,15 @@ package api_management_named_value
 import (
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "named_value_id:name,resource_group_name,service_name:api_management_name"
+
+const azureApiManagementNamedValueResourceName = "azurerm_api_management_named_value"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -17,10 +23,11 @@ func RegisterResource() *pluginsdk.Resource {
 		Read:        resourceApiManagementNamedValueRead,
 		Update:      resourceApiManagementNamedValueCreateUpdate,
 		Delete:      resourceApiManagementNamedValueDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namedvalue.ParseNamedValueID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&namedvalue.NamedValueId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&namedvalue.NamedValueId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
