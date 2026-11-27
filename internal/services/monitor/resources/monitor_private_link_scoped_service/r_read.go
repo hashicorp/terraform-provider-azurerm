@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,8 +39,23 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", id.ScopedResourceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("scope_name", id.PrivateLinkScopeName)
+	if scopeIdRaw, ok := d.GetOk("scope_resource_id"); ok {
+		scopeId, err := privatelinkscopesapis.ParsePrivateLinkScopeID(scopeIdRaw.(string))
+		if err != nil {
+			return fmt.Errorf("parsing scope ID: %+v", err)
+		}
+		d.Set("scope_resource_id", scopeId.ID())
+	} else {
+		d.Set("scope_name", id.PrivateLinkScopeName)
+		if _, ok := d.GetOk("scope_resource_group_name"); ok {
+			d.Set("scope_resource_group_name", id.ResourceGroupName)
+		} else {
+			d.Set("resource_group_name", id.ResourceGroupName)
+		}
+		if _, ok := d.GetOk("scope_subscription_id"); ok {
+			d.Set("scope_subscription_id", id.SubscriptionId)
+		}
+	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
