@@ -13,6 +13,17 @@ import (
 
 type PostgresqlFlexibleServerDataSource struct{}
 
+func TestAccDataSourcePostgresqlflexibleServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerDataSource{}

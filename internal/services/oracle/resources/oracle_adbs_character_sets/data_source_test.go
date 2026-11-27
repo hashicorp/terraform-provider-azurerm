@@ -12,6 +12,17 @@ import (
 
 type AdbsCharSetsDataSource struct{}
 
+func TestAccAdbsCharSetsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_adbs_character_sets", "test")
+	r := AdbsCharSetsDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(),
+		},
+	}, "")
+}
+
 func TestAccAdbsCharSetsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_adbs_character_sets", "test")
 	r := AdbsCharSetsDataSource{}

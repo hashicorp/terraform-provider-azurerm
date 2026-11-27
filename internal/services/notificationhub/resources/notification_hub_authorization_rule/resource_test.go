@@ -18,6 +18,16 @@ import (
 
 type NotificationHubAuthorizationRuleResource struct{}
 
+func TestAccNotificationHubAuthorizationRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
+	r := NotificationHubAuthorizationRuleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.listen(data),
+		},
+	}, "")
+}
+
 func TestAccNotificationHubAuthorizationRule_listen(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
 	r := NotificationHubAuthorizationRuleResource{}

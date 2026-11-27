@@ -21,6 +21,31 @@ import (
 
 type NewRelicMonitorResource struct{}
 
+func TestAccNewRelicMonitor_regressionTest(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
+	const AccountIdEnv = "ARM_ACCTEST_NEW_RELIC_ACCOUNT_ID"
+	const OrgIdEnv = "ARM_ACCTEST_NEW_RELIC_ORG_ID"
+
+	accountId := os.Getenv(AccountIdEnv)
+	orgId := os.Getenv(OrgIdEnv)
+
+	if accountId == "" || orgId == "" {
+		t.Skipf("Acceptance test skipped unless env '%s' and '%s' set", AccountIdEnv, OrgIdEnv)
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
+	r := NewRelicMonitorResource{}
+	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	email := "b9ba4f77-5e63-4f1e-9445-b982d35f635b@example.com"
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, effectiveDate, email, accountId, orgId),
+		},
+	}, "")
+}
+
 func TestAccNewRelicMonitor_basic(t *testing.T) {
 	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
 

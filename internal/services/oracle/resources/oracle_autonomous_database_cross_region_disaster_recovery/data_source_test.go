@@ -14,6 +14,16 @@ import (
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryDataSource struct{}
 
+func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%s", oracle_autonomous_database_cross_region_disaster_recovery.DataSource{}.ResourceType()), "adbs_secondary_crdr")
+	r := AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%s", oracle_autonomous_database_cross_region_disaster_recovery.DataSource{}.ResourceType()), "adbs_secondary_crdr")
 	r := AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}

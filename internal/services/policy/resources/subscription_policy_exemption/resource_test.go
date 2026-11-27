@@ -21,6 +21,18 @@ import (
 
 type SubscriptionPolicyExemptionResource struct{}
 
+func TestAccAzureRMSubscriptionPolicyExemption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
+	r := SubscriptionPolicyExemptionResource{}
+	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, endDate),
+		},
+	}, "")
+}
+
 func TestAccAzureRMSubscriptionPolicyExemption_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
 	r := SubscriptionPolicyExemptionResource{}

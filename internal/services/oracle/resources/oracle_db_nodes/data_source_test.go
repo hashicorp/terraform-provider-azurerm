@@ -13,6 +13,17 @@ import (
 
 type DBNodesDataSource struct{}
 
+func TestAccDBNodesDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_nodes", "test")
+	r := DBNodesDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDBNodesDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_nodes", "test")
 	r := DBNodesDataSource{}

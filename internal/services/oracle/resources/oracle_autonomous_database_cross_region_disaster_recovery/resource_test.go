@@ -31,6 +31,16 @@ func (a AdbsCrossRegionDisasterRecoveryResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccAdbsCrossRegionDisasterRecoveryResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_autonomous_database_cross_region_disaster_recovery.Resource{}.ResourceType(), "adbs_secondary_crdr")
+	r := AdbsCrossRegionDisasterRecoveryResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAdbsCrossRegionDisasterRecoveryResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_autonomous_database_cross_region_disaster_recovery.Resource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AdbsCrossRegionDisasterRecoveryResource{}

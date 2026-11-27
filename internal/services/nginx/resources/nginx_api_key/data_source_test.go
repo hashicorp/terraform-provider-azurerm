@@ -14,6 +14,19 @@ import (
 
 type APIKeyDataSource struct{}
 
+func TestAccAPIKeyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_nginx_api_key", "test")
+	secretText := uuid.NewString()
+	endDateTime := getEndDateTime(3)
+	r := APIKeyDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data, secretText, endDateTime),
+		},
+	}, "")
+}
+
 func TestAccAPIKeyDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nginx_api_key", "test")
 	secretText := uuid.NewString()

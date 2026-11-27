@@ -13,6 +13,17 @@ import (
 
 type NginxCertificateDataSource struct{}
 
+func TestAccNginxCertificateDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_nginx_certificate", "test")
+	r := NginxCertificateDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNginxCertificateDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nginx_certificate", "test")
 	r := NginxCertificateDataSource{}

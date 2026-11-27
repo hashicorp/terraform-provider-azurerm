@@ -19,6 +19,17 @@ import (
 
 type ResourceGroupAssignmentTestResource struct{}
 
+func TestAccResourceGroupPolicyAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
+	r := ResourceGroupAssignmentTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomPolicyComplete(data),
+		},
+	}, "")
+}
+
 func TestAccResourceGroupPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
 	r := ResourceGroupAssignmentTestResource{}

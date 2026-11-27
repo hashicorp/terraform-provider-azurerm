@@ -12,6 +12,17 @@ import (
 
 type DbSystemShapesDataSource struct{}
 
+func TestAccDbSystemShapesDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_shapes", "test")
+	r := DbSystemShapesDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(),
+		},
+	}, "")
+}
+
 func TestAccDbSystemShapesDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_shapes", "test")
 	r := DbSystemShapesDataSource{}

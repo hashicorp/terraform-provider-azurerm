@@ -19,6 +19,17 @@ import (
 
 type LocalRulestackOutboundTrustCertificateResource struct{}
 
+func TestAccLocalRulestackOutboundTrustCertificateResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association", "test")
+	r := LocalRulestackOutboundTrustCertificateResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLocalRulestackOutboundTrustCertificateResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association", "test")
 	r := LocalRulestackOutboundTrustCertificateResource{}

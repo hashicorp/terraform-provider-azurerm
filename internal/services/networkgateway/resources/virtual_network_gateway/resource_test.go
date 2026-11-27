@@ -19,6 +19,17 @@ import (
 
 type VirtualNetworkGatewayResource struct{}
 
+func TestAccVirtualNetworkGateway_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}

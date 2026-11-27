@@ -27,8 +27,19 @@ func TestAccPortalTenantConfiguration_sequential(t *testing.T) {
 			"basic":          testAccPortalTenantConfiguration_basic,
 			"update":         testAccPortalTenantConfiguration_update,
 			"requiresImport": testAccPortalTenantConfiguration_requiresImport,
+			"regression":     testAccPortalTenantConfiguration_regressionTest,
 		},
 	})
+}
+
+func testAccPortalTenantConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_portal_tenant_configuration", "test")
+	r := PortalTenantConfigurationResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(true),
+		},
+	}, "")
 }
 
 func testAccPortalTenantConfiguration_basic(t *testing.T) {

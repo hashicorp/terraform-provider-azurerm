@@ -14,6 +14,17 @@ import (
 
 type PolicyVirtualMachineConfigurationAssignmentDataSource struct{}
 
+func TestAccPolicyVirtualMachineConfigurationAssignmentDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_virtual_machine_configuration_assignment", "test")
+	r := PolicyVirtualMachineConfigurationAssignmentDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccPolicyVirtualMachineConfigurationAssignmentDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_virtual_machine_configuration_assignment", "test")
 	r := PolicyVirtualMachineConfigurationAssignmentDataSource{}

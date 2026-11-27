@@ -14,6 +14,17 @@ import (
 
 type ResourceAnchorDataSource struct{}
 
+func TestAccResourceAnchorDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_resource_anchor.DataSource{}.ResourceType(), "test")
+	r := ResourceAnchorDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccResourceAnchorDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_resource_anchor.DataSource{}.ResourceType(), "test")
 	r := ResourceAnchorDataSource{}

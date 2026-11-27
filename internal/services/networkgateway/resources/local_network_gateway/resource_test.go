@@ -19,6 +19,17 @@ import (
 
 type LocalNetworkGatewayResource struct{}
 
+func TestAccLocalNetworkGateway_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
+	r := LocalNetworkGatewayResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccLocalNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 	r := LocalNetworkGatewayResource{}

@@ -31,6 +31,16 @@ func (a CloudVmClusterResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccCloudVmClusterResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_cloud_vm_cluster.Resource{}.ResourceType(), "test")
+	r := CloudVmClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCloudVmClusterResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_cloud_vm_cluster.Resource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}

@@ -14,6 +14,17 @@ import (
 
 type AssignmentDataSource struct{}
 
+func TestAccDataSourceAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_assignment", "test")
+	d := AssignmentDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.builtinPolicyComplete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAssignment_builtinPolicyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_assignment", "test")
 	d := AssignmentDataSource{}

@@ -19,6 +19,18 @@ import (
 
 type LocalRuleStackPrefixList struct{}
 
+func TestAccLocalRulestackPrefixList_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
+
+	r := LocalRuleStackPrefixList{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLocalRulestackPrefixList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 

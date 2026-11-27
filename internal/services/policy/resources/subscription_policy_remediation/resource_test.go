@@ -19,6 +19,17 @@ import (
 
 type SubscriptionPolicyRemediationResource struct{}
 
+func TestAccAzureRMSubscriptionPolicyRemediation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_remediation", "test")
+	r := SubscriptionPolicyRemediationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureRMSubscriptionPolicyRemediation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_remediation", "test")
 	r := SubscriptionPolicyRemediationResource{}

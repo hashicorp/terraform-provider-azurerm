@@ -19,6 +19,18 @@ import (
 
 type LocalRulestackFQDNList struct{}
 
+func TestAccPaloAltoLocalRulestackFQDNList_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
+
+	r := LocalRulestackFQDNList{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPaloAltoLocalRulestackFQDNList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 

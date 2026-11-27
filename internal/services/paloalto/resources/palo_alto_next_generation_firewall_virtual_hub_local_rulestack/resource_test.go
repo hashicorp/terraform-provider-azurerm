@@ -19,6 +19,18 @@ import (
 
 type NextGenerationFirewallVWanResource struct{}
 
+func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
+
+	r := NextGenerationFirewallVWanResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 

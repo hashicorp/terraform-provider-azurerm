@@ -32,6 +32,16 @@ func (a AdbsRegularResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccAdbsRegularResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_autonomous_database.Resource{}.ResourceType(), "test")
+	r := AdbsRegularResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAdbsRegularResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_autonomous_database.Resource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}

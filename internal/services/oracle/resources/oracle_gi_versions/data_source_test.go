@@ -12,6 +12,17 @@ import (
 
 type GiVersionsDataSource struct{}
 
+func TestAccGiVersionsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
+	r := GiVersionsDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(),
+		},
+	}, "")
+}
+
 func TestAccGiVersionsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
 	r := GiVersionsDataSource{}

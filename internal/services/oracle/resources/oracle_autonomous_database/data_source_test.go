@@ -14,6 +14,17 @@ import (
 
 type AutonomousDatabaseRegularDataSource struct{}
 
+func TestAccAdbsRegularDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_autonomous_database.DataSource{}.ResourceType(), "test")
+	r := AutonomousDatabaseRegularDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAdbsRegularDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_autonomous_database.DataSource{}.ResourceType(), "test")
 	r := AutonomousDatabaseRegularDataSource{}

@@ -14,6 +14,17 @@ import (
 
 type ExadataInfraDataSource struct{}
 
+func TestAccExadataInfraDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_exadata_infrastructure.DataSource{}.ResourceType(), "test")
+	r := ExadataInfraDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccExadataInfraDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_exadata_infrastructure.DataSource{}.ResourceType(), "test")
 	r := ExadataInfraDataSource{}

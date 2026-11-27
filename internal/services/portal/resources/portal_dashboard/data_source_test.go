@@ -13,6 +13,16 @@ import (
 
 type PortalDashboardDataSource struct{}
 
+func TestAccDataSourcePortalDashboard_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_portal_dashboard", "test")
+	r := PortalDashboardDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourcePortalDashboard_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_portal_dashboard", "test")
 	r := PortalDashboardDataSource{}

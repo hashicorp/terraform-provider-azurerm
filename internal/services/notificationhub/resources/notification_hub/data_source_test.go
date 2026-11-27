@@ -12,6 +12,17 @@ import (
 
 type NotificationHubDataSource struct{}
 
+func TestAccNotificationHubDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_notification_hub", "test")
+	d := NotificationHubDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccNotificationHubDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_notification_hub", "test")
 	d := NotificationHubDataSource{}

@@ -32,6 +32,16 @@ func (a ResourceAnchorResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccResourceAnchorResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle_resource_anchor.Resource{}.ResourceType(), "test")
+	r := ResourceAnchorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccResourceAnchorResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle_resource_anchor.Resource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}

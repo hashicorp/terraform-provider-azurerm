@@ -20,6 +20,19 @@ import (
 
 type NewRelicTagRuleResource struct{}
 
+func TestAccNewRelicTagRule_regressionTest(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
+	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
+	r := NewRelicTagRuleResource{}
+	email := "672d9312-65a7-484c-870d-94584850a423@example.com"
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, email),
+		},
+	}, "")
+}
+
 func TestAccNewRelicTagRule_basic(t *testing.T) {
 	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
 
