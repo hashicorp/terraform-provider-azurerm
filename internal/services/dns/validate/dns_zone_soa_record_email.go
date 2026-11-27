@@ -19,7 +19,7 @@ func DnsZoneSOARecordEmail(v any, k string) (warnings []string, errs []error) {
 		return warnings, errs
 	}
 
-	vSegments := strings.Split(value, ".")
+	vSegments := strings.Split(strings.TrimSuffix(value, "."), ".")
 	if len(vSegments) < 2 || len(vSegments) > 34 {
 		errs = append(errs, fmt.Errorf("%q must be between 2 and 34 segments", k))
 		return warnings, errs
