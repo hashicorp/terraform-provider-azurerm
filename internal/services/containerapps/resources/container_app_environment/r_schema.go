@@ -61,19 +61,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"infrastructure_resource_group_name": {
-			Description:  "Name of the platform-managed Resource Group created for the Managed Environment to host infrastructure resources.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Description: "Name of the platform-managed Resource Group created for the Managed Environment to host infrastructure resources.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			// Note: O+C - value is computed by Azure when `infrastructure_resource_group_name` is not configured
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: resourcegroups.ValidateName,
-			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted and workload_profile is set, then the service generates a value for the required manage resource group.
-				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" {
-					return true
-				}
-				return false
-			},
-			DiffSuppressOnRefresh: true,
-			RequiredWith:          []string{"workload_profile"},
+			RequiredWith: []string{"workload_profile"},
 		},
 
 		"infrastructure_subnet_id": {
